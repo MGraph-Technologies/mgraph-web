@@ -1,3 +1,4 @@
+import { Button } from 'primereact/button'
 import React, { FunctionComponent, useState } from 'react'
 
 import { supabase } from '../utils/supabaseClient'
@@ -7,13 +8,13 @@ type Props = {}
 
 const Auth: FunctionComponent<Props> = () => {
   const [loading, setLoading] = useState(false)
-  const [email, setEmail] = useState('')
 
-  const handleLogin = async (email: string) => {
+  const handleSignIn = async () => {
     try {
       setLoading(true)
-      const { error } = await supabase.auth.signIn({ email })
-      alert('Check your email for the login link!')
+      const { error } = await supabase.auth.signIn({ 
+        provider: 'google',
+      })
       if (error) throw error
     } catch (error: any) {
       alert(error.error_description || error.message)
@@ -24,28 +25,12 @@ const Auth: FunctionComponent<Props> = () => {
 
   return (
     <div>
-      <p className="description">Log in or sign up:</p>
-      <div>
-        <input
-          className="inputField"
-          type="email"
-          placeholder="Your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-      <div>
-        <button
-          onClick={(e) => {
-            e.preventDefault()
-            handleLogin(email)
-          }}
-          className="button block"
-          disabled={loading}
-        >
-          <span>{loading ? 'Loading' : 'Send magic link'}</span>
-        </button>
-      </div>
+      <Button
+        label="Sign in with Google"
+        icon="pi pi-google"
+        onClick={handleSignIn}
+        loading={loading}
+      />
     </div>
   )
 }
