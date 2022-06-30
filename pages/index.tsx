@@ -1,8 +1,25 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
+import { useState, useEffect } from 'react'
+import { Session } from '@supabase/supabase-js'
+
+import Auth from '../components/Auth'
+import Account from '../components/Account'
 import styles from '../styles/Home.module.css'
+import { supabase } from '../utils/supabaseClient'
+
 
 const Home: NextPage = () => {
+  const [session, setSession] = useState<Session | null>()
+
+  useEffect(() => {
+    setSession(supabase.auth.session())
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
+  
   return (
     <div className={styles.container}>
       <Head>
@@ -13,8 +30,11 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <h1 className={styles.title}>
-          Coming soon!
+          Welcome to MGraph!
         </h1>
+        <div className="container" style={{ padding: '50px 0 100px 0' }}>
+          {!session ? <Auth /> : <Account key={session.user ? session.user.id : ''} session={session} />}
+        </div>
       </main>
 
       <footer className={styles.footer}>
