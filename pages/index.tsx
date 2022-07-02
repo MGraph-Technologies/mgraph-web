@@ -6,6 +6,7 @@ import type { NextPage } from 'next'
 import Auth from '../components/Auth'
 import Account from '../components/Account'
 import styles from '../styles/Home.module.css'
+import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
 
@@ -17,6 +18,10 @@ const Home: NextPage = () => {
 
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
+      if( session && session.user ) {
+        analytics.identify(session.user.id)
+      }
+      
     })
   }, [])
   
