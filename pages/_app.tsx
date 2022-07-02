@@ -3,8 +3,8 @@ import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";                                //icons
 import type { AppProps } from 'next/app'
 
-
 import '../styles/globals.css'
+
 
 function MyApp({ Component, pageProps }: AppProps) {
   return <Component {...pageProps} />
