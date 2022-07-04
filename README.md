@@ -4,7 +4,15 @@ This contains MGraph's web app, built in [Next.js](https://nextjs.org/) typescri
 
 ## Development
 
-First, run the development server:
+First, configure environment variables (from cloned dir):
+
+```bash
+npm i -g vercel
+vercel link
+vercel env pull
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
