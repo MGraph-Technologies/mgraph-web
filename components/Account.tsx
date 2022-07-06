@@ -1,36 +1,30 @@
 import React, { FunctionComponent, useEffect, useState } from 'react'
-import { Session } from '@supabase/supabase-js'
+import { Button } from 'primereact/button'
+import { useRouter } from 'next/router'
 
 import { supabase } from '../utils/supabaseClient'
 
 
 type Props = {
-  session: Session
 }
 
-const Account: FunctionComponent<Props> = ({ session }) => {
-  useEffect(() => {
-    getProfile()
-  }, [session])
+const Account: FunctionComponent<Props> = () => {
+  const router = useRouter()
+  const user = supabase.auth.user()
 
-  async function getProfile() {
-    const user = supabase.auth.user()
+  async function handleSignOut() {
+    supabase.auth.signOut()
+    router.push('/')
   }
 
   return (
-    <div className="form-widget">
-      <div>
-        <label htmlFor="email">Email</label>
-        <input id="email" type="text" value={session.user ? session.user.email : ''} disabled />
-      </div>
-
-      <div>
-        <button className="button block" onClick={() => supabase.auth.signOut()}>
-          Sign Out
-        </button>
-      </div>
+    <div className="account-module">
+      <div>Signed in as: {user ? user.email : ''}</div>
+      <button className="sign-out-button" onClick={() => handleSignOut()}>
+        Sign Out
+      </button>
     </div>
   )
 }
 
-export default Account;
+export default Account
