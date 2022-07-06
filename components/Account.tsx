@@ -1,4 +1,5 @@
 import React, { FunctionComponent, useEffect, useState } from 'react'
+import { Button } from 'primereact/button'
 import { useRouter } from 'next/router'
 
 import { supabase } from '../utils/supabaseClient'
@@ -18,8 +19,8 @@ const Account: FunctionComponent<Props> = () => {
 
   return (
     <div className="account-module">
-      <div>Logged in as: {user ? user.email : ''}</div>
-      <button className="button block" onClick={() => handleSignOut()}>
+      <div>Signed in as: {user ? user.email : ''}</div>
+      <button className="sign-out-button" onClick={() => handleSignOut()}>
         Sign Out
       </button>
     </div>

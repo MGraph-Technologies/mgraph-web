@@ -11,11 +11,11 @@ const AuthedUserRouter: FunctionComponent<Props> = () => {
   const router = useRouter()
 
   useEffect(() => {
-    getOrganization()
+    routeToOrganizationIfEnabled()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function getOrganization() {
+  async function routeToOrganizationIfEnabled() {
     try {
       const user = supabase.auth.user()
 
