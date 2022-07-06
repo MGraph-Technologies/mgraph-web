@@ -48,4 +48,4 @@ const AuthedUserRouter: FunctionComponent<Props> = () => {
   )
 }
 
-export default AuthedUserRouter;
+export default AuthedUserRouter

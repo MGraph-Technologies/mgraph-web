@@ -26,4 +26,4 @@ const Account: FunctionComponent<Props> = () => {
   )
 }
 
-export default Account;
+export default Account
