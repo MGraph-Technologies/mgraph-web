@@ -6,7 +6,7 @@ import { supabase } from '../utils/supabaseClient'
 
 type Props = {}
 
-const Auth: FunctionComponent<Props> = () => {
+const SignInButton: FunctionComponent<Props> = () => {
   const [loading, setLoading] = useState(false)
 
   const handleSignIn = async () => {
@@ -35,4 +35,4 @@ const Auth: FunctionComponent<Props> = () => {
   )
 }
 
-export default Auth
+export default SignInButton

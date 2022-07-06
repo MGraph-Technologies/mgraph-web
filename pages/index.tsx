@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react'
 import { Session } from '@supabase/supabase-js'
 import type { NextPage } from 'next'
 
-import Auth from '../components/Auth'
-import Account from '../components/Account'
+import AuthedUserRouter from '../components/AuthedUserRouter'
+import SignInButton from '../components/SignInButton'
 import styles from '../styles/Home.module.css'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
@@ -38,7 +38,7 @@ const Home: NextPage = () => {
           Welcome to MGraph!
         </h1>
         <div className="container" style={{ padding: '50px 0 100px 0' }}>
-          {!session ? <Auth /> : <Account key={session.user ? session.user.id : ''} session={session} />}
+          {!session ? <SignInButton /> : <AuthedUserRouter key={session.user ? session.user.id : ''} />}
         </div>
       </main>
 
