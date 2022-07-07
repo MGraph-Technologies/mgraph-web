@@ -1,5 +1,4 @@
 import React, { FunctionComponent, useEffect, useState } from 'react'
-import { Button } from 'primereact/button'
 import { useRouter } from 'next/router'
 
 import { supabase } from '../utils/supabaseClient'
@@ -9,9 +8,24 @@ type Props = {
 }
 
 const Account: FunctionComponent<Props> = () => {
-  const router = useRouter()
-  const user = supabase.auth.user()
+  const [user_email, setUserEmail] = useState('')
 
+  useEffect(() => {
+    populateAccount()
+  }, [])
+
+  async function populateAccount() {
+    try {
+      const user = supabase.auth.user()
+      if (user && user.email) {
+        setUserEmail(user.email)
+      }
+    } catch (error: any) {
+      alert(error.message)
+    }
+  }
+
+  const router = useRouter()
   async function handleSignOut() {
     supabase.auth.signOut()
     router.push('/')
@@ -19,7 +33,7 @@ const Account: FunctionComponent<Props> = () => {
 
   return (
     <div className="account-module">
-      <div>Signed in as: {user ? user.email : ''}</div>
+      <p>Signed in as: {user_email}</p>
       <button className="sign-out-button" onClick={() => handleSignOut()}>
         Sign Out
       </button>
