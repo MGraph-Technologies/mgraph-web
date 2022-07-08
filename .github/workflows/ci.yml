@@ -1,0 +1,50 @@
+# from https://glebbahmutov.com/blog/develop-preview-test/
+
+name: ci
+on: [deployment_status]
+jobs:
+  e2e_testing:
+    # only runs this job on successful deploy
+    if: github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print URL 🖨
+        run: echo Testing URL ${{ github.event.deployment_status.target_url }}
+      - name: Checkout 🛎
+        uses: actions/checkout@v1
+      - name: Run Cypress 🌲
+        uses: cypress-io/github-action@v4
+        with:
+          config: baseUrl=${{ github.event.deployment_status.target_url }}
+        env:
+          NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_EMAIL: ${{ secrets.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_EMAIL }}
+          NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_PASSWORD: ${{ secrets.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_PASSWORD }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      - name: Cypress tests ✅
+        if: ${{ success() }}
+        # set the merge commit status check
+        # using GitHub REST API
+        # see https://github.com/bahmutov/sudoku/blob/master/scripts/set-gh-check.js
+        run: |
+          curl --request POST \
+          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "context": "e2e_testing",
+            "state": "success",
+            "description": "Cypress tests passed"
+          }'
+      - name: Cypress tests 🚨
+        if: ${{ failure() }}
+        run: |
+          curl --request POST \
+          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "context": "e2e_testing",
+            "state": "failure",
+            "description": "Cypress tests failed"
+          }'
