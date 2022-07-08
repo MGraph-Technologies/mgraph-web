@@ -1,4 +1,6 @@
-import { defineConfig } from "cypress";
+import { defineConfig } from "cypress"
+
+import getSession from "./cypress/support/supabaseLogin"
 
 require('dotenv').config()
 
@@ -7,10 +9,19 @@ export default defineConfig({
     baseUrl: 'http://localhost:3999',
     chromeWebSecurity: false,
     screenshotOnRunFailure: false,
-    video: false
+    video: false,
+    setupNodeEvents(on, config) {
+      on('task', {
+        getSupabaseSession({ email, password, supabaseUrl, supabaseAnonKey }) {
+          return getSession({ email, password, supabaseUrl, supabaseAnonKey })
+        }
+      })
+    }
   },
   env: {
-    cypressTestAccountEmail: process.env.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_EMAIL,
-    cypressTestAccountPassword: process.env.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_PASSWORD
+    CYPRESS_TEST_ACCOUNT_EMAIL: process.env.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_EMAIL,
+    CYPRESS_TEST_ACCOUNT_PASSWORD: process.env.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_PASSWORD,
+    SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   }
-});
+})
