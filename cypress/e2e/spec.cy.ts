@@ -15,3 +15,5 @@ describe('App landing page, authenticated', () => {
     cy.url().should('include', '/mgraph')
   })
 })
+
+export {}
