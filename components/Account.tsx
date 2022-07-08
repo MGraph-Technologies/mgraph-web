@@ -17,11 +17,20 @@ const Account: FunctionComponent<Props> = () => {
     router.push('/')
   }
 
+  async function handleUpdatePassword() {
+    const { data, error } = await supabase.auth.update({ 
+      password: process.env.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_PASSWORD }
+    )
+  }
+
   return (
     <div className="account-module">
       <div>Signed in as: {user ? user.email : ''}</div>
       <button className="sign-out-button" onClick={() => handleSignOut()}>
         Sign Out
+      </button>
+      <button className="update-password-button" onClick={() => handleUpdatePassword()}>
+        Update Password
       </button>
     </div>
   )
