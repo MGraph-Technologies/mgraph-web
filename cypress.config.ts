@@ -7,7 +7,6 @@ require('dotenv').config()
 
 export default defineConfig({
   e2e: {
-    baseUrl: 'http://localhost:3999',
     chromeWebSecurity: false,
     screenshotOnRunFailure: false,
     video: false,

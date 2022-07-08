@@ -7,11 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "_cy:opendevserver": "next dev -p 3999",
-    "_cy:open": "cypress open",
-    "cy:open": "start-server-and-test _cy:opendevserver http://localhost:3999 _cy:open",
-    "_cy:run": "cypress run",
-    "cy:run": "start-server-and-test _cy:opendevserver http://localhost:3999 _cy:run"
+    "cy:open": "cypress open",
+    "cy:run": "cypress run"
   },
   "dependencies": {
     "@segment/analytics-next": "^1.39.2",
@@ -20,8 +17,7 @@
     "primeicons": "^5.0.0",
     "primereact": "^8.1.1",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "start-server-and-test": "^1.14.0"
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@types/node": "18.0.0",
