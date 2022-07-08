@@ -35,7 +35,7 @@ const Account: FunctionComponent<Props> = () => {
 
   return (
     <div className="account-module">
-      <p>Signed in as: {user_email}</p>
+      <div>{user_email}</div>
       <button className="sign-out-button" onClick={() => handleSignOut()}>
         Sign Out
       </button>
