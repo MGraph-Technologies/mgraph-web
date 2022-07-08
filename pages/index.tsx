@@ -20,6 +20,7 @@ const Home: NextPage = () => {
       setSession(session)
       if( event == 'SIGNED_IN' && session && session.user ) {
         analytics.identify(session.user.id)
+        analytics.track('login')
       }      
     })
   }, [])
