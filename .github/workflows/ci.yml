@@ -13,9 +13,9 @@ jobs:
       - name: Checkout 🛎
         uses: actions/checkout@v1
       - name: Run Cypress 🌲
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4
         env:
-          CYPRESS_BASE_URL: ${{ github.event.deployment_status.target_url }}
+          config: baseUrl=${{ github.event.deployment_status.target_url }}
       - name: Cypress tests ✅
         if: ${{ success() }}
         # set the merge commit status check
