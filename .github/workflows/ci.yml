@@ -16,6 +16,11 @@ jobs:
         uses: cypress-io/github-action@v4
         with:
           config: baseUrl=${{ github.event.deployment_status.target_url }}
+        env:
+          NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_EMAIL: ${{ secrets.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_EMAIL }}
+          NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_PASSWORD: ${{ secrets.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_PASSWORD }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       - name: Cypress tests ✅
         if: ${{ success() }}
         # set the merge commit status check
