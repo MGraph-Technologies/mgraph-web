@@ -4,6 +4,7 @@ import getSession from "./cypress/support/supabaseLogin"
 
 require('dotenv').config()
 
+
 export default defineConfig({
   e2e: {
     baseUrl: 'http://localhost:3999',
