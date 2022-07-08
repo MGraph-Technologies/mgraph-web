@@ -16,12 +16,11 @@ const Home: NextPage = () => {
   useEffect(() => {
     setSession(supabase.auth.session())
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
-      if( session && session.user ) {
+      if( event == 'SIGNED_IN' && session && session.user ) {
         analytics.identify(session.user.id)
-      }
-      
+      }      
     })
   }, [])
   
