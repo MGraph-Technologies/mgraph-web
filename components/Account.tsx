@@ -1,6 +1,7 @@
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 
+import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
 
@@ -28,12 +29,13 @@ const Account: FunctionComponent<Props> = () => {
   const router = useRouter()
   async function handleSignOut() {
     supabase.auth.signOut()
+    analytics.track('logout')
     router.push('/')
   }
 
   return (
     <div className="account-module">
-      <p>Signed in as: {user_email}</p>
+      <div>{user_email}</div>
       <button className="sign-out-button" onClick={() => handleSignOut()}>
         Sign Out
       </button>

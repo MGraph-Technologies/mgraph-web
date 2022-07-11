@@ -1,22 +1,126 @@
-import React, { FunctionComponent } from 'react'
+import React, { FunctionComponent, useState, useCallback } from 'react'
+import ReactFlow, {
+  Connection,
+  Controls,
+  Edge,
+  MiniMap,
+  Node,
+  ReactFlowInstance,
+  ReactFlowProvider,
+  addEdge,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
+} from 'react-flow-renderer'
 import { useRouter } from 'next/router'
 
 import Account from '../components/Account'
+import styles from '../styles/Workspace.module.css'
 
+const flowKey = 'example-flow'
+const initialNodes: Node[] = [
+  { id: '1', data: { label: 'Node 1' }, position: { x: 100, y: 100 } },
+  { id: '2', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+]
+const initialEdges: Edge[] = [
+  { id: 'e1-2', source: '1', target: '2'},
+]
 
-type Props = {
-}
+type MGraphProps = {}
+const MGraph: FunctionComponent<MGraphProps> = () => {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+  const [rfInstance, setRfInstance] = useState<ReactFlowInstance>()
+  const { setViewport } = useReactFlow()
 
-const MGraph: FunctionComponent<Props> = () => {
-  const router = useRouter()
-  const { organization_name } = router.query
+  const onConnect = useCallback(
+    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
+    [setEdges]
+  )
+  
+  const onSave = useCallback(() => {
+    if (rfInstance) {
+      const flow = rfInstance.toObject()
+      localStorage.setItem(flowKey, JSON.stringify(flow))
+    }
+  }, [rfInstance])
+
+  const onRestore = useCallback(() => {
+    const restoreFlow = async () => {
+      const flow = JSON.parse(localStorage.getItem(flowKey) || '')
+      if (flow) {
+        setNodes(flow.nodes || [])
+        setEdges(flow.edges || [])
+        const { x, y, zoom } = flow.viewport
+        setViewport({ x, y, zoom })
+      }
+    }
+
+    restoreFlow()
+  }, [setNodes, setEdges, setViewport])
+
+  const onAdd = useCallback(() => {
+    const newNode = {
+      id: `randomnode_${+new Date()}`,
+      data: { label: 'Added node' },
+      position: {
+        x: Math.random() * window.innerWidth - 100,
+        y: Math.random() * window.innerHeight,
+      },
+    }
+    setNodes((nds) => nds.concat(newNode))
+  }, [setNodes])
 
   return (
-    <div>
-      <p>This is a place for {organization_name}&#39;s MGraph.</p>
-      <Account/>
+    <div className={styles.mgraph}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onInit={setRfInstance}
+      >
+        <div className={styles.save_controls}>
+          <button onClick={onSave}>save</button>
+          <button onClick={onRestore}>restore</button>
+          <button onClick={onAdd}>add node</button>
+        </div>
+        <Controls/>
+        <MiniMap/>
+      </ReactFlow>
     </div>
   )
 }
 
-export default MGraph
+type WorkspaceProps = {}
+const Workspace: FunctionComponent<WorkspaceProps> = () => {
+  const router = useRouter()
+  const { organization_name } = router.query
+
+  return (
+    <div className={styles.workspace}>
+      <div className={styles.header}>
+        <div className={styles.mgraphlogocontainer}>
+          <h1>MGraph</h1>
+        </div>
+        <div className={styles.userinfocontainer}>
+          <div className={styles.userorganizationlogocontainer}>
+            {organization_name}
+          </div>
+          <p>&nbsp;&nbsp;&nbsp;</p>
+          <div className={styles.useraccountcontainer}>
+            <Account/>
+          </div>
+        </div>
+      </div>
+      <div className={styles.mgraphcontainer}>
+        <ReactFlowProvider>
+          <MGraph/>
+        </ReactFlowProvider>
+      </div>
+    </div>
+  )
+}
+
+export default Workspace
