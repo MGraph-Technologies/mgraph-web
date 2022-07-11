@@ -78,6 +78,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onInit={setRfInstance}
+        panOnScroll={true}
       >
         <div className={styles.save_controls}>
           <button onClick={onSave}>save</button>
