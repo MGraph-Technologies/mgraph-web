@@ -31,11 +31,6 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance>()
   const { setViewport } = useReactFlow()
 
-  const onConnect = useCallback(
-    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges]
-  )
-
   const onSave = useCallback(() => {
     if (rfInstance) {
       const flow = rfInstance.toObject()
@@ -68,6 +63,11 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     }
     setNodes((nds) => nds.concat(newNode))
   }, [setNodes])
+  
+  const onConnect = useCallback(
+    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
+    [setEdges]
+  )
 
   return (
     <div className={styles.mgraph}>
