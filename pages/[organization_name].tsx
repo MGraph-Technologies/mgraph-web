@@ -1,4 +1,5 @@
-import React, { FunctionComponent, useState, useCallback } from 'react'
+import { useRouter } from 'next/router'
+import React, { FunctionComponent, useCallback, useState } from 'react'
 import ReactFlow, {
   Connection,
   Controls,
@@ -12,7 +13,6 @@ import ReactFlow, {
   useNodesState,
   useReactFlow,
 } from 'react-flow-renderer'
-import { useRouter } from 'next/router'
 
 import Account from '../components/Account'
 import styles from '../styles/Workspace.module.css'

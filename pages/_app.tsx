@@ -1,9 +1,9 @@
-import 'primereact/resources/themes/lara-light-indigo/theme.css' //theme
-import 'primereact/resources/primereact.min.css' //core css
-import 'primeicons/primeicons.css' //icons
 import type { AppProps } from 'next/app'
-import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+import 'primeicons/primeicons.css' //icons
+import 'primereact/resources/primereact.min.css' //core css
+import 'primereact/resources/themes/lara-light-indigo/theme.css' //theme
+import { useEffect } from 'react'
 
 import '../styles/globals.css'
 import { analytics } from '../utils/segmentClient'

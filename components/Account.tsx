@@ -1,5 +1,5 @@
-import React, { FunctionComponent, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import React, { FunctionComponent, useEffect, useState } from 'react'
 
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
