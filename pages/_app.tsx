@@ -20,7 +20,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       analytics.page(url)
     }
     router.events.on('routeChangeStart', handleRouteChange)
-  }, [])
+  })
 
   return <Component {...pageProps} />
 }
