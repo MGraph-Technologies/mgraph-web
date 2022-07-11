@@ -1,9 +1,8 @@
-import { defineConfig } from "cypress"
+import { defineConfig } from 'cypress'
 
-import getSession from "./cypress/support/supabaseLogin"
+import getSession from './cypress/support/supabaseLogin'
 
 require('dotenv').config()
-
 
 export default defineConfig({
   e2e: {
@@ -15,14 +14,16 @@ export default defineConfig({
       on('task', {
         getSupabaseSession({ email, password, supabaseUrl, supabaseAnonKey }) {
           return getSession({ email, password, supabaseUrl, supabaseAnonKey })
-        }
+        },
       })
-    }
+    },
   },
   env: {
-    CYPRESS_TEST_ACCOUNT_EMAIL: process.env.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_EMAIL,
-    CYPRESS_TEST_ACCOUNT_PASSWORD: process.env.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_PASSWORD,
+    CYPRESS_TEST_ACCOUNT_EMAIL:
+      process.env.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_EMAIL,
+    CYPRESS_TEST_ACCOUNT_PASSWORD:
+      process.env.NEXT_PUBLIC_CYPRESS_TEST_ACCOUNT_PASSWORD,
     SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  }
+  },
 })

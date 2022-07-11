@@ -2,17 +2,20 @@
 https://github.com/supabase/supabase/discussions/6177 */
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-
 let supabase: SupabaseClient
-const sessions: {[key:string]: any} = {
-}
-const profiles: {[key:string]: any} = {
-}
+const sessions: { [key: string]: any } = {}
+const profiles: { [key: string]: any } = {}
 
 export default async function getSession({
-  email, password, supabaseUrl, supabaseAnonKey,
+  email,
+  password,
+  supabaseUrl,
+  supabaseAnonKey,
 }: {
-  email: string, password: string, supabaseUrl: string, supabaseAnonKey: string
+  email: string
+  password: string
+  supabaseUrl: string
+  supabaseAnonKey: string
 }) {
   // If there's already a supabase client, use it, don't create a new one.
   if (!supabase) {

@@ -4,9 +4,7 @@ import { useRouter } from 'next/router'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
-
-type Props = {
-}
+type Props = {}
 
 const Account: FunctionComponent<Props> = () => {
   const [user_email, setUserEmail] = useState('')

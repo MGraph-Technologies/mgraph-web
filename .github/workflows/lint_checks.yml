@@ -1,0 +1,15 @@
+name: ESLint and Prettier Checks
+
+on:
+  - pull_request
+
+jobs:
+  lint-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install modules
+        run: yarn
+      - name: ESLint and Prettier Checks
+        run: npm run lint
