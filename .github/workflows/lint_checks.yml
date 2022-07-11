@@ -4,7 +4,7 @@ on:
   - pull_request
 
 jobs:
-  lint-checks:
+  linter_checks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
