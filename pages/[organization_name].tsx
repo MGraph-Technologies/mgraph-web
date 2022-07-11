@@ -99,20 +99,20 @@ const Workspace: FunctionComponent<WorkspaceProps> = () => {
   return (
     <div className={styles.workspace}>
       <div className={styles.header}>
-        <div className={styles.mgraphlogocontainer}>
+        <div className={styles.mgraph_logo_container}>
           <h1>MGraph</h1>
         </div>
-        <div className={styles.userinfocontainer}>
-          <div className={styles.userorganizationlogocontainer}>
+        <div className={styles.user_info_container}>
+          <div className={styles.user_organization_logo_container}>
             {organization_name}
           </div>
           <p>&nbsp;&nbsp;&nbsp;</p>
-          <div className={styles.useraccountcontainer}>
+          <div className={styles.user_account_container}>
             <Account />
           </div>
         </div>
       </div>
-      <div className={styles.mgraphcontainer}>
+      <div className={styles.mgraph_container}>
         <ReactFlowProvider>
           <MGraph />
         </ReactFlowProvider>
