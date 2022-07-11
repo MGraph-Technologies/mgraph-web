@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint && yarn prettier --ignore-path .gitignore --check .",
+    "prettier_write": "yarn prettier --ignore-path .gitignore --write .",
     "cy:open": "cypress open",
     "cy:run": "cypress run"
   },
