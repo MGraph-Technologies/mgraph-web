@@ -9,7 +9,6 @@ import styles from '../styles/Home.module.css'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
-
 const Home: NextPage = () => {
   const [session, setSession] = useState<Session | null>()
 
@@ -18,32 +17,37 @@ const Home: NextPage = () => {
 
     supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
-      if( event == 'SIGNED_IN' && session && session.user ) {
+      if (event == 'SIGNED_IN' && session && session.user) {
         analytics.identify(session.user.id)
         analytics.track('login')
-      }      
+      }
     })
   }, [])
-  
+
   return (
     <div className={styles.container}>
       <Head>
         <title>MGraph: How and Why Your Organization is Performing</title>
-        <meta name="description" content="MGraph is a comprehensive, realtime view of how and why you organization is performing" />
+        <meta
+          name="description"
+          content="MGraph is a comprehensive, realtime view of how and why you organization is performing"
+        />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to MGraph!
-        </h1>
+        <h1 className={styles.title}>Welcome to MGraph!</h1>
         <div className="container" style={{ padding: '50px 0 100px 0' }}>
-          {!session ? <SignInButton /> : <AuthedUserRouter key={session.user ? session.user.id : ''} />}
+          {!session ? (
+            <SignInButton />
+          ) : (
+            <AuthedUserRouter key={session.user ? session.user.id : ''} />
+          )}
         </div>
       </main>
 
       <footer className={styles.footer}>
-      © 2022 MGraph Technologies, Inc.
+        © 2022 MGraph Technologies, Inc.
       </footer>
     </div>
   )

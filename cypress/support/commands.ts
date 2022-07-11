@@ -8,8 +8,7 @@
 // https://on.cypress.io/custom-commands
 // ***********************************************
 
-import { Session } from "@supabase/supabase-js";
-
+import { Session } from '@supabase/supabase-js'
 
 Cypress.Commands.add('loginWithTestAccount', () => {
   cy.log('Logging in to supabase')
@@ -20,10 +19,13 @@ Cypress.Commands.add('loginWithTestAccount', () => {
     supabaseAnonKey: Cypress.env('SUPABASE_ANON_KEY'),
   }).then((_currentSession) => {
     const currentSession = _currentSession as Session
-    localStorage.setItem('supabase.auth.token', JSON.stringify({
-      currentSession,
-      expiresAt: currentSession.expires_at,
-    }))
+    localStorage.setItem(
+      'supabase.auth.token',
+      JSON.stringify({
+        currentSession,
+        expiresAt: currentSession.expires_at,
+      })
+    )
   })
 })
 

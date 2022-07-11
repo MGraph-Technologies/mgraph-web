@@ -3,7 +3,6 @@ import { Button } from 'primereact/button'
 
 import { supabase } from '../utils/supabaseClient'
 
-
 type Props = {}
 
 const SignInButton: FunctionComponent<Props> = () => {
@@ -12,7 +11,7 @@ const SignInButton: FunctionComponent<Props> = () => {
   const handleSignIn = async () => {
     try {
       setLoading(true)
-      const { error } = await supabase.auth.signIn({ 
+      const { error } = await supabase.auth.signIn({
         provider: 'google',
       })
       if (error) throw error

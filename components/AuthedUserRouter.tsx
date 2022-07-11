@@ -3,9 +3,7 @@ import { useRouter } from 'next/router'
 
 import { supabase } from '../utils/supabaseClient'
 
-
-type Props = {
-}
+type Props = {}
 
 const AuthedUserRouter: FunctionComponent<Props> = () => {
   const router = useRouter()
@@ -26,26 +24,22 @@ const AuthedUserRouter: FunctionComponent<Props> = () => {
         .is('deleted_at', null)
         .eq('organization_members.user_id', user ? user.id : '')
         .single()
-      
+
       if (error && status !== 406) {
         throw error
       }
 
       if (data) {
-        router.push('/'+data.name)
+        router.push('/' + data.name)
       } else {
         router.push('/coming_soon')
       }
     } catch (error: any) {
       alert(error.message)
-    } 
+    }
   }
 
-  return (
-    <div>
-      Loading...
-    </div>
-  )
+  return <div>Loading...</div>
 }
 
 export default AuthedUserRouter
