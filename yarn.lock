@@ -3758,6 +3758,11 @@ uri-js@^4.2.2:
   dependencies:
     punycode "^2.1.0"
 
+use-undoable@^3.3.10:
+  version "3.3.10"
+  resolved "https://registry.yarnpkg.com/use-undoable/-/use-undoable-3.3.10.tgz#f862ec1a066bcd87ed249a67700b8275fc26ee83"
+  integrity sha512-HBy+871M6sgeCYVwLJP/IXMxpPq9WhT5vc/s0sP2c/UZ/0mXBjLy88MqHO6zkRhYq/7ilGM1MwS8vlkilpcxrQ==
+
 utf-8-validate@^5.0.2:
   version "5.0.9"
   resolved "https://registry.yarnpkg.com/utf-8-validate/-/utf-8-validate-5.0.9.tgz#ba16a822fbeedff1a58918f2a6a6b36387493ea3"

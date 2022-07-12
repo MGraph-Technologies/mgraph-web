@@ -10,14 +10,18 @@ import React, {
 import ReactFlow, {
   Connection,
   Controls,
+  Edge,
+  EdgeChange,
   MiniMap,
-  ReactFlowInstance,
+  Node,
+  NodeChange,
   ReactFlowProvider,
   addEdge,
-  useEdgesState,
-  useNodesState,
+  applyEdgeChanges,
+  applyNodeChanges,
   useReactFlow
 } from 'react-flow-renderer'
+import useUndoable from 'use-undoable'
 
 import Account from '../components/Account'
 import styles from '../styles/Workspace.module.css'
@@ -27,18 +31,38 @@ const userCanEdit = true // TODO: get this from db
 
 type MGraphProps = {}
 const MGraph: FunctionComponent<MGraphProps> = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const initialNodes: Node[] = []
+  const initialEdges: Edge[] = []
+  const [elements, setElements, { resetInitialState, undo, redo, canUndo, canRedo }] = useUndoable({
+		nodes: initialNodes,
+    edges: initialEdges
+	})
   const [editingEnabled, setEditingEnabled] = useState(false)
-  const [rfInstance, setRfInstance] = useState<ReactFlowInstance>()
   const { project } = useReactFlow()
+
+  const updateElements = useCallback(
+		(t: 'nodes' | 'edges' | 'all', v: Array<any>) => {
+			// To prevent a mismatch of state updates,
+			// we'll use the value passed into this
+			// function instead of the state directly.
+      if (t === 'all') {
+        setElements(v[0]) // kinda hacky but oh well
+      } else {
+        setElements(e => ({
+          nodes: t === 'nodes' ? v : e.nodes,
+          edges: t === 'edges' ? v : e.edges,
+        }))
+      }
+		},
+		[setElements]
+	)
 
   const loadFlow = useCallback(() => {
     const flowStr = localStorage.getItem(flowKey) || ''
     if (flowStr) {
       const flow = JSON.parse(flowStr)
-      setNodes(flow.nodes || [])
-      setEdges(flow.edges || [])
+      updateElements('all', [flow])
+      resetInitialState({nodes: flow.nodes, edges: flow.edges})
     }
   }, [])
 
@@ -47,11 +71,22 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   }, [])
 
   const saveFlow = useCallback(() => {
-    if (rfInstance) {
-      const flow = rfInstance.toObject()
-      localStorage.setItem(flowKey, JSON.stringify(flow))
-    }
-  }, [rfInstance])
+    localStorage.setItem(flowKey, JSON.stringify(elements))
+  }, [elements])
+
+  const onNodesChange = useCallback(
+		(changes: NodeChange[]) => {
+			updateElements('nodes', applyNodeChanges(changes, elements.nodes))
+		},
+		[updateElements, elements.nodes]
+	)
+
+	const onEdgesChange = useCallback(
+		(changes: EdgeChange[]) => {
+			updateElements('edges', applyEdgeChanges(changes, elements.edges))
+		},
+		[updateElements, elements.edges]
+	)
 
   const onAdd = useCallback(() => {
     const { x, y } = project({ x: self.innerWidth/4, y: self.innerHeight-250 })
@@ -63,13 +98,15 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         y: y
       },
     }
-    setNodes((nds) => nds.concat(newNode))
-  }, [project, setNodes])
+    updateElements('nodes', elements.nodes.concat(newNode))
+  }, [project, updateElements, elements.nodes])
   
   const onConnect = useCallback(
-    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges]
-  )
+		(connection: Connection) => {
+			updateElements('edges', addEdge(connection, elements.edges));
+		},
+		[updateElements, elements.edges]
+	)
 
   const ControlPanel: FunctionComponent = () => {
     if (editingEnabled) {
@@ -123,12 +160,14 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
                 <Button
                   className='p-button-outlined'
                   icon='pi pi-undo'
-                  disabled={true} // TODO: activate
+                  onClick={undo}
+                  disabled={!canUndo}
                 />
                 <Button
                   className='p-button-outlined'
                   icon='pi pi-refresh'
-                  disabled={true} // TODO: activate
+                  onClick={redo}
+                  disabled={!canRedo}
                 />
                 <Button
                   label='Save'
@@ -152,12 +191,11 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   return (
     <div className={styles.mgraph}>
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
+        nodes={elements.nodes}
+        edges={elements.edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onInit={setRfInstance}
         elementsSelectable={editingEnabled}
         nodesDraggable={editingEnabled}
         nodesConnectable={editingEnabled}
