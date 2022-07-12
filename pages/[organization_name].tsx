@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { Button } from 'primereact/button'
 import React, { 
   FunctionComponent,
   useCallback,
@@ -23,16 +24,13 @@ import Account from '../components/Account'
 import styles from '../styles/Workspace.module.css'
 
 const flowKey = 'example-flow'
-const initialNodes: Node[] = [
-  { id: '1', data: { label: 'Node 1' }, position: { x: 100, y: 100 } },
-  { id: '2', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-]
-const initialEdges: Edge[] = [{ id: 'e1-2', source: '1', target: '2' }]
+const userCanEdit = true // TODO: get this from db
 
 type MGraphProps = {}
 const MGraph: FunctionComponent<MGraphProps> = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [editingEnabled, setEditingEnabled] = useState(false)
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance>()
   const { setViewport } = useReactFlow()
 
@@ -51,33 +49,57 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     loadFlow()
   }, [])
 
-  const onSave = useCallback(() => {
+  const saveFlow = useCallback(() => {
     if (rfInstance) {
       const flow = rfInstance.toObject()
       localStorage.setItem(flowKey, JSON.stringify(flow))
     }
   }, [rfInstance])
-
-  const onRestore = useCallback(() => {
-    loadFlow()
-  }, [setNodes, setEdges, setViewport])
-
-  const onAdd = useCallback(() => {
-    const newNode = {
-      id: `randomnode_${+new Date()}`,
-      data: { label: 'Added node' },
-      position: {
-        x: Math.random() * window.innerWidth - 100,
-        y: Math.random() * window.innerHeight,
-      },
-    }
-    setNodes((nds) => nds.concat(newNode))
-  }, [setNodes])
   
   const onConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges]
   )
+
+  const ControlPanel: FunctionComponent = () => {
+    const saveEditing = useCallback(() => {
+      saveFlow()
+      setEditingEnabled(false)
+    }, [])
+
+    const cancelEditing = useCallback(() => {
+      loadFlow()
+      setEditingEnabled(false)
+    }, [])
+
+    if (editingEnabled) {
+      return (
+        <div>
+          <Button
+            className='button p-button-secondary p-button-raised'
+            label='Save'
+            onClick={() => saveEditing()}
+          />
+          <Button
+            className='button p-button-secondary p-button-raised p-button-outlined'
+            label='Cancel'
+            onClick={() => cancelEditing()}
+          />
+        </div>
+      )
+    } else {
+      return (
+        <div>
+          <Button
+            className='button p-button-secondary p-button-raised'
+            icon="pi pi-pencil"
+            disabled={!userCanEdit}
+            onClick={() => setEditingEnabled(true)}
+          />
+        </div>
+      )
+    }
+  }
 
   return (
     <div className={styles.mgraph}>
@@ -88,14 +110,15 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onInit={setRfInstance}
+        elementsSelectable={editingEnabled}
+        nodesDraggable={editingEnabled}
+        nodesConnectable={editingEnabled}
         panOnScroll={true}
       >
-        <div className={styles.save_controls}>
-          <button onClick={onSave}>save</button>
-          <button onClick={onRestore}>restore</button>
-          <button onClick={onAdd}>add node</button>
+        <div className={styles.control_panel}>
+          <ControlPanel />
         </div>
-        <Controls />
+        <Controls showInteractive={false} />
         <MiniMap />
       </ReactFlow>
     </div>

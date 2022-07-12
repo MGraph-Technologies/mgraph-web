@@ -42,7 +42,7 @@
   width: 100%;
 }
 
-.mgraph .save_controls {
+.mgraph .control_panel {
   position: absolute;
   right: 10px;
   top: 10px;
@@ -50,6 +50,8 @@
   font-size: 12px;
 }
 
-.mgraph .save_controls button {
+.mgraph .control_panel button {
+  width: auto;
+  padding: 5px;
   margin-left: 5px;
 }
