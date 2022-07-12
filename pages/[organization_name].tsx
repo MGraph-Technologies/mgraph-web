@@ -10,9 +10,7 @@ import React, {
 import ReactFlow, {
   Connection,
   Controls,
-  Edge,
   MiniMap,
-  Node,
   ReactFlowInstance,
   ReactFlowProvider,
   addEdge,
