@@ -17,8 +17,7 @@ import ReactFlow, {
   ReactFlowProvider,
   addEdge,
   useEdgesState,
-  useNodesState,
-  useReactFlow,
+  useNodesState
 } from 'react-flow-renderer'
 
 import Account from '../components/Account'
@@ -33,7 +32,6 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [editingEnabled, setEditingEnabled] = useState(false)
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance>()
-  const { setViewport } = useReactFlow()
 
   const loadFlow = useCallback(() => {
     const flowStr = localStorage.getItem(flowKey) || ''
@@ -41,8 +39,6 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       const flow = JSON.parse(flowStr)
       setNodes(flow.nodes || [])
       setEdges(flow.edges || [])
-      const { x, y, zoom } = flow.viewport
-      setViewport({ x, y, zoom })
     }
   }, [])
 
