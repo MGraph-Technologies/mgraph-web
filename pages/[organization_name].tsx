@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 import { Button } from 'primereact/button'
+import { Toolbar } from 'primereact/toolbar'
 import React, { 
   FunctionComponent,
   useCallback,
@@ -62,6 +63,30 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   )
 
   const ControlPanel: FunctionComponent = () => {
+    if (editingEnabled) {
+      return null
+    } else {
+      return (
+        <div className={styles.control_panel}>
+          <Button
+            icon="pi pi-calendar"
+            disabled={true} // TODO: activate
+          />
+          <Button
+            icon="pi pi-history"
+            disabled={true} // TODO: activate
+          />
+          <Button
+            icon="pi pi-pencil"
+            disabled={!userCanEdit}
+            onClick={() => setEditingEnabled(true)}
+          />
+        </div>
+      )
+    }
+  }
+
+  const EditorDock: FunctionComponent = () => {
     const saveEditing = useCallback(() => {
       saveFlow()
       setEditingEnabled(false)
@@ -74,40 +99,44 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
 
     if (editingEnabled) {
       return (
-        <div>
-          <Button
-            className='button p-button-secondary p-button-raised'
-            label='Save'
-            onClick={() => saveEditing()}
-          />
-          <Button
-            className='button p-button-secondary p-button-raised p-button-outlined'
-            label='Cancel'
-            onClick={() => cancelEditing()}
+        <div className={styles.editor_dock}>
+          <Toolbar className={styles.editor_toolbar}
+            left = {
+              <div>
+                <Button
+                  icon='pi pi-plus'
+                  disabled={true} // TODO: activate
+                />
+              </div>
+            }
+            right = {
+              <div>
+                <Button
+                  className='p-button-outlined'
+                  icon='pi pi-undo'
+                  disabled={true} // TODO: activate
+                />
+                <Button
+                  className='p-button-outlined'
+                  icon='pi pi-refresh'
+                  disabled={true} // TODO: activate
+                />
+                <Button
+                  label='Save'
+                  onClick={() => saveEditing()}
+                />
+                <Button
+                  className='p-button-outlined'
+                  label='Cancel'
+                  onClick={() => cancelEditing()}
+                />
+              </div>
+            }
           />
         </div>
       )
     } else {
-      return (
-        <div>
-          <Button
-            className='button p-button-secondary p-button-raised'
-            icon="pi pi-calendar"
-            disabled={true} // TODO: activate
-          />
-          <Button
-            className='button p-button-secondary p-button-raised'
-            icon="pi pi-history"
-            disabled={true} // TODO: activate
-          />
-          <Button
-            className='button p-button-secondary p-button-raised'
-            icon="pi pi-pencil"
-            disabled={!userCanEdit}
-            onClick={() => setEditingEnabled(true)}
-          />
-        </div>
-      )
+      return null
     }
   }
 
@@ -125,10 +154,9 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         nodesConnectable={editingEnabled}
         panOnScroll={true}
       >
-        <div className={styles.control_panel}>
-          <ControlPanel />
-        </div>
+        <ControlPanel />
         <Controls showInteractive={false} />
+        <EditorDock />
         <MiniMap />
       </ReactFlow>
     </div>
