@@ -1,5 +1,10 @@
 import { useRouter } from 'next/router'
-import React, { FunctionComponent, useCallback, useState } from 'react'
+import React, { 
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useState
+} from 'react'
 import ReactFlow, {
   Connection,
   Controls,
@@ -31,6 +36,21 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance>()
   const { setViewport } = useReactFlow()
 
+  const loadFlow = useCallback(() => {
+    const flowStr = localStorage.getItem(flowKey) || ''
+    if (flowStr) {
+      const flow = JSON.parse(flowStr)
+      setNodes(flow.nodes || [])
+      setEdges(flow.edges || [])
+      const { x, y, zoom } = flow.viewport
+      setViewport({ x, y, zoom })
+    }
+  }, [])
+
+  useEffect(() => {
+    loadFlow()
+  }, [])
+
   const onSave = useCallback(() => {
     if (rfInstance) {
       const flow = rfInstance.toObject()
@@ -39,17 +59,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   }, [rfInstance])
 
   const onRestore = useCallback(() => {
-    const restoreFlow = async () => {
-      const flow = JSON.parse(localStorage.getItem(flowKey) || '')
-      if (flow) {
-        setNodes(flow.nodes || [])
-        setEdges(flow.edges || [])
-        const { x, y, zoom } = flow.viewport
-        setViewport({ x, y, zoom })
-      }
-    }
-
-    restoreFlow()
+    loadFlow()
   }, [setNodes, setEdges, setViewport])
 
   const onAdd = useCallback(() => {
