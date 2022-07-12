@@ -92,6 +92,16 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         <div>
           <Button
             className='button p-button-secondary p-button-raised'
+            icon="pi pi-calendar"
+            disabled={true} // TODO: activate
+          />
+          <Button
+            className='button p-button-secondary p-button-raised'
+            icon="pi pi-history"
+            disabled={true} // TODO: activate
+          />
+          <Button
+            className='button p-button-secondary p-button-raised'
             icon="pi pi-pencil"
             disabled={!userCanEdit}
             onClick={() => setEditingEnabled(true)}
