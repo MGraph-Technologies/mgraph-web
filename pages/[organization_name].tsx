@@ -17,7 +17,8 @@ import ReactFlow, {
   ReactFlowProvider,
   addEdge,
   useEdgesState,
-  useNodesState
+  useNodesState,
+  useReactFlow
 } from 'react-flow-renderer'
 
 import Account from '../components/Account'
@@ -32,6 +33,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [editingEnabled, setEditingEnabled] = useState(false)
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance>()
+  const { project } = useReactFlow()
 
   const loadFlow = useCallback(() => {
     const flowStr = localStorage.getItem(flowKey) || ''
@@ -52,6 +54,19 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       localStorage.setItem(flowKey, JSON.stringify(flow))
     }
   }, [rfInstance])
+
+  const onAdd = useCallback(() => {
+    const { x, y } = project({ x: self.innerWidth/4, y: self.innerHeight-250 })
+    const newNode = {
+      id: `randomnode_${+new Date()}`,
+      data: { label: 'Added node' },
+      position: {
+        x: x,
+        y: y
+      },
+    }
+    setNodes((nds) => nds.concat(newNode))
+  }, [project, setNodes])
   
   const onConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
@@ -101,7 +116,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
               <div>
                 <Button
                   icon='pi pi-plus'
-                  disabled={true} // TODO: activate
+                  onClick={onAdd}
                 />
               </div>
             }
