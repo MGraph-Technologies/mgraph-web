@@ -38,6 +38,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     edges: initialEdges
 	})
   const [editingEnabled, setEditingEnabled] = useState(false)
+  const [undoableLoggingDisabled, setUndoableLoggingDisabled] = useState(false)
   const { project } = useReactFlow()
 
   const updateElements = useCallback(
@@ -46,15 +47,25 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
 			// we'll use the value passed into this
 			// function instead of the state directly.
       if (t === 'all') {
-        setElements(v[0]) // kinda hacky but oh well
+        setElements(
+          v[0], 
+          null, 
+          // @ts-ignore https://github.com/Infinium8/useUndoable/issues/9
+          undoableLoggingDisabled
+          )
       } else {
-        setElements(e => ({
-          nodes: t === 'nodes' ? v : e.nodes,
-          edges: t === 'edges' ? v : e.edges,
-        }))
+        setElements(
+          e => ({
+            nodes: t === 'nodes' ? v : e.nodes,
+            edges: t === 'edges' ? v : e.edges,
+          }), 
+          null, 
+          // @ts-ignore 
+          undoableLoggingDisabled
+        )
       }
 		},
-		[setElements]
+		[setElements, undoableLoggingDisabled]
 	)
 
   const loadFlow = useCallback(() => {
@@ -87,6 +98,20 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
 		},
 		[updateElements, elements.edges]
 	)
+
+  const onNodeDragStart = useCallback(
+    () => {
+      setUndoableLoggingDisabled(true)
+    },
+    [setUndoableLoggingDisabled]
+  )
+
+  const onNodeDragStop = useCallback(
+    () => {
+      setUndoableLoggingDisabled(false)
+    },
+    [setUndoableLoggingDisabled]
+  )
 
   const onAdd = useCallback(() => {
     const { x, y } = project({ x: self.innerWidth/4, y: self.innerHeight-250 })
@@ -195,6 +220,8 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         edges={elements.edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeDragStart={onNodeDragStart}
+        onNodeDragStop={onNodeDragStop}
         onConnect={onConnect}
         elementsSelectable={editingEnabled}
         nodesDraggable={editingEnabled}
