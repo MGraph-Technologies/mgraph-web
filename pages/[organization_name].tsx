@@ -1,11 +1,11 @@
 import { useRouter } from 'next/router'
 import { Button } from 'primereact/button'
 import { Toolbar } from 'primereact/toolbar'
-import React, { 
+import React, {
   FunctionComponent,
   useCallback,
   useEffect,
-  useState
+  useState,
 } from 'react'
 import ReactFlow, {
   Connection,
@@ -19,7 +19,7 @@ import ReactFlow, {
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
-  useReactFlow
+  useReactFlow,
 } from 'react-flow-renderer'
 import useUndoable from 'use-undoable'
 
@@ -33,36 +33,40 @@ type MGraphProps = {}
 const MGraph: FunctionComponent<MGraphProps> = () => {
   const initialNodes: Node[] = []
   const initialEdges: Edge[] = []
-  const [elements, setElements, { undo, redo, canUndo, canRedo, reset }] = useUndoable({
-		nodes: initialNodes,
-    edges: initialEdges
-	}, {behavior: 'destroyFuture'})
+  const [elements, setElements, { undo, redo, canUndo, canRedo, reset }] =
+    useUndoable(
+      {
+        nodes: initialNodes,
+        edges: initialEdges,
+      },
+      { behavior: 'destroyFuture' }
+    )
   const [editingEnabled, setEditingEnabled] = useState(false)
   const [undoableLoggingEnabled, setUndoableLoggingEnabled] = useState(true)
   const { project } = useReactFlow()
 
   const updateElements = useCallback(
-		(t: 'nodes' | 'edges', v: Array<any>) => {
-			// To prevent a mismatch of state updates,
-			// we'll use the value passed into this
-			// function instead of the state directly.
+    (t: 'nodes' | 'edges', v: Array<any>) => {
+      // To prevent a mismatch of state updates,
+      // we'll use the value passed into this
+      // function instead of the state directly.
       setElements(
-        e => ({
+        (e) => ({
           nodes: t === 'nodes' ? v : e.nodes,
           edges: t === 'edges' ? v : e.edges,
-        }), 
+        }),
         undefined,
         !undoableLoggingEnabled
       )
-		},
-		[setElements, undoableLoggingEnabled]
-	)
+    },
+    [setElements, undoableLoggingEnabled]
+  )
 
   const loadFlow = useCallback(() => {
     const flowStr = localStorage.getItem(flowKey) || ''
     if (flowStr) {
       const flow = JSON.parse(flowStr)
-      reset({nodes: flow.nodes, edges: flow.edges})
+      reset({ nodes: flow.nodes, edges: flow.edges })
     }
   }, [reset])
 
@@ -72,56 +76,53 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
 
   const saveFlow = useCallback(() => {
     localStorage.setItem(flowKey, JSON.stringify(elements))
-    reset({nodes: elements.nodes, edges: elements.edges})
+    reset({ nodes: elements.nodes, edges: elements.edges })
   }, [elements, reset])
 
   const onNodesChange = useCallback(
-		(changes: NodeChange[]) => {
-			updateElements('nodes', applyNodeChanges(changes, elements.nodes))
-		},
-		[updateElements, elements.nodes]
-	)
-
-	const onEdgesChange = useCallback(
-		(changes: EdgeChange[]) => {
-			updateElements('edges', applyEdgeChanges(changes, elements.edges))
-		},
-		[updateElements, elements.edges]
-	)
-
-  const onNodeDragStart = useCallback(
-    () => {
-      setUndoableLoggingEnabled(false)
+    (changes: NodeChange[]) => {
+      updateElements('nodes', applyNodeChanges(changes, elements.nodes))
     },
-    [setUndoableLoggingEnabled]
+    [updateElements, elements.nodes]
   )
 
-  const onNodeDragStop = useCallback(
-    () => {
-      setUndoableLoggingEnabled(true)
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      updateElements('edges', applyEdgeChanges(changes, elements.edges))
     },
-    [setUndoableLoggingEnabled]
+    [updateElements, elements.edges]
   )
+
+  const onNodeDragStart = useCallback(() => {
+    setUndoableLoggingEnabled(false)
+  }, [setUndoableLoggingEnabled])
+
+  const onNodeDragStop = useCallback(() => {
+    setUndoableLoggingEnabled(true)
+  }, [setUndoableLoggingEnabled])
 
   const onAdd = useCallback(() => {
-    const { x, y } = project({ x: self.innerWidth/4, y: self.innerHeight-250 })
+    const { x, y } = project({
+      x: self.innerWidth / 4,
+      y: self.innerHeight - 250,
+    })
     const newNode = {
       id: `randomnode_${+new Date()}`,
       data: { label: 'Added node' },
       position: {
         x: x,
-        y: y
+        y: y,
       },
     }
     updateElements('nodes', elements.nodes.concat(newNode))
   }, [project, updateElements, elements.nodes])
-  
+
   const onConnect = useCallback(
-		(connection: Connection) => {
-			updateElements('edges', addEdge(connection, elements.edges));
-		},
-		[updateElements, elements.edges]
-	)
+    (connection: Connection) => {
+      updateElements('edges', addEdge(connection, elements.edges))
+    },
+    [updateElements, elements.edges]
+  )
 
   const ControlPanel: FunctionComponent = () => {
     if (editingEnabled) {
@@ -161,36 +162,31 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     if (editingEnabled) {
       return (
         <div className={styles.editor_dock}>
-          <Toolbar className={styles.editor_toolbar}
-            left = {
+          <Toolbar
+            className={styles.editor_toolbar}
+            left={
               <div>
-                <Button
-                  icon='pi pi-plus'
-                  onClick={onAdd}
-                />
+                <Button icon="pi pi-plus" onClick={onAdd} />
               </div>
             }
-            right = {
+            right={
               <div>
                 <Button
-                  className='p-button-outlined'
-                  icon='pi pi-undo'
+                  className="p-button-outlined"
+                  icon="pi pi-undo"
                   onClick={undo}
                   disabled={!canUndo}
                 />
                 <Button
-                  className='p-button-outlined'
-                  icon='pi pi-refresh'
+                  className="p-button-outlined"
+                  icon="pi pi-refresh"
                   onClick={redo}
                   disabled={!canRedo}
                 />
+                <Button label="Save" onClick={() => saveEditing()} />
                 <Button
-                  label='Save'
-                  onClick={() => saveEditing()}
-                />
-                <Button
-                  className='p-button-outlined'
-                  label='Cancel'
+                  className="p-button-outlined"
+                  label="Cancel"
                   onClick={() => cancelEditing()}
                 />
               </div>
