@@ -1,7 +1,7 @@
-import Head from 'next/head'
 import type { NextPage } from 'next'
+import Head from 'next/head'
 import { Session } from '@supabase/supabase-js'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import AuthedUserRouter from '../components/AuthedUserRouter'
 import SignInButton from '../components/SignInButton'

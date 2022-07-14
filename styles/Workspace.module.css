@@ -13,27 +13,27 @@
   background-color: #f5f5f5;
 }
 
-.workspace .header .mgraphlogocontainer {
+.workspace .header .mgraph_logo_container {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
-.workspace .header .userinfocontainer {
+.workspace .header .user_info_container {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
-.workspace .header .userinfocontainer .userorganizationlogocontainer {
+.workspace .header .user_info_container .user_organization_logo_container {
   flex-grow: 1;
 }
 
-.workspace .header .userinfocontainer .useraccountcontainer {
+.workspace .header .user_info_container .user_account_container {
   flex-grow: 1;
 }
 
-.workspace .mgraphcontainer {
+.workspace .mgraph_container {
   flex-grow: 1;
 }
 
@@ -42,7 +42,7 @@
   width: 100%;
 }
 
-.mgraph .save_controls {
+.mgraph .control_panel {
   position: absolute;
   right: 10px;
   top: 10px;
@@ -50,6 +50,27 @@
   font-size: 12px;
 }
 
-.mgraph .save_controls button {
+.mgraph .control_panel button {
+  width: auto;
+  padding: 5px;
+  margin-left: 5px;
+}
+
+.mgraph .editor_dock {
+  position: absolute;
+  bottom: 10px;
+  left: 25%;
+  right: 25%;
+  z-index: 10;
+  padding: 10px;
+}
+
+.mgraph .editor_dock .editor_toolbar {
+  padding: 10px;
+}
+
+.mgraph .editor_dock button {
+  width: auto;
+  padding: 5px;
   margin-left: 5px;
 }
