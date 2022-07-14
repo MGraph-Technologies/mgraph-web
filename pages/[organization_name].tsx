@@ -49,8 +49,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       if (t === 'all') {
         setElements(
           v[0], 
-          null, 
-          // @ts-ignore https://github.com/Infinium8/useUndoable/issues/9
+          undefined,
           undoableLoggingDisabled
           )
       } else {
@@ -59,8 +58,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
             nodes: t === 'nodes' ? v : e.nodes,
             edges: t === 'edges' ? v : e.edges,
           }), 
-          null, 
-          // @ts-ignore 
+          undefined,
           undoableLoggingDisabled
         )
       }
