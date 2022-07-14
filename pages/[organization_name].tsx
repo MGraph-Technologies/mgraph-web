@@ -26,7 +26,7 @@ import useUndoable from 'use-undoable'
 import Account from '../components/Account'
 import styles from '../styles/Workspace.module.css'
 
-const flowKey = 'example-flow'
+const flowKey = 'example-flow' // TODO: load flow from db
 const userCanEdit = true // TODO: get this from db
 
 type MGraphProps = {}
