@@ -38,7 +38,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     edges: initialEdges
 	}, {behavior: 'destroyFuture'})
   const [editingEnabled, setEditingEnabled] = useState(false)
-  const [undoableLoggingDisabled, setUndoableLoggingDisabled] = useState(false)
+  const [undoableLoggingEnabled, setUndoableLoggingEnabled] = useState(true)
   const { project } = useReactFlow()
 
   const updateElements = useCallback(
@@ -52,10 +52,10 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
           edges: t === 'edges' ? v : e.edges,
         }), 
         undefined,
-        undoableLoggingDisabled
+        !undoableLoggingEnabled
       )
 		},
-		[setElements, undoableLoggingDisabled]
+		[setElements, undoableLoggingEnabled]
 	)
 
   const loadFlow = useCallback(() => {
@@ -91,16 +91,16 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
 
   const onNodeDragStart = useCallback(
     () => {
-      setUndoableLoggingDisabled(true)
+      setUndoableLoggingEnabled(false)
     },
-    [setUndoableLoggingDisabled]
+    [setUndoableLoggingEnabled]
   )
 
   const onNodeDragStop = useCallback(
     () => {
-      setUndoableLoggingDisabled(false)
+      setUndoableLoggingEnabled(true)
     },
-    [setUndoableLoggingDisabled]
+    [setUndoableLoggingEnabled]
   )
 
   const onAdd = useCallback(() => {
