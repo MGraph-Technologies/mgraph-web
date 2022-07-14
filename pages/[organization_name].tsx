@@ -36,7 +36,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   const [elements, setElements, { resetInitialState, undo, redo, canUndo, canRedo }] = useUndoable({
 		nodes: initialNodes,
     edges: initialEdges
-	})
+	}, {behavior: 'destroyFuture'})
   const [editingEnabled, setEditingEnabled] = useState(false)
   const [undoableLoggingDisabled, setUndoableLoggingDisabled] = useState(false)
   const { project } = useReactFlow()
