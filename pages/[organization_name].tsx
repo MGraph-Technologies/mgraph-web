@@ -68,7 +68,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
 
   useEffect(() => {
     loadFlow()
-  }, [])
+  }, [loadFlow])
 
   const saveFlow = useCallback(() => {
     localStorage.setItem(flowKey, JSON.stringify(elements))
