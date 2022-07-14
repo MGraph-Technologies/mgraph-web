@@ -33,7 +33,7 @@ type MGraphProps = {}
 const MGraph: FunctionComponent<MGraphProps> = () => {
   const initialNodes: Node[] = []
   const initialEdges: Edge[] = []
-  const [elements, setElements, { resetInitialState, undo, redo, canUndo, canRedo }] = useUndoable({
+  const [elements, setElements, { undo, redo, canUndo, canRedo, reset }] = useUndoable({
 		nodes: initialNodes,
     edges: initialEdges
 	}, {behavior: 'destroyFuture'})
@@ -42,26 +42,18 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   const { project } = useReactFlow()
 
   const updateElements = useCallback(
-		(t: 'nodes' | 'edges' | 'all', v: Array<any>) => {
+		(t: 'nodes' | 'edges', v: Array<any>) => {
 			// To prevent a mismatch of state updates,
 			// we'll use the value passed into this
 			// function instead of the state directly.
-      if (t === 'all') {
-        setElements(
-          v[0], 
-          undefined,
-          undoableLoggingDisabled
-          )
-      } else {
-        setElements(
-          e => ({
-            nodes: t === 'nodes' ? v : e.nodes,
-            edges: t === 'edges' ? v : e.edges,
-          }), 
-          undefined,
-          undoableLoggingDisabled
-        )
-      }
+      setElements(
+        e => ({
+          nodes: t === 'nodes' ? v : e.nodes,
+          edges: t === 'edges' ? v : e.edges,
+        }), 
+        undefined,
+        undoableLoggingDisabled
+      )
 		},
 		[setElements, undoableLoggingDisabled]
 	)
@@ -70,10 +62,9 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     const flowStr = localStorage.getItem(flowKey) || ''
     if (flowStr) {
       const flow = JSON.parse(flowStr)
-      updateElements('all', [flow])
-      resetInitialState({nodes: flow.nodes, edges: flow.edges})
+      reset({nodes: flow.nodes, edges: flow.edges})
     }
-  }, [])
+  }, [reset])
 
   useEffect(() => {
     loadFlow()
@@ -81,7 +72,8 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
 
   const saveFlow = useCallback(() => {
     localStorage.setItem(flowKey, JSON.stringify(elements))
-  }, [elements])
+    reset({nodes: elements.nodes, edges: elements.edges})
+  }, [elements, reset])
 
   const onNodesChange = useCallback(
 		(changes: NodeChange[]) => {
