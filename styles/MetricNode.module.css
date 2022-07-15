@@ -1,0 +1,14 @@
+.metric_node {
+  height: 9em;
+  width: 16em;
+  border: 1px solid #eee;
+  padding: 5px;
+  border-radius: 5px;
+  background: white;
+}
+
+.metric_node label {
+  display: block;
+  color: #777;
+  font-size: 12px;
+}

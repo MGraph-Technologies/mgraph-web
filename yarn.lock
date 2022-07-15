@@ -1130,6 +1130,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-edit-text@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@types/react-edit-text/-/react-edit-text-5.0.0.tgz#4e974280258d92a247b96aca085ee2b1375f7c33"
+  integrity sha512-uJ4b4SJxFU1sE4iDvZgWojp8T5/nn7kl7DuqFRYTdOPtgHeJhizOQTEero9SrAmQdsBcL0VA8oFpIv8UBaUOoQ==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-transition-group@^4.4.1":
   version "4.4.5"
   resolved "https://registry.yarnpkg.com/@types/react-transition-group/-/react-transition-group-4.4.5.tgz#aae20dcf773c5aa275d5b9f7cdbca638abc5e416"
@@ -1492,6 +1499,11 @@ classcat@^5.0.3:
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/classcat/-/classcat-5.0.3.tgz#38eaa0ec6eb1b10faf101bbcef2afb319c23c17b"
   integrity sha512-6dK2ke4VEJZOFx2ZfdDAl5OhEL8lvkl6EHF92IfRePfHxQTqir5NlcNVUv+2idjDqCX2NDc8m8YSAI5NI975ZQ==
+
+classnames@^2.2.6:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.1.tgz#dfcfa3891e306ec1dad105d0e88f4417b8535e8e"
+  integrity sha512-OlQdbZ7gLfGarSqxesMesDa5uz7KFbID8Kpq/SxIoNGDqY8lSYs0D+hhtBXhcdB3rcbXArFr7vlHheLk1voeNA==
 
 clean-stack@^2.0.0:
   version "2.2.0"
@@ -3283,6 +3295,14 @@ react-dom@18.2.0:
   dependencies:
     loose-envify "^1.1.0"
     scheduler "^0.23.0"
+
+react-edit-text@^5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/react-edit-text/-/react-edit-text-5.0.2.tgz#e1418a16f615cc5b833f455ccffd24d18c566ab2"
+  integrity sha512-V3M4KhgQDbKa1I6F5OLrhqu9w/T4XONFEyC4RijdSxDs+L5srpsCH6V5CSWGNT6pu6f4VG03n736RB3lMCTUkw==
+  dependencies:
+    classnames "^2.2.6"
+    prop-types "^15.8.1"
 
 react-flow-renderer@^10.3.8:
   version "10.3.8"

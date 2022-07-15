@@ -21,11 +21,14 @@ import ReactFlow, {
 } from 'react-flow-renderer'
 import useUndoable from 'use-undoable'
 
+import MetricNode from '../components/MetricNode'
 import { useEditability } from '../contexts/editability'
 import styles from '../styles/MGraph.module.css'
 
 const flowKey = 'example-flow' // TODO: load flow from db
 const userCanEdit = true // TODO: get this from db
+
+const nodeTypes = { metric: MetricNode }
 
 type MGraphProps = {}
 const MGraph: FunctionComponent<MGraphProps> = () => {
@@ -106,7 +109,10 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     })
     const newNode = {
       id: `randomnode_${+new Date()}`,
-      data: { label: 'Added node' },
+      data : {
+        name: 'New Metric'
+      },
+      type: 'metric',
       position: {
         x: x,
         y: y,
@@ -202,6 +208,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       <ReactFlow
         nodes={elements.nodes}
         edges={elements.edges}
+        nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeDragStart={onNodeDragStart}
@@ -211,6 +218,8 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         nodesDraggable={editingEnabled}
         nodesConnectable={editingEnabled}
         panOnScroll={true}
+        minZoom={0.1}
+        maxZoom={10}
       >
         <ControlPanel />
         <Controls showInteractive={false} />
