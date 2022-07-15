@@ -21,6 +21,7 @@ import ReactFlow, {
 } from 'react-flow-renderer'
 import useUndoable from 'use-undoable'
 
+import { useEditability } from '../contexts/editability'
 import styles from '../styles/MGraph.module.css'
 
 const flowKey = 'example-flow' // TODO: load flow from db
@@ -38,7 +39,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       },
       { behavior: 'destroyFuture' }
     )
-  const [editingEnabled, setEditingEnabled] = useState(false)
+  const { editingEnabled, enableEditing, disableEditing } = useEditability()
   const [undoableLoggingEnabled, setUndoableLoggingEnabled] = useState(true)
   const { project } = useReactFlow()
 
@@ -138,7 +139,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
           <Button
             icon="pi pi-pencil"
             disabled={!userCanEdit}
-            onClick={() => setEditingEnabled(true)}
+            onClick={enableEditing}
           />
         </div>
       )
@@ -148,12 +149,12 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   const EditorDock: FunctionComponent = () => {
     const saveEditing = useCallback(() => {
       saveFlow()
-      setEditingEnabled(false)
+      disableEditing()
     }, [])
 
     const cancelEditing = useCallback(() => {
       loadFlow()
-      setEditingEnabled(false)
+      disableEditing()
     }, [])
 
     if (editingEnabled) {
