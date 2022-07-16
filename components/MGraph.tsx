@@ -21,7 +21,7 @@ import ReactFlow, {
 } from 'react-flow-renderer'
 import useUndoable from 'use-undoable'
 
-import MetricNode from '../components/MetricNode'
+import MetricNode, { MetricNodeDataType } from '../components/MetricNode'
 import { useEditability } from '../contexts/editability'
 import styles from '../styles/MGraph.module.css'
 
@@ -101,16 +101,37 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   const onNodeDragStop = useCallback(() => {
     setUndoableLoggingEnabled(true)
   }, [setUndoableLoggingEnabled])
+  
+  /* ideally we'd use a callback for this, but I don't think it's currently possible
+  https://github.com/wbkd/react-flow/discussions/2270 */
+  const [nodeDataToChange, setNodeDatatoChange] = useState<MetricNodeDataType>()
+  useEffect(() => {
+    if (nodeDataToChange) {
+      const nodeId = nodeDataToChange.nodeId
+      const node = elements.nodes.find((n) => n.id === nodeId)
+      const otherNodes = elements.nodes.filter((n) => n.id !== nodeId)
+      if (node) {
+        let nodeClone = JSON.parse(JSON.stringify(node)) // so updateElements detects a change
+        nodeClone.data = nodeDataToChange
+        updateElements('nodes', otherNodes.concat(nodeClone))
+      }
+      setNodeDatatoChange(undefined) // avoid infinite loop
+    }
+  }, [nodeDataToChange, setNodeDatatoChange, updateElements, elements.nodes])
 
   const onAdd = useCallback(() => {
     const { x, y } = project({
       x: self.innerWidth / 4,
       y: self.innerHeight - 250,
     })
+    const nodeId = `randomnode_${+new Date()}`
     const newNode = {
-      id: `randomnode_${+new Date()}`,
-      data : {
-        name: 'New Metric'
+      id: nodeId,
+      data: {
+        nodeId: nodeId, // needed for setNodeDataToChange
+        name: 'New Metric',
+        setNodeDatatoChange: setNodeDatatoChange,
+        setUndoableLoggingEnabled: setUndoableLoggingEnabled
       },
       type: 'metric',
       position: {
@@ -119,7 +140,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       },
     }
     updateElements('nodes', elements.nodes.concat(newNode))
-  }, [project, updateElements, elements.nodes])
+  }, [project, setNodeDatatoChange, updateElements, elements.nodes])
 
   const onConnect = useCallback(
     (connection: Connection) => {
