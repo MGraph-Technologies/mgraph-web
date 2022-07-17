@@ -125,14 +125,15 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       y: self.innerHeight - 250,
     })
     const nodeId = `randomnode_${+new Date()}`
-    const newNode = {
+    const newNodeData: MetricNodeDataType = {
+      nodeId: nodeId, // needed for setNodeDataToChange
+      name: 'New Metric',
+      setNodeDatatoChange: setNodeDatatoChange,
+      setUndoableLoggingEnabled: setUndoableLoggingEnabled
+    }
+    const newNode: Node = {
       id: nodeId,
-      data: {
-        nodeId: nodeId, // needed for setNodeDataToChange
-        name: 'New Metric',
-        setNodeDatatoChange: setNodeDatatoChange,
-        setUndoableLoggingEnabled: setUndoableLoggingEnabled
-      },
+      data: newNodeData,
       type: 'metric',
       position: {
         x: x,
