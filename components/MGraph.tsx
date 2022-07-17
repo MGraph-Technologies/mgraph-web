@@ -266,6 +266,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         panOnScroll={true}
         minZoom={0.1}
         maxZoom={10}
+        deleteKeyCode={['Backspace', 'Delete']}
       >
         <ControlPanel />
         <Controls showInteractive={false} />
