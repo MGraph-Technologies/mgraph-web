@@ -10,7 +10,6 @@ export type MetricNodeDataType = {
   nodeId: string;
   name: string;
   setNodeDatatoChange: (data: MetricNodeDataType) => void;
-  setUndoableLoggingEnabled: (enabled: boolean) => void;
 }
 type MetricNodeProps = {
   data: MetricNodeDataType
@@ -35,9 +34,6 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data }) => {
         value={name}
         readonly={!editingEnabled}
         onChange={(e) => setName(e.target.value)}
-        // Clicking on a node also triggers onNodeDragStart, and thus disables logging
-        // @ts-ignore https://github.com/bymi15/react-edit-text/issues/41
-        onEditMode={(_e) => { data.setUndoableLoggingEnabled(true) }}
         onSave={saveName}
       />
       <Handle type="source" position={Position.Top} />

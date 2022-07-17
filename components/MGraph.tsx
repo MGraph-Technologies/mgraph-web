@@ -2,6 +2,7 @@ import { Button } from 'primereact/button'
 import { Toolbar } from 'primereact/toolbar'
 import React, {
   FunctionComponent,
+  MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
   useState,
@@ -40,14 +41,13 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         nodes: initialNodes,
         edges: initialEdges,
       },
-      { behavior: 'destroyFuture' }
+      { behavior: 'destroyFuture', ignoreIdenticalMutations: false }
     )
   const { editingEnabled, enableEditing, disableEditing } = useEditability()
-  const [undoableLoggingEnabled, setUndoableLoggingEnabled] = useState(true)
   const { project } = useReactFlow()
 
   const updateElements = useCallback(
-    (t: 'nodes' | 'edges', v: Array<any>) => {
+    (t: 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
       // To prevent a mismatch of state updates,
       // we'll use the value passed into this
       // function instead of the state directly.
@@ -57,33 +57,36 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
           edges: t === 'edges' ? v : e.edges,
         }),
         undefined,
-        !undoableLoggingEnabled
+        !undoable
       )
     },
-    [setElements, undoableLoggingEnabled]
+    [setElements]
   )
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
-      updateElements('nodes', applyNodeChanges(changes, elements.nodes))
+      updateElements('nodes', applyNodeChanges(changes, elements.nodes), false)
     },
     [updateElements, elements.nodes]
   )
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
-      updateElements('edges', applyEdgeChanges(changes, elements.edges))
+      updateElements('edges', applyEdgeChanges(changes, elements.edges), true)
     },
     [updateElements, elements.edges]
   )
 
-  const onNodeDragStart = useCallback(() => {
-    setUndoableLoggingEnabled(false)
-  }, [setUndoableLoggingEnabled])
-
-  const onNodeDragStop = useCallback(() => {
-    setUndoableLoggingEnabled(true)
-  }, [setUndoableLoggingEnabled])
+  const onNodeDragStart = useCallback(
+    (_event: ReactMouseEvent, node: Node) => {
+      updateElements(
+        'nodes', 
+        elements.nodes.map(
+          (n) => n.id === node.id ? node : n
+        ),
+        true
+      )
+  }, [updateElements, elements])
   
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
@@ -96,7 +99,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       if (node) {
         let nodeClone = JSON.parse(JSON.stringify(node)) // so updateElements detects a change
         nodeClone.data = nodeDataToChange
-        updateElements('nodes', otherNodes.concat(nodeClone))
+        updateElements('nodes', otherNodes.concat(nodeClone), true)
       }
       setNodeDatatoChange(undefined) // avoid infinite loop
     }
@@ -111,8 +114,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     const newNodeData: MetricNodeDataType = {
       nodeId: nodeId, // needed for setNodeDataToChange
       name: 'New Metric',
-      setNodeDatatoChange: setNodeDatatoChange,
-      setUndoableLoggingEnabled: setUndoableLoggingEnabled
+      setNodeDatatoChange: setNodeDatatoChange
     }
     const newNode: Node = {
       id: nodeId,
@@ -123,12 +125,12 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         y: y,
       },
     }
-    updateElements('nodes', elements.nodes.concat(newNode))
+    updateElements('nodes', elements.nodes.concat(newNode), true)
   }, [project, setNodeDatatoChange, updateElements, elements.nodes])
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      updateElements('edges', addEdge(connection, elements.edges))
+      updateElements('edges', addEdge(connection, elements.edges), true)
     },
     [updateElements, elements.edges]
   )
@@ -140,8 +142,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       flow.nodes.forEach((node: Node) => {
         const nodeData: MetricNodeDataType = {
           ...node.data,
-          setNodeDatatoChange: setNodeDatatoChange,
-          setUndoableLoggingEnabled: setUndoableLoggingEnabled
+          setNodeDatatoChange: setNodeDatatoChange
         }
         node.data = nodeData
       })
@@ -242,7 +243,6 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeDragStart={onNodeDragStart}
-        onNodeDragStop={onNodeDragStop}
         onConnect={onConnect}
         elementsSelectable={editingEnabled}
         nodesDraggable={editingEnabled}
