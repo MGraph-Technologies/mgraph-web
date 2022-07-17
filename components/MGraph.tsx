@@ -63,23 +63,6 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     [setElements, undoableLoggingEnabled]
   )
 
-  const loadFlow = useCallback(() => {
-    const flowStr = localStorage.getItem(flowKey) || ''
-    if (flowStr) {
-      const flow = JSON.parse(flowStr)
-      reset({ nodes: flow.nodes, edges: flow.edges })
-    }
-  }, [reset])
-
-  useEffect(() => {
-    loadFlow()
-  }, [loadFlow])
-
-  const saveFlow = useCallback(() => {
-    localStorage.setItem(flowKey, JSON.stringify(elements))
-    reset({ nodes: elements.nodes, edges: elements.edges })
-  }, [elements, reset])
-
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       updateElements('nodes', applyNodeChanges(changes, elements.nodes))
@@ -149,6 +132,31 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     },
     [updateElements, elements.edges]
   )
+
+  const loadFlow = useCallback(() => {
+    const flowStr = localStorage.getItem(flowKey) || ''
+    if (flowStr) {
+      const flow = JSON.parse(flowStr)
+      flow.nodes.forEach((node: Node) => {
+        const nodeData: MetricNodeDataType = {
+          ...node.data,
+          setNodeDatatoChange: setNodeDatatoChange,
+          setUndoableLoggingEnabled: setUndoableLoggingEnabled
+        }
+        node.data = nodeData
+      })
+      reset({ nodes: flow.nodes, edges: flow.edges })
+    }
+  }, [reset])
+
+  useEffect(() => {
+    loadFlow()
+  }, [loadFlow])
+
+  const saveFlow = useCallback(() => {
+    localStorage.setItem(flowKey, JSON.stringify(elements))
+    reset({ nodes: elements.nodes, edges: elements.edges })
+  }, [elements, reset])
 
   const ControlPanel: FunctionComponent = () => {
     if (editingEnabled) {
