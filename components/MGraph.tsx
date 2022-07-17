@@ -43,6 +43,22 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       },
       { behavior: 'destroyFuture', ignoreIdenticalMutations: false }
     )
+  useEffect(() => {
+    const keyDownHandler = (e: KeyboardEvent) => {
+      const actionKey = navigator.platform.match(/Mac/i) ? e.metaKey : e.ctrlKey
+      if (actionKey && !e.shiftKey && e.key === 'z') {
+        undo()
+      }
+      if (actionKey && e.shiftKey && e.key === 'z') {
+        redo()
+      }
+    }
+    document.addEventListener('keydown', keyDownHandler)
+    // clean up
+    return () => {
+      document.removeEventListener("keydown", keyDownHandler);
+    }
+  }, [undo, redo])
   const { editingEnabled, enableEditing, disableEditing } = useEditability()
   const { project } = useReactFlow()
 
