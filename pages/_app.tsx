@@ -4,6 +4,7 @@ import 'primeicons/primeicons.css' //icons
 import 'primereact/resources/primereact.min.css' //core css
 import 'primereact/resources/themes/lara-light-indigo/theme.css' //theme
 import { useEffect } from 'react'
+import { EditabilityProvider } from '../contexts/editability'
 
 import '../styles/globals.css'
 import { analytics } from '../utils/segmentClient'
@@ -21,7 +22,11 @@ function MyApp({ Component, pageProps }: AppProps) {
     router.events.on('routeChangeStart', handleRouteChange)
   })
 
-  return <Component {...pageProps} />
+  return (
+    <EditabilityProvider>
+      <Component {...pageProps} />
+    </EditabilityProvider>
+  )
 }
 
 export default MyApp
