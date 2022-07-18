@@ -56,7 +56,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     document.addEventListener('keydown', keyDownHandler)
     // clean up
     return () => {
-      document.removeEventListener("keydown", keyDownHandler);
+      document.removeEventListener('keydown', keyDownHandler)
     }
   }, [undo, redo])
   const { editingEnabled, enableEditing, disableEditing } = useEditability()
@@ -96,14 +96,14 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   const onNodeDragStart = useCallback(
     (_event: ReactMouseEvent, node: Node) => {
       updateElements(
-        'nodes', 
-        elements.nodes.map(
-          (n) => n.id === node.id ? node : n
-        ),
+        'nodes',
+        elements.nodes.map((n) => (n.id === node.id ? node : n)),
         true
       )
-  }, [updateElements, elements])
-  
+    },
+    [updateElements, elements]
+  )
+
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
   const [nodeDataToChange, setNodeDatatoChange] = useState<MetricNodeDataType>()
@@ -131,7 +131,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       nodeId: nodeId, // needed for setNodeDataToChange
       name: 'New Metric',
       color: '#FFFFFF',
-      setNodeDatatoChange: setNodeDatatoChange
+      setNodeDatatoChange: setNodeDatatoChange,
     }
     const newNode: Node = {
       id: nodeId,
@@ -147,7 +147,11 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      updateElements('edges', addEdge({...connection, animated: true}, elements.edges), true)
+      updateElements(
+        'edges',
+        addEdge({ ...connection, animated: true }, elements.edges),
+        true
+      )
     },
     [updateElements, elements.edges]
   )
@@ -159,7 +163,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       flow.nodes.forEach((node: Node) => {
         const nodeData: MetricNodeDataType = {
           ...node.data,
-          setNodeDatatoChange: setNodeDatatoChange
+          setNodeDatatoChange: setNodeDatatoChange,
         }
         node.data = nodeData
       })
