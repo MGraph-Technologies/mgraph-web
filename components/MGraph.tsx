@@ -33,6 +33,7 @@ const nodeTypes = { metric: MetricNode }
 
 type MGraphProps = {}
 const MGraph: FunctionComponent<MGraphProps> = () => {
+  const { editingEnabled, enableEditing, disableEditing } = useEditability()
   const initialNodes: Node[] = []
   const initialEdges: Edge[] = []
   const [elements, setElements, { undo, redo, canUndo, canRedo, reset }] =
@@ -59,7 +60,6 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       document.removeEventListener('keydown', keyDownHandler)
     }
   }, [undo, redo])
-  const { editingEnabled, enableEditing, disableEditing } = useEditability()
   const { project } = useReactFlow()
 
   const updateElements = useCallback(
@@ -86,24 +86,6 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     [updateElements, elements.nodes]
   )
 
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) => {
-      updateElements('edges', applyEdgeChanges(changes, elements.edges), true)
-    },
-    [updateElements, elements.edges]
-  )
-
-  const onNodeDragStart = useCallback(
-    (_event: ReactMouseEvent, node: Node) => {
-      updateElements(
-        'nodes',
-        elements.nodes.map((n) => (n.id === node.id ? node : n)),
-        true
-      )
-    },
-    [updateElements, elements]
-  )
-
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
   const [nodeDataToChange, setNodeDatatoChange] = useState<MetricNodeDataType>()
@@ -121,7 +103,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     }
   }, [nodeDataToChange, setNodeDatatoChange, updateElements, elements.nodes])
 
-  const onAdd = useCallback(() => {
+  const onNodeAddition = useCallback(() => {
     const { x, y } = project({
       x: self.innerWidth / 4,
       y: self.innerHeight - 250,
@@ -144,6 +126,24 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     }
     updateElements('nodes', elements.nodes.concat(newNode), true)
   }, [project, setNodeDatatoChange, updateElements, elements.nodes])
+
+  const onNodeDragStart = useCallback(
+    (_event: ReactMouseEvent, node: Node) => {
+      updateElements(
+        'nodes',
+        elements.nodes.map((n) => (n.id === node.id ? node : n)),
+        true
+      )
+    },
+    [updateElements, elements]
+  )
+
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      updateElements('edges', applyEdgeChanges(changes, elements.edges), true)
+    },
+    [updateElements, elements.edges]
+  )
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -170,7 +170,6 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
       reset({ nodes: flow.nodes, edges: flow.edges })
     }
   }, [reset])
-
   useEffect(() => {
     loadFlow()
   }, [loadFlow])
@@ -224,7 +223,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
             className={styles.editor_toolbar}
             left={
               <div>
-                <Button icon="pi pi-plus" onClick={onAdd} />
+                <Button icon="pi pi-plus" onClick={onNodeAddition} />
               </div>
             }
             right={
