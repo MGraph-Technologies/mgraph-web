@@ -1,5 +1,6 @@
 import { Button } from 'primereact/button'
 import React, { FunctionComponent, useCallback, useEffect, useState } from 'react'
+import { ColorResult, TwitterPicker } from 'react-color'
 import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
@@ -10,6 +11,7 @@ import styles from '../styles/MetricNode.module.css'
 export type MetricNodeDataType = {
   nodeId: string;
   name: string;
+  color: string;
   setNodeDatatoChange: (data: MetricNodeDataType) => void;
 }
 type MetricNodeProps = {
@@ -22,15 +24,31 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data }) => {
   useEffect(() => {
     setName(data.name)
   }, [data.name])
-
   const saveName = useCallback(({ value } : onSaveProps) => {
     let newData = { ...data }
     newData.name = value
     data.setNodeDatatoChange(newData)
   }, [data])
   
+  const [color, setColor] = useState('#FFFFFF')
+  useEffect(() => {
+    setColor(data.color)
+  }, [data.color])
+  const saveColor = useCallback((color: ColorResult) => {
+    let newData = { ...data }
+    newData.color = color.hex
+    data.setNodeDatatoChange(newData)
+  }, [data])
+  const [displayColorPicker, setDisplayColorPicker] = useState(false)
+
+  const handleColorChangeComplete = useCallback((color: ColorResult) => {
+    setColor(color.hex)
+    saveColor(color)
+    setDisplayColorPicker(false)
+  }, [saveColor])
+  
   return (
-    <div className={styles.metric_node}>
+    <div className={styles.metric_node} style={{ backgroundColor: color }}>
       <div className={styles.header}>
         <div className={styles.name}>
           <EditText
@@ -42,11 +60,35 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data }) => {
           />
         </div>
         <div className={styles.buttons}>
-          <Button
-            className='p-button-text'
-            icon="pi pi-angle-right"
-            onClick={() => {}} // TODO: activate
-          />
+        {!editingEnabled
+          ? <Button
+              className='p-button-text'
+              icon='pi pi-angle-right'
+              onClick={() => {}} // TODO: activate
+            />
+          : null}
+        {editingEnabled && !displayColorPicker
+          ? <>
+              <Button
+                className='p-button-text'
+                icon='pi pi-ellipsis-v'
+                onClick={() => setDisplayColorPicker(true)}
+                />
+            </>
+          : null}
+        {editingEnabled && displayColorPicker
+          ? <>
+              <TwitterPicker 
+                color={color}
+                onChangeComplete={(color) => handleColorChangeComplete(color)}
+              />
+              <Button
+                className='p-button-text'
+                icon='pi pi-times'
+                onClick={() => setDisplayColorPicker(false)}
+              />
+            </>
+          : null}
         </div>
       </div>
       <Handle type="source" position={Position.Top} />

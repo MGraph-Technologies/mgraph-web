@@ -130,6 +130,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
     const newNodeData: MetricNodeDataType = {
       nodeId: nodeId, // needed for setNodeDataToChange
       name: 'New Metric',
+      color: '#FFFFFF',
       setNodeDatatoChange: setNodeDatatoChange
     }
     const newNode: Node = {
