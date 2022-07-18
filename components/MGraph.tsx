@@ -172,6 +172,8 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   }, [loadFlow])
 
   const saveFlow = useCallback(() => {
+    elements.nodes = elements.nodes.map((n) => ({ ...n, selected: false }))
+    elements.edges = elements.edges.map((e) => ({ ...e, selected: false }))
     localStorage.setItem(flowKey, JSON.stringify(elements))
     reset({ nodes: elements.nodes, edges: elements.edges })
   }, [elements, reset])
