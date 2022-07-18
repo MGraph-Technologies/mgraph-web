@@ -19,6 +19,7 @@ type MetricNodeProps = {
 }
 const MetricNode: FunctionComponent<MetricNodeProps> = ({ data }) => {
   const { editingEnabled } = useEditability()
+  const nodeHandleSize = editingEnabled ? '10px' : '0px'
   
   const [name, setName] = useState('')
   useEffect(() => {
@@ -91,10 +92,26 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data }) => {
           : null}
         </div>
       </div>
-      <Handle type="source" position={Position.Top} />
-      <Handle type="source" position={Position.Right} />
-      <Handle type="target" position={Position.Bottom} />
-      <Handle type="target" position={Position.Left} />
+      <Handle 
+        type="source" 
+        id='top' 
+        position={Position.Top}
+        style={{backgroundColor:'Green', width:nodeHandleSize, height:nodeHandleSize}} />
+      <Handle 
+        type="source" 
+        id='right' 
+        position={Position.Right}
+        style={{backgroundColor:'Green', width:nodeHandleSize, height:nodeHandleSize}} />
+      <Handle 
+        type="target" 
+        id='bottom' 
+        position={Position.Bottom}
+        style={{backgroundColor:'Red', width:nodeHandleSize, height:nodeHandleSize}} />
+      <Handle 
+        type="target" 
+        id='left' 
+        position={Position.Left}
+        style={{backgroundColor:'Red', width:nodeHandleSize, height:nodeHandleSize}} />
     </div>
   );
 }
