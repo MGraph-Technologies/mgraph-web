@@ -147,7 +147,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      updateElements('edges', addEdge(connection, elements.edges), true)
+      updateElements('edges', addEdge({...connection, animated: true}, elements.edges), true)
     },
     [updateElements, elements.edges]
   )
