@@ -15,9 +15,10 @@ export type MetricNodeDataType = {
   setNodeDatatoChange: (data: MetricNodeDataType) => void;
 }
 type MetricNodeProps = {
-  data: MetricNodeDataType
+  data: MetricNodeDataType,
+  selected: boolean,
 }
-const MetricNode: FunctionComponent<MetricNodeProps> = ({ data }) => {
+const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
   const { editingEnabled } = useEditability()
   const nodeHandleSize = editingEnabled ? '10px' : '0px'
   
@@ -49,7 +50,13 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data }) => {
   }, [saveColor])
   
   return (
-    <div className={styles.metric_node} style={{ backgroundColor: color }}>
+    <div 
+      className={styles.metric_node} 
+      style={{ 
+        backgroundColor: color, 
+        border: selected ? '1px solid' : '0px'
+      }}
+    >
       <div className={styles.header}>
         <div className={styles.name}>
           <EditText
