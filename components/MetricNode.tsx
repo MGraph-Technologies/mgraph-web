@@ -55,7 +55,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data }) => {
           <EditText
             value={name}
             readonly={!editingEnabled}
-            style={ editingEnabled ? {backgroundColor: '#eee'} : { backgroundColor: 'white' }}
+            style={ editingEnabled ? {backgroundColor: '#eee'} : { backgroundColor: color }}
             onChange={(e) => setName(e.target.value)}
             onSave={saveName}
           />
