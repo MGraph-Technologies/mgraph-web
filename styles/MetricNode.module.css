@@ -7,8 +7,33 @@
   background: white;
 }
 
-.metric_node label {
-  display: block;
-  color: #777;
-  font-size: 12px;
+.metric_node .header {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  height: 2em;
+}
+
+.metric_node .header .name {
+  position: absolute;
+  margin: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0px;
+}
+
+.metric_node .header .buttons {
+  position: absolute;
+  margin: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 0px;
+  display: flex;
+  flex-direction: row;
+}
+
+.metric_node .header button {
+  width: auto;
+  padding: 0px;
 }

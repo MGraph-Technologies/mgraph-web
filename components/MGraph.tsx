@@ -260,7 +260,6 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         onEdgesChange={onEdgesChange}
         onNodeDragStart={onNodeDragStart}
         onConnect={onConnect}
-        elementsSelectable={editingEnabled}
         nodesDraggable={editingEnabled}
         nodesConnectable={editingEnabled}
         panOnScroll={true}

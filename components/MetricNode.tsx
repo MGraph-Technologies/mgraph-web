@@ -1,3 +1,4 @@
+import { Button } from 'primereact/button'
 import React, { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
@@ -30,12 +31,24 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data }) => {
   
   return (
     <div className={styles.metric_node}>
-      <EditText 
-        value={name}
-        readonly={!editingEnabled}
-        onChange={(e) => setName(e.target.value)}
-        onSave={saveName}
-      />
+      <div className={styles.header}>
+        <div className={styles.name}>
+          <EditText
+            value={name}
+            readonly={!editingEnabled}
+            style={ editingEnabled ? {backgroundColor: '#eee'} : { backgroundColor: 'white' }}
+            onChange={(e) => setName(e.target.value)}
+            onSave={saveName}
+          />
+        </div>
+        <div className={styles.buttons}>
+          <Button
+            className='p-button-text'
+            icon="pi pi-angle-right"
+            onClick={() => {}} // TODO: activate
+          />
+        </div>
+      </div>
       <Handle type="source" position={Position.Top} />
       <Handle type="source" position={Position.Right} />
       <Handle type="target" position={Position.Bottom} />
