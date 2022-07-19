@@ -26,7 +26,7 @@ import MetricNode, { MetricNodeDataType } from '../components/MetricNode'
 import { useEditability } from '../contexts/editability'
 import styles from '../styles/MGraph.module.css'
 
-const flowKey = 'example-flow' // TODO: load flow from db
+const graphKey = 'example-flow' // TODO: load flow from db
 const userCanEdit = true // TODO: get this from db
 
 const nodeTypes = { metric: MetricNode }
@@ -36,7 +36,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   const { editingEnabled, enableEditing, disableEditing } = useEditability()
   const initialNodes: Node[] = []
   const initialEdges: Edge[] = []
-  const [elements, setElements, { undo, redo, canUndo, canRedo, reset }] =
+  const [graph, setGraph, { undo, redo, canUndo, canRedo, reset }] =
     useUndoable(
       {
         nodes: initialNodes,
@@ -62,12 +62,12 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   }, [undo, redo])
   const { project } = useReactFlow()
 
-  const updateElements = useCallback(
+  const updateGraph = useCallback(
     (t: 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
       // To prevent a mismatch of state updates,
       // we'll use the value passed into this
       // function instead of the state directly.
-      setElements(
+      setGraph(
         (e) => ({
           nodes: t === 'nodes' ? v : e.nodes,
           edges: t === 'edges' ? v : e.edges,
@@ -76,14 +76,14 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         !undoable
       )
     },
-    [setElements]
+    [setGraph]
   )
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
-      updateElements('nodes', applyNodeChanges(changes, elements.nodes), false)
+      updateGraph('nodes', applyNodeChanges(changes, graph.nodes), false)
     },
-    [updateElements, elements.nodes]
+    [updateGraph, graph.nodes]
   )
 
   /* ideally we'd use a callback for this, but I don't think it's currently possible
@@ -92,16 +92,16 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   useEffect(() => {
     if (nodeDataToChange) {
       const nodeId = nodeDataToChange.nodeId
-      const node = elements.nodes.find((n) => n.id === nodeId)
-      const otherNodes = elements.nodes.filter((n) => n.id !== nodeId)
+      const node = graph.nodes.find((n) => n.id === nodeId)
+      const otherNodes = graph.nodes.filter((n) => n.id !== nodeId)
       if (node) {
-        let nodeClone = JSON.parse(JSON.stringify(node)) // so updateElements detects a change
+        let nodeClone = JSON.parse(JSON.stringify(node)) // so updateGraph detects a change
         nodeClone.data = nodeDataToChange
-        updateElements('nodes', otherNodes.concat(nodeClone), true)
+        updateGraph('nodes', otherNodes.concat(nodeClone), true)
       }
       setNodeDatatoChange(undefined) // avoid infinite loop
     }
-  }, [nodeDataToChange, setNodeDatatoChange, updateElements, elements.nodes])
+  }, [nodeDataToChange, setNodeDatatoChange, updateGraph, graph.nodes])
 
   const onNodeAddition = useCallback(() => {
     const { x, y } = project({
@@ -124,62 +124,62 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
         y: y,
       },
     }
-    updateElements('nodes', elements.nodes.concat(newNode), true)
-  }, [project, setNodeDatatoChange, updateElements, elements.nodes])
+    updateGraph('nodes', graph.nodes.concat(newNode), true)
+  }, [project, setNodeDatatoChange, updateGraph, graph.nodes])
 
   const onNodeDragStart = useCallback(
     (_event: ReactMouseEvent, node: Node) => {
-      updateElements(
+      updateGraph(
         'nodes',
-        elements.nodes.map((n) => (n.id === node.id ? node : n)),
+        graph.nodes.map((n) => (n.id === node.id ? node : n)),
         true
       )
     },
-    [updateElements, elements]
+    [updateGraph, graph]
   )
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
-      updateElements('edges', applyEdgeChanges(changes, elements.edges), true)
+      updateGraph('edges', applyEdgeChanges(changes, graph.edges), true)
     },
-    [updateElements, elements.edges]
+    [updateGraph, graph.edges]
   )
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      updateElements(
+      updateGraph(
         'edges',
-        addEdge({ ...connection, animated: true }, elements.edges),
+        addEdge({ ...connection, animated: true }, graph.edges),
         true
       )
     },
-    [updateElements, elements.edges]
+    [updateGraph, graph.edges]
   )
 
-  const loadFlow = useCallback(() => {
-    const flowStr = localStorage.getItem(flowKey) || ''
-    if (flowStr) {
-      const flow = JSON.parse(flowStr)
-      flow.nodes.forEach((node: Node) => {
+  const loadGraph = useCallback(() => {
+    const graphStr = localStorage.getItem(graphKey) || ''
+    if (graphStr) {
+      const parsedGraph = JSON.parse(graphStr)
+      parsedGraph.nodes.forEach((node: Node) => {
         const nodeData: MetricNodeDataType = {
           ...node.data,
           setNodeDatatoChange: setNodeDatatoChange,
         }
         node.data = nodeData
       })
-      reset({ nodes: flow.nodes, edges: flow.edges })
+      reset({ nodes: parsedGraph.nodes, edges: parsedGraph.edges })
     }
   }, [reset])
   useEffect(() => {
-    loadFlow()
-  }, [loadFlow])
+    loadGraph()
+  }, [loadGraph])
 
-  const saveFlow = useCallback(() => {
-    elements.nodes = elements.nodes.map((n) => ({ ...n, selected: false }))
-    elements.edges = elements.edges.map((e) => ({ ...e, selected: false }))
-    localStorage.setItem(flowKey, JSON.stringify(elements))
-    reset({ nodes: elements.nodes, edges: elements.edges })
-  }, [elements, reset])
+  const saveGraph = useCallback(() => {
+    graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
+    graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
+    localStorage.setItem(graphKey, JSON.stringify(graph))
+    reset({ nodes: graph.nodes, edges: graph.edges })
+  }, [graph, reset])
 
   const ControlPanel: FunctionComponent = () => {
     if (editingEnabled) {
@@ -207,12 +207,12 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
 
   const EditorDock: FunctionComponent = () => {
     const saveEditing = useCallback(() => {
-      saveFlow()
+      saveGraph()
       disableEditing()
     }, [])
 
     const cancelEditing = useCallback(() => {
-      loadFlow()
+      loadGraph()
       disableEditing()
     }, [])
 
@@ -259,8 +259,8 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   return (
     <div className={styles.mgraph}>
       <ReactFlow
-        nodes={elements.nodes}
-        edges={elements.edges}
+        nodes={graph.nodes}
+        edges={graph.edges}
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
