@@ -3,7 +3,7 @@ import React, { FunctionComponent } from 'react'
 import { ReactFlowProvider } from 'react-flow-renderer'
 
 import Account from '../components/Account'
-import MGraph from '../components/MGraph'
+import GraphViewer from '../components/GraphViewer'
 import styles from '../styles/Workspace.module.css'
 
 type WorkspaceProps = {}
@@ -27,9 +27,9 @@ const Workspace: FunctionComponent<WorkspaceProps> = () => {
           </div>
         </div>
       </div>
-      <div className={styles.mgraph_container}>
+      <div className={styles.graph_viewer_container}>
         <ReactFlowProvider>
-          <MGraph />
+          <GraphViewer />
         </ReactFlowProvider>
       </div>
     </div>

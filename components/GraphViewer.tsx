@@ -24,15 +24,15 @@ import useUndoable from 'use-undoable'
 
 import MetricNode, { MetricNodeDataType } from '../components/MetricNode'
 import { useEditability } from '../contexts/editability'
-import styles from '../styles/MGraph.module.css'
+import styles from '../styles/GraphViewer.module.css'
 
 const graphKey = 'example-flow' // TODO: load flow from db
 const userCanEdit = true // TODO: get this from db
 
 const nodeTypes = { metric: MetricNode }
 
-type MGraphProps = {}
-const MGraph: FunctionComponent<MGraphProps> = () => {
+type GraphViewerProps = {}
+const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   const { editingEnabled, enableEditing, disableEditing } = useEditability()
   const initialNodes: Node[] = []
   const initialEdges: Edge[] = []
@@ -257,7 +257,7 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   }
 
   return (
-    <div className={styles.mgraph}>
+    <div className={styles.graph_viewer}>
       <ReactFlow
         nodes={graph.nodes}
         edges={graph.edges}
@@ -282,4 +282,4 @@ const MGraph: FunctionComponent<MGraphProps> = () => {
   )
 }
 
-export default MGraph
+export default GraphViewer
