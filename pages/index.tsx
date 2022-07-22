@@ -1,28 +1,13 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import { Session } from '@supabase/supabase-js'
-import { useEffect, useState } from 'react'
 
 import AuthedUserRouter from '../components/AuthedUserRouter'
 import SignInButton from '../components/SignInButton'
+import { useAuth } from '../contexts/auth'
 import styles from '../styles/Home.module.css'
-import { analytics } from '../utils/segmentClient'
-import { supabase } from '../utils/supabaseClient'
 
 const Home: NextPage = () => {
-  const [session, setSession] = useState<Session | null>()
-
-  useEffect(() => {
-    setSession(supabase.auth.session())
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session)
-      if (event == 'SIGNED_IN' && session && session.user) {
-        analytics.identify(session.user.id)
-        analytics.track('login')
-      }
-    })
-  }, [])
+  const { session } = useAuth()
 
   return (
     <div className={styles.container}>
@@ -41,7 +26,7 @@ const Home: NextPage = () => {
           {!session ? (
             <SignInButton />
           ) : (
-            <AuthedUserRouter key={session.user ? session.user.id : ''} />
+            <AuthedUserRouter key={session.user?.id || ''} />
           )}
         </div>
       </main>
