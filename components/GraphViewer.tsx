@@ -30,7 +30,6 @@ import { useEditability } from '../contexts/editability'
 import styles from '../styles/GraphViewer.module.css'
 import { supabase } from '../utils/supabaseClient'
 
-const graphKey = 'example-flow-y' // TODO: load flow from db
 const userCanEdit = true // TODO: get this from db
 
 export type Graph = {
@@ -264,21 +263,49 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
     [edgeTypeIds, organizationId, updateGraph, graph.edges]
   )
 
-  const loadGraph = useCallback(() => {
-    const graphStr = localStorage.getItem(graphKey) || ''
-    if (graphStr) {
-      const parsedGraph = JSON.parse(graphStr)
-      parsedGraph.nodes.forEach((node: Node) => {
-        const nodeData: MetricNodeDataType = {
-          ...node.data,
-          setNodeDatatoChange: setNodeDatatoChange,
+  const loadGraph = useCallback(async () => {
+    try {
+      // TODO: loading animation
+      let { data: nodesData, error: nodesError } = await supabase
+        .from('nodes')
+        .select('react_flow_meta')
+        .eq('organization_id', organizationId)
+        .is('deleted_at', null)
+
+      if (nodesError) {
+        throw nodesError
+      }
+
+      let { data: edgesData, error: edgesError } = await supabase
+        .from('edges')
+        .select('react_flow_meta')
+        .eq('organization_id', organizationId)
+        .is('deleted_at', null)
+
+      if (edgesError) {
+        throw edgesError
+      }
+
+      if (nodesData && edgesData) {
+        const parsedNodes = nodesData.map((n) => (JSON.parse(n.react_flow_meta)))
+        parsedNodes.forEach((node: Node) => {
+          const nodeData: MetricNodeDataType = {
+            ...node.data,
+            setNodeDatatoChange: setNodeDatatoChange
+          }
+          node.data = nodeData
+        })
+        const parsedGraph = {
+          nodes: parsedNodes,
+          edges: edgesData.map((e) => (JSON.parse(e.react_flow_meta))),
         }
-        node.data = nodeData
-      })
-      setInitialGraph(parsedGraph)
-      reset(parsedGraph)
+        setInitialGraph(parsedGraph)
+        reset(parsedGraph)
+      }
+    } catch (error: any) {
+      alert(error.message)
     }
-  }, [reset])
+  }, [organizationId, reset])
   useEffect(() => {
     loadGraph()
   }, [loadGraph])
@@ -309,7 +336,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
       if (response.status === 200) {
         // only reset if the save was successful
         disableEditing()
-        reset({ nodes: graph.nodes, edges: graph.edges })
+        loadGraph()
       } else {
         console.error(response)
       }
@@ -317,7 +344,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
     .catch(error => {
       console.error('Error:', error)
     })
-  }, [session, graph, initialGraph, disableEditing, reset])
+  }, [session, graph, initialGraph, disableEditing, loadGraph])
 
   const ControlPanel: FunctionComponent = () => {
     if (editingEnabled) {
