@@ -1,13 +1,14 @@
 import _ from 'lodash'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { Node } from 'react-flow-renderer'
-import { createClient, PostgrestResponse, SupabaseClient } from '@supabase/supabase-js'
+import { Edge, Node } from 'react-flow-renderer'
+import { createClient, PostgrestError, PostgrestResponse, SupabaseClient } from '@supabase/supabase-js'
+import { type } from 'cypress/types/jquery'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-async function upsertNodes(
-  nodes: Node[], 
+async function upsert(
+  objects: Edge[] | Node[], 
   op: 'create' | 'delete' | 'update',
   supabase: SupabaseClient,
   accessToken: string
@@ -20,51 +21,68 @@ async function upsertNodes(
   }
   const userId = user.id
 
-  type UpsertRecord = {
+  type Record = {
     id: string,
     organization_id: string,
     type_id: string,
-    name: string,
     react_flow_meta: string,
-    created_at?: Date,
-    created_by?: string,
     updated_at: Date,
     updated_by: string,
-    deleted_at?: Date,
-    deleted_by?: string
+    name?: string, // only nodes have names
+    source_id?: string, // only edges have source_id
+    target_id?: string, // only edges have target_id
+    created_at?: Date, // only needed for create
+    created_by?: string, // only needed for create
+    deleted_at?: Date, // only needed for delete
+    deleted_by?: string // only needed for delete
   }
+  const recordType = 'source' in objects[0] && 'target' in objects[0] ? 'edge' : 'node'
   const currentDate = new Date()
-  const toUpsert: UpsertRecord[] = nodes.map(node => {
-    const { id, data } = node
-    let upsertRecord: UpsertRecord = {
+  const records: Record[] = objects.map(object => {
+    const { id, data } = object
+    let record: Record = {
       id: id,
       organization_id: data.organizationId,
       type_id: data.typeId,
-      name: data.name,
-      react_flow_meta: JSON.stringify(node),
+      react_flow_meta: JSON.stringify(object),
       updated_at: currentDate,
       updated_by: userId,
     }
+    if (recordType === 'node') {
+      record = {
+        ...record,
+        name: data.name,
+      }
+    } else if (recordType === 'edge') {
+      record = {
+        ...record,
+         // @ts-ignore object is definitely an edge
+        source_id: object.source,
+         // @ts-ignore
+        target_id: object.target,
+      }
+    }
     if (op === 'create') {
-      upsertRecord = {
-        ...upsertRecord,
+      record = {
+        ...record,
         created_at: currentDate,
         created_by: userId,
       }
     }
     if (op === 'delete') {
-      upsertRecord = {
-        ...upsertRecord,
+      record = {
+        ...record,
         deleted_at: currentDate,
         deleted_by: userId,
       }
     }
-    return upsertRecord
+    return record
   })
-  console.log('\n\nop:', op, '\nnodes: ', toUpsert)
+  
+  console.log('\n\nop:', op, '\nrecord type: ', recordType, '\nrecords: ', records)
   return supabase
-      .from('nodes')
-      .upsert(toUpsert, { returning: 'minimal' })
+      .from(`${recordType}s`)
+      .upsert(records, { returning: 'minimal' })
 }
 
 export default async function handler(
@@ -80,6 +98,8 @@ export default async function handler(
     const body = JSON.parse(req.body)
     const { initialGraph, updatedGraph } = body
 
+    let upsertErrors: PostgrestError[] = []
+
     // upsert nodes
     const initialNodes: Node[] = initialGraph.nodes
     const updatedNodes: Node[] = updatedGraph.nodes
@@ -89,7 +109,12 @@ export default async function handler(
         initialNodes.some((initialNode) => initialNode.id === updatedNode.id)
       )
     )
-    const { error: additionNodesError } = await upsertNodes(addedNodes, 'create', supabase, accessToken)
+    if (addedNodes.length > 0 ) {
+      const { error: addedNodesError } = await upsert(addedNodes, 'create', supabase, accessToken)
+      if ( addedNodesError ) {
+        upsertErrors.push(addedNodesError)
+      }
+    }
 
     const modifiedNodes = updatedNodes.filter((updatedNode) => {
       const initialNode = (
@@ -97,20 +122,68 @@ export default async function handler(
       )
       return (initialNode && !_.isEqual(initialNode, updatedNode))
     })
-    const { error: updateNodesError } = await upsertNodes(modifiedNodes, 'update', supabase, accessToken)
+    if (modifiedNodes.length > 0 ) {
+      const { error: modifiedNodesError } = await upsert(modifiedNodes, 'update', supabase, accessToken)
+      if ( modifiedNodesError ) {
+        upsertErrors.push(modifiedNodesError)
+      }
+    }
 
     const deletedNodes = initialNodes.filter(
       (initialNode) => !(
         updatedNodes.find((updatedNode) => updatedNode.id === initialNode.id)
       )
     )
-    const { error: deletionNodesError } = await upsertNodes(deletedNodes, 'delete', supabase, accessToken)
+    if (deletedNodes.length > 0 ) {
+      const { error: deletedNodesError } = await upsert(deletedNodes, 'delete', supabase, accessToken)
+      if ( deletedNodesError ) {
+        upsertErrors.push(deletedNodesError)
+      }
+    }
 
     // upsert edges
-    // tba
+    const initialEdges: Edge[] = initialGraph.edges
+    const updatedEdges: Edge[] = updatedGraph.edges
 
-    if (additionNodesError || updateNodesError || deletionNodesError) {
-      console.log('\nErrors: ', additionNodesError, updateNodesError, deletionNodesError)
+    const addedEdges = updatedEdges.filter(
+      (updatedEdge) => !(
+        initialEdges.some((initialEdge) => initialEdge.id === updatedEdge.id)
+      )
+    )
+    if (addedEdges.length > 0 ) {
+      const { error: addedEdgesError } = await upsert(addedEdges, 'create', supabase, accessToken)
+      if ( addedEdgesError ) {
+        upsertErrors.push(addedEdgesError)
+      }
+    }
+
+    const modifiedEdges = updatedEdges.filter((updatedEdge) => {
+      const initialEdge = (
+        initialEdges.find((initialEdge) => initialEdge.id === updatedEdge.id)
+      )
+      return (initialEdge && !_.isEqual(initialEdge, updatedEdge))
+    })
+    if (modifiedEdges.length > 0 ) {
+      const { error: modifiedEdgesError } = await upsert(modifiedEdges, 'update', supabase, accessToken)
+      if ( modifiedEdgesError ) {
+        upsertErrors.push(modifiedEdgesError)
+      }
+    }
+
+    const deletedEdges = initialEdges.filter(
+      (initialEdge) => !(
+        updatedEdges.find((updatedEdge) => updatedEdge.id === initialEdge.id)
+      )
+    )
+    if (deletedEdges.length > 0 ) {
+      const { error: deletedEdgesError } = await upsert(deletedEdges, 'delete', supabase, accessToken)
+      if ( deletedEdgesError ) {
+        upsertErrors.push(deletedEdgesError)
+      }
+    }
+
+    if ( upsertErrors.length > 0 ) {
+      console.log('\nErrors: ', upsertErrors)
       res.status(500).json({ success: false, message: 'Failed to upsert nodes' })
     } else {
       console.log('\nSuccess!')

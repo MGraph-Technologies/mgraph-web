@@ -23,13 +23,14 @@ import ReactFlow, {
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
+import FunctionalEdge, { FunctionalEdgeDataType } from './FunctionalEdge'
 import MetricNode, { MetricNodeDataType } from '../components/MetricNode'
 import { useAuth } from '../contexts/auth'
 import { useEditability } from '../contexts/editability'
 import styles from '../styles/GraphViewer.module.css'
 import { supabase } from '../utils/supabaseClient'
 
-const graphKey = 'example-flow-x' // TODO: load flow from db
+const graphKey = 'example-flow-y' // TODO: load flow from db
 const userCanEdit = true // TODO: get this from db
 
 export type Graph = {
@@ -40,9 +41,9 @@ const nodeTypes = {
   metric: MetricNode,
 }
 const edgeTypes = {
-  input: 'TBA',
-  positive_input: 'TBA',
-  negative_input: 'TBA',
+  input: FunctionalEdge,
+  positive_input: FunctionalEdge,
+  negative_input: FunctionalEdge,
 }
 
 type GraphViewerProps = {
@@ -237,13 +238,30 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      updateGraph(
-        'edges',
-        addEdge({ ...connection, animated: true }, graph.edges),
-        true
-      )
+      const newEdgeType = 'input'
+      const newEdgeTypeId = edgeTypeIds[newEdgeType]
+      if (newEdgeTypeId) {
+        const newEdgeId = uuidv4()
+        const newEdgeData: FunctionalEdgeDataType = {
+          type: newEdgeType,
+          typeId: newEdgeTypeId,
+          organizationId: organizationId,
+        }
+        const newEdge = {
+          ...connection,
+          type: newEdgeType,
+          id: newEdgeId,
+          data: newEdgeData,
+          animated: true
+        }
+        updateGraph(
+          'edges',
+          addEdge(newEdge, graph.edges),
+          true
+        )
+      }
     },
-    [updateGraph, graph.edges]
+    [edgeTypeIds, organizationId, updateGraph, graph.edges]
   )
 
   const loadGraph = useCallback(() => {
@@ -377,6 +395,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
         nodes={graph.nodes}
         edges={graph.edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeDragStart={onNodeDragStart}
