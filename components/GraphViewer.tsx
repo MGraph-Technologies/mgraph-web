@@ -21,27 +21,111 @@ import ReactFlow, {
   useReactFlow,
 } from 'react-flow-renderer'
 import useUndoable from 'use-undoable'
+import { v4 as uuidv4 } from 'uuid'
 
 import MetricNode, { MetricNodeDataType } from '../components/MetricNode'
+import { useAuth } from '../contexts/auth'
 import { useEditability } from '../contexts/editability'
 import styles from '../styles/GraphViewer.module.css'
+import { supabase } from '../utils/supabaseClient'
 
-const graphKey = 'example-flow' // TODO: load flow from db
+const graphKey = 'example-flow-x' // TODO: load flow from db
 const userCanEdit = true // TODO: get this from db
 
-const nodeTypes = { metric: MetricNode }
+export type Graph = {
+  nodes: Node[]
+  edges: Edge[]
+}
+const nodeTypes = {
+  metric: MetricNode,
+}
+const edgeTypes = {
+  input: 'TBA',
+  positive_input: 'TBA',
+  negative_input: 'TBA',
+}
 
-type GraphViewerProps = {}
-const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
+type GraphViewerProps = {
+  organizationId: string
+}
+const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) => {
+  const { session } = useAuth()
   const { editingEnabled, enableEditing, disableEditing } = useEditability()
-  const initialNodes: Node[] = []
-  const initialEdges: Edge[] = []
+
+  type typeIdMap = { [key: string]: string }
+  const [nodeTypeIds, setNodeTypeIds] = useState<typeIdMap>(
+    Object.fromEntries(Object.keys(nodeTypes).map(key => [key, '']))
+  )
+  async function getNodeTypeIds() {
+    try {
+      let { data, error, status } = await supabase
+        .from('node_types')
+        .select('name, id')
+
+      if (error && status !== 406) {
+        throw error
+      }
+
+      if (data) {
+        const _nodeTypeIds = {} as typeIdMap
+        for (const nodeType in nodeTypeIds){
+          const nodeTypeId = data.find(e => e.name === nodeType)?.id
+          if (nodeTypeId) {
+            _nodeTypeIds[nodeType] = nodeTypeId
+          } else {
+            throw new Error(`Could not find node type id for ${nodeType}`)
+          }
+          setNodeTypeIds(_nodeTypeIds)
+        }
+      }
+    } catch (error: any) {
+      alert(error.message)
+    }
+  }
+  useEffect(() => {
+    getNodeTypeIds()
+  }, [])
+
+  const [edgeTypeIds, setEdgeTypeIds] = useState<typeIdMap>(
+    Object.fromEntries(Object.keys(edgeTypes).map(key => [key, '']))
+  )
+  async function getEdgeTypeIds() {
+    try {
+      let { data, error, status } = await supabase
+        .from('edge_types')
+        .select('name, id')
+
+      if (error && status !== 406) {
+        throw error
+      }
+
+      if (data) {
+        const _edgeTypeIds = {} as typeIdMap
+        for (const edgeType in edgeTypeIds){
+          const edgeTypeId = data.find(e => e.name === edgeType)?.id
+          if (edgeTypeId) {
+            _edgeTypeIds[edgeType] = edgeTypeId
+          } else {
+            throw new Error(`Could not find edge type id for ${edgeType}`)
+          }
+          setEdgeTypeIds(_edgeTypeIds)
+        }
+      }
+    } catch (error: any) {
+      alert(error.message)
+    }
+  }
+  useEffect(() => {
+    getEdgeTypeIds()
+  }, [])
+
+  const [initialGraph, setInitialGraph] = useState<Graph>({
+    nodes: [],
+    edges: [],
+  })
   const [graph, setGraph, { undo, redo, canUndo, canRedo, reset }] =
-    useUndoable(
-      {
-        nodes: initialNodes,
-        edges: initialEdges,
-      },
+    useUndoable<Graph>(
+      initialGraph,
       { behavior: 'destroyFuture', ignoreIdenticalMutations: false }
     )
   useEffect(() => {
@@ -104,28 +188,34 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   }, [nodeDataToChange, setNodeDatatoChange, updateGraph, graph.nodes])
 
   const onNodeAddition = useCallback(() => {
-    const { x, y } = project({
-      x: self.innerWidth / 4,
-      y: self.innerHeight - 250,
-    })
-    const nodeId = `randomnode_${+new Date()}`
-    const newNodeData: MetricNodeDataType = {
-      nodeId: nodeId, // needed for setNodeDataToChange
-      name: 'New Metric',
-      color: '#FFFFFF',
-      setNodeDatatoChange: setNodeDatatoChange,
+    const newNodeType = 'metric'
+    const newNodeTypeId = nodeTypeIds[newNodeType]
+    if (newNodeTypeId) {
+      const { x, y } = project({
+        x: self.innerWidth / 4,
+        y: self.innerHeight - 250,
+      })
+      const newNodeId = uuidv4()
+      const newNodeData: MetricNodeDataType = {
+        nodeId: newNodeId, // needed for setNodeDataToChange
+        organizationId: organizationId,
+        typeId: newNodeTypeId,
+        name: 'New Metric',
+        color: '#FFFFFF',
+        setNodeDatatoChange: setNodeDatatoChange,
+      }
+      const newNode: Node = {
+        id: newNodeId,
+        data: newNodeData,
+        type: newNodeType,
+        position: {
+          x: x,
+          y: y,
+        },
+      }
+      updateGraph('nodes', graph.nodes.concat(newNode), true)
     }
-    const newNode: Node = {
-      id: nodeId,
-      data: newNodeData,
-      type: 'metric',
-      position: {
-        x: x,
-        y: y,
-      },
-    }
-    updateGraph('nodes', graph.nodes.concat(newNode), true)
-  }, [project, setNodeDatatoChange, updateGraph, graph.nodes])
+  }, [nodeTypeIds, project, organizationId, setNodeDatatoChange, updateGraph, graph.nodes])
 
   const onNodeDragStart = useCallback(
     (_event: ReactMouseEvent, node: Node) => {
@@ -167,19 +257,49 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         }
         node.data = nodeData
       })
-      reset({ nodes: parsedGraph.nodes, edges: parsedGraph.edges })
+      setInitialGraph(parsedGraph)
+      reset(parsedGraph)
     }
   }, [reset])
   useEffect(() => {
     loadGraph()
   }, [loadGraph])
 
-  const saveGraph = useCallback(() => {
+  const saveGraph = useCallback(async () => {
+    const accessToken = session?.access_token
+    if (!accessToken) {
+      return
+    }
+    // remove selections
     graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
     graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
-    localStorage.setItem(graphKey, JSON.stringify(graph))
-    reset({ nodes: graph.nodes, edges: graph.edges })
-  }, [graph, reset])
+
+    await fetch(
+      '/api/v1/graphs', 
+      {
+        method: 'PUT', 
+        body: JSON.stringify({
+          initialGraph: initialGraph,
+          updatedGraph: graph
+        }),
+        headers: {
+          'supabase-access-token': accessToken,
+        }
+      }
+    )
+    .then((response) => {
+      if (response.status === 200) {
+        // only reset if the save was successful
+        disableEditing()
+        reset({ nodes: graph.nodes, edges: graph.edges })
+      } else {
+        console.error(response)
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error)
+    })
+  }, [session, graph, initialGraph, disableEditing, reset])
 
   const ControlPanel: FunctionComponent = () => {
     if (editingEnabled) {
@@ -206,11 +326,6 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   }
 
   const EditorDock: FunctionComponent = () => {
-    const saveEditing = useCallback(() => {
-      saveGraph()
-      disableEditing()
-    }, [])
-
     const cancelEditing = useCallback(() => {
       loadGraph()
       disableEditing()
@@ -240,11 +355,11 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
                   onClick={redo}
                   disabled={!canRedo}
                 />
-                <Button label="Save" onClick={() => saveEditing()} />
+                <Button label="Save" onClick={saveGraph} />
                 <Button
                   className="p-button-outlined"
                   label="Cancel"
-                  onClick={() => cancelEditing()}
+                  onClick={cancelEditing}
                 />
               </div>
             }

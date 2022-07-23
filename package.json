@@ -14,8 +14,11 @@
   "dependencies": {
     "@segment/analytics-next": "^1.39.2",
     "@supabase/supabase-js": "^1.35.4",
+    "@types/lodash": "^4.14.182",
     "@types/react-color": "^3.0.6",
     "@types/react-edit-text": "^5.0.0",
+    "@types/uuid": "^8.3.4",
+    "lodash": "^4.17.21",
     "next": "12.1.6",
     "primeicons": "^5.0.0",
     "primereact": "^8.1.1",
@@ -24,7 +27,8 @@
     "react-dom": "18.2.0",
     "react-edit-text": "^5.0.2",
     "react-flow-renderer": "^10.3.8",
-    "use-undoable": "^3.3.11"
+    "use-undoable": "^3.3.11",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/node": "18.0.0",
