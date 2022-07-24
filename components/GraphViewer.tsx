@@ -206,36 +206,6 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
     }
   }, [nodeDataToChange, setNodeDatatoChange, updateGraph, graph.nodes])
 
-  const onNodeAddition = useCallback(() => {
-    const newNodeType = 'metric'
-    const newNodeTypeId = nodeTypeIds[newNodeType]
-    if (newNodeTypeId) {
-      const { x, y } = project({
-        x: self.innerWidth / 4,
-        y: self.innerHeight - 250,
-      })
-      const newNodeId = uuidv4()
-      const newNodeData: MetricNodeDataType = {
-        nodeId: newNodeId, // needed for setNodeDataToChange
-        organizationId: organizationId,
-        typeId: newNodeTypeId,
-        name: 'New Metric',
-        color: '#FFFFFF',
-        setNodeDatatoChange: setNodeDatatoChange,
-      }
-      const newNode: Node = {
-        id: newNodeId,
-        data: newNodeData,
-        type: newNodeType,
-        position: {
-          x: x,
-          y: y,
-        },
-      }
-      updateGraph('nodes', graph.nodes.concat(newNode), true)
-    }
-  }, [nodeTypeIds, project, organizationId, setNodeDatatoChange, updateGraph, graph.nodes])
-
   const onNodeDragStart = useCallback(
     (_event: ReactMouseEvent, node: Node) => {
       updateGraph(
@@ -281,6 +251,36 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
     },
     [edgeTypeIds, organizationId, updateGraph, graph.edges]
   )
+
+  const onMetricNodeAddition = useCallback(() => {
+    const newNodeType = 'metric'
+    const newNodeTypeId = nodeTypeIds[newNodeType]
+    if (newNodeTypeId) {
+      const { x, y } = project({
+        x: self.innerWidth / 4,
+        y: self.innerHeight - 250,
+      })
+      const newNodeId = uuidv4()
+      const newNodeData: MetricNodeDataType = {
+        nodeId: newNodeId, // needed for setNodeDataToChange
+        organizationId: organizationId,
+        typeId: newNodeTypeId,
+        name: 'New Metric',
+        color: '#FFFFFF',
+        setNodeDatatoChange: setNodeDatatoChange,
+      }
+      const newNode: Node = {
+        id: newNodeId,
+        data: newNodeData,
+        type: newNodeType,
+        position: {
+          x: x,
+          y: y,
+        },
+      }
+      updateGraph('nodes', graph.nodes.concat(newNode), true)
+    }
+  }, [nodeTypeIds, project, organizationId, setNodeDatatoChange, updateGraph, graph.nodes])
 
   const loadGraph = useCallback(async () => {
     try {
@@ -402,7 +402,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
             className={styles.editor_toolbar}
             left={
               <div>
-                <Button icon="pi pi-plus" onClick={onNodeAddition} />
+                <Button icon="pi pi-plus" onClick={onMetricNodeAddition} />
               </div>
             }
             right={
