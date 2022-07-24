@@ -173,6 +173,10 @@ export default async function handler(
     const deletedEdges = initialEdges.filter(
       (initialEdge) => !(
         updatedEdges.find((updatedEdge) => updatedEdge.id === initialEdge.id)
+      ) || (
+        deletedNodes.find((deletedNode) => deletedNode.id === initialEdge.source)
+      ) || (
+        deletedNodes.find((deletedNode) => deletedNode.id === initialEdge.target)
       )
     )
     if (deletedEdges.length > 0 ) {
