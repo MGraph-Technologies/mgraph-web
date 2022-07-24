@@ -1,9 +1,9 @@
-.mgraph {
+.graph_viewer {
   height: 100%;
   width: 100%;
 }
 
-.mgraph .control_panel {
+.graph_viewer .control_panel {
   position: absolute;
   right: 10px;
   top: 10px;
@@ -11,13 +11,13 @@
   font-size: 12px;
 }
 
-.mgraph .control_panel button {
+.graph_viewer .control_panel button {
   width: auto;
   padding: 5px;
   margin-left: 5px;
 }
 
-.mgraph .editor_dock {
+.graph_viewer .editor_dock {
   position: absolute;
   bottom: 10px;
   left: 25%;
@@ -26,11 +26,11 @@
   padding: 10px;
 }
 
-.mgraph .editor_dock .editor_toolbar {
+.graph_viewer .editor_dock .editor_toolbar {
   padding: 10px;
 }
 
-.mgraph .editor_dock button {
+.graph_viewer .editor_dock button {
   width: auto;
   padding: 5px;
   margin-left: 5px;

@@ -1,18 +1,18 @@
 import { createContext, ReactNode, useContext, useState } from 'react'
 
-type editabilityContextType = {
+type EditabilityContextType = {
   editingEnabled: boolean
   enableEditing: () => void
   disableEditing: () => void
 }
 
-const editabilityContextDefaultValues: editabilityContextType = {
+const editabilityContextDefaultValues: EditabilityContextType = {
   editingEnabled: false,
   enableEditing: () => {},
   disableEditing: () => {},
 }
 
-const EditabilityContext = createContext<editabilityContextType>(
+const EditabilityContext = createContext<EditabilityContextType>(
   editabilityContextDefaultValues
 )
 

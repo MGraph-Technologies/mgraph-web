@@ -4,8 +4,9 @@ import 'primeicons/primeicons.css' //icons
 import 'primereact/resources/primereact.min.css' //core css
 import 'primereact/resources/themes/lara-light-indigo/theme.css' //theme
 import { useEffect } from 'react'
-import { EditabilityProvider } from '../contexts/editability'
 
+import { AuthProvider } from '../contexts/auth'
+import { EditabilityProvider } from '../contexts/editability'
 import '../styles/globals.css'
 import { analytics } from '../utils/segmentClient'
 
@@ -23,9 +24,11 @@ function MyApp({ Component, pageProps }: AppProps) {
   })
 
   return (
-    <EditabilityProvider>
-      <Component {...pageProps} />
-    </EditabilityProvider>
+    <AuthProvider>
+      <EditabilityProvider>
+        <Component {...pageProps} />
+      </EditabilityProvider>
+    </AuthProvider>
   )
 }
 

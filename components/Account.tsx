@@ -1,28 +1,19 @@
 import { useRouter } from 'next/router'
 import React, { FunctionComponent, useEffect, useState } from 'react'
 
+import { useAuth } from '../contexts/auth'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
 type Props = {}
 
 const Account: FunctionComponent<Props> = () => {
-  const [user_email, setUserEmail] = useState('')
+  const { session } = useAuth()
 
+  const [userEmail, setUserEmail] = useState('')
   useEffect(() => {
-    populateAccount()
-  }, [])
-
-  async function populateAccount() {
-    try {
-      const user = supabase.auth.user()
-      if (user && user.email) {
-        setUserEmail(user.email)
-      }
-    } catch (error: any) {
-      alert(error.message)
-    }
-  }
+    setUserEmail(session?.user?.email || '')
+  }, [session])
 
   const router = useRouter()
   async function handleSignOut() {
@@ -33,7 +24,7 @@ const Account: FunctionComponent<Props> = () => {
 
   return (
     <div className="account-module">
-      <div>{user_email}</div>
+      <div>{userEmail}</div>
       <button className="sign-out-button" onClick={() => handleSignOut()}>
         Sign Out
       </button>
