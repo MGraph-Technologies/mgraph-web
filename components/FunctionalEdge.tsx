@@ -1,10 +1,11 @@
 import React, { FunctionComponent } from 'react'
 import { EdgeProps, getBezierPath } from 'react-flow-renderer'
 
-export type FunctionalEdgeDataType = { // TODO: figure out how to reference this in FunctionalEdge's type
-  type: string,
-  typeId: string,
-  organizationId: string,
+export type FunctionalEdgeDataType = {
+  // TODO: figure out how to reference this in FunctionalEdge's type
+  type: string
+  typeId: string
+  organizationId: string
 }
 const FunctionalEdge: FunctionComponent<EdgeProps> = ({
   id,
@@ -14,7 +15,7 @@ const FunctionalEdge: FunctionComponent<EdgeProps> = ({
   targetY,
   sourcePosition,
   targetPosition,
-  style = {}
+  style = {},
 }) => {
   const edgePath = getBezierPath({
     sourceX,
@@ -23,7 +24,7 @@ const FunctionalEdge: FunctionComponent<EdgeProps> = ({
     targetX,
     targetY,
     targetPosition,
-  });
+  })
 
   return (
     <>

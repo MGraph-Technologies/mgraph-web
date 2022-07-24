@@ -14,9 +14,9 @@ import { useEditability } from '../contexts/editability'
 import styles from '../styles/MetricNode.module.css'
 
 export type MetricNodeDataType = {
-  nodeId: string,
-  organizationId: string,
-  typeId: string,
+  nodeId: string
+  organizationId: string
+  typeId: string
   name: string
   color: string
   setNodeDatatoChange: (data: MetricNodeDataType) => void

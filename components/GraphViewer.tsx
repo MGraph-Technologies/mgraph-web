@@ -48,13 +48,15 @@ const edgeTypes = {
 type GraphViewerProps = {
   organizationId: string
 }
-const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) => {
+const GraphViewer: FunctionComponent<GraphViewerProps> = ({
+  organizationId,
+}) => {
   const { session } = useAuth()
   const { editingEnabled, enableEditing, disableEditing } = useEditability()
 
   type TypeIdMap = { [key: string]: string }
   const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
-    Object.fromEntries(Object.keys(nodeTypes).map(key => [key, '']))
+    Object.fromEntries(Object.keys(nodeTypes).map((key) => [key, '']))
   )
   async function getNodeTypeIds() {
     try {
@@ -68,8 +70,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
 
       if (data) {
         const _nodeTypeIds = {} as TypeIdMap
-        for (const nodeType in nodeTypeIds){
-          const nodeTypeId = data.find(e => e.name === nodeType)?.id
+        for (const nodeType in nodeTypeIds) {
+          const nodeTypeId = data.find((e) => e.name === nodeType)?.id
           if (nodeTypeId) {
             _nodeTypeIds[nodeType] = nodeTypeId
           } else {
@@ -84,10 +86,11 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
   }
   useEffect(() => {
     getNodeTypeIds()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const [edgeTypeIds, setEdgeTypeIds] = useState<TypeIdMap>(
-    Object.fromEntries(Object.keys(edgeTypes).map(key => [key, '']))
+    Object.fromEntries(Object.keys(edgeTypes).map((key) => [key, '']))
   )
   async function getEdgeTypeIds() {
     try {
@@ -101,8 +104,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
 
       if (data) {
         const _edgeTypeIds = {} as TypeIdMap
-        for (const edgeType in edgeTypeIds){
-          const edgeTypeId = data.find(e => e.name === edgeType)?.id
+        for (const edgeType in edgeTypeIds) {
+          const edgeTypeId = data.find((e) => e.name === edgeType)?.id
           if (edgeTypeId) {
             _edgeTypeIds[edgeType] = edgeTypeId
           } else {
@@ -117,6 +120,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
   }
   useEffect(() => {
     getEdgeTypeIds()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const [initialGraph, setInitialGraph] = useState<Graph>({
@@ -124,10 +128,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
     edges: [],
   })
   const [graph, setGraph, { undo, redo, canUndo, canRedo, reset }] =
-    useUndoable<Graph>(
-      initialGraph,
-      { behavior: 'destroyFuture', ignoreIdenticalMutations: false }
-    )
+    useUndoable<Graph>(initialGraph, {
+      behavior: 'destroyFuture',
+      ignoreIdenticalMutations: false,
+    })
   const { project } = useReactFlow()
 
   const actionKey = navigator.platform.match(/Mac/i) ? 'Meta' : 'Control'
@@ -210,7 +214,11 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
     (_event: ReactMouseEvent, node: Node) => {
       updateGraph(
         'nodes',
-        graph.nodes.map((n) => (n.id === node.id ? {...node, selected: true} : {...n, selected: actionKeyPressed ? n.selected : false})),
+        graph.nodes.map((n) =>
+          n.id === node.id
+            ? { ...node, selected: true }
+            : { ...n, selected: actionKeyPressed ? n.selected : false }
+        ),
         true
       )
     },
@@ -240,13 +248,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
           type: newEdgeType,
           id: newEdgeId,
           data: newEdgeData,
-          animated: true
+          animated: true,
         }
-        updateGraph(
-          'edges',
-          addEdge(newEdge, graph.edges),
-          true
-        )
+        updateGraph('edges', addEdge(newEdge, graph.edges), true)
       }
     },
     [edgeTypeIds, organizationId, updateGraph, graph.edges]
@@ -280,7 +284,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
       }
       updateGraph('nodes', graph.nodes.concat(newNode), true)
     }
-  }, [nodeTypeIds, project, organizationId, setNodeDatatoChange, updateGraph, graph.nodes])
+  }, [
+    nodeTypeIds,
+    project,
+    organizationId,
+    setNodeDatatoChange,
+    updateGraph,
+    graph.nodes,
+  ])
 
   const loadGraph = useCallback(async () => {
     try {
@@ -306,17 +317,17 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
       }
 
       if (nodesData && edgesData) {
-        const parsedNodes = nodesData.map((n) => (JSON.parse(n.react_flow_meta)))
+        const parsedNodes = nodesData.map((n) => JSON.parse(n.react_flow_meta))
         parsedNodes.forEach((node: Node) => {
           const nodeData: MetricNodeDataType = {
             ...node.data,
-            setNodeDatatoChange: setNodeDatatoChange
+            setNodeDatatoChange: setNodeDatatoChange,
           }
           node.data = nodeData
         })
         const parsedGraph = {
           nodes: parsedNodes,
-          edges: edgesData.map((e) => (JSON.parse(e.react_flow_meta))),
+          edges: edgesData.map((e) => JSON.parse(e.react_flow_meta)),
         }
         setInitialGraph(parsedGraph)
         reset(parsedGraph)
@@ -338,31 +349,28 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
     graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
     graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
 
-    await fetch(
-      '/api/v1/graphs', 
-      {
-        method: 'PUT', 
-        body: JSON.stringify({
-          initialGraph: initialGraph,
-          updatedGraph: graph
-        }),
-        headers: {
-          'supabase-access-token': accessToken,
+    await fetch('/api/v1/graphs', {
+      method: 'PUT',
+      body: JSON.stringify({
+        initialGraph: initialGraph,
+        updatedGraph: graph,
+      }),
+      headers: {
+        'supabase-access-token': accessToken,
+      },
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          // only reset if the save was successful
+          disableEditing()
+          loadGraph()
+        } else {
+          console.error(response)
         }
-      }
-    )
-    .then((response) => {
-      if (response.status === 200) {
-        // only reset if the save was successful
-        disableEditing()
-        loadGraph()
-      } else {
-        console.error(response)
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error)
-    })
+      })
+      .catch((error) => {
+        console.error('Error:', error)
+      })
   }, [session, graph, initialGraph, disableEditing, loadGraph])
 
   const ControlPanel: FunctionComponent = () => {

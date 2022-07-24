@@ -55,15 +55,11 @@ const Workspace: FunctionComponent<WorkspaceProps> = () => {
         </div>
       </div>
       <div className={styles.graph_viewer_container}>
-        {
-          organizationId === '' ? (
-            null // TODO: loading animation
-          ) : (
-            <ReactFlowProvider>
-              <GraphViewer organizationId={organizationId}/>
-            </ReactFlowProvider>
-          )
-        }
+        {organizationId === '' ? null : ( // TODO: loading animation
+          <ReactFlowProvider>
+            <GraphViewer organizationId={organizationId} />
+          </ReactFlowProvider>
+        )}
       </div>
     </div>
   )

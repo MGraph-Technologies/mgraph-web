@@ -9,7 +9,7 @@ type Props = {}
 
 const Account: FunctionComponent<Props> = () => {
   const { session } = useAuth()
-  
+
   const [userEmail, setUserEmail] = useState('')
   useEffect(() => {
     setUserEmail(session?.user?.email || '')

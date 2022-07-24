@@ -1,4 +1,10 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 import { Session } from '@supabase/supabase-js'
 
 import { analytics } from '../utils/segmentClient'
@@ -9,12 +15,10 @@ type AuthContextType = {
 }
 
 const authContextTypeValues: AuthContextType = {
-  session: null
+  session: null,
 }
 
-const AuthContext = createContext<AuthContextType>(
-  authContextTypeValues
-)
+const AuthContext = createContext<AuthContextType>(authContextTypeValues)
 
 export function useAuth() {
   return useContext(AuthContext)
@@ -43,9 +47,7 @@ export function AuthProvider({ children }: AuthProps) {
   const value = { session }
   return (
     <>
-      <AuthContext.Provider value={value}>
-        {children}
-      </AuthContext.Provider>
+      <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     </>
   )
 }
