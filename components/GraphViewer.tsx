@@ -128,13 +128,20 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
       initialGraph,
       { behavior: 'destroyFuture', ignoreIdenticalMutations: false }
     )
+  const { project } = useReactFlow()
+
+  const actionKey = navigator.platform.match(/Mac/i) ? 'Meta' : 'Control'
+  const [actionKeyPressed, setActionKeyPressed] = useState(false)
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
-      const actionKey = navigator.platform.match(/Mac/i) ? e.metaKey : e.ctrlKey
-      if (actionKey && !e.shiftKey && e.key === 'z') {
+      if (e.key === actionKey) {
+        setActionKeyPressed(true)
+      }
+
+      if (actionKeyPressed && !e.shiftKey && e.key === 'z') {
         undo()
       }
-      if (actionKey && e.shiftKey && e.key === 'z') {
+      if (actionKeyPressed && e.shiftKey && e.key === 'z') {
         redo()
       }
     }
@@ -143,8 +150,20 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
     return () => {
       document.removeEventListener('keydown', keyDownHandler)
     }
-  }, [undo, redo])
-  const { project } = useReactFlow()
+  }, [actionKey, actionKeyPressed, undo, redo])
+
+  useEffect(() => {
+    const keyUpHandler = (e: KeyboardEvent) => {
+      if (e.key === actionKey) {
+        setActionKeyPressed(false)
+      }
+    }
+    document.addEventListener('keyup', keyUpHandler)
+    // clean up
+    return () => {
+      document.removeEventListener('keyup', keyUpHandler)
+    }
+  }, [actionKey, actionKeyPressed])
 
   const updateGraph = useCallback(
     (t: 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
@@ -221,11 +240,11 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
     (_event: ReactMouseEvent, node: Node) => {
       updateGraph(
         'nodes',
-        graph.nodes.map((n) => (n.id === node.id ? node : n)),
+        graph.nodes.map((n) => (n.id === node.id ? {...node, selected: true} : {...n, selected: actionKeyPressed ? n.selected : false})),
         true
       )
     },
-    [updateGraph, graph]
+    [updateGraph, graph, actionKeyPressed]
   )
 
   const onEdgesChange = useCallback(
@@ -433,6 +452,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
         minZoom={0.1}
         maxZoom={10}
         deleteKeyCode={['Backspace', 'Delete']}
+        multiSelectionKeyCode={[actionKey]}
       >
         <ControlPanel />
         <Controls showInteractive={false} />
