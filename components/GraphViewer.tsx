@@ -52,8 +52,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
   const { session } = useAuth()
   const { editingEnabled, enableEditing, disableEditing } = useEditability()
 
-  type typeIdMap = { [key: string]: string }
-  const [nodeTypeIds, setNodeTypeIds] = useState<typeIdMap>(
+  type TypeIdMap = { [key: string]: string }
+  const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
     Object.fromEntries(Object.keys(nodeTypes).map(key => [key, '']))
   )
   async function getNodeTypeIds() {
@@ -67,7 +67,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
       }
 
       if (data) {
-        const _nodeTypeIds = {} as typeIdMap
+        const _nodeTypeIds = {} as TypeIdMap
         for (const nodeType in nodeTypeIds){
           const nodeTypeId = data.find(e => e.name === nodeType)?.id
           if (nodeTypeId) {
@@ -86,7 +86,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
     getNodeTypeIds()
   }, [])
 
-  const [edgeTypeIds, setEdgeTypeIds] = useState<typeIdMap>(
+  const [edgeTypeIds, setEdgeTypeIds] = useState<TypeIdMap>(
     Object.fromEntries(Object.keys(edgeTypes).map(key => [key, '']))
   )
   async function getEdgeTypeIds() {
@@ -100,7 +100,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({ organizationId }) =>
       }
 
       if (data) {
-        const _edgeTypeIds = {} as typeIdMap
+        const _edgeTypeIds = {} as TypeIdMap
         for (const edgeType in edgeTypeIds){
           const edgeTypeId = data.find(e => e.name === edgeType)?.id
           if (edgeTypeId) {

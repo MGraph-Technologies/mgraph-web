@@ -4,15 +4,15 @@ import { Session } from '@supabase/supabase-js'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
-type authContextType = {
+type AuthContextType = {
   session: Session | null
 }
 
-const authContextTypeValues: authContextType = {
+const authContextTypeValues: AuthContextType = {
   session: null
 }
 
-const AuthContext = createContext<authContextType>(
+const AuthContext = createContext<AuthContextType>(
   authContextTypeValues
 )
 
