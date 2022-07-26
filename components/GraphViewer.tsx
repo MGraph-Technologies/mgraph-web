@@ -195,7 +195,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
 
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
-  const [nodeDataToChange, setNodeDatatoChange] = useState<MetricNodeProperties>()
+  const [nodeDataToChange, setNodeDatatoChange] =
+    useState<MetricNodeProperties>()
   useEffect(() => {
     if (nodeDataToChange) {
       const nodeToChangeId = nodeDataToChange.id
@@ -244,7 +245,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
           typeId: newEdgeTypeId,
           sourceId: connection.source || '', // it'll never not be set, but typescript doesn't know that
           targetId: connection.target || '',
-          initialProperties: {}
+          initialProperties: {},
         }
         const newEdge = {
           ...connection,
