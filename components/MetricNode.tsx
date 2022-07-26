@@ -13,16 +13,18 @@ import { Handle, Position } from 'react-flow-renderer'
 import { useEditability } from '../contexts/editability'
 import styles from '../styles/MetricNode.module.css'
 
-export type MetricNodeDataType = {
-  nodeId: string
+export type MetricNodeProperties = {
+  id: string
   organizationId: string
   typeId: string
   name: string
   color: string
-  setNodeDatatoChange: (data: MetricNodeDataType) => void
+  // below not in postgres
+  initialProperties: object
+  setNodeDatatoChange: (data: MetricNodeProperties) => void
 }
 type MetricNodeProps = {
-  data: MetricNodeDataType
+  data: MetricNodeProperties
   selected: boolean
 }
 const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {

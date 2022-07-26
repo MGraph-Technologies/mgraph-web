@@ -30,10 +30,10 @@ async function upsert(
     id: string
     organization_id: string
     type_id: string
-    react_flow_meta: string
+    properties: object
+    react_flow_meta: object
     updated_at: Date
     updated_by: string
-    name?: string // only nodes have names
     source_id?: string // only edges have source_id
     target_id?: string // only edges have target_id
     created_at?: Date // only needed for create
@@ -45,27 +45,28 @@ async function upsert(
     'source' in objects[0] && 'target' in objects[0] ? 'edge' : 'node'
   const currentDate = new Date()
   const records: Record[] = objects.map((object) => {
-    const { id, data } = object
+    const { data, ...reactFlowMeta } = object
+    const { initialProperties, ...updatedProperties } = data
     let record: Record = {
-      id: id,
-      organization_id: data.organizationId,
-      type_id: data.typeId,
-      react_flow_meta: JSON.stringify(object),
+      id: updatedProperties.id,
+      organization_id: updatedProperties.organizationId,
+      type_id: updatedProperties.typeId,
+      properties: {
+        // so properties created outside of React Flow are not overwritten
+        ...initialProperties,
+        ...updatedProperties,
+      },
+      react_flow_meta: reactFlowMeta,
       updated_at: currentDate,
       updated_by: userId,
     }
-    if (recordType === 'node') {
-      record = {
-        ...record,
-        name: data.name,
-      }
-    } else if (recordType === 'edge') {
+    if (recordType === 'edge') {
       record = {
         ...record,
         // @ts-ignore object is definitely an edge
-        source_id: object.source,
+        source_id: updatedProperties.sourceId,
         // @ts-ignore
-        target_id: object.target,
+        target_id: updatedProperties.targetId,
       }
     }
     if (op === 'create') {
