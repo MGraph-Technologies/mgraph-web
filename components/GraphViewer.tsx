@@ -198,13 +198,13 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   const [nodeDataToChange, setNodeDatatoChange] = useState<MetricNodeProperties>()
   useEffect(() => {
     if (nodeDataToChange) {
-      const nodeId = nodeDataToChange.id
-      const node = graph.nodes.find((n) => n.id === nodeId)
-      const otherNodes = graph.nodes.filter((n) => n.id !== nodeId)
-      if (node) {
-        let nodeClone = JSON.parse(JSON.stringify(node)) // so updateGraph detects a change
-        nodeClone.data = nodeDataToChange
-        updateGraph('nodes', otherNodes.concat(nodeClone), true)
+      const nodeToChangeId = nodeDataToChange.id
+      const nodeToChange = graph.nodes.find((n) => n.id === nodeToChangeId)
+      const otherNodes = graph.nodes.filter((n) => n.id !== nodeToChangeId)
+      if (nodeToChange) {
+        let nodeToChangeClone = JSON.parse(JSON.stringify(nodeToChange)) // so updateGraph detects a change
+        nodeToChangeClone.data = nodeDataToChange
+        updateGraph('nodes', otherNodes.concat(nodeToChangeClone), true)
       }
       setNodeDatatoChange(undefined) // avoid infinite loop
     }
