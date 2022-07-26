@@ -1,11 +1,15 @@
 import React, { FunctionComponent } from 'react'
 import { EdgeProps, getBezierPath } from 'react-flow-renderer'
 
-export type FunctionalEdgeDataType = {
+export type FunctionalEdgeProperties = {
   // TODO: figure out how to reference this in FunctionalEdge's type
-  type: string
-  typeId: string
+  id: string
   organizationId: string
+  typeId: string
+  sourceId: string
+  targetId: string
+  // below not in postgres
+  initialProperties: object
 }
 const FunctionalEdge: FunctionComponent<EdgeProps> = ({
   id,

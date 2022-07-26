@@ -23,8 +23,8 @@ import ReactFlow, {
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
-import FunctionalEdge, { FunctionalEdgeDataType } from './FunctionalEdge'
-import MetricNode, { MetricNodeDataType } from '../components/MetricNode'
+import FunctionalEdge, { FunctionalEdgeProperties } from './FunctionalEdge'
+import MetricNode, { MetricNodeProperties } from '../components/MetricNode'
 import { useAuth } from '../contexts/auth'
 import { useEditability } from '../contexts/editability'
 import styles from '../styles/GraphViewer.module.css'
@@ -71,7 +71,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       if (data) {
         const _nodeTypeIds = {} as TypeIdMap
         for (const nodeType in nodeTypeIds) {
-          const nodeTypeId = data.find((e) => e.name === nodeType)?.id
+          const nodeTypeId = data.find((n) => n.name === nodeType)?.id
           if (nodeTypeId) {
             _nodeTypeIds[nodeType] = nodeTypeId
           } else {
@@ -195,16 +195,17 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
 
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
-  const [nodeDataToChange, setNodeDatatoChange] = useState<MetricNodeDataType>()
+  const [nodeDataToChange, setNodeDatatoChange] =
+    useState<MetricNodeProperties>()
   useEffect(() => {
     if (nodeDataToChange) {
-      const nodeId = nodeDataToChange.nodeId
-      const node = graph.nodes.find((n) => n.id === nodeId)
-      const otherNodes = graph.nodes.filter((n) => n.id !== nodeId)
-      if (node) {
-        let nodeClone = JSON.parse(JSON.stringify(node)) // so updateGraph detects a change
-        nodeClone.data = nodeDataToChange
-        updateGraph('nodes', otherNodes.concat(nodeClone), true)
+      const nodeToChangeId = nodeDataToChange.id
+      const nodeToChange = graph.nodes.find((n) => n.id === nodeToChangeId)
+      const otherNodes = graph.nodes.filter((n) => n.id !== nodeToChangeId)
+      if (nodeToChange) {
+        let nodeToChangeClone = JSON.parse(JSON.stringify(nodeToChange)) // so updateGraph detects a change
+        nodeToChangeClone.data = nodeDataToChange
+        updateGraph('nodes', otherNodes.concat(nodeToChangeClone), true)
       }
       setNodeDatatoChange(undefined) // avoid infinite loop
     }
@@ -238,10 +239,13 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       const newEdgeTypeId = edgeTypeIds[newEdgeType]
       if (newEdgeTypeId) {
         const newEdgeId = uuidv4()
-        const newEdgeData: FunctionalEdgeDataType = {
-          type: newEdgeType,
-          typeId: newEdgeTypeId,
+        const newEdgeData: FunctionalEdgeProperties = {
+          id: newEdgeId,
           organizationId: organizationId,
+          typeId: newEdgeTypeId,
+          sourceId: connection.source || '', // it'll never not be set, but typescript doesn't know that
+          targetId: connection.target || '',
+          initialProperties: {},
         }
         const newEdge = {
           ...connection,
@@ -265,12 +269,13 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
         y: self.innerHeight - 250,
       })
       const newNodeId = uuidv4()
-      const newNodeData: MetricNodeDataType = {
-        nodeId: newNodeId, // needed for setNodeDataToChange
+      const newNodeData: MetricNodeProperties = {
+        id: newNodeId, // needed for setNodeDataToChange
         organizationId: organizationId,
         typeId: newNodeTypeId,
         name: 'New Metric',
         color: '#FFFFFF',
+        initialProperties: {},
         setNodeDatatoChange: setNodeDatatoChange,
       }
       const newNode: Node = {
@@ -298,7 +303,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       // TODO: loading animation
       let { data: nodesData, error: nodesError } = await supabase
         .from('nodes')
-        .select('react_flow_meta')
+        .select('properties, react_flow_meta')
         .eq('organization_id', organizationId)
         .is('deleted_at', null)
 
@@ -308,7 +313,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
 
       let { data: edgesData, error: edgesError } = await supabase
         .from('edges')
-        .select('react_flow_meta')
+        .select('properties, react_flow_meta')
         .eq('organization_id', organizationId)
         .is('deleted_at', null)
 
@@ -317,17 +322,37 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       }
 
       if (nodesData && edgesData) {
-        const parsedNodes = nodesData.map((n) => JSON.parse(n.react_flow_meta))
-        parsedNodes.forEach((node: Node) => {
-          const nodeData: MetricNodeDataType = {
-            ...node.data,
+        const parsedNodes = nodesData.map((n) => {
+          let parsedNode = n.react_flow_meta
+          const parsedProperties = n.properties
+          parsedNode.data = {
+            // explicit construction so properties added outside of react flow don't break it
+            id: parsedProperties.id,
+            organizationId: parsedProperties.organizationId,
+            typeId: parsedProperties.typeId,
+            name: parsedProperties.name,
+            color: parsedProperties.color,
+            initialProperties: parsedProperties,
             setNodeDatatoChange: setNodeDatatoChange,
-          }
-          node.data = nodeData
+          } as MetricNodeProperties
+          return parsedNode
+        })
+        const parsedEdges = edgesData.map((e) => {
+          let parsedEdge = e.react_flow_meta
+          const parsedProperties = e.properties
+          parsedEdge.data = {
+            id: parsedProperties.id,
+            organizationId: parsedProperties.organizationId,
+            typeId: parsedProperties.typeId,
+            sourceId: parsedProperties.sourceId,
+            targetId: parsedProperties.targetId,
+            initialProperties: parsedProperties,
+          } as FunctionalEdgeProperties
+          return parsedEdge
         })
         const parsedGraph = {
           nodes: parsedNodes,
-          edges: edgesData.map((e) => JSON.parse(e.react_flow_meta)),
+          edges: parsedEdges,
         }
         setInitialGraph(parsedGraph)
         reset(parsedGraph)
