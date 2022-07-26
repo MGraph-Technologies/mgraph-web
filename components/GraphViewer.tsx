@@ -71,7 +71,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       if (data) {
         const _nodeTypeIds = {} as TypeIdMap
         for (const nodeType in nodeTypeIds) {
-          const nodeTypeId = data.find((e) => e.name === nodeType)?.id
+          const nodeTypeId = data.find((n) => n.name === nodeType)?.id
           if (nodeTypeId) {
             _nodeTypeIds[nodeType] = nodeTypeId
           } else {
