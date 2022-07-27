@@ -409,10 +409,6 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
             disabled={true} // TODO: activate
           />
           <Button
-            icon="pi pi-history"
-            disabled={true} // TODO: activate
-          />
-          <Button
             icon="pi pi-pencil"
             disabled={!userCanEdit}
             onClick={enableEditing}
