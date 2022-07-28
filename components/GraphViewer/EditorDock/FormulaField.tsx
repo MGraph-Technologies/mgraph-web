@@ -2,7 +2,7 @@
 import { AutoComplete, AutoCompleteChangeParams } from 'primereact/autocomplete';
 import React, { FunctionComponent, useRef, useState } from 'react'
 
-import { Graph } from '../components/GraphViewer'
+import { Graph } from '../GraphViewer'
 
 type FormulaFieldProps = {
   graph: Graph
@@ -12,7 +12,7 @@ type FormulaSymbol = {
   display: string,
   type: string,
 }
-const FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
+const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
   const ref = useRef<AutoComplete>(null)
   const [formula, setFormula] = useState<FormulaSymbol[]>([])
   const [suggestions, setSuggestions] = useState<FormulaSymbol[]>([])
@@ -96,4 +96,5 @@ const FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
   )
 }
 
+const FormulaField = React.memo(_FormulaField)
 export default FormulaField

@@ -3,7 +3,7 @@ import React, { FunctionComponent, useEffect, useState } from 'react'
 import { ReactFlowProvider } from 'react-flow-renderer'
 
 import Account from '../components/Account'
-import GraphViewer from '../components/GraphViewer'
+import GraphViewer from '../components/GraphViewer/GraphViewer'
 import styles from '../styles/Workspace.module.css'
 import { supabase } from '../utils/supabaseClient'
 

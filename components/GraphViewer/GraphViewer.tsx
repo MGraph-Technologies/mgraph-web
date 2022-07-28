@@ -1,5 +1,3 @@
-import { Button } from 'primereact/button'
-import { Toolbar } from 'primereact/toolbar'
 import React, {
   FunctionComponent,
   MouseEvent as ReactMouseEvent,
@@ -23,15 +21,14 @@ import ReactFlow, {
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
-import FormulaField from './FormulaField'
+import ControlPanel from './ControlPanel'
+import EditorDock from './EditorDock/EditorDock'
 import FunctionalEdge, { FunctionalEdgeProperties } from './FunctionalEdge'
 import MetricNode, { MetricNodeProperties } from './MetricNode'
-import { useAuth } from '../contexts/auth'
-import { useEditability } from '../contexts/editability'
-import styles from '../styles/GraphViewer.module.css'
-import { supabase } from '../utils/supabaseClient'
-
-const userCanEdit = true // TODO: get this from db
+import { useAuth } from '../../contexts/auth'
+import { useEditability } from '../../contexts/editability'
+import styles from '../../styles/GraphViewer.module.css'
+import { supabase } from '../../utils/supabaseClient'
 
 export type Graph = {
   nodes: Node[]
@@ -53,7 +50,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   organizationId,
 }) => {
   const { session } = useAuth()
-  const { editingEnabled, enableEditing, disableEditing } = useEditability()
+  const { editingEnabled, disableEditing } = useEditability()
 
   type TypeIdMap = { [key: string]: string }
   const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
@@ -399,90 +396,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       })
   }, [session, graph, initialGraph, disableEditing, loadGraph])
 
-  const ControlPanel: FunctionComponent = () => {
-    if (editingEnabled) {
-      return null
-    } else {
-      return (
-        <div className={styles.control_panel}>
-          <Button
-            icon="pi pi-calendar"
-            disabled={true} // TODO: activate
-          />
-          <Button
-            icon="pi pi-pencil"
-            disabled={!userCanEdit}
-            onClick={enableEditing}
-          />
-        </div>
-      )
-    }
-  }
-
-  const [showFormulaEditor, setShowFormulaEditor] = useState(false)
-  const onFunctionAddition = useCallback(() => {
-    setShowFormulaEditor(true)
+  const cancelEditing = useCallback(() => {
+    loadGraph()
+    disableEditing()
   }, [])
-  const FormulaEditor: FunctionComponent = () => {
-    if (showFormulaEditor) {
-      return <div>
-          <FormulaField graph={graph}/>
-          <Button icon="pi pi-check"/>
-          <Button icon="pi pi-times" onClick={(e) => setShowFormulaEditor(false)}/>
-        </div>
-    } else {
-      return null
-    }
-  }
-
-  const EditorDock: FunctionComponent = () => {
-    const cancelEditing = useCallback(() => {
-      loadGraph()
-      disableEditing()
-    }, [])
-
-    if (editingEnabled) {
-      return (
-        <div className={styles.editor_dock}>
-          <FormulaEditor/>
-          <Toolbar
-            className={styles.editor_toolbar}
-            left={
-              <div>
-                <Button label="+ Metric" onClick={onMetricNodeAddition} />
-                <Button label="+ Function" onClick={onFunctionAddition} />
-              </div>
-            }
-            right={
-              <div>
-                <Button
-                  className="p-button-outlined"
-                  icon="pi pi-undo"
-                  onClick={undo}
-                  disabled={!canUndo}
-                />
-                <Button
-                  className="p-button-outlined"
-                  icon="pi pi-refresh"
-                  onClick={redo}
-                  disabled={!canRedo}
-                />
-                <Button label="Save" onClick={saveGraph} />
-                <Button
-                  className="p-button-outlined"
-                  label="Cancel"
-                  onClick={cancelEditing}
-                />
-              </div>
-            }
-          />
-        </div>
-      )
-    } else {
-      return null
-    }
-  }
-
   return (
     <div className={styles.graph_viewer}>
       <ReactFlow
@@ -504,7 +421,13 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       >
         <ControlPanel />
         <Controls showInteractive={false} />
-        <EditorDock />
+        <EditorDock 
+          editingEnabled={editingEnabled}
+          graph={graph}
+          onCancel={cancelEditing}
+          onSave={saveGraph}
+          onMetricAddition={onMetricNodeAddition}
+        />
         <MiniMap />
       </ReactFlow>
     </div>

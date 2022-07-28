@@ -2,36 +2,3 @@
   height: 100%;
   width: 100%;
 }
-
-.graph_viewer .control_panel {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  z-index: 5;
-  font-size: 12px;
-}
-
-.graph_viewer .control_panel button {
-  width: auto;
-  padding: 5px;
-  margin-left: 5px;
-}
-
-.graph_viewer .editor_dock {
-  position: absolute;
-  bottom: 10px;
-  left: 25%;
-  right: 25%;
-  z-index: 5;
-  padding: 10px;
-}
-
-.graph_viewer .editor_dock .editor_toolbar {
-  padding: 10px;
-}
-
-.graph_viewer .editor_dock button {
-  width: auto;
-  padding: 5px;
-  margin-left: 5px;
-}
