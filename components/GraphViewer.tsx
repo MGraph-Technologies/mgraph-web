@@ -23,8 +23,9 @@ import ReactFlow, {
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
+import FormulaField from './FormulaField'
 import FunctionalEdge, { FunctionalEdgeProperties } from './FunctionalEdge'
-import MetricNode, { MetricNodeProperties } from '../components/MetricNode'
+import MetricNode, { MetricNodeProperties } from './MetricNode'
 import { useAuth } from '../contexts/auth'
 import { useEditability } from '../contexts/editability'
 import styles from '../styles/GraphViewer.module.css'
@@ -418,6 +419,22 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     }
   }
 
+  const [showFormulaEditor, setShowFormulaEditor] = useState(false)
+  const onFunctionAddition = useCallback(() => {
+    setShowFormulaEditor(true)
+  }, [])
+  const FormulaEditor: FunctionComponent = () => {
+    if (showFormulaEditor) {
+      return <div>
+          <FormulaField graph={graph}/>
+          <Button icon="pi pi-check"/>
+          <Button icon="pi pi-times" onClick={(e) => setShowFormulaEditor(false)}/>
+        </div>
+    } else {
+      return null
+    }
+  }
+
   const EditorDock: FunctionComponent = () => {
     const cancelEditing = useCallback(() => {
       loadGraph()
@@ -427,11 +444,13 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     if (editingEnabled) {
       return (
         <div className={styles.editor_dock}>
+          <FormulaEditor/>
           <Toolbar
             className={styles.editor_toolbar}
             left={
               <div>
-                <Button icon="pi pi-plus" onClick={onMetricNodeAddition} />
+                <Button label="+ Metric" onClick={onMetricNodeAddition} />
+                <Button label="+ Function" onClick={onFunctionAddition} />
               </div>
             }
             right={
