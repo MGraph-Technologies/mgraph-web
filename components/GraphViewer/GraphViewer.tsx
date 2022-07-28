@@ -410,6 +410,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
           loadGraph={loadGraph}
           saveGraph={saveGraph}
           addMetricNode={addMetricNode}
+          canUndo={canUndo}
+          undo={undo}
+          canRedo={canRedo}
+          redo={redo}
         />
         <MiniMap />
       </ReactFlow>

@@ -11,7 +11,7 @@
   padding: 10px;
 }
 
-.editor_dock button {
+.editor_dock .editor_toolbar button {
   width: auto;
   padding: 5px;
   margin-left: 5px;

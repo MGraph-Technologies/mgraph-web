@@ -12,6 +12,10 @@ type EditorDockProps = {
   loadGraph: () => void
   saveGraph: () => Promise<Response | undefined>
   addMetricNode: () => void
+  canUndo: boolean
+  undo: () => void
+  canRedo: boolean
+  redo: () => void
   // add edges tba
 }
 const _EditorDock: FunctionComponent<EditorDockProps> = ({
@@ -19,6 +23,10 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
   loadGraph,
   saveGraph,
   addMetricNode,
+  canUndo,
+  undo,
+  canRedo,
+  redo,
 }) => {
   const { editingEnabled, disableEditing } = useEditability()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
@@ -72,6 +80,18 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
           }
           right={
             <div>
+              <Button
+                className="p-button-outlined"
+                icon="pi pi-undo"
+                onClick={undo}
+                disabled={!canUndo}
+              />
+              <Button
+                className="p-button-outlined"
+                icon="pi pi-refresh"
+                onClick={redo}
+                disabled={!canRedo}
+              />
               <Button label="Save" onClick={onSave} />
               <Button
                 className="p-button-outlined"
