@@ -4,22 +4,23 @@ import React, { FunctionComponent, useCallback, useState } from 'react'
 
 import FormulaField from './FormulaField'
 import styles from '../../../styles/EditorDock.module.css'
+import { useEditability } from '../../../contexts/editability'
 import { Graph } from '../GraphViewer'
 
 type EditorDockProps = {
-  editingEnabled: boolean,
   graph: Graph,
-  onCancel: () => void,
-  onSave: () => Promise<void>,
-  onMetricAddition: () => void,
+  loadGraph: () => void,
+  saveGraph: () => Promise<void>,
+  addMetricNode: () => void,
+  // add edges tba
 }
 const _EditorDock: FunctionComponent<EditorDockProps> = ({
-  editingEnabled,
   graph,
-  onCancel,
-  onSave,
-  onMetricAddition,
+  loadGraph,
+  saveGraph,
+  addMetricNode,
 }) => {
+  const { editingEnabled, disableEditing } = useEditability()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
   const onFormulaAddition = useCallback(() => {
     setShowFormulaEditor(true)
@@ -36,6 +37,11 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
     }
   }
 
+  const onCancel = useCallback(() => {
+    loadGraph()
+    disableEditing()
+  }, [])
+
   if (editingEnabled) {
     return (
       <div className={styles.editor_dock}>
@@ -44,13 +50,13 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
           className={styles.editor_toolbar}
           left={
             <div>
-              <Button label="+ Metric" onClick={onMetricAddition} />
+              <Button label="+ Metric" onClick={addMetricNode} />
               <Button label="+ Formula" onClick={onFormulaAddition} />
             </div>
           }
           right={
             <div>
-              <Button label="Save" onClick={onSave} />
+              <Button label="Save" onClick={saveGraph} />
               <Button
                 className="p-button-outlined"
                 label="Cancel"

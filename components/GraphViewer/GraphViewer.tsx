@@ -224,41 +224,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     [updateGraph, graph, actionKeyPressed]
   )
 
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) => {
-      updateGraph('edges', applyEdgeChanges(changes, graph.edges), true)
-    },
-    [updateGraph, graph.edges]
-  )
-
-  const onConnect = useCallback(
-    (connection: Connection) => {
-      const newEdgeType = 'input'
-      const newEdgeTypeId = edgeTypeIds[newEdgeType]
-      if (newEdgeTypeId) {
-        const newEdgeId = uuidv4()
-        const newEdgeData: FunctionalEdgeProperties = {
-          id: newEdgeId,
-          organizationId: organizationId,
-          typeId: newEdgeTypeId,
-          sourceId: connection.source || '', // it'll never not be set, but typescript doesn't know that
-          targetId: connection.target || '',
-          initialProperties: {},
-        }
-        const newEdge = {
-          ...connection,
-          type: newEdgeType,
-          id: newEdgeId,
-          data: newEdgeData,
-          animated: true,
-        }
-        updateGraph('edges', addEdge(newEdge, graph.edges), true)
-      }
-    },
-    [edgeTypeIds, organizationId, updateGraph, graph.edges]
-  )
-
-  const onMetricNodeAddition = useCallback(() => {
+  const addMetricNode = useCallback(() => {
     const newNodeType = 'metric'
     const newNodeTypeId = nodeTypeIds[newNodeType]
     if (newNodeTypeId) {
@@ -295,6 +261,40 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     updateGraph,
     graph.nodes,
   ])
+
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      updateGraph('edges', applyEdgeChanges(changes, graph.edges), true)
+    },
+    [updateGraph, graph.edges]
+  )
+
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      const newEdgeType = 'input'
+      const newEdgeTypeId = edgeTypeIds[newEdgeType]
+      if (newEdgeTypeId) {
+        const newEdgeId = uuidv4()
+        const newEdgeData: FunctionalEdgeProperties = {
+          id: newEdgeId,
+          organizationId: organizationId,
+          typeId: newEdgeTypeId,
+          sourceId: connection.source || '', // it'll never not be set, but typescript doesn't know that
+          targetId: connection.target || '',
+          initialProperties: {},
+        }
+        const newEdge = {
+          ...connection,
+          type: newEdgeType,
+          id: newEdgeId,
+          data: newEdgeData,
+          animated: true,
+        }
+        updateGraph('edges', addEdge(newEdge, graph.edges), true)
+      }
+    },
+    [edgeTypeIds, organizationId, updateGraph, graph.edges]
+  )
 
   const loadGraph = useCallback(async () => {
     try {
@@ -396,10 +396,6 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       })
   }, [session, graph, initialGraph, disableEditing, loadGraph])
 
-  const cancelEditing = useCallback(() => {
-    loadGraph()
-    disableEditing()
-  }, [])
   return (
     <div className={styles.graph_viewer}>
       <ReactFlow
@@ -421,12 +417,11 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       >
         <ControlPanel />
         <Controls showInteractive={false} />
-        <EditorDock 
-          editingEnabled={editingEnabled}
+        <EditorDock
           graph={graph}
-          onCancel={cancelEditing}
-          onSave={saveGraph}
-          onMetricAddition={onMetricNodeAddition}
+          loadGraph={loadGraph}
+          saveGraph={saveGraph}
+          addMetricNode={addMetricNode}
         />
         <MiniMap />
       </ReactFlow>
