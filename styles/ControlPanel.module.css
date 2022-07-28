@@ -6,8 +6,8 @@
   font-size: 12px;
 }
 
-.control_panel button {
-  width: auto;
-  padding: 5px;
+.control_panel .button {
+  width: 24px;
+  height: 24px;
   margin-left: 5px;
 }

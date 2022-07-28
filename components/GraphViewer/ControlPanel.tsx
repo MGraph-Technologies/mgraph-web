@@ -14,10 +14,12 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
     return (
       <div className={styles.control_panel}>
         <Button
+          className={styles.button}
           icon="pi pi-calendar"
           disabled={true} // TODO: activate
         />
         <Button
+          className={styles.button}
           icon="pi pi-pencil"
           disabled={!userCanEdit}
           onClick={enableEditing}
