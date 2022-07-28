@@ -8,10 +8,10 @@ import { useEditability } from '../../../contexts/editability'
 import { Graph } from '../GraphViewer'
 
 type EditorDockProps = {
-  graph: Graph,
-  loadGraph: () => void,
-  saveGraph: () => Promise<Response | undefined>,
-  addMetricNode: () => void,
+  graph: Graph
+  loadGraph: () => void
+  saveGraph: () => Promise<Response | undefined>
+  addMetricNode: () => void
   // add edges tba
 }
 const _EditorDock: FunctionComponent<EditorDockProps> = ({
@@ -27,11 +27,16 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
   }, [])
   const FormulaEditor: FunctionComponent = () => {
     if (showFormulaEditor) {
-      return <div>
-          <FormulaField graph={graph}/>
-          <Button icon="pi pi-check"/>
-          <Button icon="pi pi-times" onClick={(e) => setShowFormulaEditor(false)}/>
+      return (
+        <div>
+          <FormulaField graph={graph} />
+          <Button icon="pi pi-check" />
+          <Button
+            icon="pi pi-times"
+            onClick={(e) => setShowFormulaEditor(false)}
+          />
         </div>
+      )
     } else {
       return null
     }
@@ -40,10 +45,9 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
   const onCancel = useCallback(() => {
     loadGraph()
     disableEditing()
-  }, [])
+  }, [loadGraph, disableEditing])
   const onSave = useCallback(() => {
-    saveGraph()
-    .then((response) => {
+    saveGraph().then((response) => {
       if (response?.status === 200) {
         // only reset if the save was successful
         disableEditing()
@@ -57,7 +61,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
   if (editingEnabled) {
     return (
       <div className={styles.editor_dock}>
-        <FormulaEditor/>
+        <FormulaEditor />
         <Toolbar
           className={styles.editor_toolbar}
           left={

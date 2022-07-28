@@ -1,5 +1,4 @@
-
-import { AutoComplete, AutoCompleteChangeParams } from 'primereact/autocomplete';
+import { AutoComplete, AutoCompleteChangeParams } from 'primereact/autocomplete'
 import React, { FunctionComponent, useRef, useState } from 'react'
 
 import { Graph } from '../GraphViewer'
@@ -8,39 +7,44 @@ type FormulaFieldProps = {
   graph: Graph
 }
 type FormulaSymbol = {
-  id: string,
-  display: string,
-  type: string,
+  id: string
+  display: string
+  type: string
 }
 const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
   const ref = useRef<AutoComplete>(null)
   const [formula, setFormula] = useState<FormulaSymbol[]>([])
   const [suggestions, setSuggestions] = useState<FormulaSymbol[]>([])
 
-  const metrics: FormulaSymbol[] = graph.nodes.filter(node => node.type === 'metric').map(node => {
-    return {'id': node.data.id, 'display': node.data.name, 'type': 'metric'}
-  })
+  const metrics: FormulaSymbol[] = graph.nodes
+    .filter((node) => node.type === 'metric')
+    .map((node) => {
+      return { id: node.data.id, display: node.data.name, type: 'metric' }
+    })
   const identities: FormulaSymbol[] = [
-    {'id': '1', 'display': '=', type: 'identity',},
-    {'id': '2', 'display': '~=', type: 'identity',},
-    {'id': '3', 'display': '=f(', type: 'identity',},
+    { id: '1', display: '=', type: 'identity' },
+    { id: '2', display: '~=', type: 'identity' },
+    { id: '3', display: '=f(', type: 'identity' },
   ]
   const operators: FormulaSymbol[] = [
-    {'id': '1', 'display': '+', type: 'operator',},
-    {'id': '2', 'display': '-', type: 'operator',},
-    {'id': '3', 'display': '*', type: 'operator',},
-    {'id': '4', 'display': '/', type: 'operator',},
+    { id: '1', display: '+', type: 'operator' },
+    { id: '2', display: '-', type: 'operator' },
+    { id: '3', display: '*', type: 'operator' },
+    { id: '4', display: '/', type: 'operator' },
   ]
-  
-  const filterSuggestions = (symbols: FormulaSymbol[], query: string): FormulaSymbol[] => {
+
+  const filterSuggestions = (
+    symbols: FormulaSymbol[],
+    query: string
+  ): FormulaSymbol[] => {
     let results: FormulaSymbol[] = []
     if (query.length === 0) {
       results = [...symbols]
     } else {
-      results = symbols.filter(symbol => {
+      results = symbols.filter((symbol) => {
         return symbol.display.toLowerCase().includes(query.toLowerCase())
       })
-    } 
+    }
     results.sort((a, b) => {
       if (a.display < b.display) {
         return -1
@@ -66,7 +70,7 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
   }
   const initializeSuggestions = (event: any): void => {
     // used to show suggestions before user starts typing
-    ref.current?.search(event, "", "dropdown")
+    ref.current?.search(event, '', 'dropdown')
   }
 
   const onChange = (event: AutoCompleteChangeParams): void => {
@@ -77,13 +81,13 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
       initializeSuggestions(event.originalEvent)
     }, 100)
   }
-  
+
   return (
     <AutoComplete
       ref={ref}
       multiple={true}
       value={formula}
-      field='display'
+      field="display"
       suggestions={suggestions}
       completeMethod={generateSuggestions}
       onChange={onChange}
