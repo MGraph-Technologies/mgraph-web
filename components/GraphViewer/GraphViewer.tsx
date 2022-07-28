@@ -50,7 +50,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   organizationId,
 }) => {
   const { session } = useAuth()
-  const { editingEnabled, disableEditing } = useEditability()
+  const { editingEnabled } = useEditability()
 
   type TypeIdMap = { [key: string]: string }
   const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
@@ -372,7 +372,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
     graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
 
-    await fetch('/api/v1/graphs', {
+    return fetch('/api/v1/graphs', {
       method: 'PUT',
       body: JSON.stringify({
         initialGraph: initialGraph,
@@ -382,19 +382,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
         'supabase-access-token': accessToken,
       },
     })
-      .then((response) => {
-        if (response.status === 200) {
-          // only reset if the save was successful
-          disableEditing()
-          loadGraph()
-        } else {
-          console.error(response)
-        }
-      })
-      .catch((error) => {
-        console.error('Error:', error)
-      })
-  }, [session, graph, initialGraph, disableEditing, loadGraph])
+  }, [session, graph, initialGraph])
 
   return (
     <div className={styles.graph_viewer}>

@@ -10,7 +10,7 @@ import { Graph } from '../GraphViewer'
 type EditorDockProps = {
   graph: Graph,
   loadGraph: () => void,
-  saveGraph: () => Promise<void>,
+  saveGraph: () => Promise<Response | undefined>,
   addMetricNode: () => void,
   // add edges tba
 }
@@ -41,6 +41,18 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
     loadGraph()
     disableEditing()
   }, [])
+  const onSave = useCallback(() => {
+    saveGraph()
+    .then((response) => {
+      if (response?.status === 200) {
+        // only reset if the save was successful
+        disableEditing()
+        loadGraph()
+      } else {
+        console.error(response)
+      }
+    })
+  }, [saveGraph, disableEditing, loadGraph])
 
   if (editingEnabled) {
     return (
@@ -56,7 +68,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
           }
           right={
             <div>
-              <Button label="Save" onClick={saveGraph} />
+              <Button label="Save" onClick={onSave} />
               <Button
                 className="p-button-outlined"
                 label="Cancel"
