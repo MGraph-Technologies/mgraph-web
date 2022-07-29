@@ -34,20 +34,16 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
     setShowFormulaEditor(true)
   }, [])
   const FormulaEditor: FunctionComponent = () => {
-    if (showFormulaEditor) {
-      return (
-        <div>
-          <FormulaField graph={graph} />
-          <Button icon="pi pi-check" />
-          <Button
-            icon="pi pi-times"
-            onClick={(e) => setShowFormulaEditor(false)}
-          />
-        </div>
-      )
-    } else {
-      return null
-    }
+    return (
+      <div>
+        <FormulaField graph={graph} />
+        <Button icon="pi pi-check" />
+        <Button
+          icon="pi pi-times"
+          onClick={(e) => setShowFormulaEditor(false)}
+        />
+      </div>
+    )
   }
 
   const onCancel = useCallback(() => {
@@ -69,38 +65,41 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
   if (editingEnabled) {
     return (
       <div className={styles.editor_dock}>
-        <FormulaEditor />
-        <Toolbar
-          className={styles.editor_toolbar}
-          left={
-            <div>
-              <Button label="+ Metric" onClick={addMetricNode} />
-              <Button label="+ Formula" onClick={onFormulaAddition} />
-            </div>
-          }
-          right={
-            <div>
-              <Button
-                className="p-button-outlined"
-                icon="pi pi-undo"
-                onClick={undo}
-                disabled={!canUndo}
-              />
-              <Button
-                className="p-button-outlined"
-                icon="pi pi-refresh"
-                onClick={redo}
-                disabled={!canRedo}
-              />
-              <Button label="Save" onClick={onSave} />
-              <Button
-                className="p-button-outlined"
-                label="Cancel"
-                onClick={onCancel}
-              />
-            </div>
-          }
-        />
+        {showFormulaEditor ? (
+          <FormulaEditor />
+        ) : (
+          <Toolbar
+            className={styles.editor_toolbar}
+            left={
+              <div>
+                <Button label="+ Metric" onClick={addMetricNode} />
+                <Button label="+ Formula" onClick={onFormulaAddition} />
+              </div>
+            }
+            right={
+              <div>
+                <Button
+                  className="p-button-outlined"
+                  icon="pi pi-undo"
+                  onClick={undo}
+                  disabled={!canUndo}
+                />
+                <Button
+                  className="p-button-outlined"
+                  icon="pi pi-refresh"
+                  onClick={redo}
+                  disabled={!canRedo}
+                />
+                <Button label="Save" onClick={onSave} />
+                <Button
+                  className="p-button-outlined"
+                  label="Cancel"
+                  onClick={onCancel}
+                />
+              </div>
+            }
+          />
+      )}
       </div>
     )
   } else {
