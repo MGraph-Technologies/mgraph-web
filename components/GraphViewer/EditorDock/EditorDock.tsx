@@ -30,7 +30,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
 }) => {
   const { editingEnabled, disableEditing } = useEditability()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
-  const onFormulaAddition = useCallback(() => {
+  const onFunctionAddition = useCallback(() => {
     setShowFormulaEditor(true)
   }, [])
   const FormulaEditor: FunctionComponent = () => {
@@ -73,7 +73,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
             left={
               <div>
                 <Button label="+ Metric" onClick={addMetricNode} />
-                <Button label="+ Formula" onClick={onFormulaAddition} />
+                <Button label="+ Function" onClick={onFunctionAddition} />
               </div>
             }
             right={

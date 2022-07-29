@@ -23,7 +23,8 @@ import { v4 as uuidv4 } from 'uuid'
 
 import ControlPanel from './ControlPanel'
 import EditorDock from './EditorDock/EditorDock'
-import FunctionalEdge, { FunctionalEdgeProperties } from './FunctionalEdge'
+import FunctionNode from './FunctionNode'
+import InputEdge, { InputEdgeProperties } from './InputEdge'
 import MetricNode, { MetricNodeProperties } from './MetricNode'
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
@@ -36,11 +37,10 @@ export type Graph = {
 }
 const nodeTypes = {
   metric: MetricNode,
+  function: FunctionNode,
 }
 const edgeTypes = {
-  input: FunctionalEdge,
-  positive_input: FunctionalEdge,
-  negative_input: FunctionalEdge,
+  input: InputEdge,
 }
 
 type GraphViewerProps = {
@@ -275,7 +275,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       const newEdgeTypeId = edgeTypeIds[newEdgeType]
       if (newEdgeTypeId) {
         const newEdgeId = uuidv4()
-        const newEdgeData: FunctionalEdgeProperties = {
+        const newEdgeData: InputEdgeProperties = {
           id: newEdgeId,
           organizationId: organizationId,
           typeId: newEdgeTypeId,
@@ -345,7 +345,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
             sourceId: parsedProperties.sourceId,
             targetId: parsedProperties.targetId,
             initialProperties: parsedProperties,
-          } as FunctionalEdgeProperties
+          } as InputEdgeProperties
           return parsedEdge
         })
         const parsedGraph = {

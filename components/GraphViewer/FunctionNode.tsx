@@ -5,44 +5,31 @@ import React, {
   useState,
 } from 'react'
 import { ColorResult } from 'react-color'
-import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
 
 import NodeMenu from './NodeMenu'
 import { useEditability } from '../../contexts/editability'
-import styles from '../../styles/MetricNode.module.css'
+import styles from '../../styles/FunctionNode.module.css'
 
-export type MetricNodeProperties = {
+export type FunctionNodeProperties = {
   id: string
   organizationId: string
   typeId: string
-  name: string
+  functionTypeId: string
+  symbol: string
   color: string
   // below not in postgres
   initialProperties: object
-  setNodeDatatoChange: (data: MetricNodeProperties) => void
+  setNodeDatatoChange: (data: FunctionNodeProperties) => void
 }
-type MetricNodeProps = {
-  data: MetricNodeProperties
+type FunctionNodeProps = {
+  data: FunctionNodeProperties
   selected: boolean
 }
-const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
+const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) => {
   const { editingEnabled } = useEditability()
   const nodeHandleSize = editingEnabled ? '10px' : '0px'
-
-  const [name, setName] = useState('')
-  useEffect(() => {
-    setName(data.name)
-  }, [data.name])
-  const saveName = useCallback(
-    ({ value }: onSaveProps) => {
-      let newData = { ...data }
-      newData.name = value
-      data.setNodeDatatoChange(newData)
-    },
-    [data]
-  )
 
   const [color, setColor] = useState('#FFFFFF')
   useEffect(() => {
@@ -66,19 +53,6 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
       }}
     >
       <div className={styles.header}>
-        <div className={styles.name}>
-          <EditText
-            value={name}
-            readonly={!editingEnabled}
-            style={
-              editingEnabled
-                ? { backgroundColor: '#eee' }
-                : { backgroundColor: color }
-            }
-            onChange={(e) => setName(e.target.value)}
-            onSave={saveName}
-          />
-        </div>
         <div className={styles.buttons}>
           <NodeMenu
             color={color}
@@ -86,6 +60,9 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
             saveColor={saveColor}
           />
         </div>
+      </div>
+      <div className={styles.symbol}>
+        {data.symbol}
       </div>
       <Handle
         type="source"
@@ -131,4 +108,4 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
   )
 }
 
-export default MetricNode
+export default FunctionNode

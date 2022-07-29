@@ -7,42 +7,41 @@ import { Graph } from '../GraphViewer'
 type FormulaFieldProps = {
   graph: Graph
 }
-type FormulaNode = {
-  id: string
-  nodeTypeId: string
-  nodeType: string
+type NodeSymbol = {
+  id: string // id of an existing or to-be-added node
+  type: string
   display: string
 }
 const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
   const ref = useRef<AutoComplete>(null)
-  const [formula, setFormula] = useState<FormulaNode[]>([])
-  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
-  const [suggestions, setSuggestions] = useState<FormulaNode[]>([])
+  const [formula, setFormula] = useState<NodeSymbol[]>([])
+  const [selectedSymbolIds, setSelectedSymbolIds] = useState<string[]>([])
+  const [suggestions, setSuggestions] = useState<NodeSymbol[]>([])
 
-  const metrics: FormulaNode[] = graph.nodes
+  const metrics: NodeSymbol[] = graph.nodes
     .filter((node) => node.type === 'metric')
     .map((node) => {
-      return { id: node.data.id, nodeTypeId: node.data.typeId, nodeType: 'metric', display: node.data.name}
+      return { id: node.data.id, type: 'metric', display: node.data.name}
     })
   // TODO: load below from postgres
-  const identities: FormulaNode[] = [
-    { id: uuidv4(), nodeTypeId: '1', nodeType: 'identity', display: '=' },
-    { id: uuidv4(), nodeTypeId: '2', nodeType: 'identity', display: '~=' },
-    { id: uuidv4(), nodeTypeId: '3', nodeType: 'identity', display: '=f(' },
+  const identities: NodeSymbol[] = [
+    { id: uuidv4(), type: 'identity', display: '=' },
+    { id: uuidv4(), type: 'identity', display: '~=' },
+    { id: uuidv4(), type: 'identity', display: '=f(' },
   ]
-  const operators: FormulaNode[] = [
+  const operators: NodeSymbol[] = [
     // ids generated at selection time
-    { id: 'tba', nodeTypeId: '1', nodeType: 'operator', display: '+' },
-    { id: 'tba', nodeTypeId: '2', nodeType: 'operator', display: '-' },
-    { id: 'tba', nodeTypeId: '3', nodeType: 'operator', display: '*' },
-    { id: 'tba', nodeTypeId: '4', nodeType: 'operator', display: '/' },
+    { id: 'tba', type: 'operator', display: '+' },
+    { id: 'tba', type: 'operator', display: '-' },
+    { id: 'tba', type: 'operator', display: '*' },
+    { id: 'tba', type: 'operator', display: '/' },
   ]
 
   const filterSuggestions = (
-    symbols: FormulaNode[],
+    symbols: NodeSymbol[],
     query: string
-  ): FormulaNode[] => {
-    let results: FormulaNode[] = []
+  ): NodeSymbol[] => {
+    let results: NodeSymbol[] = []
     if (query.length === 0) {
       results = [...symbols]
     } else {
@@ -51,10 +50,10 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
       })
     }
     results = results.filter((r) => 
-        r.nodeType !== 'metric' || !formula.find((f) => f.display === r.display)
+        r.type !== 'metric' || !formula.find((f) => f.display === r.display)
     )
     results = results.map((r) => {
-      if (r.nodeType === 'operator') {
+      if (r.type === 'operator') {
         return { ...r, id: uuidv4() }
       } else {
         return r
@@ -72,9 +71,9 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
     return results
   }
   const generateSuggestions = (event: { query: string }): void => {
-    const toFilter: FormulaNode[] = []
+    const toFilter: NodeSymbol[] = []
     // formula is of the form [metric] [identity] [metric] [operator] [metric] [operator] ...
-    if (formula.length === 0 || formula[formula.length - 1].nodeType !== 'metric') {
+    if (formula.length === 0 || formula[formula.length - 1].type !== 'metric') {
       toFilter.push(...metrics)
     } else if (formula.length === 1) {
       toFilter.push(...identities)
@@ -97,13 +96,13 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
     }, 100)
   }
   const onSelect = (event: AutoCompleteChangeParams): void => {
-      setSelectedNodeIds([...selectedNodeIds, event.value.id])
+      setSelectedSymbolIds([...selectedSymbolIds, event.value.id])
       // primereact handles setFormula
   }
   const onUnselect = (event: AutoCompleteChangeParams): void => {
-    const removedNodePosition = selectedNodeIds.indexOf(event.value.id)
-    const dependentNodes = selectedNodeIds.filter((_id, index) => index >= removedNodePosition)
-    setSelectedNodeIds(selectedNodeIds.filter((_id, index) => index < removedNodePosition))
+    const removedNodePosition = selectedSymbolIds.indexOf(event.value.id)
+    const dependentNodes = selectedSymbolIds.filter((_id, index) => index >= removedNodePosition)
+    setSelectedSymbolIds(selectedSymbolIds.filter((_id, index) => index < removedNodePosition))
     setFormula(formula.filter((f) => dependentNodes.indexOf(f.id) === -1)) // primereact handles removal of unselected node
   }
 
