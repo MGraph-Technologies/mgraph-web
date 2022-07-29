@@ -16,6 +16,7 @@ type FormulaNode = {
 const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
   const ref = useRef<AutoComplete>(null)
   const [formula, setFormula] = useState<FormulaNode[]>([])
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
   const [suggestions, setSuggestions] = useState<FormulaNode[]>([])
 
   const metrics: FormulaNode[] = graph.nodes
@@ -95,6 +96,16 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
       initializeSuggestions(event.originalEvent)
     }, 100)
   }
+  const onSelect = (event: AutoCompleteChangeParams): void => {
+      setSelectedNodeIds([...selectedNodeIds, event.value.id])
+      // primereact handles setFormula
+  }
+  const onUnselect = (event: AutoCompleteChangeParams): void => {
+    const removedNodePosition = selectedNodeIds.indexOf(event.value.id)
+    const dependentNodes = selectedNodeIds.filter((_id, index) => index >= removedNodePosition)
+    setSelectedNodeIds(selectedNodeIds.filter((_id, index) => index < removedNodePosition))
+    setFormula(formula.filter((f) => dependentNodes.indexOf(f.id) === -1)) // primereact handles removal of unselected node
+  }
 
   return (
     <AutoComplete
@@ -105,6 +116,8 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
       suggestions={suggestions}
       completeMethod={generateSuggestions}
       onChange={onChange}
+      onSelect={onSelect}
+      onUnselect={onUnselect}
       dropdown={true}
       dropdownIcon="pi pi-plus"
       onClick={initializeSuggestions}
