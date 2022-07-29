@@ -120,7 +120,7 @@ export default async function handler(
 
     const addedNodes = updatedNodes.filter(
       (updatedNode) =>
-        !initialNodes.some((initialNode) => initialNode.id === updatedNode.id)
+        !initialNodes.find((initialNode) => initialNode.id === updatedNode.id)
     )
     if (addedNodes.length > 0) {
       const { error: addedNodesError } = await upsert(
@@ -174,7 +174,7 @@ export default async function handler(
 
     const addedEdges = updatedEdges.filter(
       (updatedEdge) =>
-        !initialEdges.some((initialEdge) => initialEdge.id === updatedEdge.id)
+        !initialEdges.find((initialEdge) => initialEdge.id === updatedEdge.id)
     )
     if (addedEdges.length > 0) {
       const { error: addedEdgesError } = await upsert(
