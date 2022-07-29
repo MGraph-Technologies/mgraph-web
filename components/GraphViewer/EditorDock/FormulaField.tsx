@@ -30,7 +30,7 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
     { id: uuidv4(), type: 'identity', display: '=f(' },
   ]
   const operators: NodeSymbol[] = [
-    // ids generated at selection time
+    // ids generated at selection time to allow multiple uses of the same symbol
     { id: 'tba', type: 'operator', display: '+' },
     { id: 'tba', type: 'operator', display: '-' },
     { id: 'tba', type: 'operator', display: '*' },
