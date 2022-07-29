@@ -45,6 +45,9 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
         return symbol.display.toLowerCase().includes(query.toLowerCase())
       })
     }
+    results = results.filter((r) => 
+        r.type !== 'metric' || !formula.find((f) => f.display === r.display)
+    )
     results.sort((a, b) => {
       if (a.display < b.display) {
         return -1
