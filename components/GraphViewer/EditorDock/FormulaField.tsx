@@ -1,43 +1,47 @@
 import { AutoComplete, AutoCompleteChangeParams } from 'primereact/autocomplete'
 import React, { FunctionComponent, useRef, useState } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
 import { Graph } from '../GraphViewer'
 
 type FormulaFieldProps = {
   graph: Graph
 }
-type FormulaSymbol = {
+type FormulaNode = {
   id: string
+  nodeTypeId: string
+  nodeType: string
   display: string
-  type: string
 }
 const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
   const ref = useRef<AutoComplete>(null)
-  const [formula, setFormula] = useState<FormulaSymbol[]>([])
-  const [suggestions, setSuggestions] = useState<FormulaSymbol[]>([])
+  const [formula, setFormula] = useState<FormulaNode[]>([])
+  const [suggestions, setSuggestions] = useState<FormulaNode[]>([])
 
-  const metrics: FormulaSymbol[] = graph.nodes
+  const metrics: FormulaNode[] = graph.nodes
     .filter((node) => node.type === 'metric')
     .map((node) => {
-      return { id: node.data.id, display: node.data.name, type: 'metric' }
+      return { id: node.data.id, nodeTypeId: node.data.typeId, nodeType: 'metric', display: node.data.name}
     })
-  const identities: FormulaSymbol[] = [
-    { id: '1', display: '=', type: 'identity' },
-    { id: '2', display: '~=', type: 'identity' },
-    { id: '3', display: '=f(', type: 'identity' },
+  // TODO: load below from postgres
+  const identities: FormulaNode[] = [
+    { id: uuidv4(), nodeTypeId: '1', nodeType: 'identity', display: '=' },
+    { id: uuidv4(), nodeTypeId: '2', nodeType: 'identity', display: '~=' },
+    { id: uuidv4(), nodeTypeId: '3', nodeType: 'identity', display: '=f(' },
   ]
-  const operators: FormulaSymbol[] = [
-    { id: '1', display: '+', type: 'operator' },
-    { id: '2', display: '-', type: 'operator' },
-    { id: '3', display: '*', type: 'operator' },
-    { id: '4', display: '/', type: 'operator' },
+  const operators: FormulaNode[] = [
+    // ids generated at selection time
+    { id: 'tba', nodeTypeId: '1', nodeType: 'operator', display: '+' },
+    { id: 'tba', nodeTypeId: '2', nodeType: 'operator', display: '-' },
+    { id: 'tba', nodeTypeId: '3', nodeType: 'operator', display: '*' },
+    { id: 'tba', nodeTypeId: '4', nodeType: 'operator', display: '/' },
   ]
 
   const filterSuggestions = (
-    symbols: FormulaSymbol[],
+    symbols: FormulaNode[],
     query: string
-  ): FormulaSymbol[] => {
-    let results: FormulaSymbol[] = []
+  ): FormulaNode[] => {
+    let results: FormulaNode[] = []
     if (query.length === 0) {
       results = [...symbols]
     } else {
@@ -46,8 +50,15 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
       })
     }
     results = results.filter((r) => 
-        r.type !== 'metric' || !formula.find((f) => f.display === r.display)
+        r.nodeType !== 'metric' || !formula.find((f) => f.display === r.display)
     )
+    results = results.map((r) => {
+      if (r.nodeType === 'operator') {
+        return { ...r, id: uuidv4() }
+      } else {
+        return r
+      }
+    })
     results.sort((a, b) => {
       if (a.display < b.display) {
         return -1
@@ -60,9 +71,9 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
     return results
   }
   const generateSuggestions = (event: { query: string }): void => {
-    const toFilter: FormulaSymbol[] = []
+    const toFilter: FormulaNode[] = []
     // formula is of the form [metric] [identity] [metric] [operator] [metric] [operator] ...
-    if (formula.length === 0 || formula[formula.length - 1].type !== 'metric') {
+    if (formula.length === 0 || formula[formula.length - 1].nodeType !== 'metric') {
       toFilter.push(...metrics)
     } else if (formula.length === 1) {
       toFilter.push(...identities)
