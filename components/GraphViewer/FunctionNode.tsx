@@ -11,13 +11,13 @@ import { Handle, Position } from 'react-flow-renderer'
 import NodeMenu from './NodeMenu'
 import { useEditability } from '../../contexts/editability'
 import styles from '../../styles/FunctionNode.module.css'
+import { supabase } from '../../utils/supabaseClient'
 
 export type FunctionNodeProperties = {
   id: string
   organizationId: string
   typeId: string
   functionTypeId: string
-  symbol: string
   color: string
   // below not in postgres
   initialProperties: object
@@ -30,6 +30,30 @@ type FunctionNodeProps = {
 const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) => {
   const { editingEnabled } = useEditability()
   const nodeHandleSize = editingEnabled ? '10px' : '0px'
+
+  let symbol = ''
+  async function populateSymbol() {
+    try {
+      let { data: queryData, error, status } = await supabase
+        .from('function_types')
+        .select('symbol')
+        .eq('id', data.functionTypeId)
+
+      if (error && status !== 406) {
+        throw error
+      }
+
+      if (queryData) {
+        symbol = queryData[0].symbol
+      }
+    } catch (error: any) {
+      alert(error.message)
+    }
+  }
+  useEffect(() => {
+    populateSymbol()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) 
 
   const [color, setColor] = useState('#FFFFFF')
   useEffect(() => {
@@ -62,7 +86,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) 
         </div>
       </div>
       <div className={styles.symbol}>
-        {data.symbol}
+        {symbol}
       </div>
       <Handle
         type="source"
