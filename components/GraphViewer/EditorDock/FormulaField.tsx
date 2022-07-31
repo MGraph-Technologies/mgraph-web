@@ -1,8 +1,9 @@
 import { AutoComplete, AutoCompleteChangeParams } from 'primereact/autocomplete'
-import React, { FunctionComponent, useRef, useState } from 'react'
+import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 import { Graph } from '../GraphViewer'
+import { supabase } from '../../../utils/supabaseClient'
 
 type FormulaFieldProps = {
   graph: Graph
@@ -23,19 +24,45 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
     .map((node) => {
       return { id: node.data.id, type: 'metric', display: node.data.name}
     })
-  // TODO: load below from postgres
-  const identities: NodeSymbol[] = [
-    { id: uuidv4(), type: 'identity', display: '=' },
-    { id: uuidv4(), type: 'identity', display: '~=' },
-    { id: uuidv4(), type: 'identity', display: '=f(' },
-  ]
-  const operators: NodeSymbol[] = [
-    // ids generated at selection time to allow multiple uses of the same symbol
-    { id: 'tba', type: 'operator', display: '+' },
-    { id: 'tba', type: 'operator', display: '-' },
-    { id: 'tba', type: 'operator', display: '*' },
-    { id: 'tba', type: 'operator', display: '/' },
-  ]
+  const [identities, setIdentities] = useState<NodeSymbol[]>([])
+  const [operators, setOperators] = useState<NodeSymbol[]>([])
+  async function populateFunctions() {
+    try {
+      let { data, error, status } = await supabase
+        .from('function_types')
+        .select('id, name, symbol')
+
+      if (error && status !== 406) {
+        throw error
+      }
+
+      if (data) {
+        const isIdentity = (symbol: string) => {
+          return (
+            symbol.startsWith('=')
+              || symbol.startsWith('~')
+              || symbol.startsWith('f')
+          )
+        }
+        setIdentities(
+          data.filter((item) => isIdentity(item.symbol)).map((item) => {
+            return { id: uuidv4(), type: 'identity', display: item.symbol }
+          })
+        )
+        // ids generated at selection time to allow multiple uses of the same symbol
+        setOperators(
+          data.filter((item) => !isIdentity(item.symbol)).map((item) => {
+            return { id: 'TBA', type: 'operator', display: item.symbol }
+          })
+        )
+      }
+    } catch (error: any) {
+      alert(error.message)
+    }
+  }
+  useEffect(() => {
+    populateFunctions()
+  }, [])
 
   const filterSuggestions = (
     symbols: NodeSymbol[],
