@@ -31,7 +31,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) 
   const { editingEnabled } = useEditability()
   const nodeHandleSize = editingEnabled ? '10px' : '0px'
 
-  let symbol = ''
+  const [symbol, setSymbol] = useState('')
   async function populateSymbol() {
     try {
       let { data: queryData, error, status } = await supabase
@@ -44,7 +44,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) 
       }
 
       if (queryData) {
-        symbol = queryData[0].symbol
+        setSymbol(queryData[0].symbol)
       }
     } catch (error: any) {
       alert(error.message)
@@ -70,7 +70,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) 
 
   return (
     <div
-      className={styles.metric_node}
+      className={styles.function_node}
       style={{
         backgroundColor: color,
         border: selected ? '2px solid' : '1px solid',

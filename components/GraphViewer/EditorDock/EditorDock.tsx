@@ -1,8 +1,9 @@
 import { Button } from 'primereact/button'
 import { Toolbar } from 'primereact/toolbar'
 import React, { FunctionComponent, useCallback, useState } from 'react'
+import { Node } from 'react-flow-renderer'
 
-import FormulaField from './FormulaField'
+import FormulaEditor from './FormulaEditor'
 import styles from '../../../styles/EditorDock.module.css'
 import { useEditability } from '../../../contexts/editability'
 import { Graph } from '../GraphViewer'
@@ -11,7 +12,9 @@ type EditorDockProps = {
   graph: Graph
   loadGraph: () => void
   saveGraph: () => Promise<Response | undefined>
-  addMetricNode: () => void
+  updateGraph: (t: 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void
+  formMetricNode: () => Node<any> | undefined
+  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodeId: string, outputNodeId: string) => Node<any> | undefined
   canUndo: boolean
   undo: () => void
   canRedo: boolean
@@ -22,7 +25,9 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
   graph,
   loadGraph,
   saveGraph,
-  addMetricNode,
+  updateGraph,
+  formMetricNode,
+  formFunctionNode,
   canUndo,
   undo,
   canRedo,
@@ -30,26 +35,23 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
 }) => {
   const { editingEnabled, disableEditing } = useEditability()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
+
   const onFunctionAddition = useCallback(() => {
     setShowFormulaEditor(true)
   }, [])
-  const FormulaEditor: FunctionComponent = () => {
-    return (
-      <div>
-        <FormulaField graph={graph} />
-        <Button icon="pi pi-check" />
-        <Button
-          icon="pi pi-times"
-          onClick={(e) => setShowFormulaEditor(false)}
-        />
-      </div>
-    )
-  }
+
+  const addMetricNode = useCallback(() => {
+    const newNode = formMetricNode()
+    if (newNode) {
+      updateGraph('nodes', graph.nodes.concat(newNode), true)
+    }
+  }, [formMetricNode, updateGraph, graph.nodes])
 
   const onCancel = useCallback(() => {
     loadGraph()
     disableEditing()
   }, [loadGraph, disableEditing])
+  
   const onSave = useCallback(() => {
     saveGraph().then((response) => {
       if (response?.status === 200) {
@@ -66,7 +68,12 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
     return (
       <div className={styles.editor_dock}>
         {showFormulaEditor ? (
-          <FormulaEditor />
+          <FormulaEditor
+            graph={graph}
+            updateGraph={updateGraph}
+            formFunctionNode={formFunctionNode}
+            setShowFormulaEditor={setShowFormulaEditor}
+            />
         ) : (
           <Toolbar
             className={styles.editor_toolbar}

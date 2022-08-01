@@ -23,7 +23,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import ControlPanel from './ControlPanel'
 import EditorDock from './EditorDock/EditorDock'
-import FunctionNode from './FunctionNode'
+import FunctionNode, { FunctionNodeProperties } from './FunctionNode'
 import InputEdge, { InputEdgeProperties } from './InputEdge'
 import MetricNode, { MetricNodeProperties } from './MetricNode'
 import { useAuth } from '../../contexts/auth'
@@ -194,7 +194,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
   const [nodeDataToChange, setNodeDatatoChange] =
-    useState<MetricNodeProperties>()
+    useState<MetricNodeProperties | FunctionNodeProperties>()
   useEffect(() => {
     if (nodeDataToChange) {
       const nodeToChangeId = nodeDataToChange.id
@@ -224,7 +224,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     [updateGraph, graph, actionKeyPressed]
   )
 
-  const addMetricNode = useCallback(() => {
+  const formMetricNode = useCallback(() => {
     const newNodeType = 'metric'
     const newNodeTypeId = nodeTypeIds[newNodeType]
     if (newNodeTypeId) {
@@ -251,14 +251,69 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
           y: y,
         },
       }
-      updateGraph('nodes', graph.nodes.concat(newNode), true)
+      return newNode
     }
   }, [
     nodeTypeIds,
     project,
     organizationId,
+    setNodeDatatoChange
+  ])
+
+  const formFunctionNode = useCallback((
+    newNodeId: string, 
+    functionTypeId: string,
+    inputNodeId: string,
+    outputNodeId: string
+  ) => {
+    const newNodeType = 'function'
+    const newNodeTypeId = nodeTypeIds[newNodeType]
+
+    const inputNode = graph.nodes.find((n) => n.id === inputNodeId)
+    const outputNode = graph.nodes.find((n) => n.id === outputNodeId)
+    if (newNodeTypeId && inputNode && inputNode.height && inputNode.width && outputNode && outputNode.height && outputNode.width) {
+      const { x: inputX, y: inputY } = inputNode.position
+      const inputHeight = inputNode.height
+      const inputWidth = inputNode.width
+      
+      const { x: outputX, y: outputY } = outputNode.position
+      const outputHeight = outputNode.height
+      const outputWidth = outputNode.width
+
+      const x = (
+        // center the new node between input and output
+        ((inputX + inputWidth / 2) + (outputX + outputWidth / 2)) / 2
+          - (inputWidth / 16 * 4 / 2) // account for the node's width
+      )
+      const y = (
+        ((inputY + inputHeight / 2) + (outputY + outputHeight / 2)) / 2
+          - (inputHeight / 9 * 4 / 2)
+      )
+      
+      const newNodeData: FunctionNodeProperties = {
+        id: newNodeId, // needed for setNodeDataToChange
+        organizationId: organizationId,
+        typeId: newNodeTypeId,
+        functionTypeId: functionTypeId,
+        color: '#FFFFFF',
+        initialProperties: {},
+        setNodeDatatoChange: setNodeDatatoChange,
+      }
+      const newNode: Node = {
+        id: newNodeId,
+        data: newNodeData,
+        type: newNodeType,
+        position: {
+          x: x,
+          y: y,
+        },
+      }
+      return newNode
+    }
+  }, [
+    nodeTypeIds,
+    organizationId,
     setNodeDatatoChange,
-    updateGraph,
     graph.nodes,
   ])
 
@@ -409,7 +464,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
           graph={graph}
           loadGraph={loadGraph}
           saveGraph={saveGraph}
-          addMetricNode={addMetricNode}
+          updateGraph={updateGraph}
+          formMetricNode={formMetricNode}
+          formFunctionNode={formFunctionNode}
           canUndo={canUndo}
           undo={undo}
           canRedo={canRedo}

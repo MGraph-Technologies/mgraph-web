@@ -1,19 +1,29 @@
 import { AutoComplete, AutoCompleteChangeParams } from 'primereact/autocomplete'
+import { Button } from 'primereact/button'
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
+import { Node } from 'react-flow-renderer'
 import { v4 as uuidv4 } from 'uuid'
 
 import { Graph } from '../GraphViewer'
 import { supabase } from '../../../utils/supabaseClient'
 
-type FormulaFieldProps = {
+type FormulaEditorProps = {
   graph: Graph
+  updateGraph: (t: 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void
+  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodeId: string, outputNodeId: string) => Node<any> | undefined
+  setShowFormulaEditor: (value: React.SetStateAction<boolean>) => void
 }
 type NodeSymbol = {
   id: string // id of an existing or to-be-added node
-  type: string
-  display: string
+  display: string,
+  functionTypeId: string | null
 }
-const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
+const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({ 
+  graph,
+  updateGraph,
+  formFunctionNode,
+  setShowFormulaEditor
+}) => {
   const ref = useRef<AutoComplete>(null)
   const [formula, setFormula] = useState<NodeSymbol[]>([])
   const [selectedSymbolIds, setSelectedSymbolIds] = useState<string[]>([])
@@ -22,7 +32,7 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
   const metrics: NodeSymbol[] = graph.nodes
     .filter((node) => node.type === 'metric')
     .map((node) => {
-      return { id: node.data.id, type: 'metric', display: node.data.name}
+      return { id: node.data.id, display: node.data.name, functionTypeId: null }
     })
   const [identities, setIdentities] = useState<NodeSymbol[]>([])
   const [operators, setOperators] = useState<NodeSymbol[]>([])
@@ -46,13 +56,13 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
         }
         setIdentities(
           data.filter((item) => isIdentity(item.symbol)).map((item) => {
-            return { id: uuidv4(), type: 'identity', display: item.symbol }
+            return { id: uuidv4(), display: item.symbol, functionTypeId: item.id }
           })
         )
         // ids generated at selection time to allow multiple uses of the same symbol
         setOperators(
           data.filter((item) => !isIdentity(item.symbol)).map((item) => {
-            return { id: 'TBA', type: 'operator', display: item.symbol }
+            return { id: 'TBA', display: item.symbol, functionTypeId: item.id }
           })
         )
       }
@@ -66,6 +76,7 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
 
   const filterSuggestions = (
     symbols: NodeSymbol[],
+    symbolsType: 'identity' | 'operator' | 'metric',
     query: string
   ): NodeSymbol[] => {
     let results: NodeSymbol[] = []
@@ -77,10 +88,10 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
       })
     }
     results = results.filter((r) => 
-        r.type !== 'metric' || !formula.find((f) => f.display === r.display)
+        symbolsType !== 'metric' || !formula.find((f) => f.display === r.display)
     )
     results = results.map((r) => {
-      if (r.type === 'operator') {
+      if (symbolsType === 'operator') {
         return { ...r, id: uuidv4() }
       } else {
         return r
@@ -98,16 +109,14 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
     return results
   }
   const generateSuggestions = (event: { query: string }): void => {
-    const toFilter: NodeSymbol[] = []
     // formula is of the form [metric] [identity] [metric] [operator] [metric] [operator] ...
-    if (formula.length === 0 || formula[formula.length - 1].type !== 'metric') {
-      toFilter.push(...metrics)
+    if (formula.length === 0 || formula[formula.length - 1].functionTypeId) {
+      setSuggestions(filterSuggestions(metrics, 'metric', event.query))
     } else if (formula.length === 1) {
-      toFilter.push(...identities)
+      setSuggestions(filterSuggestions(identities, 'identity', event.query))
     } else {
-      toFilter.push(...operators)
+      setSuggestions(filterSuggestions(operators, 'operator', event.query))
     }
-    setSuggestions(filterSuggestions(toFilter, event.query))
   }
   const initializeSuggestions = (event: any): void => {
     // used to show suggestions before user starts typing
@@ -133,25 +142,52 @@ const _FormulaField: FunctionComponent<FormulaFieldProps> = ({ graph }) => {
     setFormula(formula.filter((f) => dependentNodes.indexOf(f.id) === -1)) // primereact handles removal of unselected node
   }
 
+  const onSave = (): void => {
+    let newNodes: Node[] = []
+    formula.forEach((ns, index) => {
+      if (ns.functionTypeId) {
+        const inputNodeId = formula[index - 1].id
+        const outputNodeId = formula[index + 1].id
+        const newNode = formFunctionNode(ns.id, ns.functionTypeId, inputNodeId, outputNodeId)
+        if (newNode) {
+          newNodes.push(newNode)
+        }
+      }
+    })
+    if (newNodes.length > 0) {
+      updateGraph('nodes', graph.nodes.concat(newNodes), true)
+      setShowFormulaEditor(false)
+    }
+  }
+
   return (
-    <AutoComplete
-      ref={ref}
-      multiple={true}
-      value={formula}
-      field="display"
-      suggestions={suggestions}
-      completeMethod={generateSuggestions}
-      onChange={onChange}
-      onSelect={onSelect}
-      onUnselect={onUnselect}
-      dropdown={true}
-      dropdownIcon="pi pi-plus"
-      onClick={initializeSuggestions}
-      autoHighlight={true}
-      // forceSelection={true}
-    />
+    <div>
+      <AutoComplete
+        ref={ref}
+        multiple={true}
+        value={formula}
+        field="display"
+        suggestions={suggestions}
+        completeMethod={generateSuggestions}
+        onChange={onChange}
+        onSelect={onSelect}
+        onUnselect={onUnselect}
+        dropdown={true}
+        dropdownIcon="pi pi-plus"
+        onClick={initializeSuggestions}
+        autoHighlight={true}
+        // forceSelection={true}
+      />
+      <Button
+        icon="pi pi-check"
+        onClick={onSave}/>
+      <Button
+        icon="pi pi-times"
+        onClick={(e) => setShowFormulaEditor(false)}
+      />
+    </div>
   )
 }
 
-const FormulaField = React.memo(_FormulaField)
-export default FormulaField
+const FormulaEditor = React.memo(_FormulaEditor)
+export default FormulaEditor

@@ -7,20 +7,23 @@
 
 .function_node .header {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  height: 2em;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  height: 1em;
 }
 
 .function_node .header .buttons {
   position: absolute;
   margin: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0px;
   right: 0px;
-  display: flex;
-  flex-direction: row;
+}
+
+.function_node .header button {
+  margin: 0;
+  height: 1em;
+  width: 1em;
 }
 
 .function_node .symbol {
@@ -28,4 +31,5 @@
   margin: 0;
   top: 50%;
   right: 50%;
+  transform: translate(50%, -50%);
 }
