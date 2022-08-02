@@ -227,32 +227,33 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   const formMetricNode = useCallback(() => {
     const newNodeType = 'metric'
     const newNodeTypeId = nodeTypeIds[newNodeType]
-    if (newNodeTypeId) {
-      const { x, y } = project({
-        x: self.innerWidth / 4,
-        y: self.innerHeight - 250,
-      })
-      const newNodeId = uuidv4()
-      const newNodeData: MetricNodeProperties = {
-        id: newNodeId, // needed for setNodeDataToChange
-        organizationId: organizationId,
-        typeId: newNodeTypeId,
-        name: 'New Metric',
-        color: '#FFFFFF',
-        initialProperties: {},
-        setNodeDatatoChange: setNodeDatatoChange,
-      }
-      const newNode: Node = {
-        id: newNodeId,
-        data: newNodeData,
-        type: newNodeType,
-        position: {
-          x: x,
-          y: y,
-        },
-      }
-      return newNode
+    if (!newNodeTypeId) {
+      throw new Error(`Could not find node type id for ${newNodeType}`)
     }
+    const { x, y } = project({
+      x: self.innerWidth / 4,
+      y: self.innerHeight - 250,
+    })
+    const newNodeId = uuidv4()
+    const newNodeData: MetricNodeProperties = {
+      id: newNodeId, // needed for setNodeDataToChange
+      organizationId: organizationId,
+      typeId: newNodeTypeId,
+      name: 'New Metric',
+      color: '#FFFFFF',
+      initialProperties: {},
+      setNodeDatatoChange: setNodeDatatoChange,
+    }
+    const newNode: Node = {
+      id: newNodeId,
+      data: newNodeData,
+      type: newNodeType,
+      position: {
+        x: x,
+        y: y,
+      },
+    }
+    return newNode
   }, [
     nodeTypeIds,
     project,
@@ -268,48 +269,55 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   ) => {
     const newNodeType = 'function'
     const newNodeTypeId = nodeTypeIds[newNodeType]
+    if (!newNodeTypeId) {
+      throw new Error(`Could not find node type id for ${newNodeType}`)
+    }
 
     const inputNode = graph.nodes.find((n) => n.id === inputNodeId)
-    const outputNode = graph.nodes.find((n) => n.id === outputNodeId)
-    if (newNodeTypeId && inputNode && inputNode.height && inputNode.width && outputNode && outputNode.height && outputNode.width) {
-      const { x: inputX, y: inputY } = inputNode.position
-      const inputHeight = inputNode.height
-      const inputWidth = inputNode.width
-      
-      const { x: outputX, y: outputY } = outputNode.position
-      const outputHeight = outputNode.height
-      const outputWidth = outputNode.width
-
-      const x = (
-        // center the new node between input and output
-        ((inputX + inputWidth / 2) + (outputX + outputWidth / 2)) / 2
-          - (inputWidth / 16 * 4 / 2) // account for the node's width
-      )
-      const y = (
-        ((inputY + inputHeight / 2) + (outputY + outputHeight / 2)) / 2
-          - (inputHeight / 9 * 4 / 2)
-      )
-      
-      const newNodeData: FunctionNodeProperties = {
-        id: newNodeId, // needed for setNodeDataToChange
-        organizationId: organizationId,
-        typeId: newNodeTypeId,
-        functionTypeId: functionTypeId,
-        color: '#FFFFFF',
-        initialProperties: {},
-        setNodeDatatoChange: setNodeDatatoChange,
-      }
-      const newNode: Node = {
-        id: newNodeId,
-        data: newNodeData,
-        type: newNodeType,
-        position: {
-          x: x,
-          y: y,
-        },
-      }
-      return newNode
+    if (!inputNode || !inputNode.height || !inputNode.width) {
+      throw new Error('Invalid input node ${inputNodeId}')
     }
+    const { x: inputX, y: inputY } = inputNode.position
+    const inputHeight = inputNode.height
+    const inputWidth = inputNode.width
+
+    const outputNode = graph.nodes.find((n) => n.id === outputNodeId)
+    if (!outputNode || !outputNode.height || !outputNode.width) {
+      throw new Error('Invalid output node ${outputNodeId}')
+    }   
+    const { x: outputX, y: outputY } = outputNode.position
+    const outputHeight = outputNode.height
+    const outputWidth = outputNode.width
+
+    const x = (
+      // center the new node between input and output
+      ((inputX + inputWidth / 2) + (outputX + outputWidth / 2)) / 2
+        - (inputWidth / 16 * 4 / 2) // account for the node's width
+    )
+    const y = (
+      ((inputY + inputHeight / 2) + (outputY + outputHeight / 2)) / 2
+        - (inputHeight / 9 * 4 / 2)
+    )
+    
+    const newNodeData: FunctionNodeProperties = {
+      id: newNodeId, // needed for setNodeDataToChange
+      organizationId: organizationId,
+      typeId: newNodeTypeId,
+      functionTypeId: functionTypeId,
+      color: '#FFFFFF',
+      initialProperties: {},
+      setNodeDatatoChange: setNodeDatatoChange,
+    }
+    const newNode: Node = {
+      id: newNodeId,
+      data: newNodeData,
+      type: newNodeType,
+      position: {
+        x: x,
+        y: y,
+      },
+    }
+    return newNode
   }, [
     nodeTypeIds,
     organizationId,

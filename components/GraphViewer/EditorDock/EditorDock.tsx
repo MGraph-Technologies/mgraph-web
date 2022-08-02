@@ -13,8 +13,8 @@ type EditorDockProps = {
   loadGraph: () => void
   saveGraph: () => Promise<Response | undefined>
   updateGraph: (t: 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void
-  formMetricNode: () => Node<any> | undefined
-  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodeId: string, outputNodeId: string) => Node<any> | undefined
+  formMetricNode: () => Node<any>
+  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodeId: string, outputNodeId: string) => Node<any>
   canUndo: boolean
   undo: () => void
   canRedo: boolean

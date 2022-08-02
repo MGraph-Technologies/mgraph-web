@@ -10,7 +10,7 @@ import { supabase } from '../../../utils/supabaseClient'
 type FormulaEditorProps = {
   graph: Graph
   updateGraph: (t: 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void
-  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodeId: string, outputNodeId: string) => Node<any> | undefined
+  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodeId: string, outputNodeId: string) => Node<any>
   setShowFormulaEditor: (value: React.SetStateAction<boolean>) => void
 }
 type NodeSymbol = {
@@ -149,9 +149,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         const inputNodeId = formula[index - 1].id
         const outputNodeId = formula[index + 1].id
         const newNode = formFunctionNode(ns.id, ns.functionTypeId, inputNodeId, outputNodeId)
-        if (newNode) {
-          newNodes.push(newNode)
-        }
+        newNodes.push(newNode)
       }
     })
     if (newNodes.length > 0) {
