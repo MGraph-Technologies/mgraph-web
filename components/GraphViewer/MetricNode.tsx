@@ -29,7 +29,7 @@ type MetricNodeProps = {
 }
 const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
   const { editingEnabled } = useEditability()
-  const nodeHandleSize = editingEnabled ? '10px' : '0px'
+  const nodeHandleSize = '0px'
 
   const [name, setName] = useState('')
   useEffect(() => {

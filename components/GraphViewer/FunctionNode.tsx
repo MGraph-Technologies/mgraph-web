@@ -9,7 +9,6 @@ import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
 
 import NodeMenu from './NodeMenu'
-import { useEditability } from '../../contexts/editability'
 import styles from '../../styles/FunctionNode.module.css'
 import { supabase } from '../../utils/supabaseClient'
 
@@ -28,8 +27,7 @@ type FunctionNodeProps = {
   selected: boolean
 }
 const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) => {
-  const { editingEnabled } = useEditability()
-  const nodeHandleSize = editingEnabled ? '10px' : '0px'
+  const nodeHandleSize = '0px'
 
   const [symbol, setSymbol] = useState('')
   async function populateSymbol() {
