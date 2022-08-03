@@ -461,16 +461,29 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
         const parsedNodes = nodesData.map((n) => {
           let parsedNode = n.react_flow_meta
           const parsedProperties = n.properties
-          parsedNode.data = {
-            // explicit construction so properties added outside of react flow don't break it
-            id: parsedProperties.id,
-            organizationId: parsedProperties.organizationId,
-            typeId: parsedProperties.typeId,
-            name: parsedProperties.name,
-            color: parsedProperties.color,
-            initialProperties: parsedProperties,
-            setNodeDatatoChange: setNodeDatatoChange,
-          } as MetricNodeProperties
+          if (parsedNode.type === 'metric') {
+            parsedNode.data = {
+              // explicit construction so properties added outside of react flow don't break it
+              id: parsedProperties.id,
+              organizationId: parsedProperties.organizationId,
+              typeId: parsedProperties.typeId,
+              name: parsedProperties.name,
+              color: parsedProperties.color,
+              initialProperties: parsedProperties,
+              setNodeDatatoChange: setNodeDatatoChange,
+            } as MetricNodeProperties
+          }
+          if (parsedNode.type === 'function') {
+            parsedNode.data = {
+              id: parsedProperties.id,
+              organizationId: parsedProperties.organizationId,
+              typeId: parsedProperties.typeId,
+              functionTypeId: parsedProperties.functionTypeId,
+              color: parsedProperties.color,
+              initialProperties: parsedProperties,
+              setNodeDatatoChange: setNodeDatatoChange,
+            } as FunctionNodeProperties
+          }
           return parsedNode
         })
         const parsedEdges = edgesData.map((e) => {
