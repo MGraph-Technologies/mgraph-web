@@ -1,7 +1,7 @@
 import { AutoComplete, AutoCompleteChangeParams } from 'primereact/autocomplete'
 import { Button } from 'primereact/button'
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
-import { Node } from 'react-flow-renderer'
+import { Edge, Node } from 'react-flow-renderer'
 import { v4 as uuidv4 } from 'uuid'
 
 import { Graph } from '../GraphViewer'
@@ -9,8 +9,9 @@ import { supabase } from '../../../utils/supabaseClient'
 
 type FormulaEditorProps = {
   graph: Graph
-  updateGraph: (t: 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void
-  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodeId: string, outputNodeId: string) => Node<any>
+  updateGraph: (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void
+  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodes: Node[], outputNode: Node) => Node<any>
+  formInputEdge: (source: Node, target: Node, displaySource?: Node | undefined, displayTarget?: Node | undefined) => Edge<any>
   setShowFormulaEditor: (value: React.SetStateAction<boolean>) => void
 }
 type NodeSymbol = {
@@ -22,6 +23,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
   graph,
   updateGraph,
   formFunctionNode,
+  formInputEdge,
   setShowFormulaEditor
 }) => {
   const ref = useRef<AutoComplete>(null)
@@ -143,17 +145,101 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
   }
 
   const onSave = (): void => {
-    let newNodes: Node[] = []
-    formula.forEach((ns, index) => {
-      if (ns.functionTypeId) {
-        const inputNodeId = formula[index - 1].id
-        const outputNodeId = formula[index + 1].id
-        const newNode = formFunctionNode(ns.id, ns.functionTypeId, inputNodeId, outputNodeId)
-        newNodes.push(newNode)
+    /* See here[1] for some diagrams related to the below algorithm, in which
+    - we split formula into input symbols and output symbols
+    - for each operator in the inputs, we create a new function node and associated input edges
+    - finally, we create an identity function node and associated input edges
+    - input edges always link functions to the metric on their right; the first function is linked
+      to the metric on its left while subsequent functions are linked to the previous function (so 
+      that the formula is connected and parseable), but all functions display linkage to the metric
+      on their left for readability
+    1: https://www.figma.com/file/nxWoiYjVROIJXmEPjN0JTI/MGraph-Function-Builder-Concept */
+    let newFunctionNodes: Node[] = []
+    let newInputEdges: Edge[] = []
+
+    const outputSymbols = formula.slice(0, 2)
+    const inputSymbols = formula.slice(2)
+    for (let i = 0; i < inputSymbols.length; i++) {
+      const inputSymbol = inputSymbols[i]
+      if (inputSymbol.functionTypeId) {
+        const leftMetric = graph.nodes.find((node) => node.data.id === inputSymbols[i - 1].id)
+        if (!leftMetric) {
+          throw new Error('left metric not found')
+        }
+        const rightMetric = graph.nodes.find((node) => node.data.id === inputSymbols[i + 1].id)
+        if (!rightMetric) {
+          throw new Error('right metric not found')
+        }
+
+        const newFunctionNode = formFunctionNode(inputSymbol.id, inputSymbol.functionTypeId, [leftMetric], rightMetric)
+        newFunctionNodes.push(newFunctionNode)
+
+        if (i === 1) {
+          newInputEdges.push(formInputEdge(leftMetric, newFunctionNode))
+        } else {
+          const previousFunctionNode = newFunctionNodes[newFunctionNodes.length - 2]
+          newInputEdges.push(
+            formInputEdge(
+              previousFunctionNode,
+              newFunctionNode,
+              leftMetric
+            )
+          )
+        }
+
+        newInputEdges.push(
+          formInputEdge(
+            rightMetric,
+            newFunctionNode,
+            newFunctionNode,
+            rightMetric
+          )
+        )
       }
-    })
-    if (newNodes.length > 0) {
-      updateGraph('nodes', graph.nodes.concat(newNodes), true)
+    }
+    
+    let outputMetricSymbol = outputSymbols[0]
+    let outputMetric = graph.nodes.find((node) => node.data.id === outputMetricSymbol.id)
+    if (!outputMetric) {
+      throw new Error('output metric not found')
+    }
+    let identitySymbol = outputSymbols[1]
+    if (!identitySymbol.functionTypeId) {
+      throw new Error('identity symbol is not a function')
+    }
+
+    let lastInputMetricSymbol = inputSymbols[inputSymbols.length - 1]
+    let lastInputMetric = graph.nodes.find((node) => node.data.id === lastInputMetricSymbol.id)
+    if (!lastInputMetric) {
+      throw new Error('last input metric not found')
+    }
+    
+    const identityFunctionNode = formFunctionNode(
+      identitySymbol.id,
+      identitySymbol.functionTypeId,
+      [lastInputMetric],
+      outputMetric
+    )
+    newFunctionNodes.push(identityFunctionNode)
+    
+    newInputEdges.push(
+      formInputEdge(
+        newFunctionNodes[newFunctionNodes.length - 2],
+        identityFunctionNode,
+        lastInputMetric
+      ),
+      formInputEdge(
+        identityFunctionNode,
+        outputMetric
+      )
+    )
+
+    if (newFunctionNodes.length > 0 && newInputEdges.length > 0) {
+      updateGraph(
+        'all', 
+        [{ nodes: graph.nodes.concat(newFunctionNodes), edges: graph.edges.concat(newInputEdges) }],
+        true
+      )
       setShowFormulaEditor(false)
     }
   }

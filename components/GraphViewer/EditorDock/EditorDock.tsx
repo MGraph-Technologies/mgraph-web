@@ -1,7 +1,7 @@
 import { Button } from 'primereact/button'
 import { Toolbar } from 'primereact/toolbar'
 import React, { FunctionComponent, useCallback, useState } from 'react'
-import { Node } from 'react-flow-renderer'
+import { Edge, Node } from 'react-flow-renderer'
 
 import FormulaEditor from './FormulaEditor'
 import styles from '../../../styles/EditorDock.module.css'
@@ -12,9 +12,10 @@ type EditorDockProps = {
   graph: Graph
   loadGraph: () => void
   saveGraph: () => Promise<Response | undefined>
-  updateGraph: (t: 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void
+  updateGraph: (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void
   formMetricNode: () => Node<any>
-  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodeId: string, outputNodeId: string) => Node<any>
+  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodes: Node[], outputNode: Node) => Node<any>
+  formInputEdge: (source: Node, target: Node, displaySource?: Node | undefined, displayTarget?: Node | undefined) => Edge<any>
   canUndo: boolean
   undo: () => void
   canRedo: boolean
@@ -28,6 +29,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
   updateGraph,
   formMetricNode,
   formFunctionNode,
+  formInputEdge,
   canUndo,
   undo,
   canRedo,
@@ -72,6 +74,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
             graph={graph}
             updateGraph={updateGraph}
             formFunctionNode={formFunctionNode}
+            formInputEdge={formInputEdge}
             setShowFormulaEditor={setShowFormulaEditor}
             />
         ) : (

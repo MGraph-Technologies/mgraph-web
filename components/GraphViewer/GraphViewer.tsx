@@ -6,14 +6,13 @@ import React, {
   useState,
 } from 'react'
 import ReactFlow, {
-  Connection,
   Controls,
   Edge,
   EdgeChange,
   MiniMap,
   Node,
   NodeChange,
-  addEdge,
+  XYPosition,
   applyEdgeChanges,
   applyNodeChanges,
   useReactFlow,
@@ -168,15 +167,17 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   }, [actionKey, actionKeyPressed])
 
   const updateGraph = useCallback(
-    (t: 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
+    (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
       // To prevent a mismatch of state updates,
       // we'll use the value passed into this
       // function instead of the state directly.
       setGraph(
-        (e) => ({
-          nodes: t === 'nodes' ? v : e.nodes,
-          edges: t === 'edges' ? v : e.edges,
-        }),
+        t === 'all' // pretty hacky but it's good enough for now
+          ? v[0]
+          : (e) => ({
+            nodes: t === 'nodes' ? v : e.nodes,
+            edges: t === 'edges' ? v : e.edges,
+          }),
         undefined,
         !undoable
       )
@@ -264,8 +265,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   const formFunctionNode = useCallback((
     newNodeId: string, 
     functionTypeId: string,
-    inputNodeId: string,
-    outputNodeId: string
+    inputNodes: Node[],
+    outputNode: Node
   ) => {
     const newNodeType = 'function'
     const newNodeTypeId = nodeTypeIds[newNodeType]
@@ -273,31 +274,28 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       throw new Error(`Could not find node type id for ${newNodeType}`)
     }
 
-    const inputNode = graph.nodes.find((n) => n.id === inputNodeId)
-    if (!inputNode || !inputNode.height || !inputNode.width) {
-      throw new Error('Invalid input node ${inputNodeId}')
-    }
-    const { x: inputX, y: inputY } = inputNode.position
-    const inputHeight = inputNode.height
-    const inputWidth = inputNode.width
+    const centerBetween = inputNodes.concat(outputNode)
+    let x = 0
+    let y = 0
+    centerBetween.forEach((node) => {
+      if (!node.width) {
+        throw new Error(`Node ${node.id} has no width`)
+      }
+      if (!node.height) {
+        throw new Error(`Node ${node.id} has no height`)
+      }
+      x += (node.position.x + node.width / 2)
+      y += (node.position.y + node.height / 2)
+    })
+    x /= centerBetween.length
+    y /= centerBetween.length
 
-    const outputNode = graph.nodes.find((n) => n.id === outputNodeId)
-    if (!outputNode || !outputNode.height || !outputNode.width) {
-      throw new Error('Invalid output node ${outputNodeId}')
-    }   
-    const { x: outputX, y: outputY } = outputNode.position
-    const outputHeight = outputNode.height
-    const outputWidth = outputNode.width
-
-    const x = (
-      // center the new node between input and output
-      ((inputX + inputWidth / 2) + (outputX + outputWidth / 2)) / 2
-        - (inputWidth / 16 * 4 / 2) // account for the node's width
-    )
-    const y = (
-      ((inputY + inputHeight / 2) + (outputY + outputHeight / 2)) / 2
-        - (inputHeight / 9 * 4 / 2)
-    )
+    const outputWidth = outputNode.width! // width exists because we checked for it above
+    const outputHeight = outputNode.height!
+    const width = outputWidth / 16 * 4 // perhaps there's a better way to link this to stylesheet?
+    const height = outputHeight / 9 * 4
+    x -= (width / 2)
+    y -= (height / 2)
     
     const newNodeData: FunctionNodeProperties = {
       id: newNodeId, // needed for setNodeDataToChange
@@ -316,13 +314,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
         x: x,
         y: y,
       },
+      width: width,
+      height: height,
     }
     return newNode
   }, [
     nodeTypeIds,
     organizationId,
     setNodeDatatoChange,
-    graph.nodes,
   ])
 
   const onEdgesChange = useCallback(
@@ -332,31 +331,107 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     [updateGraph, graph.edges]
   )
 
-  const onConnect = useCallback(
-    (connection: Connection) => {
+  const getNearestHandlePair = (source: Node, target: Node) => {
+    const handlePairs = [
+      {
+        source: {
+          name: 'top',
+          position: { x: source.position.x + (source.width || 0) / 2, y: source.position.y } as XYPosition,
+        },
+        target: {
+          name: 'bottom',
+          position: { x: target.position.x + (target.width || 0) / 2, y: target.position.y + (target.height || 0) } as XYPosition,
+        },
+      },
+      {
+        source: {
+          name: 'right',
+          position: { x: source.position.x + (source.width || 0), y: source.position.y + (source.height || 0) / 2 } as XYPosition,
+        },
+        target: {
+          name: 'left',
+          position: { x: target.position.x, y: target.position.y + (target.height || 0) / 2 } as XYPosition,
+        },
+      },
+      {
+        source: {
+          name: 'bottom',
+          position: { x: source.position.x + (source.width || 0) / 2, y: source.position.y + (source.height || 0) } as XYPosition,
+        },
+        target: {
+          name: 'top',
+          position: { x: target.position.x + (target.width || 0) / 2, y: target.position.y } as XYPosition,
+        },
+      },
+      {
+        source: {
+          name: 'left',
+          position: { x: source.position.x, y: source.position.y + (source.height || 0) / 2 } as XYPosition,
+        },
+        target: {
+          name: 'right',
+          position: { x: target.position.x + (target.width || 0), y: target.position.y + (target.height || 0) / 2 } as XYPosition,
+        },
+      },
+    ]
+
+    let minDistance = Number.MAX_VALUE
+    let sourceHandle = ''
+    let targetHandle = ''
+    for (const handlePair of handlePairs) {
+      const sourceHandlePosition = handlePair.source.position
+      const targetHandlePosition = handlePair.target.position
+      const distance = Math.sqrt(
+        Math.pow(sourceHandlePosition.x - targetHandlePosition.x, 2) +
+        Math.pow(sourceHandlePosition.y - targetHandlePosition.y, 2)
+      )
+      if (distance < minDistance) {
+        minDistance = distance
+        sourceHandle = handlePair.source.name + '_source' // convention must align custom Node definitions
+        targetHandle = handlePair.target.name + '_target'
+      }
+    }
+    return { sourceHandle, targetHandle }
+  }
+
+  const formInputEdge = useCallback((
+    source: Node,
+    target: Node,
+    displaySource: Node | undefined = undefined,
+    displayTarget: Node | undefined = undefined,
+    ) => {
       const newEdgeType = 'input'
       const newEdgeTypeId = edgeTypeIds[newEdgeType]
-      if (newEdgeTypeId) {
-        const newEdgeId = uuidv4()
-        const newEdgeData: InputEdgeProperties = {
-          id: newEdgeId,
-          organizationId: organizationId,
-          typeId: newEdgeTypeId,
-          sourceId: connection.source || '', // it'll never not be set, but typescript doesn't know that
-          targetId: connection.target || '',
-          initialProperties: {},
-        }
-        const newEdge = {
-          ...connection,
-          type: newEdgeType,
-          id: newEdgeId,
-          data: newEdgeData,
-          animated: true,
-        }
-        updateGraph('edges', addEdge(newEdge, graph.edges), true)
+      if (!newEdgeTypeId) {
+        throw new Error(`Could not find edge type id for ${newEdgeType}`)
       }
+
+      displaySource = displaySource || source
+      displayTarget = displayTarget || target
+      const { sourceHandle, targetHandle } = getNearestHandlePair(displaySource, displayTarget)
+
+      const newEdgeId = uuidv4()
+      const newEdgeData: InputEdgeProperties = {
+        id: newEdgeId,
+        organizationId: organizationId,
+        typeId: newEdgeTypeId,
+        sourceId: source.id,
+        targetId: target.id,
+        initialProperties: {},
+      }
+      const newEdge: Edge = {
+        source: displaySource.id,
+        target: displayTarget.id,
+        sourceHandle: sourceHandle,
+        targetHandle: targetHandle,
+        type: newEdgeType,
+        id: newEdgeId,
+        data: newEdgeData,
+        animated: true,
+      }
+      return newEdge
     },
-    [edgeTypeIds, organizationId, updateGraph, graph.edges]
+    [edgeTypeIds, organizationId]
   )
 
   const loadGraph = useCallback(async () => {
@@ -457,9 +532,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeDragStart={onNodeDragStart}
-        onConnect={onConnect}
         nodesDraggable={editingEnabled}
-        nodesConnectable={editingEnabled}
+        nodesConnectable={false}
         panOnScroll={true}
         minZoom={0.1}
         maxZoom={10}
@@ -475,6 +549,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
           updateGraph={updateGraph}
           formMetricNode={formMetricNode}
           formFunctionNode={formFunctionNode}
+          formInputEdge={formInputEdge}
           canUndo={canUndo}
           undo={undo}
           canRedo={canRedo}

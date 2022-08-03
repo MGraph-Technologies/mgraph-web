@@ -90,7 +90,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) 
       </div>
       <Handle
         type="source"
-        id="top"
+        id="top_source"
         position={Position.Top}
         style={{
           backgroundColor: 'Green',
@@ -100,7 +100,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) 
       />
       <Handle
         type="source"
-        id="right"
+        id="right_source"
         position={Position.Right}
         style={{
           backgroundColor: 'Green',
@@ -109,8 +109,48 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) 
         }}
       />
       <Handle
+        type="source"
+        id="bottom_source"
+        position={Position.Bottom}
+        style={{
+          backgroundColor: 'Green',
+          width: nodeHandleSize,
+          height: nodeHandleSize,
+        }}
+      />
+      <Handle
+        type="source"
+        id="left_source"
+        position={Position.Left}
+        style={{
+          backgroundColor: 'Green',
+          width: nodeHandleSize,
+          height: nodeHandleSize,
+        }}
+      />
+      <Handle
         type="target"
-        id="bottom"
+        id="top_target"
+        position={Position.Top}
+        style={{
+          backgroundColor: 'Red',
+          width: nodeHandleSize,
+          height: nodeHandleSize,
+        }}
+      />
+      <Handle
+        type="target"
+        id="right_target"
+        position={Position.Right}
+        style={{
+          backgroundColor: 'Red',
+          width: nodeHandleSize,
+          height: nodeHandleSize,
+        }}
+      />
+      <Handle
+        type="target"
+        id="bottom_target"
         position={Position.Bottom}
         style={{
           backgroundColor: 'Red',
@@ -120,7 +160,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) 
       />
       <Handle
         type="target"
-        id="left"
+        id="left_target"
         position={Position.Left}
         style={{
           backgroundColor: 'Red',
