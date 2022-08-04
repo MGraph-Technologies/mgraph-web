@@ -235,7 +235,9 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     
     newInputEdges.push(
       formInputEdge(
-        newFunctionNodes[newFunctionNodes.length - 2],
+        newFunctionNodes.length >= 2
+          ? newFunctionNodes[newFunctionNodes.length - 2]
+          : lastInputMetric,
         identityFunctionNode,
         lastInputMetric
       ),
