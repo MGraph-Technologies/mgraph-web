@@ -129,7 +129,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       behavior: 'destroyFuture',
       ignoreIdenticalMutations: false,
     })
-  const { project } = useReactFlow()
+  const reactFlowInstance = useReactFlow()
 
   const actionKey = navigator.platform.match(/Mac/i) ? 'Meta' : 'Control'
   const [actionKeyPressed, setActionKeyPressed] = useState(false)
@@ -231,7 +231,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     if (!newNodeTypeId) {
       throw new Error(`Could not find node type id for ${newNodeType}`)
     }
-    const { x, y } = project({
+    const { x, y } = reactFlowInstance.project({
       x: self.innerWidth / 4,
       y: self.innerHeight - 250,
     })
@@ -257,7 +257,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     return newNode
   }, [
     nodeTypeIds,
-    project,
+    reactFlowInstance,
     organizationId,
     setNodeDatatoChange
   ])
@@ -513,6 +513,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   useEffect(() => {
     loadGraph()
   }, [loadGraph])
+  useEffect(() => {
+    reactFlowInstance.fitView()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialGraph])
 
   const saveGraph = useCallback(async () => {
     const accessToken = session?.access_token
