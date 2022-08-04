@@ -156,6 +156,15 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     metric on their left to the metric on their right for readability.
     
     1: https://www.figma.com/file/nxWoiYjVROIJXmEPjN0JTI/MGraph-Function-Builder-Concept */
+    if (formula.length < 3) {
+      alert('Formula should relate at least two metrics')
+      return
+    }
+    if (formula[formula.length - 1].functionTypeId) {
+      alert('Formula should end with a metric')
+      return
+    }
+
     let newFunctionNodes: Node[] = []
     let newInputEdges: Edge[] = []
 
@@ -262,7 +271,6 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         dropdownIcon="pi pi-plus"
         onClick={initializeSuggestions}
         autoHighlight={true}
-        // forceSelection={true}
       />
       <Button
         icon="pi pi-check"
