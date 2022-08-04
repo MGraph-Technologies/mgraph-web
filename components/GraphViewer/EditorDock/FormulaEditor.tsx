@@ -145,14 +145,16 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
   }
 
   const onSave = (): void => {
-    /* See here[1] for some diagrams related to the below algorithm, in which
-    - we split formula into input symbols and output symbols
-    - for each operator in the inputs, we create a new function node and associated input edges
-    - finally, we create an identity function node and associated input edges
-    - input edges always link functions to the metric on their right; the first function is linked
-      to the metric on its left while subsequent functions are linked to the previous function (so 
-      that the formula is connected and parseable), but all functions display linkage to the metric
-      on their left for readability
+    /* See here[1] for some diagrams related to the below algorithm, in which:
+    1) we split formula into input symbols and output symbols
+    2) for each operator in the inputs, we create a new function node and associated input edges
+    3) finally, we create an identity function node and associated input edges
+    
+    Input edges always link functions to the metric on their right. The first function is linked
+    to the metric on its left, while subsequent functions are linked to the previous function (so 
+    that the formula is connected and parseable). All functions display shorthand linkage from the
+    metric on their left to the metric on their right for readability.
+    
     1: https://www.figma.com/file/nxWoiYjVROIJXmEPjN0JTI/MGraph-Function-Builder-Concept */
     let newFunctionNodes: Node[] = []
     let newInputEdges: Edge[] = []
