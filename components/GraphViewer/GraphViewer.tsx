@@ -166,6 +166,90 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     }
   }, [actionKey, actionKeyPressed])
 
+  const loadGraph = useCallback(async () => {
+    try {
+      // TODO: loading animation
+      let { data: nodesData, error: nodesError } = await supabase
+        .from('nodes')
+        .select('properties, react_flow_meta')
+        .eq('organization_id', organizationId)
+        .is('deleted_at', null)
+
+      if (nodesError) {
+        throw nodesError
+      }
+
+      let { data: edgesData, error: edgesError } = await supabase
+        .from('edges')
+        .select('properties, react_flow_meta')
+        .eq('organization_id', organizationId)
+        .is('deleted_at', null)
+
+      if (edgesError) {
+        throw edgesError
+      }
+
+      if (nodesData && edgesData) {
+        const parsedNodes = nodesData.map((n) => {
+          let parsedNode = n.react_flow_meta
+          const parsedProperties = n.properties
+          if (parsedNode.type === 'metric') {
+            parsedNode.data = {
+              // explicit construction so properties added outside of react flow don't break it
+              id: parsedProperties.id,
+              organizationId: parsedProperties.organizationId,
+              typeId: parsedProperties.typeId,
+              name: parsedProperties.name,
+              color: parsedProperties.color,
+              initialProperties: parsedProperties,
+              setNodeDatatoChange: setNodeDatatoChange,
+            } as MetricNodeProperties
+          }
+          if (parsedNode.type === 'function') {
+            parsedNode.data = {
+              id: parsedProperties.id,
+              organizationId: parsedProperties.organizationId,
+              typeId: parsedProperties.typeId,
+              functionTypeId: parsedProperties.functionTypeId,
+              color: parsedProperties.color,
+              initialProperties: parsedProperties,
+              setNodeDatatoChange: setNodeDatatoChange,
+            } as FunctionNodeProperties
+          }
+          return parsedNode
+        })
+        const parsedEdges = edgesData.map((e) => {
+          let parsedEdge = e.react_flow_meta
+          const parsedProperties = e.properties
+          parsedEdge.data = {
+            id: parsedProperties.id,
+            organizationId: parsedProperties.organizationId,
+            typeId: parsedProperties.typeId,
+            sourceId: parsedProperties.sourceId,
+            targetId: parsedProperties.targetId,
+            initialProperties: parsedProperties,
+          } as InputEdgeProperties
+          return parsedEdge
+        })
+        const parsedGraph = {
+          nodes: parsedNodes,
+          edges: parsedEdges,
+        }
+        setInitialGraph(parsedGraph)
+        reset(parsedGraph)
+      }
+    } catch (error: any) {
+      alert(error.message)
+    }
+  }, [organizationId, reset])
+  useEffect(() => {
+    loadGraph()
+  }, [loadGraph])
+  useEffect(() => {
+    reactFlowInstance.fitView()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialGraph])
+
   const updateGraph = useCallback(
     (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
       // To prevent a mismatch of state updates,
@@ -184,6 +268,27 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     },
     [setGraph]
   )
+
+  const saveGraph = useCallback(async () => {
+    const accessToken = session?.access_token
+    if (!accessToken) {
+      return
+    }
+    // remove selections
+    graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
+    graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
+
+    return fetch('/api/v1/graphs', {
+      method: 'PUT',
+      body: JSON.stringify({
+        initialGraph: initialGraph,
+        updatedGraph: graph,
+      }),
+      headers: {
+        'supabase-access-token': accessToken,
+      },
+    })
+  }, [session, graph, initialGraph])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -433,111 +538,6 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     },
     [edgeTypeIds, organizationId]
   )
-
-  const loadGraph = useCallback(async () => {
-    try {
-      // TODO: loading animation
-      let { data: nodesData, error: nodesError } = await supabase
-        .from('nodes')
-        .select('properties, react_flow_meta')
-        .eq('organization_id', organizationId)
-        .is('deleted_at', null)
-
-      if (nodesError) {
-        throw nodesError
-      }
-
-      let { data: edgesData, error: edgesError } = await supabase
-        .from('edges')
-        .select('properties, react_flow_meta')
-        .eq('organization_id', organizationId)
-        .is('deleted_at', null)
-
-      if (edgesError) {
-        throw edgesError
-      }
-
-      if (nodesData && edgesData) {
-        const parsedNodes = nodesData.map((n) => {
-          let parsedNode = n.react_flow_meta
-          const parsedProperties = n.properties
-          if (parsedNode.type === 'metric') {
-            parsedNode.data = {
-              // explicit construction so properties added outside of react flow don't break it
-              id: parsedProperties.id,
-              organizationId: parsedProperties.organizationId,
-              typeId: parsedProperties.typeId,
-              name: parsedProperties.name,
-              color: parsedProperties.color,
-              initialProperties: parsedProperties,
-              setNodeDatatoChange: setNodeDatatoChange,
-            } as MetricNodeProperties
-          }
-          if (parsedNode.type === 'function') {
-            parsedNode.data = {
-              id: parsedProperties.id,
-              organizationId: parsedProperties.organizationId,
-              typeId: parsedProperties.typeId,
-              functionTypeId: parsedProperties.functionTypeId,
-              color: parsedProperties.color,
-              initialProperties: parsedProperties,
-              setNodeDatatoChange: setNodeDatatoChange,
-            } as FunctionNodeProperties
-          }
-          return parsedNode
-        })
-        const parsedEdges = edgesData.map((e) => {
-          let parsedEdge = e.react_flow_meta
-          const parsedProperties = e.properties
-          parsedEdge.data = {
-            id: parsedProperties.id,
-            organizationId: parsedProperties.organizationId,
-            typeId: parsedProperties.typeId,
-            sourceId: parsedProperties.sourceId,
-            targetId: parsedProperties.targetId,
-            initialProperties: parsedProperties,
-          } as InputEdgeProperties
-          return parsedEdge
-        })
-        const parsedGraph = {
-          nodes: parsedNodes,
-          edges: parsedEdges,
-        }
-        setInitialGraph(parsedGraph)
-        reset(parsedGraph)
-      }
-    } catch (error: any) {
-      alert(error.message)
-    }
-  }, [organizationId, reset])
-  useEffect(() => {
-    loadGraph()
-  }, [loadGraph])
-  useEffect(() => {
-    reactFlowInstance.fitView()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialGraph])
-
-  const saveGraph = useCallback(async () => {
-    const accessToken = session?.access_token
-    if (!accessToken) {
-      return
-    }
-    // remove selections
-    graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
-    graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
-
-    return fetch('/api/v1/graphs', {
-      method: 'PUT',
-      body: JSON.stringify({
-        initialGraph: initialGraph,
-        updatedGraph: graph,
-      }),
-      headers: {
-        'supabase-access-token': accessToken,
-      },
-    })
-  }, [session, graph, initialGraph])
 
   return (
     <div className={styles.graph_viewer}>
