@@ -1,8 +1,8 @@
 import React, { FunctionComponent } from 'react'
-import { EdgeProps, getBezierPath } from 'react-flow-renderer'
+import { EdgeProps, getSmoothStepPath } from 'react-flow-renderer'
 
-export type FunctionalEdgeProperties = {
-  // TODO: figure out how to reference this in FunctionalEdge's type
+export type InputEdgeProperties = {
+  // TODO: figure out how to reference this in InputEdge's type
   id: string
   organizationId: string
   typeId: string
@@ -11,7 +11,7 @@ export type FunctionalEdgeProperties = {
   // below not in postgres
   initialProperties: object
 }
-const FunctionalEdge: FunctionComponent<EdgeProps> = ({
+const InputEdge: FunctionComponent<EdgeProps> = ({
   id,
   sourceX,
   sourceY,
@@ -21,7 +21,7 @@ const FunctionalEdge: FunctionComponent<EdgeProps> = ({
   targetPosition,
   style = {},
 }) => {
-  const edgePath = getBezierPath({
+  const edgePath = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -42,4 +42,4 @@ const FunctionalEdge: FunctionComponent<EdgeProps> = ({
   )
 }
 
-export default FunctionalEdge
+export default InputEdge

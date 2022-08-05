@@ -1,17 +1,17 @@
-import { Button } from 'primereact/button'
 import React, {
   FunctionComponent,
   useCallback,
   useEffect,
   useState,
 } from 'react'
-import { ColorResult, TwitterPicker } from 'react-color'
+import { ColorResult } from 'react-color'
 import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
 
-import { useEditability } from '../contexts/editability'
-import styles from '../styles/MetricNode.module.css'
+import NodeMenu from './NodeMenu'
+import { useEditability } from '../../contexts/editability'
+import styles from '../../styles/MetricNode.module.css'
 
 export type MetricNodeProperties = {
   id: string
@@ -29,7 +29,7 @@ type MetricNodeProps = {
 }
 const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
   const { editingEnabled } = useEditability()
-  const nodeHandleSize = editingEnabled ? '10px' : '0px'
+  const nodeHandleSize = '0px'
 
   const [name, setName] = useState('')
   useEffect(() => {
@@ -56,16 +56,6 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
     },
     [data]
   )
-  const [displayColorPicker, setDisplayColorPicker] = useState(false)
-
-  const handleColorChangeComplete = useCallback(
-    (color: ColorResult) => {
-      setColor(color.hex)
-      saveColor(color)
-      setDisplayColorPicker(false)
-    },
-    [saveColor]
-  )
 
   return (
     <div
@@ -90,40 +80,12 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
           />
         </div>
         <div className={styles.buttons}>
-          {!editingEnabled ? (
-            <Button
-              className="p-button-text"
-              icon="pi pi-angle-right"
-              onClick={() => {}} // TODO: activate
-            />
-          ) : null}
-          {editingEnabled && !displayColorPicker ? (
-            <>
-              <Button
-                className="p-button-text"
-                icon="pi pi-ellipsis-v"
-                onClick={() => setDisplayColorPicker(true)}
-              />
-            </>
-          ) : null}
-          {editingEnabled && displayColorPicker ? (
-            <>
-              <TwitterPicker
-                color={color}
-                onChangeComplete={(color) => handleColorChangeComplete(color)}
-              />
-              <Button
-                className="p-button-text"
-                icon="pi pi-times"
-                onClick={() => setDisplayColorPicker(false)}
-              />
-            </>
-          ) : null}
+          <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
         </div>
       </div>
       <Handle
         type="source"
-        id="top"
+        id="top_source"
         position={Position.Top}
         style={{
           backgroundColor: 'Green',
@@ -133,7 +95,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
       />
       <Handle
         type="source"
-        id="right"
+        id="right_source"
         position={Position.Right}
         style={{
           backgroundColor: 'Green',
@@ -142,8 +104,48 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
         }}
       />
       <Handle
+        type="source"
+        id="bottom_source"
+        position={Position.Bottom}
+        style={{
+          backgroundColor: 'Green',
+          width: nodeHandleSize,
+          height: nodeHandleSize,
+        }}
+      />
+      <Handle
+        type="source"
+        id="left_source"
+        position={Position.Left}
+        style={{
+          backgroundColor: 'Green',
+          width: nodeHandleSize,
+          height: nodeHandleSize,
+        }}
+      />
+      <Handle
         type="target"
-        id="bottom"
+        id="top_target"
+        position={Position.Top}
+        style={{
+          backgroundColor: 'Red',
+          width: nodeHandleSize,
+          height: nodeHandleSize,
+        }}
+      />
+      <Handle
+        type="target"
+        id="right_target"
+        position={Position.Right}
+        style={{
+          backgroundColor: 'Red',
+          width: nodeHandleSize,
+          height: nodeHandleSize,
+        }}
+      />
+      <Handle
+        type="target"
+        id="bottom_target"
         position={Position.Bottom}
         style={{
           backgroundColor: 'Red',
@@ -153,7 +155,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
       />
       <Handle
         type="target"
-        id="left"
+        id="left_target"
         position={Position.Left}
         style={{
           backgroundColor: 'Red',

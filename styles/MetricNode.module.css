@@ -30,8 +30,3 @@
   display: flex;
   flex-direction: row;
 }
-
-.metric_node .header button {
-  width: auto;
-  padding: 0px;
-}

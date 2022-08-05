@@ -1,0 +1,35 @@
+.function_node {
+  height: 4em;
+  width: 4em;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.function_node .header {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  height: 1em;
+}
+
+.function_node .header .buttons {
+  position: absolute;
+  margin: 0;
+  top: 0px;
+  right: 0px;
+}
+
+.function_node .header button {
+  margin: 0;
+  height: 1em;
+  width: 1em;
+}
+
+.function_node .symbol {
+  position: absolute;
+  margin: 0;
+  top: 50%;
+  right: 50%;
+  transform: translate(50%, -50%);
+}
