@@ -539,6 +539,74 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     [edgeTypeIds, organizationId]
   )
 
+  // selecting any function node or input edge selects all connected others
+  // right now this essentially insures that an editor can't partially delete a formula
+  // TODO: add formula editing
+  const getConnectedFunctionNodesAndInputEdges = useCallback((
+    reference: Node | Edge, 
+    calledFrom: string = ''
+  ) => {
+    let connectedFunctionNodesAndInputEdges: (Node|Edge)[] = []
+    if (reference.type === 'function') {
+      // select connected edges
+      graph.edges.forEach((edge) => {
+        if ((edge.data.sourceId === reference.id || edge.data.targetId === reference.id)
+              && edge.type === 'input' && edge.id !== calledFrom) {
+          connectedFunctionNodesAndInputEdges = connectedFunctionNodesAndInputEdges.concat(
+            [edge],
+            getConnectedFunctionNodesAndInputEdges(edge, reference.id)
+          )
+        }
+      })
+    } else if (reference.type === 'input') {
+      // select connected function nodes
+      graph.nodes.forEach((node) => {
+        if ((node.id === reference.data.sourceId || node.id === reference.data.targetId)
+              && node.type === 'function' && node.id !== calledFrom) {
+          connectedFunctionNodesAndInputEdges = connectedFunctionNodesAndInputEdges.concat(
+            [node],
+            getConnectedFunctionNodesAndInputEdges(node, reference.id)
+          )
+        }
+      })
+    }
+    return connectedFunctionNodesAndInputEdges
+  }, [graph])
+  
+  const onSelect = useCallback((nodeOrEdge: Node | Edge) => {
+    if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {
+      const connectedFunctionNodesAndInputEdges = (
+        getConnectedFunctionNodesAndInputEdges(nodeOrEdge).concat([nodeOrEdge])
+      )
+      updateGraph(
+        'all',
+        [{
+          nodes: graph.nodes.map((node) => {
+            if (connectedFunctionNodesAndInputEdges.find((c) => c.id === node.id && c.type === node.type)) {
+              return {
+                ...node,
+                selected: true,
+              }
+            } else {
+              return node
+            }
+          }),
+          edges: graph.edges.map((edge) => {
+            if (connectedFunctionNodesAndInputEdges.find((c) => c.id === edge.id && c.type === edge.type)) {
+              return {
+                ...edge,
+                selected: true,
+              }
+            } else {
+              return edge
+            }
+          })
+        }],
+        false
+      )
+    }
+  }, [getConnectedFunctionNodesAndInputEdges, updateGraph, graph]) 
+
   return (
     <div className={styles.graph_viewer}>
       <ReactFlow
@@ -546,7 +614,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
         edges={graph.edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        onNodeClick={(_event, node) => onSelect(node)}
         onNodesChange={onNodesChange}
+        onEdgeClick={(_event, edge) => onSelect(edge)}
         onEdgesChange={onEdgesChange}
         onNodeDragStart={onNodeDragStart}
         nodesDraggable={editingEnabled}
