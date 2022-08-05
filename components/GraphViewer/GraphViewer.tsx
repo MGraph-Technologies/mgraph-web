@@ -247,7 +247,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   }, [loadGraph])
   useEffect(() => {
     reactFlowInstance.fitView()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGraph])
 
   const updateGraph = useCallback(
@@ -259,9 +259,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
         t === 'all' // pretty hacky but it's good enough for now
           ? v[0]
           : (e) => ({
-            nodes: t === 'nodes' ? v : e.nodes,
-            edges: t === 'edges' ? v : e.edges,
-          }),
+              nodes: t === 'nodes' ? v : e.nodes,
+              edges: t === 'edges' ? v : e.edges,
+            }),
         undefined,
         !undoable
       )
@@ -299,8 +299,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
 
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
-  const [nodeDataToChange, setNodeDatatoChange] =
-    useState<MetricNodeProperties | FunctionNodeProperties>()
+  const [nodeDataToChange, setNodeDatatoChange] = useState<
+    MetricNodeProperties | FunctionNodeProperties
+  >()
   useEffect(() => {
     if (nodeDataToChange) {
       const nodeToChangeId = nodeDataToChange.id
@@ -360,74 +361,68 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       },
     }
     return newNode
-  }, [
-    nodeTypeIds,
-    reactFlowInstance,
-    organizationId,
-    setNodeDatatoChange
-  ])
+  }, [nodeTypeIds, reactFlowInstance, organizationId, setNodeDatatoChange])
 
-  const formFunctionNode = useCallback((
-    newNodeId: string, 
-    functionTypeId: string,
-    inputNodes: Node[],
-    outputNode: Node
-  ) => {
-    const newNodeType = 'function'
-    const newNodeTypeId = nodeTypeIds[newNodeType]
-    if (!newNodeTypeId) {
-      throw new Error(`Could not find node type id for ${newNodeType}`)
-    }
-
-    const centerBetween = inputNodes.concat(outputNode)
-    let x = 0
-    let y = 0
-    centerBetween.forEach((node) => {
-      if (!node.width) {
-        throw new Error(`Node ${node.id} has no width`)
+  const formFunctionNode = useCallback(
+    (
+      newNodeId: string,
+      functionTypeId: string,
+      inputNodes: Node[],
+      outputNode: Node
+    ) => {
+      const newNodeType = 'function'
+      const newNodeTypeId = nodeTypeIds[newNodeType]
+      if (!newNodeTypeId) {
+        throw new Error(`Could not find node type id for ${newNodeType}`)
       }
-      if (!node.height) {
-        throw new Error(`Node ${node.id} has no height`)
-      }
-      x += (node.position.x + node.width / 2)
-      y += (node.position.y + node.height / 2)
-    })
-    x /= centerBetween.length
-    y /= centerBetween.length
 
-    const outputWidth = outputNode.width! // width exists because we checked for it above
-    const outputHeight = outputNode.height!
-    const width = outputWidth / 16 * 4 // perhaps there's a better way to link this to stylesheet?
-    const height = outputHeight / 9 * 4
-    x -= (width / 2)
-    y -= (height / 2)
-    
-    const newNodeData: FunctionNodeProperties = {
-      id: newNodeId, // needed for setNodeDataToChange
-      organizationId: organizationId,
-      typeId: newNodeTypeId,
-      functionTypeId: functionTypeId,
-      color: '#FFFFFF',
-      initialProperties: {},
-      setNodeDatatoChange: setNodeDatatoChange,
-    }
-    const newNode: Node = {
-      id: newNodeId,
-      data: newNodeData,
-      type: newNodeType,
-      position: {
-        x: x,
-        y: y,
-      },
-      width: width,
-      height: height,
-    }
-    return newNode
-  }, [
-    nodeTypeIds,
-    organizationId,
-    setNodeDatatoChange,
-  ])
+      const centerBetween = inputNodes.concat(outputNode)
+      let x = 0
+      let y = 0
+      centerBetween.forEach((node) => {
+        if (!node.width) {
+          throw new Error(`Node ${node.id} has no width`)
+        }
+        if (!node.height) {
+          throw new Error(`Node ${node.id} has no height`)
+        }
+        x += node.position.x + node.width / 2
+        y += node.position.y + node.height / 2
+      })
+      x /= centerBetween.length
+      y /= centerBetween.length
+
+      const outputWidth = outputNode.width! // width exists because we checked for it above
+      const outputHeight = outputNode.height!
+      const width = (outputWidth / 16) * 4 // perhaps there's a better way to link this to stylesheet?
+      const height = (outputHeight / 9) * 4
+      x -= width / 2
+      y -= height / 2
+
+      const newNodeData: FunctionNodeProperties = {
+        id: newNodeId, // needed for setNodeDataToChange
+        organizationId: organizationId,
+        typeId: newNodeTypeId,
+        functionTypeId: functionTypeId,
+        color: '#FFFFFF',
+        initialProperties: {},
+        setNodeDatatoChange: setNodeDatatoChange,
+      }
+      const newNode: Node = {
+        id: newNodeId,
+        data: newNodeData,
+        type: newNodeType,
+        position: {
+          x: x,
+          y: y,
+        },
+        width: width,
+        height: height,
+      }
+      return newNode
+    },
+    [nodeTypeIds, organizationId, setNodeDatatoChange]
+  )
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
@@ -441,41 +436,65 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       {
         source: {
           name: 'top',
-          position: { x: source.position.x + (source.width || 0) / 2, y: source.position.y } as XYPosition,
+          position: {
+            x: source.position.x + (source.width || 0) / 2,
+            y: source.position.y,
+          } as XYPosition,
         },
         target: {
           name: 'bottom',
-          position: { x: target.position.x + (target.width || 0) / 2, y: target.position.y + (target.height || 0) } as XYPosition,
+          position: {
+            x: target.position.x + (target.width || 0) / 2,
+            y: target.position.y + (target.height || 0),
+          } as XYPosition,
         },
       },
       {
         source: {
           name: 'right',
-          position: { x: source.position.x + (source.width || 0), y: source.position.y + (source.height || 0) / 2 } as XYPosition,
+          position: {
+            x: source.position.x + (source.width || 0),
+            y: source.position.y + (source.height || 0) / 2,
+          } as XYPosition,
         },
         target: {
           name: 'left',
-          position: { x: target.position.x, y: target.position.y + (target.height || 0) / 2 } as XYPosition,
+          position: {
+            x: target.position.x,
+            y: target.position.y + (target.height || 0) / 2,
+          } as XYPosition,
         },
       },
       {
         source: {
           name: 'bottom',
-          position: { x: source.position.x + (source.width || 0) / 2, y: source.position.y + (source.height || 0) } as XYPosition,
+          position: {
+            x: source.position.x + (source.width || 0) / 2,
+            y: source.position.y + (source.height || 0),
+          } as XYPosition,
         },
         target: {
           name: 'top',
-          position: { x: target.position.x + (target.width || 0) / 2, y: target.position.y } as XYPosition,
+          position: {
+            x: target.position.x + (target.width || 0) / 2,
+            y: target.position.y,
+          } as XYPosition,
         },
       },
       {
         source: {
           name: 'left',
-          position: { x: source.position.x, y: source.position.y + (source.height || 0) / 2 } as XYPosition,
+          position: {
+            x: source.position.x,
+            y: source.position.y + (source.height || 0) / 2,
+          } as XYPosition,
         },
         target: {
           name: 'right',
-          position: { x: target.position.x + (target.width || 0), y: target.position.y + (target.height || 0) / 2 } as XYPosition,
+          position: {
+            x: target.position.x + (target.width || 0),
+            y: target.position.y + (target.height || 0) / 2,
+          } as XYPosition,
         },
       },
     ]
@@ -488,7 +507,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       const targetHandlePosition = handlePair.target.position
       const distance = Math.sqrt(
         Math.pow(sourceHandlePosition.x - targetHandlePosition.x, 2) +
-        Math.pow(sourceHandlePosition.y - targetHandlePosition.y, 2)
+          Math.pow(sourceHandlePosition.y - targetHandlePosition.y, 2)
       )
       if (distance < minDistance) {
         minDistance = distance
@@ -499,11 +518,12 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     return { sourceHandle, targetHandle }
   }
 
-  const formInputEdge = useCallback((
-    source: Node,
-    target: Node,
-    displaySource: Node | undefined = undefined,
-    displayTarget: Node | undefined = undefined,
+  const formInputEdge = useCallback(
+    (
+      source: Node,
+      target: Node,
+      displaySource: Node | undefined = undefined,
+      displayTarget: Node | undefined = undefined
     ) => {
       const newEdgeType = 'input'
       const newEdgeTypeId = edgeTypeIds[newEdgeType]
@@ -513,7 +533,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
 
       displaySource = displaySource || source
       displayTarget = displayTarget || target
-      const { sourceHandle, targetHandle } = getNearestHandlePair(displaySource, displayTarget)
+      const { sourceHandle, targetHandle } = getNearestHandlePair(
+        displaySource,
+        displayTarget
+      )
 
       const newEdgeId = uuidv4()
       const newEdgeData: InputEdgeProperties = {
@@ -542,70 +565,94 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
   // selecting any function node or input edge selects all connected others
   // right now this essentially insures that an editor can't partially delete a formula
   // TODO: add formula editing
-  const getConnectedFunctionNodesAndInputEdges = useCallback((
-    reference: Node | Edge, 
-    calledFrom: string = ''
-  ) => {
-    let connectedFunctionNodesAndInputEdges: (Node|Edge)[] = []
-    if (reference.type === 'function') {
-      // select connected edges
-      graph.edges.forEach((edge) => {
-        if ((edge.data.sourceId === reference.id || edge.data.targetId === reference.id)
-              && edge.type === 'input' && edge.id !== calledFrom) {
-          connectedFunctionNodesAndInputEdges = connectedFunctionNodesAndInputEdges.concat(
-            [edge],
-            getConnectedFunctionNodesAndInputEdges(edge, reference.id)
-          )
-        }
-      })
-    } else if (reference.type === 'input') {
-      // select connected function nodes
-      graph.nodes.forEach((node) => {
-        if ((node.id === reference.data.sourceId || node.id === reference.data.targetId)
-              && node.type === 'function' && node.id !== calledFrom) {
-          connectedFunctionNodesAndInputEdges = connectedFunctionNodesAndInputEdges.concat(
-            [node],
-            getConnectedFunctionNodesAndInputEdges(node, reference.id)
-          )
-        }
-      })
-    }
-    return connectedFunctionNodesAndInputEdges
-  }, [graph])
-  
-  const onSelect = useCallback((nodeOrEdge: Node | Edge) => {
-    if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {
-      const connectedFunctionNodesAndInputEdges = (
-        getConnectedFunctionNodesAndInputEdges(nodeOrEdge).concat([nodeOrEdge])
-      )
-      updateGraph(
-        'all',
-        [{
-          nodes: graph.nodes.map((node) => {
-            if (connectedFunctionNodesAndInputEdges.find((c) => c.id === node.id && c.type === node.type)) {
-              return {
-                ...node,
-                selected: true,
-              }
-            } else {
-              return node
-            }
-          }),
-          edges: graph.edges.map((edge) => {
-            if (connectedFunctionNodesAndInputEdges.find((c) => c.id === edge.id && c.type === edge.type)) {
-              return {
-                ...edge,
-                selected: true,
-              }
-            } else {
-              return edge
-            }
-          })
-        }],
-        false
-      )
-    }
-  }, [getConnectedFunctionNodesAndInputEdges, updateGraph, graph]) 
+  const getConnectedFunctionNodesAndInputEdges = useCallback(
+    (reference: Node | Edge, calledFrom: string = '') => {
+      let connectedFunctionNodesAndInputEdges: (Node | Edge)[] = []
+      if (reference.type === 'function') {
+        // select connected edges
+        graph.edges.forEach((edge) => {
+          if (
+            (edge.data.sourceId === reference.id ||
+              edge.data.targetId === reference.id) &&
+            edge.type === 'input' &&
+            edge.id !== calledFrom
+          ) {
+            connectedFunctionNodesAndInputEdges =
+              connectedFunctionNodesAndInputEdges.concat(
+                [edge],
+                getConnectedFunctionNodesAndInputEdges(edge, reference.id)
+              )
+          }
+        })
+      } else if (reference.type === 'input') {
+        // select connected function nodes
+        graph.nodes.forEach((node) => {
+          if (
+            (node.id === reference.data.sourceId ||
+              node.id === reference.data.targetId) &&
+            node.type === 'function' &&
+            node.id !== calledFrom
+          ) {
+            connectedFunctionNodesAndInputEdges =
+              connectedFunctionNodesAndInputEdges.concat(
+                [node],
+                getConnectedFunctionNodesAndInputEdges(node, reference.id)
+              )
+          }
+        })
+      }
+      return connectedFunctionNodesAndInputEdges
+    },
+    [graph]
+  )
+
+  const onSelect = useCallback(
+    (nodeOrEdge: Node | Edge) => {
+      if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {
+        const connectedFunctionNodesAndInputEdges =
+          getConnectedFunctionNodesAndInputEdges(nodeOrEdge).concat([
+            nodeOrEdge,
+          ])
+        updateGraph(
+          'all',
+          [
+            {
+              nodes: graph.nodes.map((node) => {
+                if (
+                  connectedFunctionNodesAndInputEdges.find(
+                    (c) => c.id === node.id && c.type === node.type
+                  )
+                ) {
+                  return {
+                    ...node,
+                    selected: true,
+                  }
+                } else {
+                  return node
+                }
+              }),
+              edges: graph.edges.map((edge) => {
+                if (
+                  connectedFunctionNodesAndInputEdges.find(
+                    (c) => c.id === edge.id && c.type === edge.type
+                  )
+                ) {
+                  return {
+                    ...edge,
+                    selected: true,
+                  }
+                } else {
+                  return edge
+                }
+              }),
+            },
+          ],
+          false
+        )
+      }
+    },
+    [getConnectedFunctionNodesAndInputEdges, updateGraph, graph]
+  )
 
   return (
     <div className={styles.graph_viewer}>

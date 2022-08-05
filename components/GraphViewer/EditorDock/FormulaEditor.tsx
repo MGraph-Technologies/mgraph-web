@@ -9,22 +9,36 @@ import { supabase } from '../../../utils/supabaseClient'
 
 type FormulaEditorProps = {
   graph: Graph
-  updateGraph: (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void
-  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodes: Node[], outputNode: Node) => Node<any>
-  formInputEdge: (source: Node, target: Node, displaySource?: Node | undefined, displayTarget?: Node | undefined) => Edge<any>
+  updateGraph: (
+    t: 'all' | 'nodes' | 'edges',
+    v: Array<any>,
+    undoable: boolean
+  ) => void
+  formFunctionNode: (
+    newNodeId: string,
+    functionTypeId: string,
+    inputNodes: Node[],
+    outputNode: Node
+  ) => Node<any>
+  formInputEdge: (
+    source: Node,
+    target: Node,
+    displaySource?: Node | undefined,
+    displayTarget?: Node | undefined
+  ) => Edge<any>
   setShowFormulaEditor: (value: React.SetStateAction<boolean>) => void
 }
 type NodeSymbol = {
   id: string // id of an existing or to-be-added node
-  display: string,
+  display: string
   functionTypeId: string | null
 }
-const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({ 
+const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
   graph,
   updateGraph,
   formFunctionNode,
   formInputEdge,
-  setShowFormulaEditor
+  setShowFormulaEditor,
 }) => {
   const ref = useRef<AutoComplete>(null)
   const [formula, setFormula] = useState<NodeSymbol[]>([])
@@ -51,21 +65,33 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
       if (data) {
         const isIdentity = (symbol: string) => {
           return (
-            symbol.startsWith('=')
-              || symbol.startsWith('~')
-              || symbol.startsWith('f')
+            symbol.startsWith('=') ||
+            symbol.startsWith('~') ||
+            symbol.startsWith('f')
           )
         }
         setIdentities(
-          data.filter((item) => isIdentity(item.symbol)).map((item) => {
-            return { id: uuidv4(), display: item.symbol, functionTypeId: item.id }
-          })
+          data
+            .filter((item) => isIdentity(item.symbol))
+            .map((item) => {
+              return {
+                id: uuidv4(),
+                display: item.symbol,
+                functionTypeId: item.id,
+              }
+            })
         )
         // ids generated at selection time to allow multiple uses of the same symbol
         setOperators(
-          data.filter((item) => !isIdentity(item.symbol)).map((item) => {
-            return { id: 'TBA', display: item.symbol, functionTypeId: item.id }
-          })
+          data
+            .filter((item) => !isIdentity(item.symbol))
+            .map((item) => {
+              return {
+                id: 'TBA',
+                display: item.symbol,
+                functionTypeId: item.id,
+              }
+            })
         )
       }
     } catch (error: any) {
@@ -89,8 +115,10 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         return symbol.display.toLowerCase().includes(query.toLowerCase())
       })
     }
-    results = results.filter((r) => 
-        symbolsType !== 'metric' || !formula.find((f) => f.display === r.display)
+    results = results.filter(
+      (r) =>
+        symbolsType !== 'metric' ||
+        !formula.find((f) => f.display === r.display)
     )
     results = results.map((r) => {
       if (symbolsType === 'operator') {
@@ -134,13 +162,17 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     }, 100)
   }
   const onSelect = (event: AutoCompleteChangeParams): void => {
-      setSelectedSymbolIds([...selectedSymbolIds, event.value.id])
-      // primereact handles setFormula
+    setSelectedSymbolIds([...selectedSymbolIds, event.value.id])
+    // primereact handles setFormula
   }
   const onUnselect = (event: AutoCompleteChangeParams): void => {
     const removedNodePosition = selectedSymbolIds.indexOf(event.value.id)
-    const dependentNodes = selectedSymbolIds.filter((_id, index) => index >= removedNodePosition)
-    setSelectedSymbolIds(selectedSymbolIds.filter((_id, index) => index < removedNodePosition))
+    const dependentNodes = selectedSymbolIds.filter(
+      (_id, index) => index >= removedNodePosition
+    )
+    setSelectedSymbolIds(
+      selectedSymbolIds.filter((_id, index) => index < removedNodePosition)
+    )
     setFormula(formula.filter((f) => dependentNodes.indexOf(f.id) === -1)) // primereact handles removal of unselected node
   }
 
@@ -173,28 +205,34 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     for (let i = 0; i < inputSymbols.length; i++) {
       const inputSymbol = inputSymbols[i]
       if (inputSymbol.functionTypeId) {
-        const leftMetric = graph.nodes.find((node) => node.data.id === inputSymbols[i - 1].id)
+        const leftMetric = graph.nodes.find(
+          (node) => node.data.id === inputSymbols[i - 1].id
+        )
         if (!leftMetric) {
           throw new Error('left metric not found')
         }
-        const rightMetric = graph.nodes.find((node) => node.data.id === inputSymbols[i + 1].id)
+        const rightMetric = graph.nodes.find(
+          (node) => node.data.id === inputSymbols[i + 1].id
+        )
         if (!rightMetric) {
           throw new Error('right metric not found')
         }
 
-        const newFunctionNode = formFunctionNode(inputSymbol.id, inputSymbol.functionTypeId, [leftMetric], rightMetric)
+        const newFunctionNode = formFunctionNode(
+          inputSymbol.id,
+          inputSymbol.functionTypeId,
+          [leftMetric],
+          rightMetric
+        )
         newFunctionNodes.push(newFunctionNode)
 
         if (i === 1) {
           newInputEdges.push(formInputEdge(leftMetric, newFunctionNode))
         } else {
-          const previousFunctionNode = newFunctionNodes[newFunctionNodes.length - 2]
+          const previousFunctionNode =
+            newFunctionNodes[newFunctionNodes.length - 2]
           newInputEdges.push(
-            formInputEdge(
-              previousFunctionNode,
-              newFunctionNode,
-              leftMetric
-            )
+            formInputEdge(previousFunctionNode, newFunctionNode, leftMetric)
           )
         }
 
@@ -208,9 +246,11 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         )
       }
     }
-    
+
     let outputMetricSymbol = outputSymbols[0]
-    let outputMetric = graph.nodes.find((node) => node.data.id === outputMetricSymbol.id)
+    let outputMetric = graph.nodes.find(
+      (node) => node.data.id === outputMetricSymbol.id
+    )
     if (!outputMetric) {
       throw new Error('output metric not found')
     }
@@ -220,11 +260,13 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     }
 
     let lastInputMetricSymbol = inputSymbols[inputSymbols.length - 1]
-    let lastInputMetric = graph.nodes.find((node) => node.data.id === lastInputMetricSymbol.id)
+    let lastInputMetric = graph.nodes.find(
+      (node) => node.data.id === lastInputMetricSymbol.id
+    )
     if (!lastInputMetric) {
       throw new Error('last input metric not found')
     }
-    
+
     const identityFunctionNode = formFunctionNode(
       identitySymbol.id,
       identitySymbol.functionTypeId,
@@ -232,7 +274,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
       outputMetric
     )
     newFunctionNodes.push(identityFunctionNode)
-    
+
     newInputEdges.push(
       formInputEdge(
         newFunctionNodes.length >= 2
@@ -241,16 +283,18 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         identityFunctionNode,
         lastInputMetric
       ),
-      formInputEdge(
-        identityFunctionNode,
-        outputMetric
-      )
+      formInputEdge(identityFunctionNode, outputMetric)
     )
 
     if (newFunctionNodes.length > 0 && newInputEdges.length > 0) {
       updateGraph(
-        'all', 
-        [{ nodes: graph.nodes.concat(newFunctionNodes), edges: graph.edges.concat(newInputEdges) }],
+        'all',
+        [
+          {
+            nodes: graph.nodes.concat(newFunctionNodes),
+            edges: graph.edges.concat(newInputEdges),
+          },
+        ],
         true
       )
       setShowFormulaEditor(false)
@@ -274,13 +318,8 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         onClick={initializeSuggestions}
         autoHighlight={true}
       />
-      <Button
-        icon="pi pi-check"
-        onClick={onSave}/>
-      <Button
-        icon="pi pi-times"
-        onClick={(e) => setShowFormulaEditor(false)}
-      />
+      <Button icon="pi pi-check" onClick={onSave} />
+      <Button icon="pi pi-times" onClick={(e) => setShowFormulaEditor(false)} />
     </div>
   )
 }

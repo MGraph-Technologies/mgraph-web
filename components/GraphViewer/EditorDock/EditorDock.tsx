@@ -12,10 +12,24 @@ type EditorDockProps = {
   graph: Graph
   loadGraph: () => void
   saveGraph: () => Promise<Response | undefined>
-  updateGraph: (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void
+  updateGraph: (
+    t: 'all' | 'nodes' | 'edges',
+    v: Array<any>,
+    undoable: boolean
+  ) => void
   formMetricNode: () => Node<any>
-  formFunctionNode: (newNodeId: string, functionTypeId: string, inputNodes: Node[], outputNode: Node) => Node<any>
-  formInputEdge: (source: Node, target: Node, displaySource?: Node | undefined, displayTarget?: Node | undefined) => Edge<any>
+  formFunctionNode: (
+    newNodeId: string,
+    functionTypeId: string,
+    inputNodes: Node[],
+    outputNode: Node
+  ) => Node<any>
+  formInputEdge: (
+    source: Node,
+    target: Node,
+    displaySource?: Node | undefined,
+    displayTarget?: Node | undefined
+  ) => Edge<any>
   canUndo: boolean
   undo: () => void
   canRedo: boolean
@@ -53,7 +67,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
     loadGraph()
     disableEditing()
   }, [loadGraph, disableEditing])
-  
+
   const onSave = useCallback(() => {
     saveGraph().then((response) => {
       if (response?.status === 200) {
@@ -76,7 +90,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
             formFunctionNode={formFunctionNode}
             formInputEdge={formInputEdge}
             setShowFormulaEditor={setShowFormulaEditor}
-            />
+          />
         ) : (
           <Toolbar
             className={styles.editor_toolbar}
@@ -109,7 +123,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
               </div>
             }
           />
-      )}
+        )}
       </div>
     )
   } else {

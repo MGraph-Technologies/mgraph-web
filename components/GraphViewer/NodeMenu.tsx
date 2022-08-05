@@ -1,8 +1,8 @@
 import { Button } from 'primereact/button'
-import { FunctionComponent, useCallback, useState } from "react"
+import { FunctionComponent, useCallback, useState } from 'react'
 import { ColorResult, TwitterPicker } from 'react-color'
 
-import { useEditability } from "../../contexts/editability"
+import { useEditability } from '../../contexts/editability'
 import styles from '../../styles/NodeMenu.module.css'
 
 type NodeMenuProps = {
@@ -16,7 +16,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
   saveColor,
 }) => {
   const { editingEnabled } = useEditability()
-  
+
   const [displayColorPicker, setDisplayColorPicker] = useState(false)
   const handleColorChangeComplete = useCallback(
     (color: ColorResult) => {

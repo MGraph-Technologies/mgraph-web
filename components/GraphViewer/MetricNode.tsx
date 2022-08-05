@@ -80,11 +80,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
           />
         </div>
         <div className={styles.buttons}>
-          <NodeMenu
-            color={color}
-            setColor={setColor}
-            saveColor={saveColor}
-          />
+          <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
         </div>
       </div>
       <Handle

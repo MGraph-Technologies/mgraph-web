@@ -26,13 +26,20 @@ type FunctionNodeProps = {
   data: FunctionNodeProperties
   selected: boolean
 }
-const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) => {
+const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
+  data,
+  selected,
+}) => {
   const nodeHandleSize = '0px'
 
   const [symbol, setSymbol] = useState('')
   async function populateSymbol() {
     try {
-      let { data: queryData, error, status } = await supabase
+      let {
+        data: queryData,
+        error,
+        status,
+      } = await supabase
         .from('function_types')
         .select('symbol')
         .eq('id', data.functionTypeId)
@@ -50,8 +57,8 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) 
   }
   useEffect(() => {
     populateSymbol()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [color, setColor] = useState('#FFFFFF')
   useEffect(() => {
@@ -76,16 +83,10 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({ data, selected }) 
     >
       <div className={styles.header}>
         <div className={styles.buttons}>
-          <NodeMenu
-            color={color}
-            setColor={setColor}
-            saveColor={saveColor}
-          />
+          <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
         </div>
       </div>
-      <div className={styles.symbol}>
-        {symbol}
-      </div>
+      <div className={styles.symbol}>{symbol}</div>
       <Handle
         type="source"
         id="top_source"
