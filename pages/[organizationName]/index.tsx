@@ -2,10 +2,10 @@ import { useRouter } from 'next/router'
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import { ReactFlowProvider } from 'react-flow-renderer'
 
-import Account from '../components/Account'
-import GraphViewer from '../components/GraphViewer/GraphViewer'
-import styles from '../styles/Workspace.module.css'
-import { supabase } from '../utils/supabaseClient'
+import Account from '../../components/Account'
+import GraphViewer from '../../components/GraphViewer/GraphViewer'
+import styles from '../../styles/Workspace.module.css'
+import { supabase } from '../../utils/supabaseClient'
 
 type WorkspaceProps = {}
 const Workspace: FunctionComponent<WorkspaceProps> = () => {
