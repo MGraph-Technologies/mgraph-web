@@ -1,0 +1,10 @@
+.container {
+  padding-top: 1rem;
+  max-width: 50rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.detail_field{
+  background-color: #F8F8F8;
+}
