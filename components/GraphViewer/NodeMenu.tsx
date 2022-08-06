@@ -1,3 +1,4 @@
+import router from 'next/router'
 import { Button } from 'primereact/button'
 import { FunctionComponent, useCallback, useState } from 'react'
 import { ColorResult, TwitterPicker } from 'react-color'
@@ -9,11 +10,13 @@ type NodeMenuProps = {
   color: string
   setColor: (value: React.SetStateAction<string>) => void
   saveColor: (color: ColorResult) => void
+  linkTo?: string
 }
 const NodeMenu: FunctionComponent<NodeMenuProps> = ({
   color,
   setColor,
   saveColor,
+  linkTo = '',
 }) => {
   const { editingEnabled } = useEditability()
 
@@ -28,11 +31,11 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
   )
   return (
     <div className={styles.menu}>
-      {!editingEnabled ? (
+      {!editingEnabled && linkTo ? (
         <Button
           className="p-button-text"
           icon="pi pi-angle-right"
-          onClick={() => {}} // TODO: activate
+          onClick={() => {router.push(linkTo)}}
         />
       ) : null}
       {editingEnabled && !displayColorPicker ? (

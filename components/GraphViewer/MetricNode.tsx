@@ -1,3 +1,4 @@
+import router from 'next/router'
 import React, {
   FunctionComponent,
   useCallback,
@@ -28,6 +29,7 @@ type MetricNodeProps = {
   selected: boolean
 }
 const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
+  const { organizationName } = router.query
   const { editingEnabled } = useEditability()
   const nodeHandleSize = '0px'
 
@@ -80,7 +82,12 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
           />
         </div>
         <div className={styles.buttons}>
-          <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
+          <NodeMenu
+            color={color}
+            setColor={setColor}
+            saveColor={saveColor}
+            linkTo={'/' + organizationName + '/metrics/' + data.id} 
+            />
         </div>
       </div>
       <Handle

@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { Button } from 'primereact/button'
 import { FunctionComponent, useEffect, useState } from "react"
 import { EditText, EditTextarea } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
@@ -10,7 +11,8 @@ import { supabase } from '../../../utils/supabaseClient'
 type MetricDetailProps = {}
 const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { organizationName, id } = router.query
+
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [owner, setOwner] = useState('') // TODO: make a graph object
@@ -49,14 +51,23 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
 
   return (
     <div className={styles.container}>
-      <h1>
-        <EditText
-          value={name}
-          readonly={!editingEnabled}
-          onChange={(e) => setName(e.target.value)}
-          // onSave={saveProperties}
+      <div className={styles.header}>
+        <Button
+          className="p-button-text"
+          icon="pi pi-angle-left"
+          onClick={() => {
+            router.push('/' + organizationName)
+          }}
         />
-      </h1>
+        <h1>
+          <EditText
+            value={name}
+            readonly={!editingEnabled}
+            onChange={(e) => setName(e.target.value)}
+            // onSave={saveProperties}
+          />
+        </h1>
+      </div>
       <div className={styles.detail_field}>
         Chart TBA
       </div>

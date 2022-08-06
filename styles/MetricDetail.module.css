@@ -5,6 +5,12 @@
   margin-right: auto;
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .detail_field{
   background-color: #F8F8F8;
 }
