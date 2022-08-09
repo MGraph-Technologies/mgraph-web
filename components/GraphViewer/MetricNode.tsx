@@ -22,7 +22,7 @@ export type MetricNodeProperties = {
   color: string
   // below not in postgres
   initialProperties: object
-  setNodeDatatoChange: (data: MetricNodeProperties) => void
+  setNodeDataToChange: (data: MetricNodeProperties) => void
 }
 type MetricNodeProps = {
   data: MetricNodeProperties
@@ -41,7 +41,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
     ({ value }: onSaveProps) => {
       let newData = { ...data }
       newData.name = value
-      data.setNodeDatatoChange(newData)
+      data.setNodeDataToChange(newData)
     },
     [data]
   )
@@ -54,7 +54,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
     (color: ColorResult) => {
       let newData = { ...data }
       newData.color = color.hex
-      data.setNodeDatatoChange(newData)
+      data.setNodeDataToChange(newData)
     },
     [data]
   )

@@ -7,6 +7,7 @@ import { useEffect } from 'react'
 
 import { AuthProvider } from '../contexts/auth'
 import { EditabilityProvider } from '../contexts/editability'
+import { GraphProvider } from '../contexts/graph'
 import '../styles/globals.css'
 import { analytics } from '../utils/segmentClient'
 
@@ -25,9 +26,11 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <AuthProvider>
-      <EditabilityProvider>
-        <Component {...pageProps} />
-      </EditabilityProvider>
+      <GraphProvider>
+        <EditabilityProvider>
+          <Component {...pageProps} />
+        </EditabilityProvider>
+      </GraphProvider>
     </AuthProvider>
   )
 }

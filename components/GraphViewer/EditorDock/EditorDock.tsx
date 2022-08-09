@@ -1,55 +1,16 @@
 import { Button } from 'primereact/button'
 import { Toolbar } from 'primereact/toolbar'
 import React, { FunctionComponent, useCallback, useState } from 'react'
-import { Edge, Node } from 'react-flow-renderer'
 
 import FormulaEditor from './FormulaEditor'
 import styles from '../../../styles/EditorDock.module.css'
 import { useEditability } from '../../../contexts/editability'
-import { Graph } from '../GraphViewer'
+import { useGraph } from '../../../contexts/graph'
 
-type EditorDockProps = {
-  graph: Graph
-  loadGraph: () => void
-  saveGraph: () => Promise<Response | undefined>
-  updateGraph: (
-    t: 'all' | 'nodes' | 'edges',
-    v: Array<any>,
-    undoable: boolean
-  ) => void
-  formMetricNode: () => Node<any>
-  formFunctionNode: (
-    newNodeId: string,
-    functionTypeId: string,
-    inputNodes: Node[],
-    outputNode: Node
-  ) => Node<any>
-  formInputEdge: (
-    source: Node,
-    target: Node,
-    displaySource?: Node | undefined,
-    displayTarget?: Node | undefined
-  ) => Edge<any>
-  canUndo: boolean
-  undo: () => void
-  canRedo: boolean
-  redo: () => void
-  // add edges tba
-}
-const _EditorDock: FunctionComponent<EditorDockProps> = ({
-  graph,
-  loadGraph,
-  saveGraph,
-  updateGraph,
-  formMetricNode,
-  formFunctionNode,
-  formInputEdge,
-  canUndo,
-  undo,
-  canRedo,
-  redo,
-}) => {
+type EditorDockProps = {}
+const _EditorDock: FunctionComponent<EditorDockProps> = () => {
   const { editingEnabled, disableEditing } = useEditability()
+  const { graph, loadGraph, undo, redo, canUndo, canRedo, saveGraph, updateGraph, formMetricNode } = useGraph()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
 
   const onFunctionAddition = useCallback(() => {
@@ -57,6 +18,12 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
   }, [])
 
   const addMetricNode = useCallback(() => {
+    if (!formMetricNode) {
+      throw new Error('formMetricNode is not defined')
+    }
+    if (!updateGraph) {
+      throw new Error('updateGraph is not defined')
+    }
     const newNode = formMetricNode()
     if (newNode) {
       updateGraph('nodes', graph.nodes.concat(newNode), true)
@@ -64,11 +31,20 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
   }, [formMetricNode, updateGraph, graph.nodes])
 
   const onCancel = useCallback(() => {
+    if (!loadGraph) {
+      throw new Error('loadGraph is not defined')
+    }
     loadGraph()
     disableEditing()
   }, [loadGraph, disableEditing])
 
   const onSave = useCallback(() => {
+    if (!saveGraph) {
+      throw new Error('saveGraph is not defined')
+    }
+    if (!loadGraph) {
+      throw new Error('loadGraph is not defined')
+    }
     saveGraph().then((response) => {
       if (response?.status === 200) {
         // only reset if the save was successful
@@ -84,19 +60,17 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
     return (
       <div className={styles.editor_dock}>
         {showFormulaEditor ? (
-          <FormulaEditor
-            graph={graph}
-            updateGraph={updateGraph}
-            formFunctionNode={formFunctionNode}
-            formInputEdge={formInputEdge}
-            setShowFormulaEditor={setShowFormulaEditor}
-          />
+          <FormulaEditor setShowFormulaEditor={setShowFormulaEditor} />
         ) : (
           <Toolbar
             className={styles.editor_toolbar}
             left={
               <div>
-                <Button label="+ Metric" onClick={addMetricNode} />
+                <Button
+                  label="+ Metric"
+                  onClick={addMetricNode}
+                  disabled={!formMetricNode || !updateGraph}
+                />
                 <Button label="+ Function" onClick={onFunctionAddition} />
               </div>
             }
@@ -114,11 +88,16 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({
                   onClick={redo}
                   disabled={!canRedo}
                 />
-                <Button label="Save" onClick={onSave} />
+                <Button
+                  label="Save"
+                  onClick={onSave}
+                  disabled={!saveGraph || !loadGraph}
+                />
                 <Button
                   className="p-button-outlined"
                   label="Cancel"
                   onClick={onCancel}
+                  disabled={!loadGraph}
                 />
               </div>
             }

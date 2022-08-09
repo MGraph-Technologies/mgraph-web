@@ -20,7 +20,7 @@ export type FunctionNodeProperties = {
   color: string
   // below not in postgres
   initialProperties: object
-  setNodeDatatoChange: (data: FunctionNodeProperties) => void
+  setNodeDataToChange: (data: FunctionNodeProperties) => void
 }
 type FunctionNodeProps = {
   data: FunctionNodeProperties
@@ -68,7 +68,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
     (color: ColorResult) => {
       let newData = { ...data }
       newData.color = color.hex
-      data.setNodeDatatoChange(newData)
+      data.setNodeDataToChange(newData)
     },
     [data]
   )
