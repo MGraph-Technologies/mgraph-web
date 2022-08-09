@@ -85,8 +85,7 @@ type GraphProps = {
 }
 
 export function GraphProvider({ children }: GraphProps) {
-  const { session } = useAuth()
-  const [organizationId, setOrganizationId] = useState('') // TODO: set this somehow
+  const { session, organizationId } = useAuth()
 
   const [initialGraph, setInitialGraph] = useState<Graph>({
     nodes: [],
