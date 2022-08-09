@@ -26,7 +26,7 @@ import styles from '../../styles/GraphViewer.module.css'
 type GraphViewerProps = {}
 const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   const { editingEnabled } = useEditability()
-  const { initialGraph, graph, undo, redo, loadGraph, updateGraph, getConnectedFunctionNodesAndInputEdges } = useGraph()
+  const { initialGraph, graph, undo, redo, loadGraph, updateGraph, getConnectedObjects } = useGraph()
 
   const actionKey = navigator.platform.match(/Mac/i) ? 'Meta' : 'Control'
   const [actionKeyPressed, setActionKeyPressed] = useState(false)
@@ -118,14 +118,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   const onSelect = useCallback(
     (nodeOrEdge: Node | Edge) => {
       if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {
-        if (!getConnectedFunctionNodesAndInputEdges) {
-          throw new Error('getConnectedFunctionNodesAndInputEdges not defined')
+        if (!getConnectedObjects) {
+          throw new Error('getConnectedObjects not defined')
         }
         if (!updateGraph) {
           throw new Error('updateGraph not defined')
         }
-        const connectedFunctionNodesAndInputEdges =
-          getConnectedFunctionNodesAndInputEdges(nodeOrEdge).concat([
+        const connectedObjects =
+          getConnectedObjects(nodeOrEdge).concat([
             nodeOrEdge,
           ])
         updateGraph(
@@ -134,8 +134,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
             {
               nodes: graph.nodes.map((node) => {
                 if (
-                  connectedFunctionNodesAndInputEdges.find(
-                    (c) => c.id === node.id && c.type === node.type
+                  connectedObjects.find(
+                    (c) => c.id === node.id && c.type === node.type && c.type !== 'metric'
                   )
                 ) {
                   return {
@@ -148,7 +148,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
               }),
               edges: graph.edges.map((edge) => {
                 if (
-                  connectedFunctionNodesAndInputEdges.find(
+                  connectedObjects.find(
                     (c) => c.id === edge.id && c.type === edge.type
                   )
                 ) {
@@ -166,7 +166,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         )
       }
     },
-    [getConnectedFunctionNodesAndInputEdges, updateGraph, graph]
+    [getConnectedObjects, updateGraph, graph]
   )
 
   return (

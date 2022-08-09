@@ -46,7 +46,7 @@ type GraphContextType = {
   formMetricNode: (() => Node<any>) | undefined,
   formFunctionNode: ((newNodeId: string, functionTypeId: string, inputNodes: Node[], outputNode: Node) => Node<any>) | undefined,
   formInputEdge: ((source: Node, target: Node, displaySource?: Node | undefined, displayTarget?: Node | undefined) => Edge<any>) | undefined,
-  getConnectedFunctionNodesAndInputEdges: ((reference: Node | Edge, calledFrom?: string) => (Node<any> | Edge<any>)[]) | undefined,
+  getConnectedObjects: ((reference: Node | Edge, calledFrom?: string) => (Node<any> | Edge<any>)[]) | undefined,
 }
 
 const graphContextDefaultValues: GraphContextType = {
@@ -69,7 +69,7 @@ const graphContextDefaultValues: GraphContextType = {
   formMetricNode: undefined,
   formFunctionNode: undefined,
   formInputEdge: undefined,
-  getConnectedFunctionNodesAndInputEdges: undefined,
+  getConnectedObjects: undefined,
 }
 
 const GraphContext = createContext<GraphContextType>(
@@ -526,10 +526,12 @@ export function GraphProvider({ children }: GraphProps) {
     [edgeTypeIds, organizationId]
   )
 
-  const getConnectedFunctionNodesAndInputEdges = useCallback(
+  const getConnectedObjects = useCallback(
     (reference: Node | Edge, calledFrom: string = '') => {
-      let connectedFunctionNodesAndInputEdges: (Node | Edge)[] = []
-      if (reference.type === 'function') {
+      let connectedObjects: (Node | Edge)[] = []
+      if (reference.type === 'function'
+          // only traverse from metric nodes on first call
+          || (reference.type === 'metric' && calledFrom === '')) {
         // select connected edges
         graph.edges.forEach((edge) => {
           if (
@@ -538,10 +540,10 @@ export function GraphProvider({ children }: GraphProps) {
             edge.type === 'input' &&
             edge.id !== calledFrom
           ) {
-            connectedFunctionNodesAndInputEdges =
-              connectedFunctionNodesAndInputEdges.concat(
+            connectedObjects =
+              connectedObjects.concat(
                 [edge],
-                getConnectedFunctionNodesAndInputEdges(edge, reference.id)
+                getConnectedObjects(edge, reference.id)
               )
           }
         })
@@ -551,18 +553,18 @@ export function GraphProvider({ children }: GraphProps) {
           if (
             (node.id === reference.data.sourceId ||
               node.id === reference.data.targetId) &&
-            node.type === 'function' &&
+            ['function', 'metric'].includes(node.type || '') &&
             node.id !== calledFrom
           ) {
-            connectedFunctionNodesAndInputEdges =
-              connectedFunctionNodesAndInputEdges.concat(
+            connectedObjects =
+              connectedObjects.concat(
                 [node],
-                getConnectedFunctionNodesAndInputEdges(node, reference.id)
+                getConnectedObjects(node, reference.id)
               )
           }
         })
       }
-      return connectedFunctionNodesAndInputEdges
+      return connectedObjects
     },
     [graph]
   )
@@ -581,7 +583,7 @@ export function GraphProvider({ children }: GraphProps) {
     formMetricNode: formMetricNode,
     formFunctionNode: formFunctionNode,
     formInputEdge: formInputEdge,
-    getConnectedFunctionNodesAndInputEdges: getConnectedFunctionNodesAndInputEdges,
+    getConnectedObjects: getConnectedObjects,
   }
   return (
     <>
