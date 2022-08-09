@@ -11,7 +11,7 @@ import { supabase } from '../../../utils/supabaseClient'
 type MetricDetailProps = {}
 const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
   const router = useRouter()
-  const { organizationName, id } = router.query
+  const { organizationName, metricId } = router.query
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -21,12 +21,12 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
   const { editingEnabled } = useEditability()
 
   async function populateDetails() {
-    if (id) {
+    if (metricId) {
       try {
         let { data, error, status } = await supabase
           .from('nodes')
           .select('properties, node_types!inner(*)')
-          .eq('id', id)
+          .eq('id', metricId)
           .eq('node_types.name', 'metric')
 
         if (error && status !== 406) {
@@ -47,7 +47,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
   useEffect(() => {
     populateDetails()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [metricId])
 
   return (
     <div className={styles.container}>
