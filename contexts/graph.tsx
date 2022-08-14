@@ -166,81 +166,88 @@ export function GraphProvider({ children }: GraphProps) {
   }, [])
   
   const loadGraph = useCallback(async () => {
-    try {
-      // TODO: loading animation
-      let { data: nodesData, error: nodesError } = await supabase
-        .from('nodes')
-        .select('properties, react_flow_meta')
-        .eq('organization_id', organizationId)
-        .is('deleted_at', null)
-  
-      if (nodesError) {
-        throw nodesError
-      }
-  
-      let { data: edgesData, error: edgesError } = await supabase
-        .from('edges')
-        .select('properties, react_flow_meta')
-        .eq('organization_id', organizationId)
-        .is('deleted_at', null)
-  
-      if (edgesError) {
-        throw edgesError
-      }
-  
-      if (nodesData && edgesData) {
-        const parsedNodes = nodesData.map((n) => {
-          let parsedNode = n.react_flow_meta
-          const parsedProperties = n.properties
-          if (parsedNode.type === 'metric') {
-            parsedNode.data = {
-              // explicit construction so properties added outside of react flow don't break it
-              id: parsedProperties.id,
-              organizationId: parsedProperties.organizationId,
-              typeId: parsedProperties.typeId,
-              name: parsedProperties.name,
-              color: parsedProperties.color,
-              initialProperties: parsedProperties,
-              setNodeDataToChange: setNodeDataToChange,
-            } as MetricNodeProperties
-          }
-          if (parsedNode.type === 'function') {
-            parsedNode.data = {
-              id: parsedProperties.id,
-              organizationId: parsedProperties.organizationId,
-              typeId: parsedProperties.typeId,
-              functionTypeId: parsedProperties.functionTypeId,
-              color: parsedProperties.color,
-              initialProperties: parsedProperties,
-              setNodeDataToChange: setNodeDataToChange,
-            } as FunctionNodeProperties
-          }
-          return parsedNode
-        })
-        const parsedEdges = edgesData.map((e) => {
-          let parsedEdge = e.react_flow_meta
-          const parsedProperties = e.properties
-          parsedEdge.data = {
-            id: parsedProperties.id,
-            organizationId: parsedProperties.organizationId,
-            typeId: parsedProperties.typeId,
-            sourceId: parsedProperties.sourceId,
-            targetId: parsedProperties.targetId,
-            initialProperties: parsedProperties,
-          } as InputEdgeProperties
-          return parsedEdge
-        })
-        const parsedGraph = {
-          nodes: parsedNodes,
-          edges: parsedEdges,
+    if (organizationId) {
+      try {
+        // TODO: loading animation
+        let { data: nodesData, error: nodesError } = await supabase
+          .from('nodes')
+          .select('properties, react_flow_meta')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+    
+        if (nodesError) {
+          throw nodesError
         }
-        setInitialGraph(parsedGraph)
-        reset(parsedGraph)
+    
+        let { data: edgesData, error: edgesError } = await supabase
+          .from('edges')
+          .select('properties, react_flow_meta')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+    
+        if (edgesError) {
+          throw edgesError
+        }
+    
+        if (nodesData && edgesData) {
+          const parsedNodes = nodesData.map((n) => {
+            let parsedNode = n.react_flow_meta
+            const parsedProperties = n.properties
+            if (parsedNode.type === 'metric') {
+              parsedNode.data = {
+                // explicit construction so properties added outside of react flow don't break it
+                id: parsedProperties.id,
+                organizationId: parsedProperties.organizationId,
+                typeId: parsedProperties.typeId,
+                name: parsedProperties.name,
+                color: parsedProperties.color,
+                initialProperties: parsedProperties,
+                setNodeDataToChange: setNodeDataToChange,
+              } as MetricNodeProperties
+            }
+            if (parsedNode.type === 'function') {
+              parsedNode.data = {
+                id: parsedProperties.id,
+                organizationId: parsedProperties.organizationId,
+                typeId: parsedProperties.typeId,
+                functionTypeId: parsedProperties.functionTypeId,
+                color: parsedProperties.color,
+                initialProperties: parsedProperties,
+                setNodeDataToChange: setNodeDataToChange,
+              } as FunctionNodeProperties
+            }
+            return parsedNode
+          })
+          const parsedEdges = edgesData.map((e) => {
+            let parsedEdge = e.react_flow_meta
+            const parsedProperties = e.properties
+            parsedEdge.data = {
+              id: parsedProperties.id,
+              organizationId: parsedProperties.organizationId,
+              typeId: parsedProperties.typeId,
+              sourceId: parsedProperties.sourceId,
+              targetId: parsedProperties.targetId,
+              initialProperties: parsedProperties,
+            } as InputEdgeProperties
+            return parsedEdge
+          })
+          const parsedGraph = {
+            nodes: parsedNodes,
+            edges: parsedEdges,
+          }
+          setInitialGraph(parsedGraph)
+          reset(parsedGraph)
+        }
+      } catch (error: any) {
+        alert(error.message)
       }
-    } catch (error: any) {
-      alert(error.message)
     }
   }, [organizationId, reset])
+  useEffect(() => {
+    if (loadGraph) {
+      loadGraph()
+    }
+  }, [loadGraph])
   
   const saveGraph = useCallback(async () => {
     const accessToken = session?.access_token

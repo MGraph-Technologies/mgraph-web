@@ -26,7 +26,7 @@ import styles from '../../styles/GraphViewer.module.css'
 type GraphViewerProps = {}
 const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   const { editingEnabled } = useEditability()
-  const { initialGraph, graph, undo, redo, loadGraph, updateGraph, getConnectedObjects } = useGraph()
+  const { initialGraph, graph, undo, redo, updateGraph, getConnectedObjects } = useGraph()
 
   const actionKey = navigator.platform.match(/Mac/i) ? 'Meta' : 'Control'
   const [actionKeyPressed, setActionKeyPressed] = useState(false)
@@ -62,11 +62,6 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     }
   }, [actionKey, actionKeyPressed])
 
-  useEffect(() => {
-    if (loadGraph) {
-      loadGraph()
-    }
-  }, [loadGraph])
   const reactFlowInstance = useReactFlow()
   useEffect(() => {
     reactFlowInstance.fitView()
