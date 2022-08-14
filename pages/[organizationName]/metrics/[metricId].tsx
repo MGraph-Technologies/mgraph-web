@@ -1,11 +1,13 @@
 import { useRouter } from 'next/router'
 import { Button } from 'primereact/button'
-import { FunctionComponent, useEffect, useState } from "react"
+import { FunctionComponent, useCallback, useEffect, useState } from "react"
 import { EditText, EditTextarea } from 'react-edit-text'
+import { Edge, Node } from 'react-flow-renderer'
 import 'react-edit-text/dist/index.css'
 
 import { useAuth } from '../../../contexts/auth'
 import { useEditability } from '../../../contexts/editability'
+import { useGraph } from '../../../contexts/graph'
 import styles from '../../../styles/MetricDetail.module.css'
 import { supabase } from '../../../utils/supabaseClient'
 
@@ -15,8 +17,12 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
   const { organizationName, metricId } = router.query
   const { organizationName: userOrganizationName } = useAuth()
 
+  const { graph, getConnectedObjects } = useGraph()
+
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [inputs, setInputs] = useState('')
+  const [outputs, setOutputs] = useState('')
   const [owner, setOwner] = useState('') // TODO: make a graph object
   const [source, setSource] = useState('')
 
@@ -50,6 +56,90 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
     populateDetails()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metricId])
+
+  const populateInputsAndOutputs = useCallback(() => {
+    const thisMetricNode = graph.nodes.find(node => node.id === metricId)
+    if (thisMetricNode && getConnectedObjects) {
+      const metricConnectedObjects = getConnectedObjects(thisMetricNode)
+      const metricConnectedIdentities = metricConnectedObjects.filter(metricConnectedObject => (
+        metricConnectedObject.type === 'function' && 
+        graph.edges.filter(edge => edge.data.targetId === metricConnectedObject.id).length === 1
+      ))
+      metricConnectedIdentities.forEach(metricConnectedIdentity => {
+        const formulaObjects = [metricConnectedIdentity].concat(getConnectedObjects(metricConnectedIdentity))
+        let formulaObjectsSorted: (Node<any> | Edge<any>)[] = []
+        // add output metric
+        const outputMetric = (
+          formulaObjects.find(formulaObject => (
+            formulaObject.type === 'metric' &&
+            graph.edges.find(edge => edge.data.targetId === formulaObject.id && edge.data.sourceId === metricConnectedIdentity.id)
+          ))
+        )
+        if (outputMetric) {
+          formulaObjectsSorted.push(outputMetric)
+        }
+        // add subsequent objects
+        while (formulaObjectsSorted.length > 0 && formulaObjectsSorted.length < formulaObjects.length) {
+          const lastObject = formulaObjectsSorted[formulaObjectsSorted.length - 1]!
+          if (['function', 'metric'].includes(lastObject.type!)) {
+            const nextObject = (
+              formulaObjects.find(formulaObject => (
+                formulaObject.type === 'input' && 'target' in formulaObject && formulaObject.target === lastObject.id
+              ))
+            )
+            formulaObjectsSorted.push(nextObject!)
+          } else { // lastObject.type === 'input'
+            const nextObject = (
+              formulaObjects.find(formulaObject => (
+                'source' in lastObject && formulaObject.id === lastObject.source
+              ))
+            )
+            formulaObjectsSorted.push(nextObject!)
+          }
+        }
+        // remove edges and sort to match order in which entered
+        formulaObjectsSorted = formulaObjectsSorted.filter(formulaObject => formulaObject.type !== 'input')
+        formulaObjectsSorted = formulaObjectsSorted.slice(0, 2).concat(formulaObjectsSorted.slice(2).reverse())
+        // concatenate formula to input or output as appropriate
+        if (formulaObjectsSorted[0].id === metricId) {
+          setInputs(
+            inputs.concat(
+              inputs,
+              inputs.length > 0 ? '\n\n' : '',
+              formulaObjectsSorted.map(formulaObject => {
+                if (formulaObject.type === 'metric') {
+                  return formulaObject.data.name
+                } else {
+                  return formulaObject.id // TODO: get function symbol
+                }
+              }).join(' ')
+            )
+          )
+        } else {
+          setOutputs(
+            outputs.concat(
+              outputs,
+              outputs.length > 0 ? '\n\n' : '',
+              formulaObjectsSorted.map(formulaObject => {
+                if (formulaObject.type === 'metric') {
+                  return formulaObject.data.name
+                } else {
+                  return formulaObject.id // TODO: get function symbol
+                }
+              }).join(' ')
+            )
+          )
+        }
+      })
+    } else {
+      setInputs('')
+      setOutputs('')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metricId, graph, getConnectedObjects])
+  useEffect(() => {
+    populateInputsAndOutputs()
+  }, [populateInputsAndOutputs])
 
   return (
     organizationName === userOrganizationName ? (
@@ -87,11 +177,23 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
         </div>
         <h2>Inputs</h2>
         <div className={styles.detail_field}>
-          Inputs TBA
+          {/* inputs set via function editor */}
+          <EditTextarea
+            value={inputs}
+            readonly={true}
+            placeholder={ '-' }
+            style={{ backgroundColor: '#F8F8F8' }}
+          />
         </div>
         <h2>Outputs</h2>
         <div className={styles.detail_field}>
-          Outputs TBA
+          {/* outputs set via function editor */}
+          <EditTextarea
+            value={outputs}
+            readonly={true}
+            placeholder={ '-' }
+            style={{ backgroundColor: '#F8F8F8' }}
+          />
         </div>
         <h2>Owner</h2>
         <div className={styles.detail_field}>
