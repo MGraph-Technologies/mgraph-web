@@ -5,6 +5,7 @@ import { EditText, EditTextarea } from 'react-edit-text'
 import { Edge, Node } from 'react-flow-renderer'
 import 'react-edit-text/dist/index.css'
 
+import { getFunctionSymbol } from '../../../components/GraphViewer/FunctionNode'
 import { useAuth } from '../../../contexts/auth'
 import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
@@ -57,6 +58,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metricId])
 
+  const FUNCTION_TYPE_ID_MARKER_PREFIX = 'functionTypeId:'
   const populateInputsAndOutputs = useCallback(() => {
     const thisMetricNode = graph.nodes.find(node => node.id === metricId)
     if (thisMetricNode && getConnectedObjects) {
@@ -109,8 +111,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
               formulaObjectsSorted.map(formulaObject => {
                 if (formulaObject.type === 'metric') {
                   return formulaObject.data.name
-                } else {
-                  return formulaObject.id // TODO: get function symbol
+                } else if (formulaObject.type === 'function') {
+                  // subsequently replaced by replaceFunctionTypeIdWithSymbol
+                  return FUNCTION_TYPE_ID_MARKER_PREFIX + formulaObject.data.functionTypeId
                 }
               }).join(' ')
             )
@@ -123,8 +126,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
               formulaObjectsSorted.map(formulaObject => {
                 if (formulaObject.type === 'metric') {
                   return formulaObject.data.name
-                } else {
-                  return formulaObject.id // TODO: get function symbol
+                } else if (formulaObject.type === 'function') {
+                  return FUNCTION_TYPE_ID_MARKER_PREFIX + formulaObject.data.functionTypeId
                 }
               }).join(' ')
             )
@@ -140,6 +143,27 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
   useEffect(() => {
     populateInputsAndOutputs()
   }, [populateInputsAndOutputs])
+
+  const functionTypeIdRegex = RegExp(FUNCTION_TYPE_ID_MARKER_PREFIX + '([\\w-]+)')
+  const replaceFunctionTypeIdWithSymbol = useCallback(async (str: string) => {
+    const matches = str.match(functionTypeIdRegex)
+    if (matches) {
+      const symbol = await getFunctionSymbol(matches[1])
+      return str.replace(matches[0], symbol)
+    } else {
+      return str
+    }
+  }, [functionTypeIdRegex])
+  useEffect(() => {
+    if (inputs) {
+      replaceFunctionTypeIdWithSymbol(inputs).then(setInputs)
+    }
+  } , [inputs, replaceFunctionTypeIdWithSymbol])
+  useEffect(() => {
+    if (outputs) {
+      replaceFunctionTypeIdWithSymbol(outputs).then(setOutputs)
+    }
+  } , [outputs, replaceFunctionTypeIdWithSymbol])
 
   return (
     organizationName === userOrganizationName ? (
@@ -179,7 +203,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
         <div className={styles.detail_field}>
           {/* inputs set via function editor */}
           <EditTextarea
-            value={inputs}
+            value={inputs.match(functionTypeIdRegex) ? '' : inputs}
             readonly={true}
             placeholder={ '-' }
             style={{ backgroundColor: '#F8F8F8' }}
@@ -189,7 +213,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = () => {
         <div className={styles.detail_field}>
           {/* outputs set via function editor */}
           <EditTextarea
-            value={outputs}
+            value={outputs.match(functionTypeIdRegex) ? '' : outputs}
             readonly={true}
             placeholder={ '-' }
             style={{ backgroundColor: '#F8F8F8' }}
