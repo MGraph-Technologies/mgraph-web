@@ -55,6 +55,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({metricId}) => {
 
   const FUNCTION_TYPE_ID_MARKER_PREFIX = 'functionTypeId:'
   const populateInputsAndOutputs = useCallback(() => {
+    let newInputs = ''
+    let newOutputs = ''
     if (metricNode && getConnectedObjects) {
       const metricConnectedObjects = getConnectedObjects(metricNode)
       const metricConnectedIdentities = metricConnectedObjects.filter(metricConnectedObject => (
@@ -97,41 +99,29 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({metricId}) => {
         formulaObjectsSorted = formulaObjectsSorted.filter(formulaObject => formulaObject.type !== 'input')
         formulaObjectsSorted = formulaObjectsSorted.slice(0, 2).concat(formulaObjectsSorted.slice(2).reverse())
         // concatenate formula to input or output as appropriate
-        if (formulaObjectsSorted[0].id === metricId) {
-          setInputs(
-            inputs.concat(
-              inputs,
-              inputs.length > 0 ? '\n\n' : '',
-              formulaObjectsSorted.map(formulaObject => {
-                if (formulaObject.type === 'metric') {
-                  return formulaObject.data.name
-                } else if (formulaObject.type === 'function') {
-                  // subsequently replaced by replaceFunctionTypeIdWithSymbol
-                  return FUNCTION_TYPE_ID_MARKER_PREFIX + formulaObject.data.functionTypeId
-                }
-              }).join(' ')
-            )
-          )
-        } else {
-          setOutputs(
-            outputs.concat(
-              outputs,
-              outputs.length > 0 ? '\n\n' : '',
-              formulaObjectsSorted.map(formulaObject => {
-                if (formulaObject.type === 'metric') {
-                  return formulaObject.data.name
-                } else if (formulaObject.type === 'function') {
-                  return FUNCTION_TYPE_ID_MARKER_PREFIX + formulaObject.data.functionTypeId
-                }
-              }).join(' ')
-            )
+        const expand = (inputsOrOutputs: string) => {
+          return inputsOrOutputs.concat(
+            inputsOrOutputs,
+            inputsOrOutputs.length > 0 ? '\n\n' : '',
+            formulaObjectsSorted.map(formulaObject => {
+              if (formulaObject.type === 'metric') {
+                return formulaObject.data.name
+              } else if (formulaObject.type === 'function') {
+                // subsequently replaced by replaceFunctionTypeIdWithSymbol
+                return FUNCTION_TYPE_ID_MARKER_PREFIX + formulaObject.data.functionTypeId
+              }
+            }).join(' ')
           )
         }
+        if (formulaObjectsSorted[0].id === metricId) {
+          newInputs = expand(newInputs)
+        } else {
+          newOutputs = expand(newOutputs)
+        }
       })
-    } else {
-      setInputs('')
-      setOutputs('')
     }
+    setInputs(newInputs)
+    setOutputs(newOutputs)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metricNode, graph, getConnectedObjects])
   useEffect(() => {
