@@ -9,7 +9,6 @@ import { getFunctionSymbol } from './FunctionNode'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricDetail.module.css'
-import { supabase } from '../../utils/supabaseClient'
 
 type MetricDetailProps = {
   metricId: string | string[] | undefined
@@ -29,34 +28,21 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({metricId}) => {
 
   const { editingEnabled } = useEditability()
 
-  async function populateDetails() {
-    if (metricId) {
-      try {
-        let { data, error, status } = await supabase
-          .from('nodes')
-          .select('properties, node_types!inner(*)')
-          .eq('id', metricId)
-          .eq('node_types.name', 'metric')
-
-        if (error && status !== 406) {
-          throw error
-        }
-
-        if (data) {
-          setName(data[0].properties.name)
-          setDescription(data[0].properties.description)
-          setOwner(data[0].properties.owner)
-          setSource(data[0].properties.source)
-        }
-      } catch (error: any) {
-        alert(error.message)
+  const populateDetails = useCallback(() => {
+  if (metricId) {
+      const thisMetricNode = graph.nodes.find(node => node.id === metricId)
+      if (thisMetricNode) {
+        console.log(thisMetricNode)
+        setName(thisMetricNode.data.name)
+        setDescription(thisMetricNode.data.initialProperties.description || '')
+        setOwner(thisMetricNode.data.initialProperties.owner || '')
+        setSource(thisMetricNode.data.initialProperties.source || '')
       }
     }
-  }
+  }, [metricId, graph])
   useEffect(() => {
     populateDetails()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metricId])
+  }, [populateDetails])
 
   const FUNCTION_TYPE_ID_MARKER_PREFIX = 'functionTypeId:'
   const populateInputsAndOutputs = useCallback(() => {
