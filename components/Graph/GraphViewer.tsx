@@ -18,7 +18,7 @@ import ReactFlow, {
 } from 'react-flow-renderer'
 
 import ControlPanel from './ControlPanel'
-import EditorDock from './EditorDock/EditorDock'
+import EditorDock from './editing/EditorDock'
 import { useEditability } from '../../contexts/editability'
 import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
 import styles from '../../styles/GraphViewer.module.css'

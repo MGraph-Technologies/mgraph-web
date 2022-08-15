@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { FunctionComponent } from 'react'
 
-import MetricDetail from '../../../components/GraphViewer/MetricDetail'
+import MetricDetail from '../../../components/graph/MetricDetail'
 import Workspace from '../../../components/Workspace'
 import styles from '../../../styles/MetricDetailPage.module.css'
 

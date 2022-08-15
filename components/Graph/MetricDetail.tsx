@@ -11,7 +11,7 @@ import { getFunctionSymbol } from './FunctionNode'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricDetail.module.css'
-import UndoRedoSaveAndCancelGraphEditingButtons from './EditorDock/UndoRedoSaveAndCancelGraphEditingButtons';
+import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons';
 
 type MetricDetailProps = {
   metricId: string | string[] | undefined

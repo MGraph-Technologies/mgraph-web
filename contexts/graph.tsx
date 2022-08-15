@@ -13,9 +13,9 @@ import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
 import { useAuth } from './auth'
-import FunctionNode, { FunctionNodeProperties } from '../components/GraphViewer/FunctionNode'
-import InputEdge, { InputEdgeProperties } from '../components/GraphViewer/InputEdge'
-import MetricNode, { MetricNodeProperties } from '../components/GraphViewer/MetricNode'
+import FunctionNode, { FunctionNodeProperties } from '../components/graph/FunctionNode'
+import InputEdge, { InputEdgeProperties } from '../components/graph/InputEdge'
+import MetricNode, { MetricNodeProperties } from '../components/graph/MetricNode'
 import { supabase } from '../utils/supabaseClient'
 
 export const nodeTypes = {

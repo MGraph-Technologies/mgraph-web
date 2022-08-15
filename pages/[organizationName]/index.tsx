@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react'
 import { ReactFlowProvider } from 'react-flow-renderer'
 
-import GraphViewer from '../../components/GraphViewer/GraphViewer'
+import GraphViewer from '../../components/graph/GraphViewer'
 import Workspace from '../../components/Workspace'
 import styles from '../../styles/OrganizationHome.module.css'
 
