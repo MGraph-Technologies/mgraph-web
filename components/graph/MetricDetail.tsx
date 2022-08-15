@@ -183,7 +183,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           ...metricNode.data,
           [name]: value,
         }
-        console.log('newData: ', newData)
         metricNode.data.setNodeDataToChange(newData)
       }
     },
