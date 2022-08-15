@@ -10,9 +10,9 @@ const OrganizationHome: FunctionComponent<OrganizationHomeProps> = () => {
   return (
     <Workspace>
       <div className={styles.graph_viewer_container}>
-          <ReactFlowProvider>
-            <GraphViewer />
-          </ReactFlowProvider>
+        <ReactFlowProvider>
+          <GraphViewer />
+        </ReactFlowProvider>
       </div>
     </Workspace>
   )

@@ -9,12 +9,12 @@
   margin-bottom: 1rem;
 }
 
-.metric_detail .detail_field{
-  background-color: #FFFFFF;
+.metric_detail .detail_field {
+  background-color: #ffffff;
 }
 
-.metric_detail .detail_field_editable{
-  background-color: #F8F8F8;
+.metric_detail .detail_field_editable {
+  background-color: #f8f8f8;
 }
 
 .metric_detail .editor_dock {

@@ -82,7 +82,12 @@ export function AuthProvider({ children }: AuthProps) {
     routeToOrganizationIfEnabled()
   }, [routeToOrganizationIfEnabled])
 
-  const value = { session, organizationId, organizationName, organizationEnabled }
+  const value = {
+    session,
+    organizationId,
+    organizationName,
+    organizationEnabled,
+  }
   return (
     <>
       <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

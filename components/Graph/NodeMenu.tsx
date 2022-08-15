@@ -35,7 +35,9 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
         <Button
           className="p-button-text"
           icon="pi pi-angle-right"
-          onClick={() => {router.push(linkTo)}}
+          onClick={() => {
+            router.push(linkTo)
+          }}
         />
       ) : null}
       {editingEnabled && !displayColorPicker ? (

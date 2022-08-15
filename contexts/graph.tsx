@@ -6,16 +6,20 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useState
+  useState,
 } from 'react'
 import { Edge, Node, XYPosition } from 'react-flow-renderer'
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
 import { useAuth } from './auth'
-import FunctionNode, { FunctionNodeProperties } from '../components/graph/FunctionNode'
+import FunctionNode, {
+  FunctionNodeProperties,
+} from '../components/graph/FunctionNode'
 import InputEdge, { InputEdgeProperties } from '../components/graph/InputEdge'
-import MetricNode, { MetricNodeProperties } from '../components/graph/MetricNode'
+import MetricNode, {
+  MetricNodeProperties,
+} from '../components/graph/MetricNode'
 import { supabase } from '../utils/supabaseClient'
 
 export const nodeTypes = {
@@ -33,20 +37,47 @@ export type Graph = {
 type TypeIdMap = { [key: string]: string }
 
 type GraphContextType = {
-  initialGraph: Graph,
-  graph: Graph,
-  undo: (() => void) | undefined,
-  redo: (() => void) | undefined,
-  canUndo: boolean,
-  canRedo: boolean,
-  loadGraph: (() => Promise<void>) | undefined,
-  saveGraph: (() => Promise<Response | undefined>) | undefined,
-  updateGraph: ((t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void) | undefined,
-  setNodeDataToChange: Dispatch<SetStateAction<MetricNodeProperties | FunctionNodeProperties | undefined>> | undefined,
-  formMetricNode: (() => Node<any>) | undefined,
-  formFunctionNode: ((newNodeId: string, functionTypeId: string, inputNodes: Node[], outputNode: Node) => Node<any>) | undefined,
-  formInputEdge: ((source: Node, target: Node, displaySource?: Node | undefined, displayTarget?: Node | undefined) => Edge<any>) | undefined,
-  getConnectedObjects: ((reference: Node | Edge, calledFrom?: string) => (Node<any> | Edge<any>)[]) | undefined,
+  initialGraph: Graph
+  graph: Graph
+  undo: (() => void) | undefined
+  redo: (() => void) | undefined
+  canUndo: boolean
+  canRedo: boolean
+  loadGraph: (() => Promise<void>) | undefined
+  saveGraph: (() => Promise<Response | undefined>) | undefined
+  updateGraph:
+    | ((t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void)
+    | undefined
+  setNodeDataToChange:
+    | Dispatch<
+        SetStateAction<
+          MetricNodeProperties | FunctionNodeProperties | undefined
+        >
+      >
+    | undefined
+  formMetricNode: (() => Node<any>) | undefined
+  formFunctionNode:
+    | ((
+        newNodeId: string,
+        functionTypeId: string,
+        inputNodes: Node[],
+        outputNode: Node
+      ) => Node<any>)
+    | undefined
+  formInputEdge:
+    | ((
+        source: Node,
+        target: Node,
+        displaySource?: Node | undefined,
+        displayTarget?: Node | undefined
+      ) => Edge<any>)
+    | undefined
+  getConnectedObjects:
+    | ((
+        reference: Node | Edge,
+        calledFrom?: string
+      ) => (Node<any> | Edge<any>)[])
+    | undefined
 }
 
 const graphContextDefaultValues: GraphContextType = {
@@ -72,9 +103,7 @@ const graphContextDefaultValues: GraphContextType = {
   getConnectedObjects: undefined,
 }
 
-const GraphContext = createContext<GraphContextType>(
-  graphContextDefaultValues
-)
+const GraphContext = createContext<GraphContextType>(graphContextDefaultValues)
 
 export function useGraph() {
   return useContext(GraphContext)
@@ -164,7 +193,7 @@ export function GraphProvider({ children }: GraphProps) {
     getEdgeTypeIds()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  
+
   const loadGraph = useCallback(async () => {
     if (organizationId) {
       try {
@@ -174,21 +203,21 @@ export function GraphProvider({ children }: GraphProps) {
           .select('properties, react_flow_meta')
           .eq('organization_id', organizationId)
           .is('deleted_at', null)
-    
+
         if (nodesError) {
           throw nodesError
         }
-    
+
         let { data: edgesData, error: edgesError } = await supabase
           .from('edges')
           .select('properties, react_flow_meta')
           .eq('organization_id', organizationId)
           .is('deleted_at', null)
-    
+
         if (edgesError) {
           throw edgesError
         }
-    
+
         if (nodesData && edgesData) {
           const parsedNodes = nodesData.map((n) => {
             let parsedNode = n.react_flow_meta
@@ -251,7 +280,7 @@ export function GraphProvider({ children }: GraphProps) {
       loadGraph()
     }
   }, [loadGraph])
-  
+
   const saveGraph = useCallback(async () => {
     const accessToken = session?.access_token
     if (!accessToken) {
@@ -260,7 +289,7 @@ export function GraphProvider({ children }: GraphProps) {
     // remove selections
     graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
     graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
-  
+
     return fetch('/api/v1/graphs', {
       method: 'PUT',
       body: JSON.stringify({
@@ -272,7 +301,7 @@ export function GraphProvider({ children }: GraphProps) {
       },
     })
   }, [session, graph, initialGraph])
-  
+
   const updateGraph = useCallback(
     (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
       // To prevent a mismatch of state updates,
@@ -311,8 +340,6 @@ export function GraphProvider({ children }: GraphProps) {
     }
   }, [nodeDataToChange, setNodeDataToChange, updateGraph, graph.nodes])
 
-
-
   const formMetricNode = useCallback(() => {
     const newNodeType = 'metric'
     const newNodeTypeId = nodeTypeIds[newNodeType]
@@ -320,8 +347,8 @@ export function GraphProvider({ children }: GraphProps) {
       throw new Error(`Could not find node type id for ${newNodeType}`)
     }
     // TODO: set dynamically; challenge is can't use useReactFlow here
-    const x = 0;
-    const y = 0;
+    const x = 0
+    const y = 0
     const newNodeId = uuidv4()
     const newNodeData: MetricNodeProperties = {
       id: newNodeId, // needed for setNodeDataToChange
@@ -542,9 +569,11 @@ export function GraphProvider({ children }: GraphProps) {
   const getConnectedObjects = useCallback(
     (reference: Node | Edge, calledFrom: string = '') => {
       let connectedObjects: (Node | Edge)[] = []
-      if (reference.type === 'function'
-          // only traverse from metric nodes on first call
-          || (reference.type === 'metric' && calledFrom === '')) {
+      if (
+        reference.type === 'function' ||
+        // only traverse from metric nodes on first call
+        (reference.type === 'metric' && calledFrom === '')
+      ) {
         // select connected edges
         graph.edges.forEach((edge) => {
           if (
@@ -553,11 +582,10 @@ export function GraphProvider({ children }: GraphProps) {
             edge.type === 'input' &&
             edge.id !== calledFrom
           ) {
-            connectedObjects =
-              connectedObjects.concat(
-                [edge],
-                getConnectedObjects(edge, reference.id)
-              )
+            connectedObjects = connectedObjects.concat(
+              [edge],
+              getConnectedObjects(edge, reference.id)
+            )
           }
         })
       } else if (reference.type === 'input') {
@@ -569,11 +597,10 @@ export function GraphProvider({ children }: GraphProps) {
             ['function', 'metric'].includes(node.type || '') &&
             node.id !== calledFrom
           ) {
-            connectedObjects =
-              connectedObjects.concat(
-                [node],
-                getConnectedObjects(node, reference.id)
-              )
+            connectedObjects = connectedObjects.concat(
+              [node],
+              getConnectedObjects(node, reference.id)
+            )
           }
         })
       }
@@ -600,9 +627,7 @@ export function GraphProvider({ children }: GraphProps) {
   }
   return (
     <>
-      <GraphContext.Provider value={value}>
-        {children}
-      </GraphContext.Provider>
+      <GraphContext.Provider value={value}>{children}</GraphContext.Provider>
     </>
   )
 }

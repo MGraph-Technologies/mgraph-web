@@ -12,9 +12,7 @@ const MetricDetailPage: FunctionComponent<MetricDetailPageProps> = () => {
   return (
     <Workspace>
       <div className={styles.metric_detail_container}>
-        <MetricDetail
-          metricId={metricId}
-        />
+        <MetricDetail metricId={metricId} />
       </div>
     </Workspace>
   )

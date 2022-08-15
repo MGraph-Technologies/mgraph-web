@@ -89,8 +89,8 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
             color={color}
             setColor={setColor}
             saveColor={saveColor}
-            linkTo={'/' + organizationName + '/metrics/' + data.id} 
-            />
+            linkTo={'/' + organizationName + '/metrics/' + data.id}
+          />
         </div>
       </div>
       <Handle

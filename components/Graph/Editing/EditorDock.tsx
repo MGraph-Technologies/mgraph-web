@@ -49,9 +49,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
                 <Button label="+ Function" onClick={onFunctionAddition} />
               </div>
             }
-            right={
-              <UndoRedoSaveAndCancelGraphEditingButtons />
-            }
+            right={<UndoRedoSaveAndCancelGraphEditingButtons />}
           />
         )}
       </div>

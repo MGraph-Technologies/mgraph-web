@@ -5,7 +5,9 @@ import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
 
 type UndoRedoSaveAndCancelGraphEditingButtonsProps = {}
-const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<UndoRedoSaveAndCancelGraphEditingButtonsProps> = () => {  
+const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
+  UndoRedoSaveAndCancelGraphEditingButtonsProps
+> = () => {
   const { disableEditing } = useEditability()
   const { undo, redo, canUndo, canRedo, loadGraph, saveGraph } = useGraph()
 

@@ -12,7 +12,9 @@ import NodeMenu from './NodeMenu'
 import styles from '../../styles/FunctionNode.module.css'
 import { supabase } from '../../utils/supabaseClient'
 
-export async function getFunctionSymbol(functionTypeId: string): Promise<string> {
+export async function getFunctionSymbol(
+  functionTypeId: string
+): Promise<string> {
   let _symbol = '?'
   try {
     let {

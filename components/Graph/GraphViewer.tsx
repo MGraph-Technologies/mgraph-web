@@ -26,7 +26,8 @@ import styles from '../../styles/GraphViewer.module.css'
 type GraphViewerProps = {}
 const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   const { editingEnabled } = useEditability()
-  const { initialGraph, graph, undo, redo, updateGraph, getConnectedObjects } = useGraph()
+  const { initialGraph, graph, undo, redo, updateGraph, getConnectedObjects } =
+    useGraph()
 
   const actionKey = navigator.platform.match(/Mac/i) ? 'Meta' : 'Control'
   const [actionKeyPressed, setActionKeyPressed] = useState(false)
@@ -70,7 +71,6 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     reactFlowInstance.fitView()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGraph])
-
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -122,10 +122,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         if (!updateGraph) {
           throw new Error('updateGraph not defined')
         }
-        const connectedObjects =
-          getConnectedObjects(nodeOrEdge).concat([
-            nodeOrEdge,
-          ])
+        const connectedObjects = getConnectedObjects(nodeOrEdge).concat([
+          nodeOrEdge,
+        ])
         updateGraph(
           'all',
           [
@@ -133,7 +132,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
               nodes: graph.nodes.map((node) => {
                 if (
                   connectedObjects.find(
-                    (c) => c.id === node.id && c.type === node.type && c.type !== 'metric'
+                    (c) =>
+                      c.id === node.id &&
+                      c.type === node.type &&
+                      c.type !== 'metric'
                   )
                 ) {
                   return {
@@ -189,7 +191,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
       >
         <ControlPanel />
         <Controls showInteractive={false} />
-        <EditorDock/>
+        <EditorDock />
         <MiniMap />
       </ReactFlow>
     </div>
