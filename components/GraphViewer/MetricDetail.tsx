@@ -1,14 +1,17 @@
 import { useRouter } from 'next/router'
 import { Button } from 'primereact/button'
+import { Toolbar } from 'primereact/toolbar'
 import { FunctionComponent, useCallback, useEffect, useState } from "react"
-import { EditText, EditTextarea } from 'react-edit-text'
+import { EditText, EditTextarea, onSaveProps } from 'react-edit-text'
 import { Edge, Node } from 'react-flow-renderer'
 import 'react-edit-text/dist/index.css'
 
+import ControlPanel from './ControlPanel'
 import { getFunctionSymbol } from './FunctionNode'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricDetail.module.css'
+import UndoRedoSaveAndCancelGraphEditingButtons from './EditorDock/UndoRedoSaveAndCancelGraphEditingButtons';
 
 type MetricDetailProps = {
   metricId: string | string[] | undefined
@@ -18,6 +21,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({metricId}) => {
   const { organizationName } = router.query
 
   const { graph, getConnectedObjects } = useGraph()
+  const [metricNode, setMetricNode] = useState<Node | undefined>(undefined)
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -28,27 +32,31 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({metricId}) => {
 
   const { editingEnabled } = useEditability()
 
-  const populateDetails = useCallback(() => {
-  if (metricId) {
-      const thisMetricNode = graph.nodes.find(node => node.id === metricId)
-      if (thisMetricNode) {
-        console.log(thisMetricNode)
-        setName(thisMetricNode.data.name)
-        setDescription(thisMetricNode.data.description)
-        setOwner(thisMetricNode.data.owner)
-        setSource(thisMetricNode.data.source)
-      }
+  const populateMetricNode = useCallback(() => {
+    if (metricId) {
+      setMetricNode(graph.nodes.find(node => node.id === metricId))
     }
-  }, [metricId, graph])
+  }, [graph, metricId])
+  useEffect(() => {
+    populateMetricNode()
+  } , [populateMetricNode])
+
+  const populateDetails = useCallback(() => {
+  if (metricNode) {
+    setName(metricNode.data.name)
+    setDescription(metricNode.data.description)
+    setOwner(metricNode.data.owner)
+    setSource(metricNode.data.source)
+  }
+  }, [metricNode])
   useEffect(() => {
     populateDetails()
   }, [populateDetails])
 
   const FUNCTION_TYPE_ID_MARKER_PREFIX = 'functionTypeId:'
   const populateInputsAndOutputs = useCallback(() => {
-    const thisMetricNode = graph.nodes.find(node => node.id === metricId)
-    if (thisMetricNode && getConnectedObjects) {
-      const metricConnectedObjects = getConnectedObjects(thisMetricNode)
+    if (metricNode && getConnectedObjects) {
+      const metricConnectedObjects = getConnectedObjects(metricNode)
       const metricConnectedIdentities = metricConnectedObjects.filter(metricConnectedObject => (
         metricConnectedObject.type === 'function' && 
         graph.edges.filter(edge => edge.data.targetId === metricConnectedObject.id).length === 1
@@ -125,7 +133,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({metricId}) => {
       setOutputs('')
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metricId, graph, getConnectedObjects])
+  }, [metricNode, graph, getConnectedObjects])
   useEffect(() => {
     populateInputsAndOutputs()
   }, [populateInputsAndOutputs])
@@ -151,81 +159,99 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({metricId}) => {
     }
   } , [outputs, replaceFunctionTypeIdWithSymbol])
 
+  const saveDetail = useCallback(
+    (name: string, value: string) => {
+      if (metricNode) {
+        const newData = {
+          ...metricNode.data,
+          [name]: value
+        }
+        console.log('newData: ', newData)
+        metricNode.data.setNodeDataToChange(newData)
+      }
+    },
+    [metricNode]
+  )
+
   return (
-    <div>
+    <div className={styles.metric_detail}>
       <div className={styles.header}>
-        <Button
-          className="p-button-text"
-          icon="pi pi-angle-left"
-          onClick={() => {
-            router.push('/' + organizationName)
-          }}
-        />
+        { editingEnabled ? null : (
+          <Button
+            className="p-button-text"
+            icon="pi pi-angle-left"
+            onClick={() => {
+              router.push('/' + organizationName)
+            }}
+          />
+        )}
         <h1>
           <EditText
+            className={editingEnabled ? styles.detail_field_editable : styles.detail_field}
             value={name}
             readonly={!editingEnabled}
             onChange={(e) => setName(e.target.value)}
-            // onSave={saveProperties}
+            onSave={({value}) => saveDetail('name', value)}
           />
         </h1>
+        <ControlPanel/>
       </div>
       <div className={styles.detail_field}>
         Chart TBA
       </div>
       <h2>Description</h2>
-      <div className={styles.detail_field}>
-        <EditTextarea
-          value={description}
-          readonly={!editingEnabled}
-          placeholder={ editingEnabled ? 'Add...' : '-' }
-          style={{ backgroundColor: editingEnabled ? '#EEE': '#F8F8F8' }}
-          onChange={(e) => setDescription(e.target.value)}
-          // onSave={saveProperties}
-        />
-      </div>
+      <EditTextarea
+        className={editingEnabled ? styles.detail_field_editable : styles.detail_field}
+        name="description"
+        value={description}
+        readonly={!editingEnabled}
+        placeholder={ editingEnabled ? 'Add...' : '-' }
+        onChange={(e) => setDescription(e.target.value)}
+        onSave={({value}) => saveDetail('description', value)}
+      />
       <h2>Inputs</h2>
-      <div className={styles.detail_field}>
-        {/* inputs set via function editor */}
-        <EditTextarea
-          value={inputs.match(functionTypeIdRegex) ? '' : inputs}
-          readonly={true}
-          placeholder={ '-' }
-          style={{ backgroundColor: '#F8F8F8' }}
-        />
-      </div>
+      {/* inputs set via function editor */}
+      <EditTextarea
+        className={styles.detail_field}
+        value={inputs.match(functionTypeIdRegex) ? '' : inputs}
+        readonly={true}
+        placeholder={ '-' }
+      />
       <h2>Outputs</h2>
-      <div className={styles.detail_field}>
-        {/* outputs set via function editor */}
-        <EditTextarea
-          value={outputs.match(functionTypeIdRegex) ? '' : outputs}
-          readonly={true}
-          placeholder={ '-' }
-          style={{ backgroundColor: '#F8F8F8' }}
-        />
-      </div>
+      {/* outputs set via function editor */}
+      <EditTextarea
+        className={styles.detail_field}
+        value={outputs.match(functionTypeIdRegex) ? '' : outputs}
+        readonly={true}
+        placeholder={ '-' }
+      />
       <h2>Owner</h2>
-      <div className={styles.detail_field}>
-        <EditText
-          value={owner}
-          readonly={!editingEnabled}
-          placeholder={ editingEnabled ? 'Add...' : '-' }
-          style={{ backgroundColor: editingEnabled ? '#EEE': '#F8F8F8' }}
-          onChange={(e) => setOwner(e.target.value)}
-          // onSave={saveProperties}
-        />
-      </div>
+      <EditText
+        className={editingEnabled ? styles.detail_field_editable : styles.detail_field}
+        value={owner}
+        readonly={!editingEnabled}
+        placeholder={ editingEnabled ? 'Add...' : '-' }
+        onChange={(e) => setOwner(e.target.value)}
+        onSave={({value}) => saveDetail('owner', value)}
+      />
       <h2>Source</h2>
-      <div className={styles.detail_field}>
-        <EditTextarea
-          value={source}
-          readonly={!editingEnabled}
-          placeholder={ editingEnabled ? 'Add...' : '-' }
-          style={{ backgroundColor: editingEnabled ? '#EEE': '#F8F8F8' }}
-          onChange={(e) => setSource(e.target.value)}
-          // onSave={saveProperties}
-        />
-      </div>
+      <EditTextarea
+        className={editingEnabled ? styles.detail_field_editable : styles.detail_field}
+        value={source}
+        readonly={!editingEnabled}
+        placeholder={ editingEnabled ? 'Add...' : '-' }
+        onChange={(e) => setSource(e.target.value)}
+        onSave={({value}) => saveDetail('source', value)}
+      />
+      { editingEnabled ? (
+        <div className={styles.editor_dock}>
+          <Toolbar
+            right={
+              <UndoRedoSaveAndCancelGraphEditingButtons/>
+            }
+          />
+        </div>
+      ) : null }
     </div>
   )
 }

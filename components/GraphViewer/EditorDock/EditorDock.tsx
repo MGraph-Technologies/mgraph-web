@@ -3,14 +3,15 @@ import { Toolbar } from 'primereact/toolbar'
 import React, { FunctionComponent, useCallback, useState } from 'react'
 
 import FormulaEditor from './FormulaEditor'
+import UndoRedoSaveAndCancelGraphEditingButtons from './UndoRedoSaveAndCancelGraphEditingButtons'
 import styles from '../../../styles/EditorDock.module.css'
 import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
 
 type EditorDockProps = {}
 const _EditorDock: FunctionComponent<EditorDockProps> = () => {
-  const { editingEnabled, disableEditing } = useEditability()
-  const { graph, loadGraph, undo, redo, canUndo, canRedo, saveGraph, updateGraph, formMetricNode } = useGraph()
+  const { editingEnabled } = useEditability()
+  const { graph, updateGraph, formMetricNode } = useGraph()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
 
   const onFunctionAddition = useCallback(() => {
@@ -29,32 +30,6 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
       updateGraph('nodes', graph.nodes.concat(newNode), true)
     }
   }, [formMetricNode, updateGraph, graph.nodes])
-
-  const onCancel = useCallback(() => {
-    if (!loadGraph) {
-      throw new Error('loadGraph is not defined')
-    }
-    loadGraph()
-    disableEditing()
-  }, [loadGraph, disableEditing])
-
-  const onSave = useCallback(() => {
-    if (!saveGraph) {
-      throw new Error('saveGraph is not defined')
-    }
-    if (!loadGraph) {
-      throw new Error('loadGraph is not defined')
-    }
-    saveGraph().then((response) => {
-      if (response?.status === 200) {
-        // only reset if the save was successful
-        disableEditing()
-        loadGraph()
-      } else {
-        console.error(response)
-      }
-    })
-  }, [saveGraph, disableEditing, loadGraph])
 
   if (editingEnabled) {
     return (
@@ -75,31 +50,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
               </div>
             }
             right={
-              <div>
-                <Button
-                  className="p-button-outlined"
-                  icon="pi pi-undo"
-                  onClick={undo}
-                  disabled={!canUndo}
-                />
-                <Button
-                  className="p-button-outlined"
-                  icon="pi pi-refresh"
-                  onClick={redo}
-                  disabled={!canRedo}
-                />
-                <Button
-                  label="Save"
-                  onClick={onSave}
-                  disabled={!saveGraph || !loadGraph}
-                />
-                <Button
-                  className="p-button-outlined"
-                  label="Cancel"
-                  onClick={onCancel}
-                  disabled={!loadGraph}
-                />
-              </div>
+              <UndoRedoSaveAndCancelGraphEditingButtons />
             }
           />
         )}

@@ -1,4 +1,5 @@
 .metric_detail_container {
+  position: relative;
   padding: 1rem;
   width: 100%;
   max-width: 50rem;
