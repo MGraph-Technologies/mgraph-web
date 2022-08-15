@@ -19,6 +19,9 @@ export type MetricNodeProperties = {
   organizationId: string
   typeId: string
   name: string
+  description: string
+  owner: string
+  source: string
   color: string
   // below not in postgres
   initialProperties: object

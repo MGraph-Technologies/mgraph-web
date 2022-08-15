@@ -34,9 +34,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({metricId}) => {
       if (thisMetricNode) {
         console.log(thisMetricNode)
         setName(thisMetricNode.data.name)
-        setDescription(thisMetricNode.data.initialProperties.description || '')
-        setOwner(thisMetricNode.data.initialProperties.owner || '')
-        setSource(thisMetricNode.data.initialProperties.source || '')
+        setDescription(thisMetricNode.data.description)
+        setOwner(thisMetricNode.data.owner)
+        setSource(thisMetricNode.data.source)
       }
     }
   }, [metricId, graph])
