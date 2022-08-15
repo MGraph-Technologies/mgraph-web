@@ -4,28 +4,10 @@ import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
 import { Edge, Node } from 'react-flow-renderer'
 import { v4 as uuidv4 } from 'uuid'
 
-import { Graph } from '../GraphViewer'
+import { useGraph } from '../../../contexts/graph'
 import { supabase } from '../../../utils/supabaseClient'
 
 type FormulaEditorProps = {
-  graph: Graph
-  updateGraph: (
-    t: 'all' | 'nodes' | 'edges',
-    v: Array<any>,
-    undoable: boolean
-  ) => void
-  formFunctionNode: (
-    newNodeId: string,
-    functionTypeId: string,
-    inputNodes: Node[],
-    outputNode: Node
-  ) => Node<any>
-  formInputEdge: (
-    source: Node,
-    target: Node,
-    displaySource?: Node | undefined,
-    displayTarget?: Node | undefined
-  ) => Edge<any>
   setShowFormulaEditor: (value: React.SetStateAction<boolean>) => void
 }
 type NodeSymbol = {
@@ -34,12 +16,9 @@ type NodeSymbol = {
   functionTypeId: string | null
 }
 const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
-  graph,
-  updateGraph,
-  formFunctionNode,
-  formInputEdge,
   setShowFormulaEditor,
 }) => {
+  const { graph, updateGraph, formFunctionNode, formInputEdge } = useGraph()
   const ref = useRef<AutoComplete>(null)
   const [formula, setFormula] = useState<NodeSymbol[]>([])
   const [selectedSymbolIds, setSelectedSymbolIds] = useState<string[]>([])
@@ -188,6 +167,15 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     metric on their left to the metric on their right for readability.
     
     1: https://www.figma.com/file/nxWoiYjVROIJXmEPjN0JTI/MGraph-Function-Builder-Concept */
+    if (!formFunctionNode) {
+      throw new Error('formFunctionNode is not defined')
+    }
+    if (!formInputEdge) {
+      throw new Error('formInputEdge is not defined')
+    }
+    if (!updateGraph) {
+      throw new Error('updateGraph is not defined')
+    }
     if (formula.length < 3) {
       alert('Formula should relate at least two metrics')
       return

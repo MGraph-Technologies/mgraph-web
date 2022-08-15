@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import React, { FunctionComponent, useEffect, useState } from 'react'
+import { FunctionComponent, useCallback, useEffect } from 'react'
 
 import { useAuth } from '../contexts/auth'
 import { supabase } from '../utils/supabaseClient'
@@ -8,35 +8,18 @@ type Props = {}
 
 const AuthedUserRouter: FunctionComponent<Props> = () => {
   const router = useRouter()
-  const { session } = useAuth()
+  const { organizationName, organizationEnabled } = useAuth()
 
-  async function routeToOrganizationIfEnabled() {
-    try {
-      let { data, error, status } = await supabase
-        .from('organizations')
-        .select('name, organization_members!inner(*)')
-        .eq('enabled', true)
-        .is('deleted_at', null)
-        .eq('organization_members.user_id', session?.user?.id || '')
-        .single()
-
-      if (error && status !== 406) {
-        throw error
-      }
-
-      if (data) {
-        router.push('/' + data.name)
-      } else {
-        router.push('/coming_soon')
-      }
-    } catch (error: any) {
-      alert(error.message)
+  const routeToOrganizationIfEnabled = useCallback(() => {
+    if (organizationName && organizationEnabled) {
+      router.push(`/${organizationName}`)
+    } else if (organizationName && !organizationEnabled) {
+      router.push(`/coming_soon`)
     }
-  }
+  }, [organizationName, organizationEnabled, router])
   useEffect(() => {
     routeToOrganizationIfEnabled()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [routeToOrganizationIfEnabled])
 
   return <div>Loading...</div>
 }

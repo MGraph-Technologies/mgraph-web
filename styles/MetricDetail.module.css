@@ -1,0 +1,27 @@
+.metric_detail {
+  height: 100%;
+  width: 100%;
+}
+
+.metric_detail .header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.metric_detail .detail_field {
+  background-color: #ffffff;
+}
+
+.metric_detail .detail_field_editable {
+  background-color: #f8f8f8;
+}
+
+.metric_detail .editor_dock {
+  position: fixed;
+  bottom: 10px;
+  left: 25%;
+  right: 25%;
+  z-index: 5;
+  padding: 10px;
+}

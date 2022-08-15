@@ -1,57 +1,131 @@
-import React, {
-  FunctionComponent,
-  MouseEvent as ReactMouseEvent,
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useState,
 } from 'react'
-import ReactFlow, {
-  Controls,
-  Edge,
-  EdgeChange,
-  MiniMap,
-  Node,
-  NodeChange,
-  XYPosition,
-  applyEdgeChanges,
-  applyNodeChanges,
-  useReactFlow,
-} from 'react-flow-renderer'
+import { Edge, Node, XYPosition } from 'react-flow-renderer'
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
-import ControlPanel from './ControlPanel'
-import EditorDock from './EditorDock/EditorDock'
-import FunctionNode, { FunctionNodeProperties } from './FunctionNode'
-import InputEdge, { InputEdgeProperties } from './InputEdge'
-import MetricNode, { MetricNodeProperties } from './MetricNode'
-import { useAuth } from '../../contexts/auth'
-import { useEditability } from '../../contexts/editability'
-import styles from '../../styles/GraphViewer.module.css'
-import { supabase } from '../../utils/supabaseClient'
+import { useAuth } from './auth'
+import FunctionNode, {
+  FunctionNodeProperties,
+} from '../components/graph/FunctionNode'
+import InputEdge, { InputEdgeProperties } from '../components/graph/InputEdge'
+import MetricNode, {
+  MetricNodeProperties,
+} from '../components/graph/MetricNode'
+import { supabase } from '../utils/supabaseClient'
+
+export const nodeTypes = {
+  metric: MetricNode,
+  function: FunctionNode,
+}
+export const edgeTypes = {
+  input: InputEdge,
+}
 
 export type Graph = {
   nodes: Node[]
   edges: Edge[]
 }
-const nodeTypes = {
-  metric: MetricNode,
-  function: FunctionNode,
-}
-const edgeTypes = {
-  input: InputEdge,
+type TypeIdMap = { [key: string]: string }
+
+type GraphContextType = {
+  initialGraph: Graph
+  graph: Graph
+  undo: (() => void) | undefined
+  redo: (() => void) | undefined
+  canUndo: boolean
+  canRedo: boolean
+  loadGraph: (() => Promise<void>) | undefined
+  saveGraph: (() => Promise<Response | undefined>) | undefined
+  updateGraph:
+    | ((t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void)
+    | undefined
+  setNodeDataToChange:
+    | Dispatch<
+        SetStateAction<
+          MetricNodeProperties | FunctionNodeProperties | undefined
+        >
+      >
+    | undefined
+  formMetricNode: (() => Node<any>) | undefined
+  formFunctionNode:
+    | ((
+        newNodeId: string,
+        functionTypeId: string,
+        inputNodes: Node[],
+        outputNode: Node
+      ) => Node<any>)
+    | undefined
+  formInputEdge:
+    | ((
+        source: Node,
+        target: Node,
+        displaySource?: Node | undefined,
+        displayTarget?: Node | undefined
+      ) => Edge<any>)
+    | undefined
+  getConnectedObjects:
+    | ((
+        reference: Node | Edge,
+        calledFrom?: string
+      ) => (Node<any> | Edge<any>)[])
+    | undefined
 }
 
-type GraphViewerProps = {
-  organizationId: string
+const graphContextDefaultValues: GraphContextType = {
+  initialGraph: {
+    nodes: [],
+    edges: [],
+  },
+  graph: {
+    nodes: [],
+    edges: [],
+  },
+  undo: undefined,
+  redo: undefined,
+  canUndo: false,
+  canRedo: false,
+  loadGraph: undefined,
+  saveGraph: undefined,
+  updateGraph: undefined,
+  setNodeDataToChange: undefined,
+  formMetricNode: undefined,
+  formFunctionNode: undefined,
+  formInputEdge: undefined,
+  getConnectedObjects: undefined,
 }
-const GraphViewer: FunctionComponent<GraphViewerProps> = ({
-  organizationId,
-}) => {
-  const { session } = useAuth()
-  const { editingEnabled } = useEditability()
 
-  type TypeIdMap = { [key: string]: string }
+const GraphContext = createContext<GraphContextType>(graphContextDefaultValues)
+
+export function useGraph() {
+  return useContext(GraphContext)
+}
+
+type GraphProps = {
+  children: ReactNode
+}
+
+export function GraphProvider({ children }: GraphProps) {
+  const { session, organizationId } = useAuth()
+
+  const [initialGraph, setInitialGraph] = useState<Graph>({
+    nodes: [],
+    edges: [],
+  })
+  const [graph, setGraph, { undo, redo, canUndo, canRedo, reset }] =
+    useUndoable<Graph>(initialGraph, {
+      behavior: 'destroyFuture',
+      ignoreIdenticalMutations: false,
+    })
+
   const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
     Object.fromEntries(Object.keys(nodeTypes).map((key) => [key, '']))
   )
@@ -120,154 +194,92 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const [initialGraph, setInitialGraph] = useState<Graph>({
-    nodes: [],
-    edges: [],
-  })
-  const [graph, setGraph, { undo, redo, canUndo, canRedo, reset }] =
-    useUndoable<Graph>(initialGraph, {
-      behavior: 'destroyFuture',
-      ignoreIdenticalMutations: false,
-    })
-  const reactFlowInstance = useReactFlow()
-
-  const actionKey = navigator.platform.match(/Mac/i) ? 'Meta' : 'Control'
-  const [actionKeyPressed, setActionKeyPressed] = useState(false)
-  useEffect(() => {
-    const keyDownHandler = (e: KeyboardEvent) => {
-      if (e.key === actionKey) {
-        setActionKeyPressed(true)
-      }
-
-      if (actionKeyPressed && !e.shiftKey && e.key === 'z') {
-        undo()
-      }
-      if (actionKeyPressed && e.shiftKey && e.key === 'z') {
-        redo()
-      }
-    }
-    document.addEventListener('keydown', keyDownHandler)
-    // clean up
-    return () => {
-      document.removeEventListener('keydown', keyDownHandler)
-    }
-  }, [actionKey, actionKeyPressed, undo, redo])
-
-  useEffect(() => {
-    const keyUpHandler = (e: KeyboardEvent) => {
-      if (e.key === actionKey) {
-        setActionKeyPressed(false)
-      }
-    }
-    document.addEventListener('keyup', keyUpHandler)
-    // clean up
-    return () => {
-      document.removeEventListener('keyup', keyUpHandler)
-    }
-  }, [actionKey, actionKeyPressed])
-
   const loadGraph = useCallback(async () => {
-    try {
-      // TODO: loading animation
-      let { data: nodesData, error: nodesError } = await supabase
-        .from('nodes')
-        .select('properties, react_flow_meta')
-        .eq('organization_id', organizationId)
-        .is('deleted_at', null)
+    if (organizationId) {
+      try {
+        // TODO: loading animation
+        let { data: nodesData, error: nodesError } = await supabase
+          .from('nodes')
+          .select('properties, react_flow_meta')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
 
-      if (nodesError) {
-        throw nodesError
-      }
-
-      let { data: edgesData, error: edgesError } = await supabase
-        .from('edges')
-        .select('properties, react_flow_meta')
-        .eq('organization_id', organizationId)
-        .is('deleted_at', null)
-
-      if (edgesError) {
-        throw edgesError
-      }
-
-      if (nodesData && edgesData) {
-        const parsedNodes = nodesData.map((n) => {
-          let parsedNode = n.react_flow_meta
-          const parsedProperties = n.properties
-          if (parsedNode.type === 'metric') {
-            parsedNode.data = {
-              // explicit construction so properties added outside of react flow don't break it
-              id: parsedProperties.id,
-              organizationId: parsedProperties.organizationId,
-              typeId: parsedProperties.typeId,
-              name: parsedProperties.name,
-              color: parsedProperties.color,
-              initialProperties: parsedProperties,
-              setNodeDatatoChange: setNodeDatatoChange,
-            } as MetricNodeProperties
-          }
-          if (parsedNode.type === 'function') {
-            parsedNode.data = {
-              id: parsedProperties.id,
-              organizationId: parsedProperties.organizationId,
-              typeId: parsedProperties.typeId,
-              functionTypeId: parsedProperties.functionTypeId,
-              color: parsedProperties.color,
-              initialProperties: parsedProperties,
-              setNodeDatatoChange: setNodeDatatoChange,
-            } as FunctionNodeProperties
-          }
-          return parsedNode
-        })
-        const parsedEdges = edgesData.map((e) => {
-          let parsedEdge = e.react_flow_meta
-          const parsedProperties = e.properties
-          parsedEdge.data = {
-            id: parsedProperties.id,
-            organizationId: parsedProperties.organizationId,
-            typeId: parsedProperties.typeId,
-            sourceId: parsedProperties.sourceId,
-            targetId: parsedProperties.targetId,
-            initialProperties: parsedProperties,
-          } as InputEdgeProperties
-          return parsedEdge
-        })
-        const parsedGraph = {
-          nodes: parsedNodes,
-          edges: parsedEdges,
+        if (nodesError) {
+          throw nodesError
         }
-        setInitialGraph(parsedGraph)
-        reset(parsedGraph)
+
+        let { data: edgesData, error: edgesError } = await supabase
+          .from('edges')
+          .select('properties, react_flow_meta')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+
+        if (edgesError) {
+          throw edgesError
+        }
+
+        if (nodesData && edgesData) {
+          const parsedNodes = nodesData.map((n) => {
+            let parsedNode = n.react_flow_meta
+            const parsedProperties = n.properties
+            if (parsedNode.type === 'metric') {
+              parsedNode.data = {
+                // explicit construction so properties added outside of react flow don't break it
+                id: parsedProperties.id,
+                organizationId: parsedProperties.organizationId,
+                typeId: parsedProperties.typeId,
+                name: parsedProperties.name,
+                description: parsedProperties.description,
+                owner: parsedProperties.owner,
+                source: parsedProperties.source,
+                color: parsedProperties.color,
+                initialProperties: parsedProperties,
+                setNodeDataToChange: setNodeDataToChange,
+              } as MetricNodeProperties
+            }
+            if (parsedNode.type === 'function') {
+              parsedNode.data = {
+                id: parsedProperties.id,
+                organizationId: parsedProperties.organizationId,
+                typeId: parsedProperties.typeId,
+                functionTypeId: parsedProperties.functionTypeId,
+                color: parsedProperties.color,
+                initialProperties: parsedProperties,
+                setNodeDataToChange: setNodeDataToChange,
+              } as FunctionNodeProperties
+            }
+            return parsedNode
+          })
+          const parsedEdges = edgesData.map((e) => {
+            let parsedEdge = e.react_flow_meta
+            const parsedProperties = e.properties
+            parsedEdge.data = {
+              id: parsedProperties.id,
+              organizationId: parsedProperties.organizationId,
+              typeId: parsedProperties.typeId,
+              sourceId: parsedProperties.sourceId,
+              targetId: parsedProperties.targetId,
+              initialProperties: parsedProperties,
+            } as InputEdgeProperties
+            return parsedEdge
+          })
+          const parsedGraph = {
+            nodes: parsedNodes,
+            edges: parsedEdges,
+          }
+          setInitialGraph(parsedGraph)
+          reset(parsedGraph)
+        }
+      } catch (error: any) {
+        alert(error.message)
       }
-    } catch (error: any) {
-      alert(error.message)
     }
   }, [organizationId, reset])
   useEffect(() => {
-    loadGraph()
+    if (loadGraph) {
+      loadGraph()
+    }
   }, [loadGraph])
-  useEffect(() => {
-    reactFlowInstance.fitView()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialGraph])
-
-  const updateGraph = useCallback(
-    (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
-      // To prevent a mismatch of state updates,
-      // we'll use the value passed into this
-      // function instead of the state directly.
-      setGraph(
-        t === 'all' // pretty hacky but it's good enough for now
-          ? v[0]
-          : (e) => ({
-              nodes: t === 'nodes' ? v : e.nodes,
-              edges: t === 'edges' ? v : e.edges,
-            }),
-        undefined,
-        !undoable
-      )
-    },
-    [setGraph]
-  )
 
   const saveGraph = useCallback(async () => {
     const accessToken = session?.access_token
@@ -290,16 +302,28 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     })
   }, [session, graph, initialGraph])
 
-  const onNodesChange = useCallback(
-    (changes: NodeChange[]) => {
-      updateGraph('nodes', applyNodeChanges(changes, graph.nodes), false)
+  const updateGraph = useCallback(
+    (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
+      // To prevent a mismatch of state updates,
+      // we'll use the value passed into this
+      // function instead of the state directly.
+      setGraph(
+        t === 'all' // pretty hacky but it's good enough for now
+          ? v[0]
+          : (e) => ({
+              nodes: t === 'nodes' ? v : e.nodes,
+              edges: t === 'edges' ? v : e.edges,
+            }),
+        undefined,
+        !undoable
+      )
     },
-    [updateGraph, graph.nodes]
+    [setGraph]
   )
 
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
-  const [nodeDataToChange, setNodeDatatoChange] = useState<
+  const [nodeDataToChange, setNodeDataToChange] = useState<
     MetricNodeProperties | FunctionNodeProperties
   >()
   useEffect(() => {
@@ -312,24 +336,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
         nodeToChangeClone.data = nodeDataToChange
         updateGraph('nodes', otherNodes.concat(nodeToChangeClone), true)
       }
-      setNodeDatatoChange(undefined) // avoid infinite loop
+      setNodeDataToChange(undefined) // avoid infinite loop
     }
-  }, [nodeDataToChange, setNodeDatatoChange, updateGraph, graph.nodes])
-
-  const onNodeDragStart = useCallback(
-    (_event: ReactMouseEvent, node: Node) => {
-      updateGraph(
-        'nodes',
-        graph.nodes.map((n) =>
-          n.id === node.id
-            ? { ...node, selected: true }
-            : { ...n, selected: actionKeyPressed ? n.selected : false }
-        ),
-        true
-      )
-    },
-    [updateGraph, graph, actionKeyPressed]
-  )
+  }, [nodeDataToChange, setNodeDataToChange, updateGraph, graph.nodes])
 
   const formMetricNode = useCallback(() => {
     const newNodeType = 'metric'
@@ -337,19 +346,21 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     if (!newNodeTypeId) {
       throw new Error(`Could not find node type id for ${newNodeType}`)
     }
-    const { x, y } = reactFlowInstance.project({
-      x: self.innerWidth / 4,
-      y: self.innerHeight - 250,
-    })
+    // TODO: set dynamically; challenge is can't use useReactFlow here
+    const x = 0
+    const y = 0
     const newNodeId = uuidv4()
     const newNodeData: MetricNodeProperties = {
       id: newNodeId, // needed for setNodeDataToChange
       organizationId: organizationId,
       typeId: newNodeTypeId,
       name: 'New Metric',
+      description: '',
+      owner: '',
+      source: '',
       color: '#FFFFFF',
       initialProperties: {},
-      setNodeDatatoChange: setNodeDatatoChange,
+      setNodeDataToChange: setNodeDataToChange,
     }
     const newNode: Node = {
       id: newNodeId,
@@ -361,7 +372,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       },
     }
     return newNode
-  }, [nodeTypeIds, reactFlowInstance, organizationId, setNodeDatatoChange])
+  }, [nodeTypeIds, organizationId, setNodeDataToChange])
 
   const formFunctionNode = useCallback(
     (
@@ -406,7 +417,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
         functionTypeId: functionTypeId,
         color: '#FFFFFF',
         initialProperties: {},
-        setNodeDatatoChange: setNodeDatatoChange,
+        setNodeDataToChange: setNodeDataToChange,
       }
       const newNode: Node = {
         id: newNodeId,
@@ -421,14 +432,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
       }
       return newNode
     },
-    [nodeTypeIds, organizationId, setNodeDatatoChange]
-  )
-
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) => {
-      updateGraph('edges', applyEdgeChanges(changes, graph.edges), true)
-    },
-    [updateGraph, graph.edges]
+    [nodeTypeIds, organizationId, setNodeDataToChange]
   )
 
   const getNearestHandlePair = (source: Node, target: Node) => {
@@ -562,13 +566,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
     [edgeTypeIds, organizationId]
   )
 
-  // selecting any function node or input edge selects all connected others
-  // right now this essentially insures that an editor can't partially delete a formula
-  // TODO: add formula editing
-  const getConnectedFunctionNodesAndInputEdges = useCallback(
+  const getConnectedObjects = useCallback(
     (reference: Node | Edge, calledFrom: string = '') => {
-      let connectedFunctionNodesAndInputEdges: (Node | Edge)[] = []
-      if (reference.type === 'function') {
+      let connectedObjects: (Node | Edge)[] = []
+      if (
+        reference.type === 'function' ||
+        // only traverse from metric nodes on first call
+        (reference.type === 'metric' && calledFrom === '')
+      ) {
         // select connected edges
         graph.edges.forEach((edge) => {
           if (
@@ -577,11 +582,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
             edge.type === 'input' &&
             edge.id !== calledFrom
           ) {
-            connectedFunctionNodesAndInputEdges =
-              connectedFunctionNodesAndInputEdges.concat(
-                [edge],
-                getConnectedFunctionNodesAndInputEdges(edge, reference.id)
-              )
+            connectedObjects = connectedObjects.concat(
+              [edge],
+              getConnectedObjects(edge, reference.id)
+            )
           }
         })
       } else if (reference.type === 'input') {
@@ -590,109 +594,40 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = ({
           if (
             (node.id === reference.data.sourceId ||
               node.id === reference.data.targetId) &&
-            node.type === 'function' &&
+            ['function', 'metric'].includes(node.type || '') &&
             node.id !== calledFrom
           ) {
-            connectedFunctionNodesAndInputEdges =
-              connectedFunctionNodesAndInputEdges.concat(
-                [node],
-                getConnectedFunctionNodesAndInputEdges(node, reference.id)
-              )
+            connectedObjects = connectedObjects.concat(
+              [node],
+              getConnectedObjects(node, reference.id)
+            )
           }
         })
       }
-      return connectedFunctionNodesAndInputEdges
+      return connectedObjects
     },
     [graph]
   )
 
-  const onSelect = useCallback(
-    (nodeOrEdge: Node | Edge) => {
-      if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {
-        const connectedFunctionNodesAndInputEdges =
-          getConnectedFunctionNodesAndInputEdges(nodeOrEdge).concat([
-            nodeOrEdge,
-          ])
-        updateGraph(
-          'all',
-          [
-            {
-              nodes: graph.nodes.map((node) => {
-                if (
-                  connectedFunctionNodesAndInputEdges.find(
-                    (c) => c.id === node.id && c.type === node.type
-                  )
-                ) {
-                  return {
-                    ...node,
-                    selected: true,
-                  }
-                } else {
-                  return node
-                }
-              }),
-              edges: graph.edges.map((edge) => {
-                if (
-                  connectedFunctionNodesAndInputEdges.find(
-                    (c) => c.id === edge.id && c.type === edge.type
-                  )
-                ) {
-                  return {
-                    ...edge,
-                    selected: true,
-                  }
-                } else {
-                  return edge
-                }
-              }),
-            },
-          ],
-          false
-        )
-      }
-    },
-    [getConnectedFunctionNodesAndInputEdges, updateGraph, graph]
-  )
-
+  const value = {
+    initialGraph: initialGraph,
+    graph: graph,
+    undo: undo,
+    redo: redo,
+    canUndo: canUndo,
+    canRedo: canRedo,
+    loadGraph: loadGraph,
+    saveGraph: saveGraph,
+    updateGraph: updateGraph,
+    setNodeDataToChange: setNodeDataToChange,
+    formMetricNode: formMetricNode,
+    formFunctionNode: formFunctionNode,
+    formInputEdge: formInputEdge,
+    getConnectedObjects: getConnectedObjects,
+  }
   return (
-    <div className={styles.graph_viewer}>
-      <ReactFlow
-        nodes={graph.nodes}
-        edges={graph.edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        onNodeClick={(_event, node) => onSelect(node)}
-        onNodesChange={onNodesChange}
-        onEdgeClick={(_event, edge) => onSelect(edge)}
-        onEdgesChange={onEdgesChange}
-        onNodeDragStart={onNodeDragStart}
-        nodesDraggable={editingEnabled}
-        nodesConnectable={false}
-        panOnScroll={true}
-        minZoom={0.1}
-        maxZoom={10}
-        deleteKeyCode={['Backspace', 'Delete']}
-        multiSelectionKeyCode={[actionKey]}
-      >
-        <ControlPanel />
-        <Controls showInteractive={false} />
-        <EditorDock
-          graph={graph}
-          loadGraph={loadGraph}
-          saveGraph={saveGraph}
-          updateGraph={updateGraph}
-          formMetricNode={formMetricNode}
-          formFunctionNode={formFunctionNode}
-          formInputEdge={formInputEdge}
-          canUndo={canUndo}
-          undo={undo}
-          canRedo={canRedo}
-          redo={redo}
-        />
-        <MiniMap />
-      </ReactFlow>
-    </div>
+    <>
+      <GraphContext.Provider value={value}>{children}</GraphContext.Provider>
+    </>
   )
 }
-
-export default GraphViewer

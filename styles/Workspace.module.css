@@ -32,7 +32,3 @@
 .workspace .header .user_info_container .user_account_container {
   flex-grow: 1;
 }
-
-.workspace .graph_viewer_container {
-  flex-grow: 1;
-}

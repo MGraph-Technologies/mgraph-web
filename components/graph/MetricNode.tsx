@@ -1,3 +1,4 @@
+import router from 'next/router'
 import React, {
   FunctionComponent,
   useCallback,
@@ -18,16 +19,20 @@ export type MetricNodeProperties = {
   organizationId: string
   typeId: string
   name: string
+  description: string
+  owner: string
+  source: string
   color: string
   // below not in postgres
   initialProperties: object
-  setNodeDatatoChange: (data: MetricNodeProperties) => void
+  setNodeDataToChange: (data: MetricNodeProperties) => void
 }
 type MetricNodeProps = {
   data: MetricNodeProperties
   selected: boolean
 }
 const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
+  const { organizationName } = router.query
   const { editingEnabled } = useEditability()
   const nodeHandleSize = '0px'
 
@@ -39,7 +44,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
     ({ value }: onSaveProps) => {
       let newData = { ...data }
       newData.name = value
-      data.setNodeDatatoChange(newData)
+      data.setNodeDataToChange(newData)
     },
     [data]
   )
@@ -52,7 +57,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
     (color: ColorResult) => {
       let newData = { ...data }
       newData.color = color.hex
-      data.setNodeDatatoChange(newData)
+      data.setNodeDataToChange(newData)
     },
     [data]
   )
@@ -80,7 +85,12 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
           />
         </div>
         <div className={styles.buttons}>
-          <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
+          <NodeMenu
+            color={color}
+            setColor={setColor}
+            saveColor={saveColor}
+            linkTo={'/' + organizationName + '/metrics/' + data.id}
+          />
         </div>
       </div>
       <Handle

@@ -12,6 +12,34 @@ import NodeMenu from './NodeMenu'
 import styles from '../../styles/FunctionNode.module.css'
 import { supabase } from '../../utils/supabaseClient'
 
+export async function getFunctionSymbol(
+  functionTypeId: string
+): Promise<string> {
+  let _symbol = '?'
+  try {
+    let {
+      data: queryData,
+      error,
+      status,
+    } = await supabase
+      .from('function_types')
+      .select('symbol')
+      .eq('id', functionTypeId)
+
+    if (error && status !== 406) {
+      throw error
+    }
+
+    if (queryData) {
+      _symbol = queryData[0].symbol
+    }
+  } catch (error: any) {
+    alert(error.message)
+  } finally {
+    return _symbol
+  }
+}
+
 export type FunctionNodeProperties = {
   id: string
   organizationId: string
@@ -20,7 +48,7 @@ export type FunctionNodeProperties = {
   color: string
   // below not in postgres
   initialProperties: object
-  setNodeDatatoChange: (data: FunctionNodeProperties) => void
+  setNodeDataToChange: (data: FunctionNodeProperties) => void
 }
 type FunctionNodeProps = {
   data: FunctionNodeProperties
@@ -33,29 +61,11 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
   const nodeHandleSize = '0px'
 
   const [symbol, setSymbol] = useState('')
-  async function populateSymbol() {
-    try {
-      let {
-        data: queryData,
-        error,
-        status,
-      } = await supabase
-        .from('function_types')
-        .select('symbol')
-        .eq('id', data.functionTypeId)
-
-      if (error && status !== 406) {
-        throw error
-      }
-
-      if (queryData) {
-        setSymbol(queryData[0].symbol)
-      }
-    } catch (error: any) {
-      alert(error.message)
-    }
-  }
   useEffect(() => {
+    const populateSymbol = async () => {
+      const _symbol = await getFunctionSymbol(data.functionTypeId)
+      setSymbol(_symbol)
+    }
     populateSymbol()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -68,7 +78,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
     (color: ColorResult) => {
       let newData = { ...data }
       newData.color = color.hex
-      data.setNodeDatatoChange(newData)
+      data.setNodeDataToChange(newData)
     },
     [data]
   )
