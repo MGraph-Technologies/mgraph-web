@@ -49,7 +49,7 @@ const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
         className="p-button-outlined"
         icon="pi pi-undo"
         onClick={() => {
-          if(undo) {
+          if (undo) {
             analytics.track('undo')
             undo()
           }
@@ -60,7 +60,7 @@ const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
         className="p-button-outlined"
         icon="pi pi-refresh"
         onClick={() => {
-          if(redo) {
+          if (redo) {
             analytics.track('redo')
             redo()
           }

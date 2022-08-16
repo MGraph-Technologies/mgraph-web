@@ -186,7 +186,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     }
     if (formula[formula.length - 1].functionTypeId) {
       analytics.track('save_formula_error', {
-        type: 'formula_ends_with_function'
+        type: 'formula_ends_with_function',
       })
       alert('Formula should end with a metric')
       return
