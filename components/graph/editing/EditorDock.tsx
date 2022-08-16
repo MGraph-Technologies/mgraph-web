@@ -14,7 +14,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
   const { graph, updateGraph, formMetricNode } = useGraph()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
 
-  const onFunctionAddition = useCallback(() => {
+  const onFormulaAddition = useCallback(() => {
     setShowFormulaEditor(true)
   }, [])
 
@@ -46,7 +46,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
                   onClick={addMetricNode}
                   disabled={!formMetricNode || !updateGraph}
                 />
-                <Button label="+ Function" onClick={onFunctionAddition} />
+                <Button label="+ Formula" onClick={onFormulaAddition} />
               </div>
             }
             right={<UndoRedoSaveAndCancelGraphEditingButtons />}
