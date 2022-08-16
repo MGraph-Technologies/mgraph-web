@@ -3,6 +3,7 @@ import React, { FunctionComponent } from 'react'
 
 import { useEditability } from '../../contexts/editability'
 import styles from '../../styles/ControlPanel.module.css'
+import { analytics } from '../../utils/segmentClient'
 
 type ControlPanelProps = {}
 const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
@@ -22,7 +23,10 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
           className={styles.button}
           icon="pi pi-pencil"
           disabled={!userCanEdit}
-          onClick={enableEditing}
+          onClick={() => {
+            analytics.track('enable_editing')
+            enableEditing()
+          }}
         />
       </div>
     )

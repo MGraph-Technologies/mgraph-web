@@ -7,6 +7,7 @@ import UndoRedoSaveAndCancelGraphEditingButtons from './UndoRedoSaveAndCancelGra
 import styles from '../../../styles/EditorDock.module.css'
 import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
+import { analytics } from '../../../utils/segmentClient'
 
 type EditorDockProps = {}
 const _EditorDock: FunctionComponent<EditorDockProps> = () => {
@@ -15,6 +16,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
 
   const onFormulaAddition = useCallback(() => {
+    analytics.track('add_formula')
     setShowFormulaEditor(true)
   }, [])
 
@@ -27,6 +29,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
     }
     const newNode = formMetricNode()
     if (newNode) {
+      analytics.track('add_metric_node')
       updateGraph('nodes', graph.nodes.concat(newNode), true)
     }
   }, [formMetricNode, updateGraph, graph.nodes])
