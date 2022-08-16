@@ -66,11 +66,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   const reactFlowInstance = useReactFlow()
   useEffect(() => {
     reactFlowInstance.fitView()
-  })
-  useEffect(() => {
-    reactFlowInstance.fitView()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialGraph])
+  }, [reactFlowInstance.viewportInitialized, initialGraph])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
