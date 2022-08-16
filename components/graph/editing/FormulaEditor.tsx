@@ -5,6 +5,7 @@ import { Edge, Node } from 'react-flow-renderer'
 import { v4 as uuidv4 } from 'uuid'
 
 import { useGraph } from '../../../contexts/graph'
+import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
 
 type FormulaEditorProps = {
@@ -177,10 +178,16 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
       throw new Error('updateGraph is not defined')
     }
     if (formula.length < 3) {
+      analytics.track('save_formula_error', {
+        type: 'formula_too_short',
+      })
       alert('Formula should relate at least two metrics')
       return
     }
     if (formula[formula.length - 1].functionTypeId) {
+      analytics.track('save_formula_error', {
+        type: 'formula_ends_with_function',
+      })
       alert('Formula should end with a metric')
       return
     }
@@ -285,6 +292,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         ],
         true
       )
+      analytics.track('save_formula')
       setShowFormulaEditor(false)
     }
   }
@@ -307,7 +315,13 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         autoHighlight={true}
       />
       <Button icon="pi pi-check" onClick={onSave} />
-      <Button icon="pi pi-times" onClick={(e) => setShowFormulaEditor(false)} />
+      <Button
+        icon="pi pi-times"
+        onClick={(e) => {
+          analytics.track('cancel_formula')
+          setShowFormulaEditor(false)
+        }}
+      />
     </div>
   )
 }
