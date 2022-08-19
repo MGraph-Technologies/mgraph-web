@@ -300,6 +300,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
   return (
     <div>
       <AutoComplete
+        id='formula-field'
         ref={ref}
         multiple={true}
         value={formula}
