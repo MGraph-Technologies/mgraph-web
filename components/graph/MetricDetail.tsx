@@ -194,6 +194,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       <div className={styles.header}>
         {editingEnabled ? null : (
           <Button
+            id='back-to-graphviewer-button'
             className="p-button-text"
             icon="pi pi-angle-left"
             onClick={() => {

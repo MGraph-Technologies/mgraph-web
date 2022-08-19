@@ -33,6 +33,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
     <div className={styles.menu}>
       {!editingEnabled && linkTo ? (
         <Button
+          id='link-to-detail-button'
           className="p-button-text"
           icon="pi pi-angle-right"
           onClick={() => {
@@ -43,6 +44,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
       {editingEnabled && !displayColorPicker ? (
         <>
           <Button
+            id='expand-node-menu-button'
             className="p-button-text"
             icon="pi pi-ellipsis-v"
             onClick={() => setDisplayColorPicker(true)}
@@ -56,6 +58,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
             onChangeComplete={(color) => handleColorChangeComplete(color)}
           />
           <Button
+            id='cancel-node-coloring-button'
             className="p-button-text"
             icon="pi pi-times"
             onClick={() => setDisplayColorPicker(false)}

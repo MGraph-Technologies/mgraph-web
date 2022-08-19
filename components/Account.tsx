@@ -25,7 +25,7 @@ const Account: FunctionComponent<Props> = () => {
   return (
     <div className="account-module">
       <div>{userEmail}</div>
-      <button className="sign-out-button" onClick={() => handleSignOut()}>
+      <button id='sign-out-button' className="sign-out-button" onClick={() => handleSignOut()}>
         Sign Out
       </button>
     </div>

@@ -314,8 +314,13 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         onClick={initializeSuggestions}
         autoHighlight={true}
       />
-      <Button icon="pi pi-check" onClick={onSave} />
       <Button
+        id='save-formula-button'
+        icon="pi pi-check"
+        onClick={onSave}
+      />
+      <Button
+        id='cancel-formula-button'
         icon="pi pi-times"
         onClick={(e) => {
           analytics.track('cancel_formula')
