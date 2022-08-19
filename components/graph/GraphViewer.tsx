@@ -183,7 +183,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         panOnScroll={true}
         minZoom={0.1}
         maxZoom={10}
-        deleteKeyCode={['Backspace', 'Delete']}
+        deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
         multiSelectionKeyCode={[actionKey]}
       >
         <ControlPanel />
