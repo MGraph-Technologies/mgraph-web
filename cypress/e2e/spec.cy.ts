@@ -110,15 +110,16 @@ describe('Metric detail viewing', () => {
     cy.loginWithTestAccount()
   })
 
-  it('Visits and sees expected content on Active Users detail page', () => {
-    cy.visit('/mgraph/metrics/e99f8ddc-b8d2-4f37-858a-913be35147e7')
+  it('Visits and sees expected content on a metric detail page', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
     cy.wait(1000) // wait for graph to render
     cy.get('body').contains('Description')
     cy.get('body').contains('Inputs')
     cy.get('body').contains('Outputs')
+    // TODO: check population of inputs and outputs
     cy.get('body').contains('Owner')
     cy.get('body').contains('Source')
-    cy.get('body').contains('Active Users = New Users * Retention')
   })
 })
 
@@ -127,8 +128,9 @@ describe('Metric detail editing', () => {
     cy.loginWithTestAccount()
   })
 
-  it('Visits Active Users page, edits description, tests undo and redo, then cancels', () => {
-    cy.visit('mgraph/metrics/e99f8ddc-b8d2-4f37-858a-913be35147e7')
+  it('Visits a metric detail page, edits description, tests undo and redo, then cancels', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
     cy.wait(1000)
 
     // begin editing
@@ -154,8 +156,9 @@ describe('Metric detail editing', () => {
     cy.contains(newValue).should('not.exist')
   })
 
-  it('Visits Active Users page, edits description, then saves', () => {
-    cy.visit('mgraph/metrics/e99f8ddc-b8d2-4f37-858a-913be35147e7')
+  it('Visits a metric detail page, edits description, then saves', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
     cy.wait(1000)
 
     // begin editing
