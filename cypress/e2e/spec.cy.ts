@@ -68,12 +68,14 @@ describe('Graphviewer editing', () => {
 
     // undo
     cy.get('[id=undo-button]').click()
+    cy.wait(1000) // wait for rerender
     cy.get('.react-flow__node-metric')
       .contains(newMetricName)
       .should('not.exist')
 
     // redo
     cy.get('[id=redo-button]').click()
+    cy.wait(1000)
     cy.get('.react-flow__node-metric')
       .contains(newMetricName)
       .should('be.visible')
@@ -144,10 +146,12 @@ describe('Metric detail editing', () => {
 
     // undo
     cy.get('[id=undo-button]').click()
+    cy.wait(1000)
     cy.contains(newValue).should('not.exist')
 
     // redo
     cy.get('[id=redo-button]').click()
+    cy.wait(1000)
     cy.contains(newValue).should('be.visible')
 
     // cancel
