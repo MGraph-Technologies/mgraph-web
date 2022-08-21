@@ -7,6 +7,7 @@ require('dotenv').config()
 export default defineConfig({
   e2e: {
     baseUrl: 'http://localhost:3000',
+    blockHosts: ['*.segment.io'],
     chromeWebSecurity: false,
     screenshotOnRunFailure: false,
     video: false,

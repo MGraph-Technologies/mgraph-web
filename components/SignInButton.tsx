@@ -25,6 +25,7 @@ const SignInButton: FunctionComponent<Props> = () => {
   return (
     <div>
       <Button
+        id="sign-in-button"
         className="sign-in-with-google-button"
         label="Sign in with Google"
         icon="pi pi-google"

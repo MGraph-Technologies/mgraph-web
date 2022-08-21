@@ -46,6 +46,7 @@ const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
   return (
     <>
       <Button
+        id="undo-button"
         className="p-button-outlined"
         icon="pi pi-undo"
         onClick={() => {
@@ -57,6 +58,7 @@ const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
         disabled={!canUndo}
       />
       <Button
+        id="redo-button"
         className="p-button-outlined"
         icon="pi pi-refresh"
         onClick={() => {
@@ -68,11 +70,13 @@ const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
         disabled={!canRedo}
       />
       <Button
+        id="save-button"
         label="Save"
         onClick={onSave}
         disabled={!saveGraph || !loadGraph}
       />
       <Button
+        id="cancel-button"
         className="p-button-outlined"
         label="Cancel"
         onClick={onCancel}

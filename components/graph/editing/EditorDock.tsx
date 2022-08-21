@@ -45,11 +45,16 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
             left={
               <div>
                 <Button
+                  id="add-metric-button"
                   label="+ Metric"
                   onClick={addMetricNode}
                   disabled={!formMetricNode || !updateGraph}
                 />
-                <Button label="+ Formula" onClick={onFormulaAddition} />
+                <Button
+                  id="add-formula-button"
+                  label="+ Formula"
+                  onClick={onFormulaAddition}
+                />
               </div>
             }
             right={<UndoRedoSaveAndCancelGraphEditingButtons />}

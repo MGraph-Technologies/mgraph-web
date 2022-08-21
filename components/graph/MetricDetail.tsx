@@ -194,6 +194,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       <div className={styles.header}>
         {editingEnabled ? null : (
           <Button
+            id="back-to-graphviewer-button"
             className="p-button-text"
             icon="pi pi-angle-left"
             onClick={() => {
@@ -203,6 +204,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         )}
         <h1>
           <EditText
+            id="name-field"
             className={
               editingEnabled
                 ? styles.detail_field_editable
@@ -219,10 +221,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       <div className={styles.detail_field}>Chart TBA</div>
       <h2>Description</h2>
       <EditTextarea
+        id="description-field"
         className={
           editingEnabled ? styles.detail_field_editable : styles.detail_field
         }
-        name="description"
         value={description}
         readonly={!editingEnabled}
         placeholder={editingEnabled ? 'Add...' : '-'}
@@ -247,6 +249,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       />
       <h2>Owner</h2>
       <EditText
+        id="owner-field"
         className={
           editingEnabled ? styles.detail_field_editable : styles.detail_field
         }
@@ -258,6 +261,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       />
       <h2>Source</h2>
       <EditTextarea
+        id="source-field"
         className={
           editingEnabled ? styles.detail_field_editable : styles.detail_field
         }

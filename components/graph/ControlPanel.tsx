@@ -15,11 +15,13 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
     return (
       <div className={styles.control_panel}>
         <Button
+          id="date-range-button"
           className={styles.button}
           icon="pi pi-calendar"
           disabled={true} // TODO: activate
         />
         <Button
+          id="edit-button"
           className={styles.button}
           icon="pi pi-pencil"
           disabled={!userCanEdit}
