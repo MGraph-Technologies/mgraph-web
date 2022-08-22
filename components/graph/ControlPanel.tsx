@@ -21,16 +21,17 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
           icon="pi pi-calendar"
           disabled={true} // TODO: activate
         />
-        <Button
-          id="edit-button"
-          className={styles.button}
-          icon="pi pi-pencil"
-          disabled={!userCanEdit}
-          onClick={() => {
-            analytics.track('enable_editing')
-            enableEditing()
-          }}
-        />
+        {userCanEdit ? (
+          <Button
+            id="edit-button"
+            className={styles.button}
+            icon="pi pi-pencil"
+            onClick={() => {
+              analytics.track('enable_editing')
+              enableEditing()
+            }}
+          />
+        ) : null}
       </div>
     )
   }
