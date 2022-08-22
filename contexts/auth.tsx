@@ -15,7 +15,8 @@ type AuthContextType = {
   session: Session | null
   organizationId: string
   organizationName: string
-  organizationEnabled: boolean
+  organizationEnabled: boolean,
+  userCanEdit: boolean
 }
 
 const authContextTypeValues: AuthContextType = {
@@ -23,6 +24,7 @@ const authContextTypeValues: AuthContextType = {
   organizationId: '',
   organizationName: '',
   organizationEnabled: false,
+  userCanEdit: false,
 }
 
 const AuthContext = createContext<AuthContextType>(authContextTypeValues)
@@ -54,14 +56,15 @@ export function AuthProvider({ children }: AuthProps) {
   const [organizationId, setOrganizationId] = useState('')
   const [organizationName, setOrganizationName] = useState('')
   const [organizationEnabled, setOrganizationEnabled] = useState(false)
+  const [userCanEdit, setUserCanEdit] = useState(false)
   const routeToOrganizationIfEnabled = useCallback(async () => {
     if (session?.user?.id) {
       try {
         let { data, error, status } = await supabase
-          .from('organizations')
-          .select('id, name, enabled, organization_members!inner(*)')
+          .from('organization_members')
+          .select('organizations ( id, name, enabled ), roles ( name )')
           .is('deleted_at', null)
-          .eq('organization_members.user_id', session?.user?.id || '')
+          .eq('user_id', session?.user?.id || '')
           .single()
 
         if (error && status !== 406) {
@@ -69,9 +72,10 @@ export function AuthProvider({ children }: AuthProps) {
         }
 
         if (data) {
-          setOrganizationId(data.id)
-          setOrganizationName(data.name)
-          setOrganizationEnabled(data.enabled)
+          setOrganizationId(data.organizations.id)
+          setOrganizationName(data.organizations.name)
+          setOrganizationEnabled(data.organizations.enabled)
+          setUserCanEdit(data.roles.name === 'admin' || data.roles.name === 'editor')
         }
       } catch (error: any) {
         alert(error.message)
@@ -87,6 +91,7 @@ export function AuthProvider({ children }: AuthProps) {
     organizationId,
     organizationName,
     organizationEnabled,
+    userCanEdit,
   }
   return (
     <>
