@@ -170,38 +170,36 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
 
   return (
     <>
-    { userCanView ? (
-      <div className={styles.graph_viewer}>
-        <ReactFlow
-          nodes={graph.nodes}
-          edges={graph.edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          onNodeClick={(_event, node) => onSelect(node)}
-          onNodesChange={onNodesChange}
-          onEdgeClick={(_event, edge) => onSelect(edge)}
-          onEdgesChange={onEdgesChange}
-          onNodeDragStart={onNodeDragStart}
-          nodesDraggable={editingEnabled}
-          nodesConnectable={false}
-          panOnScroll={true}
-          minZoom={0.1}
-          maxZoom={10}
-          deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
-          multiSelectionKeyCode={[actionKey]}
-        >
-          <ControlPanel />
-          <Controls showInteractive={false} />
-          <EditorDock />
-          <MiniMap />
-        </ReactFlow>
-      </div>
-    ) : (
-      <div>
-        Please contact your administrator for access.
-      </div>
-    )}
-  </>
+      {userCanView ? (
+        <div className={styles.graph_viewer}>
+          <ReactFlow
+            nodes={graph.nodes}
+            edges={graph.edges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            onNodeClick={(_event, node) => onSelect(node)}
+            onNodesChange={onNodesChange}
+            onEdgeClick={(_event, edge) => onSelect(edge)}
+            onEdgesChange={onEdgesChange}
+            onNodeDragStart={onNodeDragStart}
+            nodesDraggable={editingEnabled}
+            nodesConnectable={false}
+            panOnScroll={true}
+            minZoom={0.1}
+            maxZoom={10}
+            deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
+            multiSelectionKeyCode={[actionKey]}
+          >
+            <ControlPanel />
+            <Controls showInteractive={false} />
+            <EditorDock />
+            <MiniMap />
+          </ReactFlow>
+        </div>
+      ) : (
+        <div>Please contact your administrator for access.</div>
+      )}
+    </>
   )
 }
 

@@ -15,7 +15,7 @@ type AuthContextType = {
   session: Session | null
   organizationId: string
   organizationName: string
-  organizationEnabled: boolean,
+  organizationEnabled: boolean
   userCanEdit: boolean
   userCanView: boolean
 }
@@ -78,7 +78,8 @@ export function AuthProvider({ children }: AuthProps) {
           setOrganizationId(data.organizations.id)
           setOrganizationName(data.organizations.name)
           setOrganizationEnabled(data.organizations.enabled)
-          const _userCanEdit = data.roles.name === 'admin' || data.roles.name === 'editor'
+          const _userCanEdit =
+            data.roles.name === 'admin' || data.roles.name === 'editor'
           setUserCanEdit(_userCanEdit)
           setUserCanView(_userCanEdit || data.roles.name === 'viewer')
         }
