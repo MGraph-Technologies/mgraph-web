@@ -19,12 +19,14 @@ import ReactFlow, {
 
 import ControlPanel from './ControlPanel'
 import EditorDock from './editing/EditorDock'
+import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
 import styles from '../../styles/GraphViewer.module.css'
 
 type GraphViewerProps = {}
 const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
+  const { userCanView } = useAuth()
   const { editingEnabled } = useEditability()
   const { initialGraph, graph, undo, redo, updateGraph, getConnectedObjects } =
     useGraph()
@@ -167,31 +169,37 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   )
 
   return (
-    <div className={styles.graph_viewer}>
-      <ReactFlow
-        nodes={graph.nodes}
-        edges={graph.edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        onNodeClick={(_event, node) => onSelect(node)}
-        onNodesChange={onNodesChange}
-        onEdgeClick={(_event, edge) => onSelect(edge)}
-        onEdgesChange={onEdgesChange}
-        onNodeDragStart={onNodeDragStart}
-        nodesDraggable={editingEnabled}
-        nodesConnectable={false}
-        panOnScroll={true}
-        minZoom={0.1}
-        maxZoom={10}
-        deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
-        multiSelectionKeyCode={[actionKey]}
-      >
-        <ControlPanel />
-        <Controls showInteractive={false} />
-        <EditorDock />
-        <MiniMap />
-      </ReactFlow>
-    </div>
+    <>
+      {userCanView ? (
+        <div className={styles.graph_viewer}>
+          <ReactFlow
+            nodes={graph.nodes}
+            edges={graph.edges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            onNodeClick={(_event, node) => onSelect(node)}
+            onNodesChange={onNodesChange}
+            onEdgeClick={(_event, edge) => onSelect(edge)}
+            onEdgesChange={onEdgesChange}
+            onNodeDragStart={onNodeDragStart}
+            nodesDraggable={editingEnabled}
+            nodesConnectable={false}
+            panOnScroll={true}
+            minZoom={0.1}
+            maxZoom={10}
+            deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
+            multiSelectionKeyCode={[actionKey]}
+          >
+            <ControlPanel />
+            <Controls showInteractive={false} />
+            <EditorDock />
+            <MiniMap />
+          </ReactFlow>
+        </div>
+      ) : (
+        <div>Please contact your administrator for access.</div>
+      )}
+    </>
   )
 }
 
