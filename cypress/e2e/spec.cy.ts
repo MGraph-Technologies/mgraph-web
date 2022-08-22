@@ -5,9 +5,12 @@ describe('App landing page, unauthenticated', () => {
   })
 })
 
-describe('App landing page, authenticated', () => {
+describe('App landing page, authenticated as member of enabled org', () => {
   beforeEach(() => {
-    cy.loginWithTestAccount()
+    cy.loginWithTestAccount(
+      Cypress.env('CYPRESS_TEST_ACCOUNT_EMAIL'),
+      Cypress.env('CYPRESS_TEST_ACCOUNT_PASSWORD')
+    )
   })
 
   it('Visits the app landing page and is redirected to graphviewer', () => {
@@ -16,9 +19,29 @@ describe('App landing page, authenticated', () => {
   })
 })
 
-describe('Graphviewer viewing', () => {
+describe('App landing page, authenticated as member of disabled org', () => {
   beforeEach(() => {
-    cy.loginWithTestAccount()
+    cy.loginWithTestAccount(
+      Cypress.env('CYPRESS_TEST_ACCOUNT_EMAIL').replace(
+        '@',
+        '+organization_disabled@'
+      ),
+      Cypress.env('CYPRESS_TEST_ACCOUNT_PASSWORD')
+    )
+  })
+
+  it('Visits the app landing page and is redirected to coming_soon', () => {
+    cy.visit('/')
+    cy.url().should('include', '/coming_soon')
+  })
+})
+
+describe('Graphviewer viewing as admin', () => {
+  beforeEach(() => {
+    cy.loginWithTestAccount(
+      Cypress.env('CYPRESS_TEST_ACCOUNT_EMAIL'),
+      Cypress.env('CYPRESS_TEST_ACCOUNT_PASSWORD')
+    )
   })
 
   it('Zooms in, out, fit on the graphviewer', () => {
@@ -35,6 +58,11 @@ describe('Graphviewer viewing', () => {
     cy.get('.react-flow__edge-input').should('be.visible')
   })
 
+  it('Sees edit button', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=edit-button]').should('exist')
+  })
+
   it('Clicks through to a metric detail page, and back', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
@@ -44,9 +72,44 @@ describe('Graphviewer viewing', () => {
   })
 })
 
+describe('Graphviewer viewing as viewer', () => {
+  beforeEach(() => {
+    cy.loginWithTestAccount(
+      Cypress.env('CYPRESS_TEST_ACCOUNT_EMAIL').replace('@', '+viewer@'),
+      Cypress.env('CYPRESS_TEST_ACCOUNT_PASSWORD')
+    )
+  })
+
+  it('Does not see edit button', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=edit-button]').should('not.exist')
+  })
+})
+
+describe('Graphviewer viewing as awaiting admin approval', () => {
+  beforeEach(() => {
+    cy.loginWithTestAccount(
+      Cypress.env('CYPRESS_TEST_ACCOUNT_EMAIL').replace(
+        '@',
+        '+awaiting_admin_approval@'
+      ),
+      Cypress.env('CYPRESS_TEST_ACCOUNT_PASSWORD')
+    )
+  })
+
+  it('Visits the app landing page and sees prompt to contact admin, not graphviewer', () => {
+    cy.visit('/mgraph')
+    cy.get('body').contains('contact your administrator')
+    cy.get('.react-flow__controls-zoomin').should('not.exist')
+  })
+})
+
 describe('Graphviewer editing', () => {
   beforeEach(() => {
-    cy.loginWithTestAccount()
+    cy.loginWithTestAccount(
+      Cypress.env('CYPRESS_TEST_ACCOUNT_EMAIL'),
+      Cypress.env('CYPRESS_TEST_ACCOUNT_PASSWORD')
+    )
   })
 
   it('Adds a metric, tests undo and redo, adds a formula, then cancels additions', () => {
@@ -109,7 +172,10 @@ describe('Graphviewer editing', () => {
 
 describe('Metric detail viewing', () => {
   beforeEach(() => {
-    cy.loginWithTestAccount()
+    cy.loginWithTestAccount(
+      Cypress.env('CYPRESS_TEST_ACCOUNT_EMAIL'),
+      Cypress.env('CYPRESS_TEST_ACCOUNT_PASSWORD')
+    )
   })
 
   it('Visits and sees expected content on a metric detail page', () => {
@@ -127,7 +193,10 @@ describe('Metric detail viewing', () => {
 
 describe('Metric detail editing', () => {
   beforeEach(() => {
-    cy.loginWithTestAccount()
+    cy.loginWithTestAccount(
+      Cypress.env('CYPRESS_TEST_ACCOUNT_EMAIL'),
+      Cypress.env('CYPRESS_TEST_ACCOUNT_PASSWORD')
+    )
   })
 
   it('Visits a metric detail page, edits description, tests undo and redo, then cancels', () => {
