@@ -19,16 +19,9 @@
   align-items: center;
 }
 
-.workspace .header .user_info_container {
+.workspace .header .account_menu_container {
   display: flex;
   flex-direction: row;
   align-items: center;
-}
-
-.workspace .header .user_info_container .user_organization_logo_container {
-  flex-grow: 1;
-}
-
-.workspace .header .user_info_container .user_account_container {
-  flex-grow: 1;
+  margin-right: 12px;
 }

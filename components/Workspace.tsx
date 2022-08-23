@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import React, { FunctionComponent, ReactNode } from 'react'
 
-import Account from './Account'
+import AccountMenu from './AccountMenu'
 import { useAuth } from '../contexts/auth'
 import styles from '../styles/Workspace.module.css'
 
@@ -23,14 +23,8 @@ const Workspace: FunctionComponent<WorkspaceProps> = ({ children }) => {
         <div className={styles.mgraph_logo_container}>
           <h1>MGraph</h1>
         </div>
-        <div className={styles.user_info_container}>
-          <div className={styles.user_organization_logo_container}>
-            {userOrganizationName}
-          </div>
-          <p>&nbsp;&nbsp;&nbsp;</p>
-          <div className={styles.user_account_container}>
-            <Account />
-          </div>
+        <div className={styles.account_menu_container}>
+          <AccountMenu />
         </div>
       </div>
       {children}
