@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import React, { FunctionComponent, ReactNode } from 'react'
 
-import AccountMenu from './AccountMenu'
+import Header from './Header'
 import { useAuth } from '../contexts/auth'
 import styles from '../styles/Workspace.module.css'
 
@@ -19,14 +19,7 @@ const Workspace: FunctionComponent<WorkspaceProps> = ({ children }) => {
   return organizationName === userOrganizationName &&
     userOrganizationEnabled ? (
     <div className={styles.workspace}>
-      <div className={styles.header}>
-        <div className={styles.mgraph_logo_container}>
-          <h1>MGraph</h1>
-        </div>
-        <div className={styles.account_menu_container}>
-          <AccountMenu />
-        </div>
-      </div>
+      <Header/>
       {children}
     </div>
   ) : // show nothing if user is not authorized to view this organization
