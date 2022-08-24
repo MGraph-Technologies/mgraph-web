@@ -14,7 +14,7 @@ const AuthedUserRouter: FunctionComponent<Props> = () => {
     if (organizationName && organizationEnabled) {
       router.push(`/${organizationName}`)
     } else if (organizationName && !organizationEnabled) {
-      router.push(`/coming_soon`)
+      router.push(`/coming-soon`)
     }
   }, [organizationName, organizationEnabled, router])
   useEffect(() => {

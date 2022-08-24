@@ -32,7 +32,7 @@ describe('App landing page, authenticated as member of disabled org', () => {
 
   it('Visits the app landing page and is redirected to coming_soon', () => {
     cy.visit('/')
-    cy.url().should('include', '/coming_soon')
+    cy.url().should('include', '/coming-soon')
   })
 })
 
