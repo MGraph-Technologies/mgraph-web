@@ -273,9 +273,11 @@ describe('Admin settings', () => {
     )
   })
 
-  it('Visits access management page and sees expected things', () => {
+  it('Visits access management page and sees expected content', () => {
     cy.visit('/mgraph/settings/access-management')
-    cy.get('body').contains('Access Management')
+    cy.get('body').contains('Add Users')
+    cy.get('body').contains('Default role')
+    cy.get('body').contains('Edit Users')
     cy.get('body').contains('Role')
     cy.get('body').contains('Email')
   })
