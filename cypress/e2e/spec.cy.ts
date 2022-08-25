@@ -17,6 +17,13 @@ describe('App landing page, authenticated as member of enabled org', () => {
     cy.visit('/')
     cy.url().should('include', '/mgraph')
   })
+
+  it('Visits the app landing page, logs out, and is redirected', () => {
+    cy.visit('/')
+    cy.get('[id=account-menu-container]').click()
+    cy.get('[class=p-menuitem]').contains('Sign Out').click()
+    cy.location('pathname').should('eq', '/')
+  })
 })
 
 describe('App landing page, authenticated as member of disabled org', () => {
@@ -69,6 +76,14 @@ describe('Graphviewer viewing as admin', () => {
     cy.url().should('include', '/metrics/')
     cy.get('[id=back-to-graphviewer-button]').click()
     cy.url().should('include', '/mgraph')
+  })
+
+  it('Clicks through to access management page', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=account-menu-container]').click()
+    cy.wait(1000)
+    cy.get('[class=p-menuitem]').contains('Access Management').click()
+    cy.url().should('include', '/access-management')
   })
 })
 
@@ -247,6 +262,22 @@ describe('Metric detail editing', () => {
     cy.get('[id=save-button]').click()
     cy.wait(1000)
     cy.contains(newValue).should('exist')
+  })
+})
+
+describe('Admin settings', () => {
+  beforeEach(() => {
+    cy.loginWithTestAccount(
+      Cypress.env('CYPRESS_TEST_ACCOUNT_EMAIL'),
+      Cypress.env('CYPRESS_TEST_ACCOUNT_PASSWORD')
+    )
+  })
+
+  it('Visits access management page and sees expected things', () => {
+    cy.visit('/mgraph/settings/access-management')
+    cy.get('body').contains('Access Management')
+    cy.get('body').contains('Role')
+    cy.get('body').contains('Email')
   })
 })
 
