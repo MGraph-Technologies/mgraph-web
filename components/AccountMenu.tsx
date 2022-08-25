@@ -10,7 +10,7 @@ import { supabase } from '../utils/supabaseClient'
 type Props = {}
 
 const AccountMenu: FunctionComponent<Props> = () => {
-  const { session } = useAuth()
+  const { session, organizationName, userIsAdmin } = useAuth()
 
   const [userEmail, setUserEmail] = useState('')
   const [avatarChar, setAvatarChar] = useState('')
@@ -29,7 +29,8 @@ const AccountMenu: FunctionComponent<Props> = () => {
   }
 
   const overlayMenu = useRef<Menu>(null)
-  const overlayMenuItems = [
+  let overlayMenuItems = []
+  overlayMenuItems = [
     {
       label: userEmail,
       items: [
@@ -41,6 +42,21 @@ const AccountMenu: FunctionComponent<Props> = () => {
       ],
     },
   ]
+  if (userIsAdmin) {
+    overlayMenuItems = [
+      ...overlayMenuItems,
+      {
+        label: 'Admin Settings',
+        items: [
+          {
+            label: 'Access Management',
+            icon: 'pi pi-users',
+            command: () => router.push('/' + organizationName + '/settings/access-management'),
+          },
+        ],
+      },
+    ]
+  }
 
   return (
     <>
