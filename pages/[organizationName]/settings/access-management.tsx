@@ -152,14 +152,15 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
 
         if (data) {
           setOrgDefaultRoleName(
-            roles.find(role => role.id === data.default_role_id)?.name || 'error'
+            roles.find((role) => role.id === data.default_role_id)?.name ||
+              'error'
           )
         }
       } catch (error: any) {
         alert(error.message)
       }
     }
-  } , [organizationId, roles])
+  }, [organizationId, roles])
   useEffect(() => {
     populateOrgDefaultRoleName()
   }, [populateOrgDefaultRoleName])
@@ -185,9 +186,8 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
       } catch (error: any) {
         alert(error.message)
       } finally {
-        const newOrgDefaultRoleName = (
-          roles.find(role => role.id === roleId)?.name || 'error'
-        )
+        const newOrgDefaultRoleName =
+          roles.find((role) => role.id === roleId)?.name || 'error'
         setOrgDefaultRoleName(newOrgDefaultRoleName)
       }
     },
@@ -197,13 +197,11 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
   return (
     <Workspace>
       <div className={styles.access_management_container}>
-        <div className={styles.access_management_title}>
-          Access Management
-        </div>
+        <div className={styles.access_management_title}>Access Management</div>
         <h2>Add Users</h2>
         <p>
-          No need for invitations; anyone under your organization&apos;s domain can 
-          access MGraph via Google SSO - just share a link!
+          No need for invitations; anyone under your organization&apos;s domain
+          can access MGraph via Google SSO - just share a link!
         </p>
         <h3>Default role for new users:</h3>
         <Dropdown
@@ -230,8 +228,14 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
             filterDisplay="row"
             filters={{
-              'users.email': { value: null, matchMode: FilterMatchMode.CONTAINS },
-              'roles.name': { value: null, matchMode: FilterMatchMode.CONTAINS },
+              'users.email': {
+                value: null,
+                matchMode: FilterMatchMode.CONTAINS,
+              },
+              'roles.name': {
+                value: null,
+                matchMode: FilterMatchMode.CONTAINS,
+              },
             }}
             emptyMessage="No users found"
           >
