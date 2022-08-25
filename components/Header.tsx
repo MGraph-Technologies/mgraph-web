@@ -9,7 +9,9 @@ const Header: FunctionComponent<HeaderProps> = () => {
   return (
     <div className={styles.header}>
       <div className={styles.mgraph_logo_container}>
-        <h1><Link href='/'>MGraph</Link></h1>
+        <h1>
+          <Link href="/">MGraph</Link>
+        </h1>
       </div>
       <div className={styles.account_menu_container}>
         <AccountMenu />

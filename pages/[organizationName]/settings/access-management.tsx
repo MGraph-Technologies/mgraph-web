@@ -85,59 +85,58 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     populateRoles()
   }, [populateRoles])
 
-  const updateRole = useCallback(async (userId: string, roleId: string) => {
-    try {
-      setLoading(true)
-      let { error, status } = await supabase
-        .from('organization_members')
-        .update({
-          organization_id: organizationId,
-          user_id: userId,
-          role_id: roleId,
-        })
-        .match({
-          organization_id: organizationId,
-          user_id: userId,
-        })
-      
-      if (error) {
-        throw error
-      }
-      if (status !== 200) {
-        throw new Error('Update failed')
-      }
-    } catch (error: any) {
-      alert(error.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [organizationId])
+  const updateRole = useCallback(
+    async (userId: string, roleId: string) => {
+      try {
+        setLoading(true)
+        let { error, status } = await supabase
+          .from('organization_members')
+          .update({
+            organization_id: organizationId,
+            user_id: userId,
+            role_id: roleId,
+          })
+          .match({
+            organization_id: organizationId,
+            user_id: userId,
+          })
 
-  const tableHeader = (
-    <div className="table-header">
-        Access Management
-    </div>
+        if (error) {
+          throw error
+        }
+        if (status !== 200) {
+          throw new Error('Update failed')
+        }
+      } catch (error: any) {
+        alert(error.message)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [organizationId]
   )
 
+  const tableHeader = <div className="table-header">Access Management</div>
+
   const roleBodyTemplate = (rowData: any) => {
-      return (
-        <Dropdown
-          value={rowData.roles.name}
-          options={roles.map(r => r.name)}
-          onChange={(e) => {
-            const roleId = roles.find(r => r.name === e.value).id
-            updateRole(rowData.user_id, roleId)
-            let newRoles = users.map((user) => {
-              if (user.user_id === rowData.user_id) {
-                user.roles.name = e.value
-              }
-              return user
-            })
-            setUsers(newRoles)
-          }}
-          style={{ width: '100%' }}
-        />
-      )
+    return (
+      <Dropdown
+        value={rowData.roles.name}
+        options={roles.map((r) => r.name)}
+        onChange={(e) => {
+          const roleId = roles.find((r) => r.name === e.value).id
+          updateRole(rowData.user_id, roleId)
+          let newRoles = users.map((user) => {
+            if (user.user_id === rowData.user_id) {
+              user.roles.name = e.value
+            }
+            return user
+          })
+          setUsers(newRoles)
+        }}
+        style={{ width: '100%' }}
+      />
+    )
   }
 
   return (
@@ -146,11 +145,11 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         <DataTable
           paginator
           scrollable
-          className='p-datatable-users'
+          className="p-datatable-users"
           header={tableHeader}
           value={users}
           loading={loading}
-          scrollHeight='flex'
+          scrollHeight="flex"
           rows={10}
           paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
@@ -162,20 +161,20 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
           emptyMessage="No users found"
         >
           <Column
-            field='users.email'
-            header='Email'
+            field="users.email"
+            header="Email"
             sortable
             filter
-            filterPlaceholder='Search'
+            filterPlaceholder="Search"
             showFilterMenu={false}
           />
           <Column
-            field='roles.name'
-            header='Role'
+            field="roles.name"
+            header="Role"
             body={roleBodyTemplate}
             sortable
             filter
-            filterPlaceholder='Search'
+            filterPlaceholder="Search"
             showFilterMenu={false}
           />
         </DataTable>

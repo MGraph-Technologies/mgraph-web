@@ -51,7 +51,10 @@ const AccountMenu: FunctionComponent<Props> = () => {
           {
             label: 'Access Management',
             icon: 'pi pi-users',
-            command: () => router.push('/' + organizationName + '/settings/access-management'),
+            command: () =>
+              router.push(
+                '/' + organizationName + '/settings/access-management'
+              ),
           },
         ],
       },
@@ -61,7 +64,10 @@ const AccountMenu: FunctionComponent<Props> = () => {
   return (
     <>
       <Menu model={overlayMenuItems} popup ref={overlayMenu} />
-      <Avatar label={avatarChar} onClick={(event) => overlayMenu.current?.toggle(event)}/>
+      <Avatar
+        label={avatarChar}
+        onClick={(event) => overlayMenu.current?.toggle(event)}
+      />
     </>
   )
 }

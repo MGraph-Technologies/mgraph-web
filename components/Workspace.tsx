@@ -19,7 +19,7 @@ const Workspace: FunctionComponent<WorkspaceProps> = ({ children }) => {
   return organizationName === userOrganizationName &&
     userOrganizationEnabled ? (
     <div className={styles.workspace}>
-      <Header/>
+      <Header />
       {children}
     </div>
   ) : // show nothing if user is not authorized to view this organization
