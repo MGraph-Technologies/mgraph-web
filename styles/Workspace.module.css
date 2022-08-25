@@ -3,32 +3,3 @@
   display: flex;
   flex-direction: column;
 }
-
-.workspace .header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  background-color: #f5f5f5;
-}
-
-.workspace .header .mgraph_logo_container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.workspace .header .user_info_container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.workspace .header .user_info_container .user_organization_logo_container {
-  flex-grow: 1;
-}
-
-.workspace .header .user_info_container .user_account_container {
-  flex-grow: 1;
-}

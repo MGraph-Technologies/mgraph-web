@@ -16,6 +16,7 @@ type AuthContextType = {
   organizationId: string
   organizationName: string
   organizationEnabled: boolean
+  userIsAdmin: boolean
   userCanEdit: boolean
   userCanView: boolean
 }
@@ -25,6 +26,7 @@ const authContextTypeValues: AuthContextType = {
   organizationId: '',
   organizationName: '',
   organizationEnabled: false,
+  userIsAdmin: false,
   userCanEdit: false,
   userCanView: false,
 }
@@ -58,6 +60,7 @@ export function AuthProvider({ children }: AuthProps) {
   const [organizationId, setOrganizationId] = useState('')
   const [organizationName, setOrganizationName] = useState('')
   const [organizationEnabled, setOrganizationEnabled] = useState(false)
+  const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [userCanEdit, setUserCanEdit] = useState(false)
   const [userCanView, setUserCanView] = useState(false)
   const routeToOrganizationIfEnabled = useCallback(async () => {
@@ -78,8 +81,9 @@ export function AuthProvider({ children }: AuthProps) {
           setOrganizationId(data.organizations.id)
           setOrganizationName(data.organizations.name)
           setOrganizationEnabled(data.organizations.enabled)
-          const _userCanEdit =
-            data.roles.name === 'admin' || data.roles.name === 'editor'
+          const _userIsAdmin = data.roles.name === 'admin'
+          setUserIsAdmin(_userIsAdmin)
+          const _userCanEdit = _userIsAdmin || data.roles.name === 'editor'
           setUserCanEdit(_userCanEdit)
           setUserCanView(_userCanEdit || data.roles.name === 'viewer')
         }
@@ -97,6 +101,7 @@ export function AuthProvider({ children }: AuthProps) {
     organizationId,
     organizationName,
     organizationEnabled,
+    userIsAdmin,
     userCanEdit,
     userCanView,
   }
