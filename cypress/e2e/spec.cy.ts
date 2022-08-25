@@ -81,7 +81,6 @@ describe('Graphviewer viewing as admin', () => {
   it('Clicks through to access management page', () => {
     cy.visit('/mgraph')
     cy.get('[id=account-menu-container]').click()
-    cy.wait(1000)
     cy.get('[class=p-menuitem]').contains('Access Management').click()
     cy.url().should('include', '/access-management')
   })
