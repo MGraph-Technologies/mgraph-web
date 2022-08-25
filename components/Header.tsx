@@ -8,12 +8,15 @@ type HeaderProps = {}
 const Header: FunctionComponent<HeaderProps> = () => {
   return (
     <div className={styles.header}>
-      <div className={styles.mgraph_logo_container}>
+      <div id="mgraph-logo-container" className={styles.mgraph_logo_container}>
         <h1>
           <Link href="/">MGraph</Link>
         </h1>
       </div>
-      <div className={styles.account_menu_container}>
+      <div
+        id="account-menu-container"
+        className={styles.account_menu_container}
+      >
         <AccountMenu />
       </div>
     </div>
