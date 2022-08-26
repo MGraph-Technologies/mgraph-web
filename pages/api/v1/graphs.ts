@@ -7,7 +7,6 @@ import {
   PostgrestResponse,
   SupabaseClient,
 } from '@supabase/supabase-js'
-import { type } from 'cypress/types/jquery'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
