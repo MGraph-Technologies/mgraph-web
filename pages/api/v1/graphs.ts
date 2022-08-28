@@ -86,7 +86,7 @@ async function upsert(
   })
 
   console.log(
-    '\n\nop:',
+    '\nop:',
     op,
     '\nrecord type: ',
     recordType,
@@ -102,14 +102,16 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log('\n\nNew request...')
   const method = req.method
   if (method === 'PUT') {
+    const body = JSON.parse(req.body)
+    console.log('\nBody: ', body)
+    const { initialGraph, updatedGraph } = body
+    
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
     supabase.auth.setAuth(accessToken)
-
-    const body = JSON.parse(req.body)
-    const { initialGraph, updatedGraph } = body
 
     let upsertErrors: PostgrestError[] = []
 
@@ -239,7 +241,7 @@ export default async function handler(
       res.status(200).json({ success: true })
     }
   } else {
-    console.log('\n\nUnsupported method: ', method)
+    console.log('\nUnsupported method: ', method)
     res.status(405).json({ success: false, message: 'Method not allowed' })
   }
 }
