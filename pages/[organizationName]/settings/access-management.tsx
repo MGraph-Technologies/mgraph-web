@@ -77,8 +77,6 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
       } catch (error: any) {
         alert(error.message)
       }
-    } else {
-      console.log('No organizationId')
     }
   }, [organizationId])
   useEffect(() => {
