@@ -238,10 +238,10 @@ export default async function handler(
         .json({ success: false, message: 'Failed to upsert nodes' })
     } else {
       console.log('\nSuccess!')
-      res.status(200).json({ success: true })
+      res.status(200).json({})
     }
   } else {
     console.log('\nUnsupported method: ', method)
-    res.status(405).json({ success: false, message: 'Method not allowed' })
+    res.status(405).json({ error: 'Method not allowed' })
   }
 }
