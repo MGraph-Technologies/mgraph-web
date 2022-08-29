@@ -50,11 +50,11 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   const populateDetails = useCallback(() => {
     if (metricNode) {
-      setName(metricNode.data.name)
-      setDescription(metricNode.data.description)
-      setOwner(metricNode.data.owner)
-      setSourceCode(metricNode.data.sourceCode)
-      setSourceDatabaseConnectionId(metricNode.data.sourceDatabaseConnectionId)
+      setName(metricNode.data.name || '')
+      setDescription(metricNode.data.description || '')
+      setOwner(metricNode.data.owner || '')
+      setSourceCode(metricNode.data.sourceCode || '')
+      setSourceDatabaseConnectionId(metricNode.data.sourceDatabaseConnectionId || '')
     }
   }, [metricNode])
   useEffect(() => {
