@@ -17,7 +17,7 @@ async function upsert(
   supabase: SupabaseClient,
   accessToken: string
 ): Promise<PostgrestResponse<any>> {
-  const { user, error } = await supabase.auth.api.getUser(accessToken)
+  let { user, error } = await supabase.auth.api.getUser(accessToken)
   if (error) {
     throw error
   } else if (!user) {
@@ -124,7 +124,7 @@ export default async function handler(
         !initialNodes.find((initialNode) => initialNode.id === updatedNode.id)
     )
     if (addedNodes.length > 0) {
-      const { error: addedNodesError } = await upsert(
+      let { error: addedNodesError } = await upsert(
         addedNodes,
         'create',
         supabase,
@@ -142,7 +142,7 @@ export default async function handler(
       return initialNode && !_.isEqual(initialNode, updatedNode)
     })
     if (modifiedNodes.length > 0) {
-      const { error: modifiedNodesError } = await upsert(
+      let { error: modifiedNodesError } = await upsert(
         modifiedNodes,
         'update',
         supabase,
@@ -158,7 +158,7 @@ export default async function handler(
         !updatedNodes.find((updatedNode) => updatedNode.id === initialNode.id)
     )
     if (deletedNodes.length > 0) {
-      const { error: deletedNodesError } = await upsert(
+      let { error: deletedNodesError } = await upsert(
         deletedNodes,
         'delete',
         supabase,
@@ -178,7 +178,7 @@ export default async function handler(
         !initialEdges.find((initialEdge) => initialEdge.id === updatedEdge.id)
     )
     if (addedEdges.length > 0) {
-      const { error: addedEdgesError } = await upsert(
+      let { error: addedEdgesError } = await upsert(
         addedEdges,
         'create',
         supabase,
@@ -196,7 +196,7 @@ export default async function handler(
       return initialEdge && !_.isEqual(initialEdge, updatedEdge)
     })
     if (modifiedEdges.length > 0) {
-      const { error: modifiedEdgesError } = await upsert(
+      let { error: modifiedEdgesError } = await upsert(
         modifiedEdges,
         'update',
         supabase,
@@ -220,7 +220,7 @@ export default async function handler(
         )
     )
     if (deletedEdges.length > 0) {
-      const { error: deletedEdgesError } = await upsert(
+      let { error: deletedEdgesError } = await upsert(
         deletedEdges,
         'delete',
         supabase,

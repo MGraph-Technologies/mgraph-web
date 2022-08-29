@@ -63,7 +63,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
   const [symbol, setSymbol] = useState('')
   useEffect(() => {
     const populateSymbol = async () => {
-      const _symbol = await getFunctionSymbol(data.functionTypeId)
+      let _symbol = await getFunctionSymbol(data.functionTypeId)
       setSymbol(_symbol)
     }
     populateSymbol()

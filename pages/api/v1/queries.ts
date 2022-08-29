@@ -67,7 +67,7 @@ export default async function handler(
           exp: Math.floor(Date.now() / 1000) + (60 * 60),
         }
         const token = jwt.sign(signOptions,  privateKey, {algorithm:'RS256'})
-        const resp = await fetch('https://' + account + '.' + region + '.snowflakecomputing.com/api/v2/statements?async=true', {
+        let resp = await fetch('https://' + account + '.' + region + '.snowflakecomputing.com/api/v2/statements?async=true', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export default async function handler(
             "statement": statement
           })
         })
-        const respBody = await resp.json()
+        let respBody = await resp.json()
         
         const queryId = uuidv4()
         let { error } = await supabase

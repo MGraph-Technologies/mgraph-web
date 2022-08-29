@@ -11,7 +11,7 @@ const SignInButton: FunctionComponent<Props> = () => {
   const handleSignIn = async () => {
     try {
       setLoading(true)
-      const { error } = await supabase.auth.signIn({
+      let { error } = await supabase.auth.signIn({
         provider: 'google',
       })
       if (error) throw error

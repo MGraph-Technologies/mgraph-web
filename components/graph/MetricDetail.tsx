@@ -157,7 +157,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     async (str: string) => {
       const matches = str.match(functionTypeIdRegex)
       if (matches) {
-        const symbol = await getFunctionSymbol(matches[1])
+        let symbol = await getFunctionSymbol(matches[1])
         return str.replace(matches[0], symbol)
       } else {
         return str
