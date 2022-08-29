@@ -21,7 +21,8 @@ export type MetricNodeProperties = {
   name: string
   description: string
   owner: string
-  source: string
+  sourceCode: string
+  sourceDatabaseConnectionId: string
   color: string
   // below not in postgres
   initialProperties: object
