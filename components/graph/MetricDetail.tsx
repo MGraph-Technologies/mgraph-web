@@ -7,14 +7,14 @@ import { EditText, EditTextarea } from 'react-edit-text'
 import { Edge, Node } from 'react-flow-renderer'
 import 'react-edit-text/dist/index.css'
 
-import ControlPanel from './ControlPanel'
-import { getFunctionSymbol } from './FunctionNode'
 import { useEditability } from '../../contexts/editability'
 import { useAuth } from '../../contexts/auth'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricDetail.module.css'
 import { supabase } from '../../utils/supabaseClient'
+import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
+import { getFunctionSymbol } from './FunctionNode'
 
 type MetricDetailProps = {
   metricId: string | string[] | undefined

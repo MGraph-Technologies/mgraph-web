@@ -17,12 +17,12 @@ import ReactFlow, {
   useReactFlow,
 } from 'react-flow-renderer'
 
-import ControlPanel from './ControlPanel'
-import EditorDock from './editing/EditorDock'
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
 import styles from '../../styles/GraphViewer.module.css'
+import ControlPanel from './ControlPanel'
+import EditorDock from './editing/EditorDock'
 
 type GraphViewerProps = {}
 const GraphViewer: FunctionComponent<GraphViewerProps> = () => {

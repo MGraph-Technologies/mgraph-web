@@ -8,9 +8,9 @@ import { ColorResult } from 'react-color'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
 
-import NodeMenu from './NodeMenu'
 import styles from '../../styles/FunctionNode.module.css'
 import { supabase } from '../../utils/supabaseClient'
+import NodeMenu from './NodeMenu'
 
 export async function getFunctionSymbol(
   functionTypeId: string

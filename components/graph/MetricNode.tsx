@@ -10,9 +10,9 @@ import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
 
-import NodeMenu from './NodeMenu'
 import { useEditability } from '../../contexts/editability'
 import styles from '../../styles/MetricNode.module.css'
+import NodeMenu from './NodeMenu'
 
 export type MetricNodeProperties = {
   id: string

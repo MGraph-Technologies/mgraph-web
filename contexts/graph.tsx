@@ -12,7 +12,6 @@ import { Edge, Node, XYPosition } from 'react-flow-renderer'
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
-import { useAuth } from './auth'
 import FunctionNode, {
   FunctionNodeProperties,
 } from '../components/graph/FunctionNode'
@@ -21,6 +20,7 @@ import MetricNode, {
   MetricNodeProperties,
 } from '../components/graph/MetricNode'
 import { supabase } from '../utils/supabaseClient'
+import { useAuth } from './auth'
 
 export const nodeTypes = {
   metric: MetricNode,

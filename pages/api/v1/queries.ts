@@ -1,8 +1,8 @@
+import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 import CryptoJS from 'crypto-js'
 import jwt from 'jsonwebtoken'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { createClient } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

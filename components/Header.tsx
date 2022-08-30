@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { FunctionComponent } from 'react'
 
-import AccountMenu from './AccountMenu'
 import styles from '../styles/Header.module.css'
+import AccountMenu from './AccountMenu'
 
 type HeaderProps = {}
 const Header: FunctionComponent<HeaderProps> = () => {

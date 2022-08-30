@@ -1,12 +1,12 @@
-import _ from 'lodash'
-import { NextApiRequest, NextApiResponse } from 'next'
-import { Edge, Node } from 'react-flow-renderer'
 import {
   createClient,
   PostgrestError,
   PostgrestResponse,
   SupabaseClient,
 } from '@supabase/supabase-js'
+import _ from 'lodash'
+import { NextApiRequest, NextApiResponse } from 'next'
+import { Edge, Node } from 'react-flow-renderer'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
