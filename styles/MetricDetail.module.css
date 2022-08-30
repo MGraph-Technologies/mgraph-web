@@ -25,3 +25,7 @@
   z-index: 5;
   padding: 10px;
 }
+
+.metric_detail .editor_dock_spacer {
+  height: 10em;
+}

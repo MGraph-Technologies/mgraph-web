@@ -3,6 +3,7 @@ import React, { FunctionComponent } from 'react'
 
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
+import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/ControlPanel.module.css'
 import { analytics } from '../../utils/segmentClient'
 
@@ -10,6 +11,7 @@ type ControlPanelProps = {}
 const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
   const { userCanEdit } = useAuth()
   const { editingEnabled, enableEditing } = useEditability()
+  const { globalQueryRefreshes, setGlobalQueryRefreshes } = useGraph()
   if (editingEnabled) {
     return null
   } else {
@@ -20,6 +22,16 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
           className={styles.button}
           icon="pi pi-calendar"
           disabled={true} // TODO: activate
+        />
+        <Button
+          id="global-query-refresh-button"
+          className={styles.button}
+          icon="pi pi-refresh"
+          onClick={() => {
+            if (setGlobalQueryRefreshes) {
+              setGlobalQueryRefreshes(globalQueryRefreshes + 1)
+            }
+          }}
         />
         {userCanEdit ? (
           <Button

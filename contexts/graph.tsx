@@ -78,6 +78,8 @@ type GraphContextType = {
         calledFrom?: string
       ) => (Node<any> | Edge<any>)[])
     | undefined
+  globalQueryRefreshes: number,
+  setGlobalQueryRefreshes: Dispatch<SetStateAction<number>> | undefined,
 }
 
 const graphContextDefaultValues: GraphContextType = {
@@ -101,6 +103,8 @@ const graphContextDefaultValues: GraphContextType = {
   formFunctionNode: undefined,
   formInputEdge: undefined,
   getConnectedObjects: undefined,
+  globalQueryRefreshes: 0,
+  setGlobalQueryRefreshes: undefined,
 }
 
 const GraphContext = createContext<GraphContextType>(graphContextDefaultValues)
@@ -611,6 +615,8 @@ export function GraphProvider({ children }: GraphProps) {
     [graph]
   )
 
+  const [globalQueryRefreshes, setGlobalQueryRefreshes] = useState(0)
+
   const value = {
     initialGraph: initialGraph,
     graph: graph,
@@ -626,6 +632,8 @@ export function GraphProvider({ children }: GraphProps) {
     formFunctionNode: formFunctionNode,
     formInputEdge: formInputEdge,
     getConnectedObjects: getConnectedObjects,
+    globalQueryRefreshes: globalQueryRefreshes,
+    setGlobalQueryRefreshes: setGlobalQueryRefreshes,
   }
   return (
     <>

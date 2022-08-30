@@ -12,6 +12,7 @@ import { useAuth } from '../../contexts/auth'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricDetail.module.css'
 import { supabase } from '../../utils/supabaseClient'
+import QueryRunner from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import { getFunctionSymbol } from './FunctionNode'
@@ -34,6 +35,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [sourceCode, setSourceCode] = useState('')
   const [sourceDatabaseConnectionId, setSourceDatabaseConnectionId] = useState('')
   const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] = useState('')
+  const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
+  const [initialDetailPopulationComplete, setInitialDetailPopulationComplete] = useState(false)
 
   const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
 
@@ -50,12 +53,23 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   const populateDetails = useCallback(() => {
     if (metricNode) {
+      // execute source code on canceled change
+      // (we also execute on EditTextarea-saved change below)
+      if (initialDetailPopulationComplete
+          && (
+            metricNode.data.sourceCode !== sourceCode
+            || metricNode.data.sourceDatabaseConnectionId !== sourceDatabaseConnectionId
+          )) {
+        setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+      }
       setName(metricNode.data.name || '')
       setDescription(metricNode.data.description || '')
       setOwner(metricNode.data.owner || '')
       setSourceCode(metricNode.data.sourceCode || '')
       setSourceDatabaseConnectionId(metricNode.data.sourceDatabaseConnectionId || '')
+      setInitialDetailPopulationComplete(true)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metricNode])
   useEffect(() => {
     populateDetails()
@@ -271,6 +285,12 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         <ControlPanel />
       </div>
       <div className={styles.detail_field}>Chart TBA</div>
+      <QueryRunner
+        statement={sourceCode}
+        databaseConnectionId={sourceDatabaseConnectionId}
+        parentNodeId={metricNode ? metricNode.id : ''}
+        refreshes={queryRunnerRefreshes}
+      />
       <h2>Owner</h2>
       <EditText
         id="owner-field"
@@ -323,6 +343,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           if (newSourceDatabaseConnection) {
             setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
             saveDetail('sourceDatabaseConnectionId', newSourceDatabaseConnection.id)
+            setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
             // name updating handled by useEffect above
           }
         }}
@@ -338,12 +359,19 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         readonly={!editingEnabled}
         placeholder={editingEnabled ? 'Add...' : '-'}
         onChange={(e) => setSourceCode(e.target.value)}
-        onSave={({ value }) => saveDetail('sourceCode', value)}
+        onSave={({ value }) => {
+          setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+          saveDetail('sourceCode', value)
+        }}
       />
       {editingEnabled ? (
-        <div className={styles.editor_dock}>
-          <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
-        </div>
+        <>
+          <div className={styles.editor_dock}>
+            <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
+          </div>
+          {/* ensure final module can be seen underneath editor dock */}
+          <div className={styles.editor_dock_spacer}/> 
+        </>
       ) : null}
     </div>
   )
