@@ -56,6 +56,14 @@ const AccountMenu: FunctionComponent<Props> = () => {
                 '/' + organizationName + '/settings/access-management'
               ),
           },
+          {
+            label: 'Database Connections',
+            icon: 'pi pi-database',
+            command: () =>
+              router.push(
+                '/' + organizationName + '/settings/database-connections'
+              ),
+          }
         ],
       },
     ]

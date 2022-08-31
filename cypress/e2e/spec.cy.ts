@@ -84,6 +84,13 @@ describe('Graphviewer viewing as admin', () => {
     cy.get('[class=p-menuitem]').contains('Access Management').click()
     cy.url().should('include', '/access-management')
   })
+
+  it('Clicks through to database connections page', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=account-menu-container]').click()
+    cy.get('[class=p-menuitem]').contains('Database Connections').click()
+    cy.url().should('include', '/database-connections')
+  })
 })
 
 describe('Graphviewer viewing as viewer', () => {
@@ -279,6 +286,11 @@ describe('Admin settings', () => {
     cy.get('body').contains('Edit Users')
     cy.get('body').contains('Role')
     cy.get('body').contains('Email')
+  })
+
+  it('Visits database connections page and sees expected content', () => {
+    cy.visit('/mgraph/settings/database-connections')
+    cy.get('body').contains('please contact an MGraph team member')
   })
 })
 
