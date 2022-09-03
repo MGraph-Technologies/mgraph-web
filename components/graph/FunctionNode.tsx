@@ -25,6 +25,7 @@ export async function getFunctionSymbol(
       .from('function_types')
       .select('symbol')
       .eq('id', functionTypeId)
+      .is('deleted_at', null)
 
     if (error && status !== 406) {
       throw error

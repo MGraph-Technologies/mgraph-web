@@ -156,6 +156,7 @@ export function GraphProvider({ children }: GraphProps) {
       let { data, error, status } = await supabase
         .from('node_types')
         .select('name, id')
+        .is('deleted_at', null)
 
       if (error && status !== 406) {
         throw error
@@ -190,6 +191,7 @@ export function GraphProvider({ children }: GraphProps) {
       let { data, error, status } = await supabase
         .from('edge_types')
         .select('name, id')
+        .is('deleted_at', null)
 
       if (error && status !== 406) {
         throw error

@@ -37,6 +37,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
       let { data, error, status } = await supabase
         .from('function_types')
         .select('id, name, symbol')
+        .is('deleted_at', null)
 
       if (error && status !== 406) {
         throw error
