@@ -727,12 +727,13 @@ export function GraphProvider({ children }: GraphProps) {
               ...prev,
               [name]: qp,
             }))
+            setGlobalQueryRefreshes(globalQueryRefreshes + 1)
           })
       } catch (error: any) {
         alert(error.message)
       }
     }
-  }, [queryParameters, organizationId, session])
+  }, [queryParameters, organizationId, session, setGlobalQueryRefreshes, globalQueryRefreshes])
 
   const setQueryParameterUserValue = useCallback(async (name: string, value: string) => {
     let qp = queryParameters[name]
@@ -761,13 +762,14 @@ export function GraphProvider({ children }: GraphProps) {
                 ...prev,
                 [name]: qp,
               }))
+              setGlobalQueryRefreshes(globalQueryRefreshes + 1)
             })
         } catch (error: any) {
           alert(error.message)
         }
       }
     }
-  }, [queryParameters, resetQueryParameterUserValue, organizationId, session])
+  }, [queryParameters, resetQueryParameterUserValue, organizationId, session, setGlobalQueryRefreshes, globalQueryRefreshes])
 
   const setQueryParameterOrgDefaultValue = useCallback(async (name: string, value: string) => {
     let qp = queryParameters[name]
@@ -805,12 +807,13 @@ export function GraphProvider({ children }: GraphProps) {
               ...prev,
               [name]: qp,
             }))
+            setGlobalQueryRefreshes(globalQueryRefreshes + 1)
           })
       } catch (error: any) {
         alert(error.message)
       }
     }
-  }, [queryParameters, organizationId, session])
+  }, [queryParameters, organizationId, session, setGlobalQueryRefreshes, globalQueryRefreshes])
 
   const value = {
     initialGraph: initialGraph,
