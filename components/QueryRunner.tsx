@@ -16,17 +16,26 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   refreshes
 }) => {
   const { session } = useAuth()
-  const { globalQueryRefreshes } = useGraph()
+  const { globalQueryRefreshes, queryParameters } = useGraph()
 
   const executeQuery = useCallback(async () => {
     const accessToken = session?.access_token
     if (accessToken && databaseConnectionId && parentNodeId && statement) {
+      const parameterizedStatement = statement.replace(/{{(.*?)}}/g, (_match, p1) => {
+        const snakeCaseName = p1.toLowerCase().replace(/ /g, '_')
+        if (queryParameters[snakeCaseName]) {
+          return queryParameters[snakeCaseName].userValue
+        } else {
+          return '{{' + p1 + '}}'
+        }
+      })
+
       fetch('/api/v1/queries', {
         method: 'POST',
         body: JSON.stringify({
           databaseConnectionId: databaseConnectionId,
           parentNodeId: parentNodeId,
-          statement: statement
+          statement: parameterizedStatement
         }),
         headers: {
           'supabase-access-token': accessToken,
@@ -43,7 +52,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           alert(error.message)
         })
     }
-  }, [databaseConnectionId, parentNodeId, session, statement])
+  }, [databaseConnectionId, parentNodeId, session, statement, queryParameters])
   useEffect(() => {
     executeQuery()
   // eslint-disable-next-line react-hooks/exhaustive-deps
