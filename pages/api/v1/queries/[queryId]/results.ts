@@ -10,7 +10,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log('\n\nNew request...')
+  console.log('\n\nNew request to /api/v1/queries/[queryId]/results...')
   const method = req.method
   if (method === 'GET') {
     console.log('\nQuery: ', req.query)

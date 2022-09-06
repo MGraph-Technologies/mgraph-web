@@ -102,7 +102,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log('\n\nNew request...')
+  console.log('\n\nNew request to /api/v1/graphs')
   const method = req.method
   if (method === 'PUT') {
     const body = JSON.parse(req.body)
