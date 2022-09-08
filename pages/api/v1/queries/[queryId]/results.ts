@@ -67,9 +67,11 @@ export default async function handler(
           console.log('\nQuery successful, relaying results...')
           const columns = queryStatus.resultSetMetaData.rowType
           const rows = queryStatus.data
+          const executedAt = new Date(queryStatus.createdOn)
           res.status(200).json({
             'columns': columns,
-            'rows': rows
+            'rows': rows,
+            'executedAt': executedAt
           })
         } else if (queryStatusResp.status === 202) {
           console.log('\nQuery still processing')

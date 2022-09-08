@@ -4,6 +4,7 @@ import {
   LinearScale,
   LineElement,
   PointElement,
+  SubTitle,
   TimeScale,
   Tooltip,
 } from 'chart.js'
@@ -20,6 +21,7 @@ ChartJS.register(
   LinearScale,
   LineElement,
   PointElement,
+  SubTitle,
   TimeScale,
   Tooltip,
 )
@@ -129,6 +131,12 @@ const LineChart: FunctionComponent<LineChartProps> = ({
                 }
               },
               plugins: {
+                subtitle: {
+                  display: true,
+                  text: 'Last updated: ' + queryResult.data.executedAt,
+                  position: 'bottom',
+                  align: 'end',
+                },
                 legend: {
                   position: 'bottom' as const,
                 },

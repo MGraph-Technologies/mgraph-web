@@ -95,6 +95,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
                 data: {
                   columns: data.columns,
                   rows: data.rows,
+                  executedAt: data.executedAt,
                 },
               })
             })
