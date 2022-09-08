@@ -31,7 +31,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [description, setDescription] = useState('')
   const [inputs, setInputs] = useState('')
   const [outputs, setOutputs] = useState('')
-  const [owner, setOwner] = useState('') // TODO: make a graph object
+  const [owner, setOwner] = useState('')
   const [sourceCode, setSourceCode] = useState('')
   const [sourceDatabaseConnectionId, setSourceDatabaseConnectionId] = useState('')
   const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] = useState('')

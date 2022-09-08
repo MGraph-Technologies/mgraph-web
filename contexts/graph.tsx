@@ -221,7 +221,6 @@ export function GraphProvider({ children }: GraphProps) {
   const loadGraph = useCallback(async () => {
     if (organizationId) {
       try {
-        // TODO: loading animation
         let { data: nodesData, error: nodesError } = await supabase
           .from('nodes')
           .select('properties, react_flow_meta')

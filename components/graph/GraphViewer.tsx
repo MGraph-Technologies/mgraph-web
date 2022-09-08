@@ -111,7 +111,6 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
 
   // selecting any function node or input edge selects all connected others
   // right now this essentially insures that an editor can't partially delete a formula
-  // TODO: add formula editing
   const onSelect = useCallback(
     (nodeOrEdge: Node | Edge) => {
       if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {
