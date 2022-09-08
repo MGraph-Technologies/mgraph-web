@@ -4,30 +4,32 @@ import { useAuth } from '../contexts/auth'
 import { useGraph } from '../contexts/graph'
 import { supabase } from '../utils/supabaseClient'
 
+export type QueryResult = {
+  status: 'success' | 'processing' | 'expired' | 'error' | 'empty',
+  data: any | null,
+}
+
 type QueryRunnerProps = {
   statement: string
   databaseConnectionId: string
   parentNodeId: string,
-  refreshes: number // increment this number to force a refresh
+  refreshes: number, // increment this number to force a refresh
+  setQueryResult: (queryResult: QueryResult) => void,
 }
+/* TODO: it seems a little strange that this is a component, but it operates
+    entirely in background / on state and doesn't render anything. Should
+    either build confidence or refactor :) */
 const QueryRunner: FunctionComponent<QueryRunnerProps> = ({ 
   statement,
   databaseConnectionId,
   parentNodeId,
-  refreshes
+  refreshes,
+  setQueryResult,
 }) => {
   const { session } = useAuth()
   const { globalQueryRefreshes, queryParameters } = useGraph()
   const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
-  type QueryResult = {
-    status: 'success' | 'processing' | 'expired' | 'error',
-    data: object | null,
-  }
-  const [queryResult, setQueryResult] = useState<QueryResult>({ 
-    status: 'processing',
-    data: null
-  })
 
   const parameterizeStatement = useCallback(() => {
     return statement.replace(/{{(.*?)}}/g, (_match, p1) => {
@@ -76,26 +78,6 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     getQueryId()
   }, [getQueryId])
 
-  const checkColumnsStructure = (columns: any) => {
-    const snowflakeDateTypes = [
-      'DATE', 'TIMESTAMP', 'TIMESTAMP_NTZ', 'TIMESTAMP_LTZ', 'TIMESTAMP_TZ'
-    ]
-    const snowflakeStringTypes = [
-      'CHAR', 'CHARACTER', 'STRING', 'TEXT', 'VARCHAR'
-    ]
-    const snowflakeNumberTypes = [
-      'DECIMAL', 'DOUBLE', 'DOUBLE PRECISION', 'FIXED', 'FLOAT', 'FLOAT4', 'FLOAT8', 'INTEGER',
-      'NUMBER', 'NUMERIC', 'REAL'
-    ]
-    return (
-      columns && 
-      columns.length === 3 &&
-      snowflakeDateTypes.includes(columns[0].type.toUpperCase()) &&
-      snowflakeStringTypes.includes(columns[1].type.toUpperCase()) &&
-      snowflakeNumberTypes.includes(columns[2].type.toUpperCase())
-    )
-  }
-  
   const getQueryResult = useCallback(async () => {
     const accessToken = session?.access_token
     if (accessToken && queryId) {
@@ -108,24 +90,13 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         .then((response) => {
           if (response.status === 200) {
             response.json().then((data) => {
-              const columns = data.columns
-              const rows = data.rows
-              if (checkColumnsStructure(columns) && rows) {
-                setQueryResult({
-                  status: 'success',
-                  data: {
-                    rows: rows,
-                    columns: columns
-                  }
-                })
-              } else {
-                setQueryResult({
-                  status: 'error',
-                  data: {
-                    error: 'Invalid query result structure',
-                  },
-                })
-              }
+              setQueryResult({
+                status: 'success',
+                data: {
+                  columns: data.columns,
+                  rows: data.rows,
+                },
+              })
             })
           } else if (response.status === 202) {
             setQueryResult({
@@ -155,7 +126,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           alert(error.message)
         })
     }
-  }, [session, queryId])
+  }, [session, queryId, setQueryResult])
 
   useEffect(() => {
     getQueryResult()
@@ -194,24 +165,14 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           })
         })
     }
-  }, [session, databaseConnectionId, parentNodeId, parameterizeStatement])
+  }, [session, databaseConnectionId, parentNodeId, parameterizeStatement, setQueryResult])
 
   useEffect(() => {
     executeQuery()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshes, globalQueryRefreshes])
 
-  if (!statement) {
-    return <>Please add a query.</> // TODO: render the empty state
-  } else if (queryResult.status === 'success') {
-    return <>Success!</>
-  } else if (queryResult.status === 'processing') {
-    return <>Processing...</> // TODO: render the running indicator
-  } else if (queryResult.status === 'expired') {
-    return <>Expired...</> // TODO: render the expired indicator
-  } else {
-    return <>Error...</> // TODO: render the error indicator
-  }
+  return <></>
 }
 
 export default QueryRunner

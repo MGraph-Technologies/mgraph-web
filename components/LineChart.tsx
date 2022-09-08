@@ -1,0 +1,174 @@
+import {
+  Chart as ChartJS,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  TimeScale,
+  Tooltip,
+} from 'chart.js'
+import 'chartjs-adapter-moment'
+import { Message } from 'primereact/message'
+import { ProgressSpinner } from 'primereact/progressspinner'
+import { FunctionComponent, } from 'react'
+import { Line } from 'react-chartjs-2'
+
+import { QueryResult } from './QueryRunner'
+
+ChartJS.register(
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  TimeScale,
+  Tooltip,
+)
+
+type LineChartProps = {
+  queryResult: QueryResult
+}
+const LineChart: FunctionComponent<LineChartProps> = ({ 
+  queryResult
+}) => {
+
+  const checkColumnsStructure = (columns: any) => {
+    const snowflakeDateTypes = [
+      'DATE', 'TIMESTAMP', 'TIMESTAMP_NTZ', 'TIMESTAMP_LTZ', 'TIMESTAMP_TZ'
+    ]
+    const snowflakeStringTypes = [
+      'CHAR', 'CHARACTER', 'STRING', 'TEXT', 'VARCHAR'
+    ]
+    const snowflakeNumberTypes = [
+      'DECIMAL', 'DOUBLE', 'DOUBLE PRECISION', 'FIXED', 'FLOAT', 'FLOAT4', 'FLOAT8', 'INTEGER',
+      'NUMBER', 'NUMERIC', 'REAL'
+    ]
+    return (
+      columns && 
+      columns.length === 3 &&
+      snowflakeDateTypes.includes(columns[0].type.toUpperCase()) &&
+      snowflakeStringTypes.includes(columns[1].type.toUpperCase()) &&
+      snowflakeNumberTypes.includes(columns[2].type.toUpperCase())
+    )
+  }
+
+  const makeChartJsDatasets = (columns: any[], rows: any[]) => {
+    let datasets: { 
+      label: any
+      data: { x: Date; y: any }[]
+      backgroundColor: string
+      borderColor: string
+      borderWidth: number
+    }[] = []
+    const SERIESCOLORS = [
+      "#6466e9", // violet
+      "#00635D", // green
+      "#FFC800", // yellow
+      "#DA7422", // orange
+      "#E84855", // red
+      "#787878", // grey
+    ]
+    const dimensions = Array.from(
+      new Set( rows.map((row: any) => row[1]) )
+    )
+    dimensions.forEach((dimension, index) => {
+      const data = rows.filter((row: any) => row[1] === dimension)
+      datasets.push({
+        label: dimension,
+        data: data.map((row: any) => ({
+          x: snowflakeDateToJsDate(row[0], columns[0].type),
+          y: row[2]
+        })),
+        backgroundColor: SERIESCOLORS[index % SERIESCOLORS.length],
+        borderColor: SERIESCOLORS[index % SERIESCOLORS.length],
+        borderWidth: 1,
+      })
+    })
+    return datasets
+  }
+
+  const snowflakeDateToJsDate = (snowflakeDate: string, snowflakeDateType: string) => {
+    let secondsSinceEpoch = 0
+    if (snowflakeDateType.toUpperCase() === 'DATE') {
+      const daysSinceEpoch = parseInt(snowflakeDate)
+      secondsSinceEpoch = daysSinceEpoch * 24 * 60 * 60
+    } else {
+      secondsSinceEpoch = Number(snowflakeDate)
+    }
+    return new Date(secondsSinceEpoch * 1000)
+  }
+  
+  const centerStyle = {
+    margin: 'auto',
+    width: '100%',
+  }
+  switch (queryResult.status) {
+    case 'success':
+      if (!queryResult.data ||
+          !queryResult.data.columns ||
+          !queryResult.data.rows ||
+          !checkColumnsStructure(queryResult.data.columns)) {
+        return (
+          <Message 
+            severity="error"
+            text='Query result should be of format date | dimension | value.'
+            style={centerStyle}
+          />
+        )
+      } else {
+        const dataset = makeChartJsDatasets(queryResult.data.columns, queryResult.data.rows)
+        return <>
+          <Line 
+            data={{
+              datasets: dataset
+            }}
+            options={{
+              responsive: true,
+              scales: {
+                x: {
+                  type: 'time',
+                }
+              },
+              plugins: {
+                legend: {
+                  position: 'bottom' as const,
+                },
+              },
+            }}
+          />
+        </>
+      }
+    case 'processing':
+      return (
+        <ProgressSpinner 
+          style={centerStyle}
+          strokeWidth="4"
+        />
+      )
+    case 'expired':
+      return (
+        <Message 
+          severity="info"
+          text="Query result has expired; refresh query to view chart."
+          style={centerStyle}
+        />
+      )
+    case 'error':
+      return (
+        <Message 
+          severity="error"
+          text={queryResult.data.error || 'An error occurred.'}
+          style={centerStyle}
+        />
+      )
+    case 'empty':
+      return (
+        <Message 
+          severity="info"
+          text="Define source code and database to view chart."
+          style={centerStyle}
+        />
+      )
+  }
+}
+
+export default LineChart

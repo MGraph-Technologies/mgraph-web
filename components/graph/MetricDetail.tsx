@@ -12,7 +12,8 @@ import { useAuth } from '../../contexts/auth'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricDetail.module.css'
 import { supabase } from '../../utils/supabaseClient'
-import QueryRunner from '../QueryRunner'
+import LineChart from '../LineChart'
+import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import { getFunctionSymbol } from './FunctionNode'
@@ -23,6 +24,7 @@ type MetricDetailProps = {
 const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const router = useRouter()
   const { organizationId, organizationName } = useAuth()
+  const { editingEnabled } = useEditability()
 
   const { graph, getConnectedObjects } = useGraph()
   const [metricNode, setMetricNode] = useState<Node | undefined>(undefined)
@@ -40,7 +42,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
 
-  const { editingEnabled } = useEditability()
+  const [queryResult, setQueryResult] = useState<QueryResult>({
+    status: 'processing',
+    data: null,
+  })
 
   const populateMetricNode = useCallback(() => {
     if (metricId) {
@@ -65,8 +70,16 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       setName(metricNode.data.name || '')
       setDescription(metricNode.data.description || '')
       setOwner(metricNode.data.owner || '')
-      setSourceCode(metricNode.data.sourceCode || '')
-      setSourceDatabaseConnectionId(metricNode.data.sourceDatabaseConnectionId || '')
+      const _sourceCode = metricNode.data.sourceCode || ''
+      setSourceCode(_sourceCode)
+      const _sourceDatabaseConnectionId = metricNode.data.sourceDatabaseConnectionId || ''
+      setSourceDatabaseConnectionId(_sourceDatabaseConnectionId)
+      if (!_sourceCode || !_sourceDatabaseConnectionId) {
+        setQueryResult({
+          status: 'empty',
+          data: null,
+        })
+      }
       setInitialDetailPopulationComplete(true)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -284,13 +297,14 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         </h1>
         <ControlPanel />
       </div>
-      <div className={styles.detail_field}>Chart TBA</div>
       <QueryRunner
         statement={sourceCode}
         databaseConnectionId={sourceDatabaseConnectionId}
         parentNodeId={metricNode ? metricNode.id : ''}
         refreshes={queryRunnerRefreshes}
+        setQueryResult={setQueryResult}
       />
+      <LineChart queryResult={queryResult} />
       <h2>Owner</h2>
       <EditText
         id="owner-field"

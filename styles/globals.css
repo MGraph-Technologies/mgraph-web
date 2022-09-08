@@ -14,3 +14,20 @@ a {
 * {
   box-sizing: border-box;
 }
+
+@keyframes p-progress-spinner-color {
+  100%,
+  0% {
+      stroke: #6466e9;
+  }
+  40% {
+      stroke: #6466e9;
+  }
+  66% {
+      stroke: #6466e9;
+  }
+  80%,
+  90% {
+      stroke: #6466e9;
+  }
+}
