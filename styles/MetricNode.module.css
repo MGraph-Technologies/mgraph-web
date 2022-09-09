@@ -1,6 +1,6 @@
 .metric_node {
-  height: 9em;
-  width: 16em;
+  height: 18em;
+  width: 32em;
   padding: 5px;
   border-radius: 5px;
 }
@@ -29,4 +29,14 @@
   right: 0px;
   display: flex;
   flex-direction: row;
+}
+
+.metric_node .chart_container {
+  height: auto;
+  width: auto;
+  position: absolute;
+  top: 3em;
+  right: 1em;
+  bottom: 1em;
+  left: 1em;
 }

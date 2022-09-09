@@ -34,7 +34,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
       {!editingEnabled && linkTo ? (
         <Button
           id="link-to-detail-button"
-          className="p-button-text"
+          className="p-button-text p-button-lg"
           icon="pi pi-angle-right"
           onClick={() => {
             router.push(linkTo)
@@ -45,7 +45,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
         <>
           <Button
             id="expand-node-menu-button"
-            className="p-button-text"
+            className="p-button-text p-button-lg"
             icon="pi pi-ellipsis-v"
             onClick={() => setDisplayColorPicker(true)}
           />
@@ -59,7 +59,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
           />
           <Button
             id="cancel-node-coloring-button"
-            className="p-button-text"
+            className="p-button-text p-button-lg"
             icon="pi pi-times"
             onClick={() => setDisplayColorPicker(false)}
           />

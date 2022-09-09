@@ -9,6 +9,12 @@
   margin-bottom: 1rem;
 }
 
+.metric_detail .chart_container {
+  height: 20em;
+  width: 80%;
+  margin: auto;
+}
+
 .metric_detail .detail_field {
   background-color: #ffffff;
 }

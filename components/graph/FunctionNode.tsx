@@ -97,7 +97,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
           <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
         </div>
       </div>
-      <div className={styles.symbol}>{symbol}</div>
+      <div className={styles.symbol}><h1>{symbol}</h1></div>
       <Handle
         type="source"
         id="top_source"

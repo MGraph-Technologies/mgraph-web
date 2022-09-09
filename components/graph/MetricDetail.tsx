@@ -297,14 +297,16 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         </h1>
         <ControlPanel />
       </div>
-      <QueryRunner
-        statement={sourceCode}
-        databaseConnectionId={sourceDatabaseConnectionId}
-        parentNodeId={metricNode ? metricNode.id : ''}
-        refreshes={queryRunnerRefreshes}
-        setQueryResult={setQueryResult}
-      />
-      <LineChart queryResult={queryResult} />
+      <div className={styles.chart_container}>
+        <QueryRunner
+          statement={sourceCode}
+          databaseConnectionId={sourceDatabaseConnectionId}
+          parentNodeId={metricNode ? metricNode.id : ''}
+          refreshes={queryRunnerRefreshes}
+          setQueryResult={setQueryResult}
+        />
+        <LineChart queryResult={queryResult} />
+      </div>
       <h2>Owner</h2>
       <EditText
         id="owner-field"

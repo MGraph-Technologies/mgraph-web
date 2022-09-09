@@ -12,6 +12,8 @@ import { Handle, Position } from 'react-flow-renderer'
 
 import { useEditability } from '../../contexts/editability'
 import styles from '../../styles/MetricNode.module.css'
+import LineChart from '../LineChart'
+import QueryRunner, { QueryResult } from '../QueryRunner'
 import NodeMenu from './NodeMenu'
 
 export type MetricNodeProperties = {
@@ -63,6 +65,11 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
     [data]
   )
 
+  const [queryResult, setQueryResult] = useState<QueryResult>({
+    status: (!data.sourceCode || !data.sourceDatabaseConnectionId) ? 'empty' : 'processing',
+    data: null,
+  })
+
   return (
     <div
       className={styles.metric_node}
@@ -73,17 +80,19 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
     >
       <div className={styles.header}>
         <div className={styles.name}>
-          <EditText
-            value={name}
-            readonly={!editingEnabled}
-            style={
-              editingEnabled
-                ? { backgroundColor: '#eee' }
-                : { backgroundColor: color }
-            }
-            onChange={(e) => setName(e.target.value)}
-            onSave={saveName}
-          />
+          <h1>
+            <EditText
+              value={name}
+              readonly={!editingEnabled}
+              style={
+                editingEnabled
+                  ? { backgroundColor: '#eee' }
+                  : { backgroundColor: color }
+              }
+              onChange={(e) => setName(e.target.value)}
+              onSave={saveName}
+            />
+          </h1>
         </div>
         <div className={styles.buttons}>
           <NodeMenu
@@ -94,6 +103,16 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
           />
         </div>
       </div>
+      <div className={styles.chart_container}>
+          <QueryRunner
+            statement={data.sourceCode}
+            databaseConnectionId={data.sourceDatabaseConnectionId}
+            parentNodeId={data.id}
+            refreshes={0}
+            setQueryResult={setQueryResult}
+          />
+          <LineChart queryResult={queryResult} />
+        </div>
       <Handle
         type="source"
         id="top_source"

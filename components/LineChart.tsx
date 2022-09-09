@@ -125,6 +125,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
             }}
             options={{
               responsive: true,
+              maintainAspectRatio: false,
               scales: {
                 x: {
                   type: 'time',
