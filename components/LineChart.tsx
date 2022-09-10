@@ -11,10 +11,11 @@ import {
 import 'chartjs-adapter-moment'
 import { Message } from 'primereact/message'
 import { ProgressSpinner } from 'primereact/progressspinner'
-import { FunctionComponent, } from 'react'
+import { FunctionComponent, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 
 import { QueryResult } from './QueryRunner'
+import styles from '../styles/LineChart.module.css'
 
 ChartJS.register(
   Legend,
@@ -32,6 +33,7 @@ type LineChartProps = {
 const LineChart: FunctionComponent<LineChartProps> = ({ 
   queryResult
 }) => {
+  const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
   const checkColumnsStructure = (columns: any) => {
     const snowflakeDateTypes = [
@@ -74,6 +76,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     )
     dimensions.forEach((dimension, index) => {
       const data = rows.filter((row: any) => row[1] === dimension)
+      data.sort((a: any, b: any) => a[0] - b[0]) // sort by date
       datasets.push({
         label: dimension,
         data: data.map((row: any) => ({
@@ -117,38 +120,57 @@ const LineChart: FunctionComponent<LineChartProps> = ({
           />
         )
       } else {
-        const dataset = makeChartJsDatasets(queryResult.data.columns, queryResult.data.rows)
+        const datasets = makeChartJsDatasets(queryResult.data.columns, queryResult.data.rows)
+        const numberToOverlay = (
+          datasets.length === 1 ?
+          Number(datasets[0].data[datasets[0].data.length - 1].y) :
+          null
+        )
+        const numberToOverlayString = numberToOverlay !== null ? (
+          numberToOverlay >= 1000 ? numberToOverlay.toLocaleString() :numberToOverlay.toString()
+        ) : null
         return <>
-          <Line 
-            data={{
-              datasets: dataset
-            }}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: {
-                  type: 'time',
-                }
-              },
-              plugins: {
-                subtitle: {
-                  display: true,
-                  text: 'Last updated: ' + queryResult.data.executedAt,
-                  position: 'bottom',
-                  align: 'end',
+          <div
+            className={styles.chart_container}
+            onMouseEnter={() => setShowNumberOverlay(false)}
+            onMouseLeave={() => setShowNumberOverlay(true)}
+          >
+            {showNumberOverlay && numberToOverlayString ? ( // show number overlay if only one series
+              <div className={styles.number_overlay}>
+                <h1>{numberToOverlayString}</h1>
+              </div>
+            ) : null}
+            <Line
+              data={{
+                datasets: datasets
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  x: {
+                    type: 'time',
+                  }
                 },
-                legend: {
-                  position: 'bottom' as const,
+                plugins: {
+                  subtitle: {
+                    display: true,
+                    text: 'Last updated: ' + queryResult.data.executedAt,
+                    position: 'bottom',
+                    align: 'end',
+                  },
+                  legend: {
+                    position: 'bottom' as const,
+                  },
                 },
-              },
-            }}
-          />
+              }}
+            />
+          </div>
         </>
       }
     case 'processing':
       return (
-        <ProgressSpinner 
+        <ProgressSpinner
           style={centerStyle}
           strokeWidth="4"
         />

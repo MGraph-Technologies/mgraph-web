@@ -10,6 +10,7 @@
 }
 
 .metric_detail .chart_container {
+  position: relative;
   height: 20em;
   width: 80%;
   margin: auto;
