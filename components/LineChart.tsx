@@ -127,7 +127,9 @@ const LineChart: FunctionComponent<LineChartProps> = ({
           null
         )
         const numberToOverlayString = numberToOverlay !== null ? (
-          numberToOverlay >= 1000 ? numberToOverlay.toLocaleString() :numberToOverlay.toString()
+          numberToOverlay >= 1000 ?
+          numberToOverlay.toLocaleString().slice(0, 17) :
+          numberToOverlay.toString().slice(0, 17)
         ) : null
         return <>
           <div
