@@ -170,10 +170,12 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       }
     case 'processing':
       return (
-        <ProgressSpinner
-          style={centerStyle}
-          strokeWidth="4"
-        />
+        <div className={styles.progress_spinner_container}>
+          <ProgressSpinner
+            style={centerStyle}
+            strokeWidth="4"
+          />
+        </div>
       )
     case 'expired':
       return (
