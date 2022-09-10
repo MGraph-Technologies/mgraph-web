@@ -169,10 +169,12 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   }, [session, databaseConnectionId, parentNodeId, parameterizeStatement, setQueryResult])
 
   useEffect(() => {
-    executeQuery()
+    if (refreshes > 0 || globalQueryRefreshes > 0) {
+      executeQuery()
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshes, globalQueryRefreshes])
-
+}, [refreshes, globalQueryRefreshes])
+  
   return <></>
 }
 
