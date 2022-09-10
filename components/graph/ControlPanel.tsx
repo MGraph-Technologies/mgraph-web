@@ -54,6 +54,10 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
               setUserValue(e.target.value)
             }}
             onSave={({ value }) => {
+              analytics.track('set_query_parameter', {
+                parameter: snakeCaseName,
+                value: value,
+              })
               setQueryParameterUserValue!(snakeCaseName, value)
             }}
             style={{ width: '200px', border: '1px solid #ccc' }}
@@ -65,6 +69,9 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
               label="Reset"
               className="p-button-rounded p-button-text p-button-sm"
               onClick={() => {
+                analytics.track('reset_query_parameter', {
+                  parameter: snakeCaseName,
+                })
                 resetQueryParameterUserValue!(snakeCaseName)
               }}
             />
@@ -73,6 +80,10 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
                 label="Set Default"
                 className="p-button-rounded p-button-text p-button-sm"
                 onClick={() => {
+                  analytics.track('set_query_parameter_org_default', {
+                    parameter: snakeCaseName,
+                    value: userValue,
+                  })
                   setQueryParameterOrgDefaultValue!(snakeCaseName, userValue)
                 }}
               />
@@ -95,6 +106,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
           className={styles.button}
           icon="pi pi-cog"
           onClick={(event) => {
+            analytics.track('view_query_settings')
             overlayPanel.current?.toggle(event)
           }}
         />
@@ -104,6 +116,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
           icon="pi pi-refresh"
           onClick={() => {
             if (setGlobalQueryRefreshes) {
+              analytics.track('refresh_queries')
               setGlobalQueryRefreshes(globalQueryRefreshes + 1)
             }
           }}

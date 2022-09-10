@@ -2,6 +2,7 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../contexts/auth'
 import { useGraph } from '../contexts/graph'
+import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
 export type QueryResult = {
@@ -88,6 +89,10 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         },
       })
         .then((response) => {
+          analytics.track('got_query_result', {
+            query_id: queryId,
+            status: response.status,
+          })
           if (response.status === 200) {
             response.json().then((data) => {
               setQueryResult({
@@ -136,13 +141,15 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   const executeQuery = useCallback(async () => {
     const accessToken = session?.access_token
     if (accessToken && parentNodeId && databaseConnectionId) {
+      const queryBody = {
+        databaseConnectionId: databaseConnectionId,
+        parentNodeId: parentNodeId,
+        statement: parameterizeStatement(),
+      }
+      analytics.track('executed_query', queryBody)
       fetch('/api/v1/queries', {
         method: 'POST',
-        body: JSON.stringify({
-          databaseConnectionId: databaseConnectionId,
-          parentNodeId: parentNodeId,
-          statement: parameterizeStatement(),
-        }),
+        body: JSON.stringify(queryBody),
         headers: {
           'supabase-access-token': accessToken,
         },
