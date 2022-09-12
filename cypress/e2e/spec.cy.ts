@@ -232,7 +232,7 @@ describe('Metric detail editing', () => {
     const newValue = Math.random().toString(36)
     cy.get('[id=description-field').click()
     cy.get('textarea').clear().type(newValue).parent().click() // click outside of textarea to save
-    cy.contains(newValue).should('be.visible')
+    cy.contains(newValue).should('exist')
 
     // undo
     cy.get('[id=undo-button]').click()
@@ -242,7 +242,7 @@ describe('Metric detail editing', () => {
     // redo
     cy.get('[id=redo-button]').click()
     cy.wait(1000)
-    cy.contains(newValue).should('be.visible')
+    cy.contains(newValue).should('exist')
 
     // cancel
     cy.get('[id=cancel-button]').click()
@@ -262,7 +262,7 @@ describe('Metric detail editing', () => {
     const newValue = Math.random().toString(36)
     cy.get('[id=description-field').click()
     cy.get('textarea').clear().type(newValue).parent().click()
-    cy.contains(newValue).should('be.visible')
+    cy.contains(newValue).should('exist')
 
     // save
     cy.get('[id=save-button]').click()
