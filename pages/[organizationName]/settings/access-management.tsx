@@ -106,13 +106,13 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         }
       } catch (error: any) {
         analytics.track('update_user_role_error', {
-          message: error.message
+          message: error.message,
         })
         alert(error.message)
       } finally {
         analytics.track('update_user_role', {
           user_id: userId,
-          role_id: roleId
+          role_id: roleId,
         })
         setUsersTableLoading(false)
       }
@@ -191,12 +191,12 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         }
       } catch (error: any) {
         analytics.track('update_org_default_role_error', {
-          message: error.message
+          message: error.message,
         })
         alert(error.message)
       } finally {
         analytics.track('update_org_default_role', {
-          role_id: roleId
+          role_id: roleId,
         })
         const newOrgDefaultRoleName =
           roles.find((role) => role.id === roleId)?.name || 'error'

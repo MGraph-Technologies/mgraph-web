@@ -63,7 +63,7 @@ const AccountMenu: FunctionComponent<Props> = () => {
               router.push(
                 '/' + organizationName + '/settings/database-connections'
               ),
-          }
+          },
         ],
       },
     ]

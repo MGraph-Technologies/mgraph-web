@@ -24,7 +24,9 @@ export default async function handler(
     try {
       let { data, error, status } = await supabase
         .from('database_connections')
-        .select('encrypted_credentials, organizations (id, created_at), database_connection_types (name)')
+        .select(
+          'encrypted_credentials, organizations (id, created_at), database_connection_types (name)'
+        )
         .eq('id', databaseConnectionId)
         .is('deleted_at', null)
         .single()
@@ -35,52 +37,70 @@ export default async function handler(
 
       if (data) {
         if (!(data.database_connection_types.name === 'snowflake')) {
-          throw new Error('We only support snowflake database connections at this time.')
-        }
-        const { region, account, username, privateKeyString, privateKeyPassphrase } = 
-          decryptCredentials(
-            data.encrypted_credentials,
-            data.organizations.id,
-            data.organizations.created_at
+          throw new Error(
+            'We only support snowflake database connections at this time.'
           )
+        }
+        const {
+          region,
+          account,
+          username,
+          privateKeyString,
+          privateKeyPassphrase,
+        } = decryptCredentials(
+          data.encrypted_credentials,
+          data.organizations.id,
+          data.organizations.created_at
+        )
         const token = makeToken(
           account,
           username,
           privateKeyString,
           privateKeyPassphrase
         )
-        
-        let resp = await fetch('https://' + account + '.' + region + '.snowflakecomputing.com/api/v2/statements?async=true', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token,
-            'Accept': 'application/json',
-            'User-Agent': 'MGraph/1.0',
-            'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT'
-          },
-          body: JSON.stringify({
-            "statement": statement
-          })
-        })
+
+        let resp = await fetch(
+          'https://' +
+            account +
+            '.' +
+            region +
+            '.snowflakecomputing.com/api/v2/statements?async=true',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + token,
+              Accept: 'application/json',
+              'User-Agent': 'MGraph/1.0',
+              'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT',
+            },
+            body: JSON.stringify({
+              statement: statement,
+            }),
+          }
+        )
         let respBody = await resp.json()
-        
+
         const queryId = uuidv4()
-        let { error } = await supabase
-          .from('database_queries')
-          .insert({
-            id: queryId,
-            database_connection_id: databaseConnectionId,
-            parent_node_id: parentNodeId,
-            statement: statement,
-            result_url: 'https://' + account + '.' + region + '.snowflakecomputing.com' + respBody.statementStatusUrl
-          })
+        let { error } = await supabase.from('database_queries').insert({
+          id: queryId,
+          database_connection_id: databaseConnectionId,
+          parent_node_id: parentNodeId,
+          statement: statement,
+          result_url:
+            'https://' +
+            account +
+            '.' +
+            region +
+            '.snowflakecomputing.com' +
+            respBody.statementStatusUrl,
+        })
         if (error) {
           throw error
         }
         console.log('\nQuery ID: ', queryId)
         res.status(200).json({
-          queryId: queryId
+          queryId: queryId,
         })
       } else {
         const errorMessage = 'Database connection not found'
@@ -92,7 +112,7 @@ export default async function handler(
     } catch (error: any) {
       console.log('\nError: ', error.message)
       res.status(500).json({
-        error: error.message
+        error: error.message,
       })
     }
   } else {

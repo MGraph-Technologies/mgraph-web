@@ -66,7 +66,10 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
   )
 
   const [queryResult, setQueryResult] = useState<QueryResult>({
-    status: (!data.sourceCode || !data.sourceDatabaseConnectionId) ? 'empty' : 'processing',
+    status:
+      !data.sourceCode || !data.sourceDatabaseConnectionId
+        ? 'empty'
+        : 'processing',
     data: null,
   })
 
@@ -104,15 +107,15 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
         </div>
       </div>
       <div className={styles.chart_container}>
-          <QueryRunner
-            statement={data.sourceCode}
-            databaseConnectionId={data.sourceDatabaseConnectionId}
-            parentNodeId={data.id}
-            refreshes={0}
-            setQueryResult={setQueryResult}
-          />
-          <LineChart queryResult={queryResult} />
-        </div>
+        <QueryRunner
+          statement={data.sourceCode}
+          databaseConnectionId={data.sourceDatabaseConnectionId}
+          parentNodeId={data.id}
+          refreshes={0}
+          setQueryResult={setQueryResult}
+        />
+        <LineChart queryResult={queryResult} />
+      </div>
       <Handle
         type="source"
         id="top_source"

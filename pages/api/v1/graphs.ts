@@ -108,7 +108,7 @@ export default async function handler(
     const body = JSON.parse(req.body)
     console.log('\nBody: ', body)
     const { initialGraph, updatedGraph } = body
-    
+
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
     supabase.auth.setAuth(accessToken)

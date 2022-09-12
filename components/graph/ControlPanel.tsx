@@ -1,6 +1,12 @@
 import { Button } from 'primereact/button'
 import { OverlayPanel } from 'primereact/overlaypanel'
-import React, { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react'
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { EditText } from 'react-edit-text'
 
 import { useAuth } from '../../contexts/auth'
@@ -26,7 +32,9 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
   type QueryParameterFieldProps = {
     titleCaseName: string
   }
-  const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({ titleCaseName }) => {
+  const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
+    titleCaseName,
+  }) => {
     const snakeCaseName = titleCaseName.toLowerCase().replace(/ /g, '_')
     const [userValue, setUserValue] = useState('')
     const [orgDefaultValue, setOrgDefaultValue] = useState('')
@@ -38,7 +46,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
       } else {
         initializeQueryParameter!(snakeCaseName)
       }
-    } , [snakeCaseName])
+    }, [snakeCaseName])
     useEffect(() => {
       populateParameter()
     }, [populateParameter])
@@ -46,7 +54,9 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
     return (
       <div className={styles.query_parameter}>
         <span>
-          <b><label htmlFor={snakeCaseName + '-field'}>{titleCaseName}</label></b>
+          <b>
+            <label htmlFor={snakeCaseName + '-field'}>{titleCaseName}</label>
+          </b>
           <EditText
             id={snakeCaseName + '-field'}
             value={userValue}
@@ -95,7 +105,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
       </div>
     )
   }
-  
+
   const overlayPanel = useRef<OverlayPanel>(null)
 
   if (editingEnabled) {
@@ -134,14 +144,11 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
             }}
           />
         ) : null}
-        <OverlayPanel
-          id="query-parameters-overlay"
-          ref={overlayPanel}
-          >
-            <QueryParameterField titleCaseName='Beginning Date' />
-            <QueryParameterField titleCaseName='Ending Date' />
-            <QueryParameterField titleCaseName='Frequency' />
-            <QueryParameterField titleCaseName='Group By' />
+        <OverlayPanel id="query-parameters-overlay" ref={overlayPanel}>
+          <QueryParameterField titleCaseName="Beginning Date" />
+          <QueryParameterField titleCaseName="Ending Date" />
+          <QueryParameterField titleCaseName="Frequency" />
+          <QueryParameterField titleCaseName="Group By" />
         </OverlayPanel>
       </div>
     )

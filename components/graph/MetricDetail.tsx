@@ -35,10 +35,13 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [outputs, setOutputs] = useState('')
   const [owner, setOwner] = useState('')
   const [sourceCode, setSourceCode] = useState('')
-  const [sourceDatabaseConnectionId, setSourceDatabaseConnectionId] = useState('')
-  const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] = useState('')
+  const [sourceDatabaseConnectionId, setSourceDatabaseConnectionId] =
+    useState('')
+  const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] =
+    useState('')
   const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
-  const [initialDetailPopulationComplete, setInitialDetailPopulationComplete] = useState(false)
+  const [initialDetailPopulationComplete, setInitialDetailPopulationComplete] =
+    useState(false)
 
   const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
 
@@ -60,11 +63,12 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     if (metricNode) {
       // execute source code on canceled change
       // (we also execute on EditTextarea-saved change below)
-      if (initialDetailPopulationComplete
-          && (
-            metricNode.data.sourceCode !== sourceCode
-            || metricNode.data.sourceDatabaseConnectionId !== sourceDatabaseConnectionId
-          )) {
+      if (
+        initialDetailPopulationComplete &&
+        (metricNode.data.sourceCode !== sourceCode ||
+          metricNode.data.sourceDatabaseConnectionId !==
+            sourceDatabaseConnectionId)
+      ) {
         setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
       }
       setName(metricNode.data.name || '')
@@ -72,7 +76,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       setOwner(metricNode.data.owner || '')
       const _sourceCode = metricNode.data.sourceCode || ''
       setSourceCode(_sourceCode)
-      const _sourceDatabaseConnectionId = metricNode.data.sourceDatabaseConnectionId || ''
+      const _sourceDatabaseConnectionId =
+        metricNode.data.sourceDatabaseConnectionId || ''
       setSourceDatabaseConnectionId(_sourceDatabaseConnectionId)
       if (!_sourceCode || !_sourceDatabaseConnectionId) {
         setQueryResult({
@@ -82,7 +87,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       }
       setInitialDetailPopulationComplete(true)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metricNode])
   useEffect(() => {
     populateDetails()
@@ -223,7 +228,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     },
     [metricNode]
   )
-  
+
   const populateDatabaseConnections = useCallback(async () => {
     if (organizationId) {
       try {
@@ -259,14 +264,19 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   }, [populateDatabaseConnections])
   useEffect(() => {
     const sourceDatabaseConnection = databaseConnections.find(
-      (databaseConnection) => databaseConnection.id === sourceDatabaseConnectionId
+      (databaseConnection) =>
+        databaseConnection.id === sourceDatabaseConnectionId
     )
     if (sourceDatabaseConnection) {
       setSourceDatabaseConnectionName(sourceDatabaseConnection.name)
     } else {
       setSourceDatabaseConnectionName('')
     }
-  }, [sourceDatabaseConnectionId, databaseConnections, setSourceDatabaseConnectionName])
+  }, [
+    sourceDatabaseConnectionId,
+    databaseConnections,
+    setSourceDatabaseConnectionName,
+  ])
 
   return (
     <div className={styles.metric_detail}>
@@ -358,7 +368,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           )
           if (newSourceDatabaseConnection) {
             setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
-            saveDetail('sourceDatabaseConnectionId', newSourceDatabaseConnection.id)
+            saveDetail(
+              'sourceDatabaseConnectionId',
+              newSourceDatabaseConnection.id
+            )
             setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
             // name updating handled by useEffect above
           }
@@ -386,7 +399,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
           </div>
           {/* ensure final module can be seen underneath editor dock */}
-          <div className={styles.editor_dock_spacer}/> 
+          <div className={styles.editor_dock_spacer} />
         </>
       ) : null}
     </div>

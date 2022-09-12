@@ -6,21 +6,21 @@ import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
 export type QueryResult = {
-  status: 'success' | 'processing' | 'expired' | 'error' | 'empty',
-  data: any | null,
+  status: 'success' | 'processing' | 'expired' | 'error' | 'empty'
+  data: any | null
 }
 
 type QueryRunnerProps = {
   statement: string
   databaseConnectionId: string
-  parentNodeId: string,
-  refreshes: number, // increment this number to force a refresh
-  setQueryResult: (queryResult: QueryResult) => void,
+  parentNodeId: string
+  refreshes: number // increment this number to force a refresh
+  setQueryResult: (queryResult: QueryResult) => void
 }
 /* TODO: it seems a little strange that this is a component, but it operates
     entirely in background / on state and doesn't render anything. Should
     either build confidence or refactor :) */
-const QueryRunner: FunctionComponent<QueryRunnerProps> = ({ 
+const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   statement,
   databaseConnectionId,
   parentNodeId,
@@ -74,7 +74,14 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         alert(error.message)
       }
     }
-  }, [getQueryIdComplete, session, parentNodeId, databaseConnectionId, statement, parameterizeStatement])
+  }, [
+    getQueryIdComplete,
+    session,
+    parentNodeId,
+    databaseConnectionId,
+    statement,
+    parameterizeStatement,
+  ])
   useEffect(() => {
     getQueryId()
   }, [getQueryId])
@@ -173,15 +180,21 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           })
         })
     }
-  }, [session, databaseConnectionId, parentNodeId, parameterizeStatement, setQueryResult])
+  }, [
+    session,
+    databaseConnectionId,
+    parentNodeId,
+    parameterizeStatement,
+    setQueryResult,
+  ])
 
   useEffect(() => {
     if (refreshes > 0 || globalQueryRefreshes > 0) {
       executeQuery()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [refreshes, globalQueryRefreshes])
-  
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshes, globalQueryRefreshes])
+
   return <></>
 }
 

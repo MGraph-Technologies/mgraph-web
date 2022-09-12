@@ -13,9 +13,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
           <Link href="/">MGraph</Link>
         </h1>
       </div>
-      <div
-        className={styles.account_menu_container}
-      >
+      <div className={styles.account_menu_container}>
         <AccountMenu />
       </div>
     </div>

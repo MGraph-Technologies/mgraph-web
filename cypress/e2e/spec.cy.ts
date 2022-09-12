@@ -279,7 +279,9 @@ describe('Metric detail editing', () => {
 
     // see results
     cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
-    cy.get('[class*=LineChart_chart_container]').contains(randomInt.toLocaleString()).should('exist')
+    cy.get('[class*=LineChart_chart_container]')
+      .contains(randomInt.toLocaleString())
+      .should('exist')
     // TODO: test chartjs canvas (this is just the number overlay)
   })
 
@@ -299,11 +301,15 @@ describe('Metric detail editing', () => {
 
     // see results on metric detail page
     cy.reload()
-    cy.get('[class*=LineChart_chart_container]').contains(randomInt.toLocaleString()).should('exist')
+    cy.get('[class*=LineChart_chart_container]')
+      .contains(randomInt.toLocaleString())
+      .should('exist')
 
     // see results on metric graph page
     cy.visit('/mgraph')
-    cy.get('[class*=LineChart_chart_container]').contains(randomInt.toLocaleString()).should('exist')
+    cy.get('[class*=LineChart_chart_container]')
+      .contains(randomInt.toLocaleString())
+      .should('exist')
   })
 
   it('Visits a metric detail page, enters a failing query, then sees error', () => {
@@ -319,8 +325,9 @@ describe('Metric detail editing', () => {
     cy.get('textarea').clear().type(newQuery).parent().click()
 
     // see results
-    cy.get('[class*=MetricDetail_chart_container]').contains('invalid identifier').should('exist')
-    
+    cy.get('[class*=MetricDetail_chart_container]')
+      .contains('invalid identifier')
+      .should('exist')
   })
 
   it('Visits a metric detail page, enters a working but wrong-format query, then sees error', () => {
@@ -336,8 +343,9 @@ describe('Metric detail editing', () => {
     cy.get('textarea').clear().type(newQuery).parent().click()
 
     // see results
-    cy.get('[class*=MetricDetail_chart_container]').contains('format').should('exist')
-    
+    cy.get('[class*=MetricDetail_chart_container]')
+      .contains('format')
+      .should('exist')
   })
 
   // TODO: test processing and expired states
@@ -353,7 +361,11 @@ describe('Metric detail editing', () => {
     const randomGroupBy = Math.random().toString(36)
     cy.get('[id=query-settings-button]').click()
     cy.get('[id=group_by-field').click()
-    cy.get('[id=group_by-field]').clear().type("'" + randomGroupBy + "'").parent().click()
+    cy.get('[id=group_by-field]')
+      .clear()
+      .type("'" + randomGroupBy + "'")
+      .parent()
+      .click()
 
     // see that parameter persists
     cy.reload()
@@ -370,11 +382,15 @@ describe('Metric detail editing', () => {
     cy.get('[id=query-settings-button]').click()
     cy.get('[id=group_by-field').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
-    
+
     // set a new group_by parameter
     const randomGroupBy2 = Math.random().toString(36)
     cy.get('[id=group_by-field').click()
-    cy.get('[id=group_by-field]').clear().type("'" + randomGroupBy2 + "'").parent().click()
+    cy.get('[id=group_by-field]')
+      .clear()
+      .type("'" + randomGroupBy2 + "'")
+      .parent()
+      .click()
 
     // see that new parameter persists
     cy.reload()
@@ -404,20 +420,32 @@ describe('Metric detail editing', () => {
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
     cy.wait(1000)
-  
+
     // set parameters
     cy.get('[id=query-settings-button]').click()
     cy.get('[id=beginning_date-field').click()
-    cy.get('[id=beginning_date-field]').clear().type("CURRENT_DATE - INTERVAL '90 DAY'").parent().click()
+    cy.get('[id=beginning_date-field]')
+      .clear()
+      .type("CURRENT_DATE - INTERVAL '90 DAY'")
+      .parent()
+      .click()
     cy.get('[id=ending_date-field').click()
-    cy.get('[id=ending_date-field]').clear().type("CURRENT_DATE").parent().click()
+    cy.get('[id=ending_date-field]')
+      .clear()
+      .type('CURRENT_DATE')
+      .parent()
+      .click()
     cy.get('[id=frequency-field').click()
-    cy.get('[id=frequency-field]').clear().type("WEEK").parent().click()
+    cy.get('[id=frequency-field]').clear().type('WEEK').parent().click()
     const randomGroupBy = Math.random().toString(36)
     cy.get('[id=group_by-field').click()
-    cy.get('[id=group_by-field]').clear().type("'" + randomGroupBy + "'").parent().click()
+    cy.get('[id=group_by-field]')
+      .clear()
+      .type("'" + randomGroupBy + "'")
+      .parent()
+      .click()
     cy.get('[id=query-settings-button]').click()
-  
+
     // begin editing
     cy.get('[id=edit-button]').click()
 
@@ -436,11 +464,17 @@ describe('Metric detail editing', () => {
         ${randomInt}
     `
     cy.get('[id=source-code-field').click()
-    cy.get('textarea').clear().type(newQuery, {parseSpecialCharSequences: false}).parent().click()
+    cy.get('textarea')
+      .clear()
+      .type(newQuery, { parseSpecialCharSequences: false })
+      .parent()
+      .click()
 
     // see results
     cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
-    cy.get('[class*=LineChart_chart_container]').contains(randomInt.toLocaleString()).should('exist')
+    cy.get('[class*=LineChart_chart_container]')
+      .contains(randomInt.toLocaleString())
+      .should('exist')
   })
 })
 

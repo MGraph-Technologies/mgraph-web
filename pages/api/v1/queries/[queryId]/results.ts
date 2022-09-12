@@ -1,7 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 
-import { decryptCredentials, makeToken } from '../../../../../utils/snowflakeCrypto'
+import {
+  decryptCredentials,
+  makeToken,
+} from '../../../../../utils/snowflakeCrypto'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -22,13 +25,15 @@ export default async function handler(
     try {
       let { data, error, status } = await supabase
         .from('database_queries')
-        .select(`
+        .select(
+          `
           result_url,
           database_connections (
             encrypted_credentials,
             organizations (id, created_at))'
           )
-        `)
+        `
+        )
         .eq('id', queryId)
         .is('deleted_at', null)
         .single()
@@ -38,11 +43,12 @@ export default async function handler(
       }
 
       if (data) {
-        const { account, username, privateKeyString, privateKeyPassphrase } = decryptCredentials(
-          data.database_connections.encrypted_credentials,
-          data.database_connections.organizations.id,
-          data.database_connections.organizations.created_at
-        )
+        const { account, username, privateKeyString, privateKeyPassphrase } =
+          decryptCredentials(
+            data.database_connections.encrypted_credentials,
+            data.database_connections.organizations.id,
+            data.database_connections.organizations.created_at
+          )
         const token = makeToken(
           account,
           username,
@@ -54,14 +60,14 @@ export default async function handler(
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token,
-            'Accept': 'application/json',
+            Authorization: 'Bearer ' + token,
+            Accept: 'application/json',
             'User-Agent': 'MGraph/1.0',
-            'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT'
-          }
+            'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT',
+          },
         })
         console.log('\nQuery status resp: ', queryStatusResp)
-        
+
         const queryStatus = await queryStatusResp.json()
         if (queryStatusResp.status === 200) {
           console.log('\nQuery successful, relaying results...')
@@ -69,9 +75,9 @@ export default async function handler(
           const rows = queryStatus.data
           const executedAt = new Date(queryStatus.createdOn)
           res.status(200).json({
-            'columns': columns,
-            'rows': rows,
-            'executedAt': executedAt
+            columns: columns,
+            rows: rows,
+            executedAt: executedAt,
           })
         } else if (queryStatusResp.status === 202) {
           console.log('\nQuery still processing')
@@ -80,12 +86,12 @@ export default async function handler(
           if (queryStatus.message === 'Result not found') {
             console.log('\nQuery expired')
             res.status(410).json({
-              error: 'Results expired'
+              error: 'Results expired',
             })
           } else {
             console.log('\nQuery failed')
             res.status(422).json({
-              error: queryStatus.message
+              error: queryStatus.message,
             })
           }
         } else {
@@ -102,7 +108,7 @@ export default async function handler(
     } catch (error: any) {
       console.log('\nError: ', error.message)
       res.status(500).json({
-        error: error.message
+        error: error.message,
       })
     }
   } else {

@@ -24,30 +24,45 @@ ChartJS.register(
   PointElement,
   SubTitle,
   TimeScale,
-  Tooltip,
+  Tooltip
 )
 
 type LineChartProps = {
   queryResult: QueryResult
 }
-const LineChart: FunctionComponent<LineChartProps> = ({ 
-  queryResult
-}) => {
+const LineChart: FunctionComponent<LineChartProps> = ({ queryResult }) => {
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
   const checkColumnsStructure = (columns: any) => {
     const snowflakeDateTypes = [
-      'DATE', 'TIMESTAMP', 'TIMESTAMP_NTZ', 'TIMESTAMP_LTZ', 'TIMESTAMP_TZ'
+      'DATE',
+      'TIMESTAMP',
+      'TIMESTAMP_NTZ',
+      'TIMESTAMP_LTZ',
+      'TIMESTAMP_TZ',
     ]
     const snowflakeStringTypes = [
-      'CHAR', 'CHARACTER', 'STRING', 'TEXT', 'VARCHAR'
+      'CHAR',
+      'CHARACTER',
+      'STRING',
+      'TEXT',
+      'VARCHAR',
     ]
     const snowflakeNumberTypes = [
-      'DECIMAL', 'DOUBLE', 'DOUBLE PRECISION', 'FIXED', 'FLOAT', 'FLOAT4', 'FLOAT8', 'INTEGER',
-      'NUMBER', 'NUMERIC', 'REAL'
+      'DECIMAL',
+      'DOUBLE',
+      'DOUBLE PRECISION',
+      'FIXED',
+      'FLOAT',
+      'FLOAT4',
+      'FLOAT8',
+      'INTEGER',
+      'NUMBER',
+      'NUMERIC',
+      'REAL',
     ]
     return (
-      columns && 
+      columns &&
       columns.length === 3 &&
       snowflakeDateTypes.includes(columns[0].type.toUpperCase()) &&
       snowflakeStringTypes.includes(columns[1].type.toUpperCase()) &&
@@ -56,7 +71,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   }
 
   const makeChartJsDatasets = (columns: any[], rows: any[]) => {
-    let datasets: { 
+    let datasets: {
       label: any
       data: { x: Date; y: any }[]
       backgroundColor: string
@@ -64,16 +79,14 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       borderWidth: number
     }[] = []
     const SERIESCOLORS = [
-      "#6466e9", // violet
-      "#00635D", // green
-      "#FFC800", // yellow
-      "#DA7422", // orange
-      "#E84855", // red
-      "#787878", // grey
+      '#6466e9', // violet
+      '#00635D', // green
+      '#FFC800', // yellow
+      '#DA7422', // orange
+      '#E84855', // red
+      '#787878', // grey
     ]
-    const dimensions = Array.from(
-      new Set( rows.map((row: any) => row[1]) )
-    )
+    const dimensions = Array.from(new Set(rows.map((row: any) => row[1])))
     dimensions.forEach((dimension, index) => {
       const data = rows.filter((row: any) => row[1] === dimension)
       data.sort((a: any, b: any) => a[0] - b[0]) // sort by date
@@ -81,7 +94,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         label: dimension,
         data: data.map((row: any) => ({
           x: snowflakeDateToJsDate(row[0], columns[0].type),
-          y: row[2]
+          y: row[2],
         })),
         backgroundColor: SERIESCOLORS[index % SERIESCOLORS.length],
         borderColor: SERIESCOLORS[index % SERIESCOLORS.length],
@@ -91,7 +104,10 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     return datasets
   }
 
-  const snowflakeDateToJsDate = (snowflakeDate: string, snowflakeDateType: string) => {
+  const snowflakeDateToJsDate = (
+    snowflakeDate: string,
+    snowflakeDateType: string
+  ) => {
     let secondsSinceEpoch = 0
     if (snowflakeDateType.toUpperCase() === 'DATE') {
       const daysSinceEpoch = parseInt(snowflakeDate)
@@ -101,87 +117,91 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     }
     return new Date(secondsSinceEpoch * 1000)
   }
-  
+
   const centerStyle = {
     margin: 'auto',
     width: '100%',
   }
   switch (queryResult.status) {
     case 'success':
-      if (!queryResult.data ||
-          !queryResult.data.columns ||
-          !queryResult.data.rows ||
-          !checkColumnsStructure(queryResult.data.columns)) {
+      if (
+        !queryResult.data ||
+        !queryResult.data.columns ||
+        !queryResult.data.rows ||
+        !checkColumnsStructure(queryResult.data.columns)
+      ) {
         return (
-          <Message 
+          <Message
             severity="error"
-            text='Query result should be of format date | dimension | value.'
+            text="Query result should be of format date | dimension | value."
             style={centerStyle}
           />
         )
       } else {
-        const datasets = makeChartJsDatasets(queryResult.data.columns, queryResult.data.rows)
-        const numberToOverlay = (
-          datasets.length === 1 ?
-          Number(datasets[0].data[datasets[0].data.length - 1].y) :
-          null
+        const datasets = makeChartJsDatasets(
+          queryResult.data.columns,
+          queryResult.data.rows
         )
-        const numberToOverlayString = numberToOverlay !== null ? (
-          numberToOverlay >= 1000 ?
-          numberToOverlay.toLocaleString().slice(0, 17) :
-          numberToOverlay.toString().slice(0, 17)
-        ) : null
-        return <>
-          <div
-            className={styles.chart_container}
-            onMouseEnter={() => setShowNumberOverlay(false)}
-            onMouseLeave={() => setShowNumberOverlay(true)}
-          >
-            {showNumberOverlay && numberToOverlayString ? ( // show number overlay if only one series
-              <div className={styles.number_overlay}>
-                <h1>{numberToOverlayString}</h1>
-              </div>
-            ) : null}
-            <Line
-              data={{
-                datasets: datasets
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  x: {
-                    type: 'time',
-                  }
-                },
-                plugins: {
-                  subtitle: {
-                    display: true,
-                    text: 'Last updated: ' + queryResult.data.executedAt,
-                    position: 'bottom',
-                    align: 'end',
+        const numberToOverlay =
+          datasets.length === 1
+            ? Number(datasets[0].data[datasets[0].data.length - 1].y)
+            : null
+        const numberToOverlayString =
+          numberToOverlay !== null
+            ? numberToOverlay >= 1000
+              ? numberToOverlay.toLocaleString().slice(0, 17)
+              : numberToOverlay.toString().slice(0, 17)
+            : null
+        return (
+          <>
+            <div
+              className={styles.chart_container}
+              onMouseEnter={() => setShowNumberOverlay(false)}
+              onMouseLeave={() => setShowNumberOverlay(true)}
+            >
+              {showNumberOverlay && numberToOverlayString ? ( // show number overlay if only one series
+                <div className={styles.number_overlay}>
+                  <h1>{numberToOverlayString}</h1>
+                </div>
+              ) : null}
+              <Line
+                data={{
+                  datasets: datasets,
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: {
+                      type: 'time',
+                    },
                   },
-                  legend: {
-                    position: 'bottom' as const,
+                  plugins: {
+                    subtitle: {
+                      display: true,
+                      text: 'Last updated: ' + queryResult.data.executedAt,
+                      position: 'bottom',
+                      align: 'end',
+                    },
+                    legend: {
+                      position: 'bottom' as const,
+                    },
                   },
-                },
-              }}
-            />
-          </div>
-        </>
+                }}
+              />
+            </div>
+          </>
+        )
       }
     case 'processing':
       return (
         <div className={styles.progress_spinner_container}>
-          <ProgressSpinner
-            style={centerStyle}
-            strokeWidth="4"
-          />
+          <ProgressSpinner style={centerStyle} strokeWidth="4" />
         </div>
       )
     case 'expired':
       return (
-        <Message 
+        <Message
           severity="info"
           text="Query result has expired; refresh query to view chart."
           style={centerStyle}
@@ -189,7 +209,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       )
     case 'error':
       return (
-        <Message 
+        <Message
           severity="error"
           text={queryResult.data.error || 'An error occurred.'}
           style={centerStyle}
@@ -197,7 +217,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       )
     case 'empty':
       return (
-        <Message 
+        <Message
           severity="info"
           text="Define source code and database to view chart."
           style={centerStyle}

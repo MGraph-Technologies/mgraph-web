@@ -84,15 +84,19 @@ type GraphContextType = {
         calledFrom?: string
       ) => (Node<any> | Edge<any>)[])
     | undefined
-  globalQueryRefreshes: number,
-  setGlobalQueryRefreshes: Dispatch<SetStateAction<number>> | undefined,
+  globalQueryRefreshes: number
+  setGlobalQueryRefreshes: Dispatch<SetStateAction<number>> | undefined
   queryParameters: {
     [name: string]: QueryParameterValues
   }
   initializeQueryParameter: ((name: string) => void) | undefined
   resetQueryParameterUserValue: ((name: string) => Promise<void>) | undefined
-  setQueryParameterUserValue: ((name: string, value: string) => Promise<void>) | undefined
-  setQueryParameterOrgDefaultValue: ((name: string, value: string) => Promise<void>) | undefined
+  setQueryParameterUserValue:
+    | ((name: string, value: string) => Promise<void>)
+    | undefined
+  setQueryParameterOrgDefaultValue:
+    | ((name: string, value: string) => Promise<void>)
+    | undefined
 }
 
 const graphContextDefaultValues: GraphContextType = {
@@ -255,7 +259,8 @@ export function GraphProvider({ children }: GraphProps) {
                 description: parsedProperties.description,
                 owner: parsedProperties.owner,
                 sourceCode: parsedProperties.sourceCode,
-                sourceDatabaseConnectionId: parsedProperties.sourceDatabaseConnectionId,
+                sourceDatabaseConnectionId:
+                  parsedProperties.sourceDatabaseConnectionId,
                 color: parsedProperties.color,
                 initialProperties: parsedProperties,
                 setNodeDataToChange: setNodeDataToChange,
@@ -636,8 +641,10 @@ export function GraphProvider({ children }: GraphProps) {
 
   const [globalQueryRefreshes, setGlobalQueryRefreshes] = useState(0)
 
-  const [queryParameters, setQueryParameters] = useState<{[name: string]: QueryParameterValues}>({})
-  
+  const [queryParameters, setQueryParameters] = useState<{
+    [name: string]: QueryParameterValues
+  }>({})
+
   const initializeQueryParameter = (name: string) => {
     setQueryParameters((prev) => ({
       ...prev,
@@ -646,7 +653,7 @@ export function GraphProvider({ children }: GraphProps) {
         userValue: '',
         orgDefaultRecordId: uuidv4(),
         orgDefaultValue: '',
-      }
+      },
     }))
   }
 
@@ -657,13 +664,13 @@ export function GraphProvider({ children }: GraphProps) {
           .from('database_query_parameters')
           .select('id, user_id, name, value, deleted_at')
           // rls limits to records from user's org where user_id is user's or null
-          .order('created_at', { 'ascending': true })
-          // in rare case of multiple org defaults, use first one
-  
+          .order('created_at', { ascending: true })
+        // in rare case of multiple org defaults, use first one
+
         if (error && status !== 406) {
           throw error
         }
-  
+
         if (data) {
           // initializing record ids enables upserts to work (idempotently) if there's no existing pg record
           const names = data.map((row) => row.name)
@@ -678,17 +685,19 @@ export function GraphProvider({ children }: GraphProps) {
                   userValue: row.deleted_at === null ? row.value : '',
                   orgDefaultRecordId: prev[row.name].orgDefaultRecordId,
                   orgDefaultValue: prev[row.name].orgDefaultValue,
-                }
+                },
               }))
             } else {
               setQueryParameters((prev) => ({
                 ...prev,
                 [row.name]: {
                   userRecordId: prev[row.name].userRecordId,
-                  userValue: prev[row.name].userValue ? prev[row.name].userValue : row.value,
+                  userValue: prev[row.name].userValue
+                    ? prev[row.name].userValue
+                    : row.value,
                   orgDefaultRecordId: row.id,
                   orgDefaultValue: row.value,
-                }
+                },
               }))
             }
           })
@@ -702,44 +711,10 @@ export function GraphProvider({ children }: GraphProps) {
     populateQueryParameters()
   }, [populateQueryParameters])
 
-  const resetQueryParameterUserValue = useCallback(async (name: string) => {
-    let qp = queryParameters[name]
-    if (qp) {
-      try {
-        await supabase
-          .from('database_query_parameters')
-          .upsert({
-            id: qp.userRecordId,
-            organization_id: organizationId,
-            user_id: session?.user?.id,
-            name: name,
-            value: qp.userValue,
-            updated_at: new Date(),
-            deleted_at: new Date(),
-          })
-          .then(() => {
-            qp = {
-              ...qp,
-              userValue: qp.orgDefaultValue,
-            }
-            setQueryParameters((prev) => ({
-              ...prev,
-              [name]: qp,
-            }))
-            setGlobalQueryRefreshes(globalQueryRefreshes + 1)
-          })
-      } catch (error: any) {
-        alert(error.message)
-      }
-    }
-  }, [queryParameters, organizationId, session, setGlobalQueryRefreshes, globalQueryRefreshes])
-
-  const setQueryParameterUserValue = useCallback(async (name: string, value: string) => {
-    let qp = queryParameters[name]
-    if (qp) {
-      if (value === qp.orgDefaultValue) {
-        resetQueryParameterUserValue(name)
-      } else {
+  const resetQueryParameterUserValue = useCallback(
+    async (name: string) => {
+      let qp = queryParameters[name]
+      if (qp) {
         try {
           await supabase
             .from('database_query_parameters')
@@ -748,13 +723,112 @@ export function GraphProvider({ children }: GraphProps) {
               organization_id: organizationId,
               user_id: session?.user?.id,
               name: name,
-              value: value,
+              value: qp.userValue,
               updated_at: new Date(),
-              deleted_at: null,
+              deleted_at: new Date(),
             })
             .then(() => {
               qp = {
                 ...qp,
+                userValue: qp.orgDefaultValue,
+              }
+              setQueryParameters((prev) => ({
+                ...prev,
+                [name]: qp,
+              }))
+              setGlobalQueryRefreshes(globalQueryRefreshes + 1)
+            })
+        } catch (error: any) {
+          alert(error.message)
+        }
+      }
+    },
+    [
+      queryParameters,
+      organizationId,
+      session,
+      setGlobalQueryRefreshes,
+      globalQueryRefreshes,
+    ]
+  )
+
+  const setQueryParameterUserValue = useCallback(
+    async (name: string, value: string) => {
+      let qp = queryParameters[name]
+      if (qp) {
+        if (value === qp.orgDefaultValue) {
+          resetQueryParameterUserValue(name)
+        } else {
+          try {
+            await supabase
+              .from('database_query_parameters')
+              .upsert({
+                id: qp.userRecordId,
+                organization_id: organizationId,
+                user_id: session?.user?.id,
+                name: name,
+                value: value,
+                updated_at: new Date(),
+                deleted_at: null,
+              })
+              .then(() => {
+                qp = {
+                  ...qp,
+                  userValue: value,
+                }
+                setQueryParameters((prev) => ({
+                  ...prev,
+                  [name]: qp,
+                }))
+                setGlobalQueryRefreshes(globalQueryRefreshes + 1)
+              })
+          } catch (error: any) {
+            alert(error.message)
+          }
+        }
+      }
+    },
+    [
+      queryParameters,
+      resetQueryParameterUserValue,
+      organizationId,
+      session,
+      setGlobalQueryRefreshes,
+      globalQueryRefreshes,
+    ]
+  )
+
+  const setQueryParameterOrgDefaultValue = useCallback(
+    async (name: string, value: string) => {
+      let qp = queryParameters[name]
+      if (qp) {
+        try {
+          await supabase
+            .from('database_query_parameters')
+            .upsert([
+              {
+                id: qp.orgDefaultRecordId,
+                organization_id: organizationId,
+                user_id: null,
+                name: name,
+                value: value,
+                updated_at: new Date(),
+                deleted_at: null,
+              },
+              {
+                id: qp.userRecordId,
+                organization_id: organizationId,
+                user_id: session?.user?.id,
+                name: name,
+                value: qp.userValue,
+                updated_at: new Date(),
+                deleted_at: new Date(),
+              },
+            ])
+            .then(() => {
+              qp = {
+                ...qp,
+                orgDefaultValue: value,
                 userValue: value,
               }
               setQueryParameters((prev) => ({
@@ -767,52 +841,15 @@ export function GraphProvider({ children }: GraphProps) {
           alert(error.message)
         }
       }
-    }
-  }, [queryParameters, resetQueryParameterUserValue, organizationId, session, setGlobalQueryRefreshes, globalQueryRefreshes])
-
-  const setQueryParameterOrgDefaultValue = useCallback(async (name: string, value: string) => {
-    let qp = queryParameters[name]
-    if (qp) {
-      try {
-        await supabase
-          .from('database_query_parameters')
-          .upsert([
-            {
-              id: qp.orgDefaultRecordId,
-              organization_id: organizationId,
-              user_id: null,
-              name: name,
-              value: value,
-              updated_at: new Date(),
-              deleted_at: null,
-            },
-            {
-              id: qp.userRecordId,
-              organization_id: organizationId,
-              user_id: session?.user?.id,
-              name: name,
-              value: qp.userValue,
-              updated_at: new Date(),
-              deleted_at: new Date(),
-            },
-          ])
-          .then(() => {
-            qp = {
-              ...qp,
-              orgDefaultValue: value,
-              userValue: value,
-            }
-            setQueryParameters((prev) => ({
-              ...prev,
-              [name]: qp,
-            }))
-            setGlobalQueryRefreshes(globalQueryRefreshes + 1)
-          })
-      } catch (error: any) {
-        alert(error.message)
-      }
-    }
-  }, [queryParameters, organizationId, session, setGlobalQueryRefreshes, globalQueryRefreshes])
+    },
+    [
+      queryParameters,
+      organizationId,
+      session,
+      setGlobalQueryRefreshes,
+      globalQueryRefreshes,
+    ]
+  )
 
   const value = {
     initialGraph: initialGraph,
