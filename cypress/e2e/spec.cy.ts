@@ -267,6 +267,7 @@ describe('Metric detail editing', () => {
     // save
     cy.get('[id=save-button]').click()
     cy.wait(1000)
+    cy.reload()
     cy.contains(newValue).should('exist')
   })
 })
