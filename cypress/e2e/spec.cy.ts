@@ -221,6 +221,9 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, edits description, tests undo and redo, then cancels', () => {
     cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
+    cy.wait(1000)
     cy.get('[id=link-to-detail-button]').first().click()
 
     // begin editing
@@ -247,10 +250,10 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, edits description, then saves', () => {
     cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
+    cy.wait(1000)
     cy.get('[id=link-to-detail-button]').first().click()
-
-    // begin editing
-    cy.get('[id=edit-button]').click()
 
     // edit field
     const newValue = Math.random().toString(36)
@@ -266,10 +269,10 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a working query, then sees results', () => {
     cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
+    cy.wait(1000)
     cy.get('[id=link-to-detail-button]').first().click()
-
-    // begin editing
-    cy.get('[id=edit-button]').click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -287,10 +290,10 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a working query, saves it, then sees results', () => {
     cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
+    cy.wait(1000)
     cy.get('[id=link-to-detail-button]').first().click()
-
-    // begin editing
-    cy.get('[id=edit-button]').click()
 
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -314,10 +317,10 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a failing query, then sees error', () => {
     cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
+    cy.wait(1000)
     cy.get('[id=link-to-detail-button]').first().click()
-
-    // begin editing
-    cy.get('[id=edit-button]').click()
 
     // edit query
     const newQuery = 'SELECT x'
@@ -332,10 +335,10 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a working but wrong-format query, then sees error', () => {
     cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
+    cy.wait(1000)
     cy.get('[id=link-to-detail-button]').first().click()
-
-    // begin editing
-    cy.get('[id=edit-button]').click()
 
     // edit query
     const newQuery = "SELECT TRUE, 'all', 1"
@@ -352,6 +355,9 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page and tests persistence of query parameters', () => {
     cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
+    cy.wait(1000)
     cy.get('[id=link-to-detail-button]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
@@ -416,6 +422,9 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, sets parameters, enters a query that uses them, then sees results', () => {
     cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
+    cy.wait(1000)
     cy.get('[id=link-to-detail-button]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
