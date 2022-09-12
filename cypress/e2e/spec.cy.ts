@@ -20,7 +20,7 @@ describe('App landing page, authenticated as member of enabled org', () => {
 
   it('Visits the app landing page, logs out, and is redirected', () => {
     cy.visit('/')
-    cy.get('[id=account-menu-container]').click()
+    cy.get('[class*=Header_account_menu_container]').click()
     cy.get('[class=p-menuitem]').contains('Sign Out').click()
     cy.location('pathname').should('eq', '/')
   })
@@ -80,14 +80,14 @@ describe('Graphviewer viewing as admin', () => {
 
   it('Clicks through to access management page', () => {
     cy.visit('/mgraph')
-    cy.get('[id=account-menu-container]').click()
+    cy.get('[class*=Header_account_menu_container]').click()
     cy.get('[class=p-menuitem]').contains('Access Management').click()
     cy.url().should('include', '/access-management')
   })
 
   it('Clicks through to database connections page', () => {
     cy.visit('/mgraph')
-    cy.get('[id=account-menu-container]').click()
+    cy.get('[class*=Header_account_menu_container]').click()
     cy.get('[class=p-menuitem]').contains('Database Connections').click()
     cy.url().should('include', '/database-connections')
   })
