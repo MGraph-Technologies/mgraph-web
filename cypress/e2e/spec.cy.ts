@@ -271,6 +271,10 @@ describe('Metric detail editing', () => {
     // begin editing
     cy.get('[id=edit-button]').click()
 
+    // select snowflake as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
@@ -291,6 +295,10 @@ describe('Metric detail editing', () => {
 
     // begin editing
     cy.get('[id=edit-button]').click()
+
+    // select snowflake as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
 
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -319,6 +327,10 @@ describe('Metric detail editing', () => {
     // begin editing
     cy.get('[id=edit-button]').click()
 
+    // select snowflake as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
     // edit query
     const newQuery = 'SELECT x'
     cy.get('[id=source-code-field').click()
@@ -336,6 +348,10 @@ describe('Metric detail editing', () => {
 
     // begin editing
     cy.get('[id=edit-button]').click()
+
+    // select snowflake as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
 
     // edit query
     const newQuery = "SELECT TRUE, 'all', 1"
@@ -448,6 +464,10 @@ describe('Metric detail editing', () => {
 
     // begin editing
     cy.get('[id=edit-button]').click()
+
+    // select snowflake as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)

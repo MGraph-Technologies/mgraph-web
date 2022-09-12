@@ -360,6 +360,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       <h2>Source</h2>
       <h3>Database</h3>
       <Dropdown
+        id="source-database-connection-dropdown"
         value={sourceDatabaseConnectionName}
         options={databaseConnections.map((dc) => dc.name)}
         onChange={(e) => {
