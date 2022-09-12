@@ -270,6 +270,196 @@ describe('Metric detail editing', () => {
     cy.reload()
     cy.contains(newValue).should('exist')
   })
+
+  it('Visits a metric detail page, enters a working query, then sees results', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(1000)
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // edit query
+    const randomInt = Math.floor(Math.random() * 1000000)
+    const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
+    cy.get('[id=source-code-field').click()
+    cy.get('textarea').clear().type(newQuery).parent().click()
+
+    // see results
+    cy.wait(1000)
+    cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
+    cy.get('[class*=LineChart_chart_container]').contains(randomInt.toLocaleString()).should('exist')
+    // TODO: test chartjs canvas (this is just the number overlay)
+  })
+
+  it('Visits a metric detail page, enters a working query, saves it, then sees results', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(1000)
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // edit query and save
+    const randomInt = Math.floor(Math.random() * 1000000)
+    const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
+    cy.get('[id=source-code-field').click()
+    cy.get('textarea').clear().type(newQuery).parent().click()
+    cy.get('[id=save-button]').click()
+
+    // see results on metric detail page
+    cy.wait(1000)
+    cy.reload()
+    cy.get('[class*=LineChart_chart_container]').contains(randomInt.toLocaleString()).should('exist')
+
+    // see results on metric graph page
+    cy.visit('/mgraph')
+    cy.wait(1000)
+    cy.get('[class*=LineChart_chart_container]').contains(randomInt.toLocaleString()).should('exist')
+  })
+
+  it('Visits a metric detail page, enters a failing query, then sees error', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(1000)
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // edit query
+    const newQuery = 'SELECT x'
+    cy.get('[id=source-code-field').click()
+    cy.get('textarea').clear().type(newQuery).parent().click()
+
+    // see results
+    cy.wait(1000)
+    cy.get('[class*=MetricDetail_chart_container]').contains('invalid identifier').should('exist')
+    
+  })
+
+  it('Visits a metric detail page, enters a working but wrong-format query, then sees error', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(1000)
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // edit query
+    const newQuery = "SELECT TRUE, 'all', 1"
+    cy.get('[id=source-code-field').click()
+    cy.get('textarea').clear().type(newQuery).parent().click()
+
+    // see results
+    cy.wait(1000)
+    cy.get('[class*=MetricDetail_chart_container]').contains('format').should('exist')
+    
+  })
+
+  // TODO: test processing and expired states
+
+  it('Visits a metric detail page and tests persistence of query parameters', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(1000)
+
+    // set group_by parameter
+    const randomGroupBy = Math.random().toString(36)
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]').clear().type("'" + randomGroupBy + "'").parent().click()
+
+    // see that parameter persists
+    cy.reload()
+    cy.wait(1000)
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=group_by-field').contains(randomGroupBy)
+
+    // set parameter as default
+    cy.get('[id=group_by-set-default-button]').click()
+
+    // see that parameter persists as org default
+    cy.reload()
+    cy.wait(1000)
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=group_by-field').contains(randomGroupBy)
+    cy.get('[id=group_by-set-default-button]').should('not.exist')
+    
+    // set a new group_by parameter
+    const randomGroupBy2 = Math.random().toString(36)
+    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]').clear().type("'" + randomGroupBy2 + "'").parent().click()
+
+    // see that new parameter persists
+    cy.reload()
+    cy.wait(1000)
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=group_by-field').contains(randomGroupBy2)
+
+    // reset new parameter
+    cy.get('[id=group_by-reset-button]').click()
+
+    // see that org default parameter appears
+    cy.wait(100)
+    cy.get('[id=group_by-field').contains(randomGroupBy)
+    cy.get('[id=group_by-set-default-button]').should('not.exist')
+
+    // see that default parameter persists
+    cy.reload()
+    cy.wait(1000)
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=group_by-field').contains(randomGroupBy)
+    cy.get('[id=group_by-set-default-button]').should('not.exist')
+  })
+
+  it('Visits a metric detail page, sets parameters, enters a query that uses them, then sees results', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(1000)
+  
+    // set parameters
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=beginning_date-field').click()
+    cy.get('[id=beginning_date-field]').clear().type("CURRENT_DATE - INTERVAL '90 DAY'").parent().click()
+    cy.wait(100)
+    cy.get('[id=ending_date-field').click()
+    cy.get('[id=ending_date-field]').clear().type("CURRENT_DATE").parent().click()
+    cy.wait(100)
+    cy.get('[id=frequency-field').click()
+    cy.get('[id=frequency-field]').clear().type("WEEK").parent().click()
+    cy.wait(100)
+    const randomGroupBy = Math.random().toString(36)
+    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]').clear().type("'" + randomGroupBy + "'").parent().click()
+    cy.wait(100)
+    cy.get('[id=query-settings-button]').click()
+    cy.wait(1000) // let query refresh
+  
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // edit query
+    const randomInt = Math.floor(Math.random() * 1000000)
+    const newQuery = `
+      SELECT
+        DATE_TRUNC('{{frequency}}', {{beginning_date}}),
+        {{group_by}},
+        ${randomInt}
+      
+      UNION ALL
+      SELECT
+        DATE_TRUNC('{{frequency}}', {{ending_date}}),
+        {{group_by}},
+        ${randomInt}
+    `
+    cy.get('[id=source-code-field').click()
+    cy.get('textarea').clear().type(newQuery, {parseSpecialCharSequences: false}).parent().click()
+
+    // see results
+    cy.wait(1000)
+    cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
+    cy.get('[class*=LineChart_chart_container]').contains(randomInt.toLocaleString()).should('exist')
+  })
 })
 
 describe('Admin settings', () => {

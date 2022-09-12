@@ -66,6 +66,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
         {!(userValue === orgDefaultValue) ? (
           <>
             <Button
+              id={snakeCaseName + '-reset-button'}
               label="Reset"
               className="p-button-rounded p-button-text p-button-sm"
               onClick={() => {
@@ -77,6 +78,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
             />
             {userIsAdmin ? (
               <Button
+                id={snakeCaseName + '-set-default-button'}
                 label="Set Default"
                 className="p-button-rounded p-button-text p-button-sm"
                 onClick={() => {
