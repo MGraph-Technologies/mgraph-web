@@ -2,7 +2,6 @@ import { useRouter } from 'next/router'
 import { FunctionComponent, useCallback, useEffect } from 'react'
 
 import { useAuth } from '../contexts/auth'
-import { supabase } from '../utils/supabaseClient'
 
 type Props = {}
 

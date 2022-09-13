@@ -9,6 +9,10 @@ export default defineConfig({
     baseUrl: 'http://localhost:3000',
     blockHosts: ['*.segment.io'],
     chromeWebSecurity: false,
+    retries: {
+      runMode: 2,
+      openMode: 2,
+    },
     screenshotOnRunFailure: false,
     video: false,
     setupNodeEvents(on, config) {

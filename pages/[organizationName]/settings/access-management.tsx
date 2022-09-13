@@ -7,6 +7,7 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import Workspace from '../../../components/Workspace'
 import { useAuth } from '../../../contexts/auth'
 import styles from '../../../styles/AccessManagement.module.css'
+import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
 
 type AccessManagementProps = {}
@@ -77,8 +78,6 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
       } catch (error: any) {
         alert(error.message)
       }
-    } else {
-      console.log('No organizationId')
     }
   }, [organizationId])
   useEffect(() => {
@@ -106,8 +105,15 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
           throw new Error('Update failed')
         }
       } catch (error: any) {
+        analytics.track('update_user_role_error', {
+          message: error.message,
+        })
         alert(error.message)
       } finally {
+        analytics.track('update_user_role', {
+          user_id: userId,
+          role_id: roleId,
+        })
         setUsersTableLoading(false)
       }
     },
@@ -184,8 +190,14 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
           throw new Error('Update failed')
         }
       } catch (error: any) {
+        analytics.track('update_org_default_role_error', {
+          message: error.message,
+        })
         alert(error.message)
       } finally {
+        analytics.track('update_org_default_role', {
+          role_id: roleId,
+        })
         const newOrgDefaultRoleName =
           roles.find((role) => role.id === roleId)?.name || 'error'
         setOrgDefaultRoleName(newOrgDefaultRoleName)

@@ -20,7 +20,7 @@ describe('App landing page, authenticated as member of enabled org', () => {
 
   it('Visits the app landing page, logs out, and is redirected', () => {
     cy.visit('/')
-    cy.get('[id=account-menu-container]').click()
+    cy.get('[class*=Header_account_menu_container]').click()
     cy.get('[class=p-menuitem]').contains('Sign Out').click()
     cy.location('pathname').should('eq', '/')
   })
@@ -80,9 +80,16 @@ describe('Graphviewer viewing as admin', () => {
 
   it('Clicks through to access management page', () => {
     cy.visit('/mgraph')
-    cy.get('[id=account-menu-container]').click()
+    cy.get('[class*=Header_account_menu_container]').click()
     cy.get('[class=p-menuitem]').contains('Access Management').click()
     cy.url().should('include', '/access-management')
+  })
+
+  it('Clicks through to database connections page', () => {
+    cy.visit('/mgraph')
+    cy.get('[class*=Header_account_menu_container]').click()
+    cy.get('[class=p-menuitem]').contains('Database Connections').click()
+    cy.url().should('include', '/database-connections')
   })
 })
 
@@ -128,6 +135,8 @@ describe('Graphviewer editing', () => {
 
   it('Adds a metric, tests undo and redo, adds a formula, then cancels additions', () => {
     cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
     cy.wait(1000)
 
     // begin editing
@@ -145,14 +154,12 @@ describe('Graphviewer editing', () => {
 
     // undo
     cy.get('[id=undo-button]').click()
-    cy.wait(1000) // wait for rerender
     cy.get('.react-flow__node-metric')
       .contains(newMetricName)
       .should('not.exist')
 
     // redo
     cy.get('[id=redo-button]').click()
-    cy.wait(1000)
     cy.get('.react-flow__node-metric')
       .contains(newMetricName)
       .should('be.visible')
@@ -195,7 +202,6 @@ describe('Metric detail viewing', () => {
   it('Visits and sees expected content on a metric detail page', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
-    cy.wait(1000) // wait for graph to render
     cy.get('body').contains('Description')
     cy.get('body').contains('Inputs')
     cy.get('body').contains('Outputs')
@@ -216,7 +222,6 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, edits description, tests undo and redo, then cancels', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
-    cy.wait(1000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -225,28 +230,24 @@ describe('Metric detail editing', () => {
     const newValue = Math.random().toString(36)
     cy.get('[id=description-field').click()
     cy.get('textarea').clear().type(newValue).parent().click() // click outside of textarea to save
-    cy.contains(newValue).should('be.visible')
+    cy.contains(newValue).should('exist')
 
     // undo
     cy.get('[id=undo-button]').click()
-    cy.wait(1000)
     cy.contains(newValue).should('not.exist')
 
     // redo
     cy.get('[id=redo-button]').click()
-    cy.wait(1000)
-    cy.contains(newValue).should('be.visible')
+    cy.contains(newValue).should('exist')
 
     // cancel
     cy.get('[id=cancel-button]').click()
-    cy.wait(1000) // wait for graph refresh
     cy.contains(newValue).should('not.exist')
   })
 
   it('Visits a metric detail page, edits description, then saves', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
-    cy.wait(1000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -255,12 +256,245 @@ describe('Metric detail editing', () => {
     const newValue = Math.random().toString(36)
     cy.get('[id=description-field').click()
     cy.get('textarea').clear().type(newValue).parent().click()
-    cy.contains(newValue).should('be.visible')
+    cy.contains(newValue).should('exist')
 
     // save
     cy.get('[id=save-button]').click()
-    cy.wait(1000)
+    cy.reload()
     cy.contains(newValue).should('exist')
+  })
+
+  it('Visits a metric detail page, enters a working query, then sees results', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // select snowflake as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // edit query
+    const randomInt = Math.floor(Math.random() * 1000000)
+    const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
+    cy.get('[id=source-code-field').click()
+    cy.get('textarea').clear().type(newQuery).parent().click()
+
+    // see results
+    cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
+    cy.get('[class*=LineChart_chart_container]')
+      .contains(randomInt.toLocaleString())
+      .should('exist')
+    // TODO: test chartjs canvas (this is just the number overlay)
+  })
+
+  it('Visits a metric detail page, enters a working query, saves it, then sees results', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // select snowflake as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // edit query and save
+    const randomInt = Math.floor(Math.random() * 1000000)
+    const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
+    cy.get('[id=source-code-field').click()
+    cy.get('textarea').clear().type(newQuery).parent().click()
+    cy.get('[id=save-button]').click()
+
+    // see results on metric detail page
+    cy.reload()
+    cy.get('[class*=LineChart_chart_container]')
+      .contains(randomInt.toLocaleString())
+      .should('exist')
+
+    // see results on metric graph page
+    cy.visit('/mgraph')
+    cy.get('[class*=LineChart_chart_container]')
+      .contains(randomInt.toLocaleString())
+      .should('exist')
+  })
+
+  it('Visits a metric detail page, enters a failing query, then sees error', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // select snowflake as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // edit query
+    const newQuery = 'SELECT x'
+    cy.get('[id=source-code-field').click()
+    cy.get('textarea').clear().type(newQuery).parent().click()
+
+    // see results
+    cy.get('[class*=MetricDetail_chart_container]')
+      .contains('invalid identifier')
+      .should('exist')
+  })
+
+  it('Visits a metric detail page, enters a working but wrong-format query, then sees error', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // select snowflake as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // edit query
+    const newQuery = "SELECT TRUE, 'all', 1"
+    cy.get('[id=source-code-field').click()
+    cy.get('textarea').clear().type(newQuery).parent().click()
+
+    // see results
+    cy.get('[class*=MetricDetail_chart_container]')
+      .contains('format')
+      .should('exist')
+  })
+
+  // TODO: test processing and expired states
+
+  it('Visits a metric detail page and tests persistence of query parameters', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    /* wait for page to load
+     (otherwise the query settings menu will be closed on transition) */
+    cy.wait(1000)
+
+    // set group_by parameter
+    const randomGroupBy = Math.random().toString(36)
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]')
+      .clear()
+      .type("'" + randomGroupBy + "'")
+      .parent()
+      .click()
+
+    // see that parameter persists
+    cy.reload()
+    cy.wait(1000) // wait for page to load
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=group_by-field').contains(randomGroupBy)
+
+    // set parameter as default
+    cy.get('[id=group_by-set-default-button]').click()
+
+    // see that parameter persists as org default
+    cy.reload()
+    cy.wait(1000) // wait for page to load
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=group_by-field').contains(randomGroupBy)
+    cy.get('[id=group_by-set-default-button]').should('not.exist')
+
+    // set a new group_by parameter
+    const randomGroupBy2 = Math.random().toString(36)
+    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]')
+      .clear()
+      .type("'" + randomGroupBy2 + "'")
+      .parent()
+      .click()
+
+    // see that new parameter persists
+    cy.reload()
+    cy.wait(1000) // wait for page to load
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=group_by-field').contains(randomGroupBy2)
+
+    // reset new parameter
+    cy.get('[id=group_by-reset-button]').click()
+    cy.wait(1000) // wait for reset to process
+
+    // see that org default parameter appears
+    cy.get('[id=group_by-field').contains(randomGroupBy)
+    cy.get('[id=group_by-set-default-button]').should('not.exist')
+
+    // see that default parameter persists
+    cy.reload()
+    cy.wait(1000) // wait for page to load
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=group_by-field').contains(randomGroupBy)
+    cy.get('[id=group_by-set-default-button]').should('not.exist')
+  })
+
+  it('Visits a metric detail page, sets parameters, enters a query that uses them, then sees results', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    /* wait for page to load
+     (otherwise the query settings menu will be closed on transition) */
+    cy.wait(1000)
+
+    // set parameters
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=beginning_date-field').click()
+    cy.get('[id=beginning_date-field]')
+      .clear()
+      .type("CURRENT_DATE - INTERVAL '90 DAY'")
+      .parent()
+      .click()
+    cy.get('[id=ending_date-field').click()
+    cy.get('[id=ending_date-field]')
+      .clear()
+      .type('CURRENT_DATE')
+      .parent()
+      .click()
+    cy.get('[id=frequency-field').click()
+    cy.get('[id=frequency-field]').clear().type('WEEK').parent().click()
+    const randomGroupBy = Math.random().toString(36)
+    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]')
+      .clear()
+      .type("'" + randomGroupBy + "'")
+      .parent()
+      .click()
+    cy.get('[id=query-settings-button]').click()
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // select snowflake as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // edit query
+    const randomInt = Math.floor(Math.random() * 1000000)
+    const newQuery = `
+      SELECT
+        DATE_TRUNC('{{frequency}}', {{beginning_date}}),
+        {{group_by}},
+        ${randomInt}
+      
+      UNION ALL
+      SELECT
+        DATE_TRUNC('{{frequency}}', {{ending_date}}),
+        {{group_by}},
+        ${randomInt}
+    `
+    cy.get('[id=source-code-field').click()
+    cy.get('textarea')
+      .clear()
+      .type(newQuery, { parseSpecialCharSequences: false })
+      .parent()
+      .click()
+
+    // see results
+    cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
+    cy.get('[class*=LineChart_chart_container]')
+      .contains(randomInt.toLocaleString())
+      .should('exist')
   })
 })
 
@@ -279,6 +513,11 @@ describe('Admin settings', () => {
     cy.get('body').contains('Edit Users')
     cy.get('body').contains('Role')
     cy.get('body').contains('Email')
+  })
+
+  it('Visits database connections page and sees expected content', () => {
+    cy.visit('/mgraph/settings/database-connections')
+    cy.get('body').contains('please contact an MGraph team member')
   })
 })
 

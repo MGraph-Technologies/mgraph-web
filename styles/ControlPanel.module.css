@@ -11,3 +11,8 @@
   height: 24px;
   margin-left: 5px;
 }
+
+.query_parameter {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}

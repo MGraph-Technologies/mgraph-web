@@ -10,9 +10,11 @@ import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
 
-import NodeMenu from './NodeMenu'
 import { useEditability } from '../../contexts/editability'
 import styles from '../../styles/MetricNode.module.css'
+import LineChart from '../LineChart'
+import QueryRunner, { QueryResult } from '../QueryRunner'
+import NodeMenu from './NodeMenu'
 
 export type MetricNodeProperties = {
   id: string
@@ -21,7 +23,8 @@ export type MetricNodeProperties = {
   name: string
   description: string
   owner: string
-  source: string
+  sourceCode: string
+  sourceDatabaseConnectionId: string
   color: string
   // below not in postgres
   initialProperties: object
@@ -62,6 +65,14 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
     [data]
   )
 
+  const [queryResult, setQueryResult] = useState<QueryResult>({
+    status:
+      !data.sourceCode || !data.sourceDatabaseConnectionId
+        ? 'empty'
+        : 'processing',
+    data: null,
+  })
+
   return (
     <div
       className={styles.metric_node}
@@ -72,17 +83,19 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
     >
       <div className={styles.header}>
         <div className={styles.name}>
-          <EditText
-            value={name}
-            readonly={!editingEnabled}
-            style={
-              editingEnabled
-                ? { backgroundColor: '#eee' }
-                : { backgroundColor: color }
-            }
-            onChange={(e) => setName(e.target.value)}
-            onSave={saveName}
-          />
+          <h1>
+            <EditText
+              value={name}
+              readonly={!editingEnabled}
+              style={
+                editingEnabled
+                  ? { backgroundColor: '#eee' }
+                  : { backgroundColor: color }
+              }
+              onChange={(e) => setName(e.target.value)}
+              onSave={saveName}
+            />
+          </h1>
         </div>
         <div className={styles.buttons}>
           <NodeMenu
@@ -92,6 +105,16 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
             linkTo={'/' + organizationName + '/metrics/' + data.id}
           />
         </div>
+      </div>
+      <div className={styles.chart_container}>
+        <QueryRunner
+          statement={data.sourceCode}
+          databaseConnectionId={data.sourceDatabaseConnectionId}
+          parentNodeId={data.id}
+          refreshes={0}
+          setQueryResult={setQueryResult}
+        />
+        <LineChart queryResult={queryResult} />
       </div>
       <Handle
         type="source"

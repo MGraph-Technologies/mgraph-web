@@ -8,9 +8,9 @@ import { ColorResult } from 'react-color'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
 
-import NodeMenu from './NodeMenu'
 import styles from '../../styles/FunctionNode.module.css'
 import { supabase } from '../../utils/supabaseClient'
+import NodeMenu from './NodeMenu'
 
 export async function getFunctionSymbol(
   functionTypeId: string
@@ -25,6 +25,7 @@ export async function getFunctionSymbol(
       .from('function_types')
       .select('symbol')
       .eq('id', functionTypeId)
+      .is('deleted_at', null)
 
     if (error && status !== 406) {
       throw error
@@ -63,7 +64,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
   const [symbol, setSymbol] = useState('')
   useEffect(() => {
     const populateSymbol = async () => {
-      const _symbol = await getFunctionSymbol(data.functionTypeId)
+      let _symbol = await getFunctionSymbol(data.functionTypeId)
       setSymbol(_symbol)
     }
     populateSymbol()
@@ -96,7 +97,9 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
           <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
         </div>
       </div>
-      <div className={styles.symbol}>{symbol}</div>
+      <div className={styles.symbol}>
+        <h1>{symbol}</h1>
+      </div>
       <Handle
         type="source"
         id="top_source"

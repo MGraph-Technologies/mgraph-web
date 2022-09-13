@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router'
 import React, { FunctionComponent, ReactNode } from 'react'
 
-import Header from './Header'
 import { useAuth } from '../contexts/auth'
 import styles from '../styles/Workspace.module.css'
+import Header from './Header'
 
 type WorkspaceProps = {
   children: ReactNode

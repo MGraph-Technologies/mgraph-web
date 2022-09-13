@@ -1,13 +1,12 @@
-import _ from 'lodash'
-import { NextApiRequest, NextApiResponse } from 'next'
-import { Edge, Node } from 'react-flow-renderer'
 import {
   createClient,
   PostgrestError,
   PostgrestResponse,
   SupabaseClient,
 } from '@supabase/supabase-js'
-import { type } from 'cypress/types/jquery'
+import _ from 'lodash'
+import { NextApiRequest, NextApiResponse } from 'next'
+import { Edge, Node } from 'react-flow-renderer'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -18,7 +17,7 @@ async function upsert(
   supabase: SupabaseClient,
   accessToken: string
 ): Promise<PostgrestResponse<any>> {
-  const { user, error } = await supabase.auth.api.getUser(accessToken)
+  let { user, error } = await supabase.auth.api.getUser(accessToken)
   if (error) {
     throw error
   } else if (!user) {
@@ -87,7 +86,7 @@ async function upsert(
   })
 
   console.log(
-    '\n\nop:',
+    '\nop:',
     op,
     '\nrecord type: ',
     recordType,
@@ -103,14 +102,16 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log('\n\nNew request to /api/v1/graphs')
   const method = req.method
   if (method === 'PUT') {
+    const body = JSON.parse(req.body)
+    console.log('\nBody: ', body)
+    const { initialGraph, updatedGraph } = body
+
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
     supabase.auth.setAuth(accessToken)
-
-    const body = JSON.parse(req.body)
-    const { initialGraph, updatedGraph } = body
 
     let upsertErrors: PostgrestError[] = []
 
@@ -123,7 +124,7 @@ export default async function handler(
         !initialNodes.find((initialNode) => initialNode.id === updatedNode.id)
     )
     if (addedNodes.length > 0) {
-      const { error: addedNodesError } = await upsert(
+      let { error: addedNodesError } = await upsert(
         addedNodes,
         'create',
         supabase,
@@ -141,7 +142,7 @@ export default async function handler(
       return initialNode && !_.isEqual(initialNode, updatedNode)
     })
     if (modifiedNodes.length > 0) {
-      const { error: modifiedNodesError } = await upsert(
+      let { error: modifiedNodesError } = await upsert(
         modifiedNodes,
         'update',
         supabase,
@@ -157,7 +158,7 @@ export default async function handler(
         !updatedNodes.find((updatedNode) => updatedNode.id === initialNode.id)
     )
     if (deletedNodes.length > 0) {
-      const { error: deletedNodesError } = await upsert(
+      let { error: deletedNodesError } = await upsert(
         deletedNodes,
         'delete',
         supabase,
@@ -177,7 +178,7 @@ export default async function handler(
         !initialEdges.find((initialEdge) => initialEdge.id === updatedEdge.id)
     )
     if (addedEdges.length > 0) {
-      const { error: addedEdgesError } = await upsert(
+      let { error: addedEdgesError } = await upsert(
         addedEdges,
         'create',
         supabase,
@@ -195,7 +196,7 @@ export default async function handler(
       return initialEdge && !_.isEqual(initialEdge, updatedEdge)
     })
     if (modifiedEdges.length > 0) {
-      const { error: modifiedEdgesError } = await upsert(
+      let { error: modifiedEdgesError } = await upsert(
         modifiedEdges,
         'update',
         supabase,
@@ -219,7 +220,7 @@ export default async function handler(
         )
     )
     if (deletedEdges.length > 0) {
-      const { error: deletedEdgesError } = await upsert(
+      let { error: deletedEdgesError } = await upsert(
         deletedEdges,
         'delete',
         supabase,
@@ -237,10 +238,10 @@ export default async function handler(
         .json({ success: false, message: 'Failed to upsert nodes' })
     } else {
       console.log('\nSuccess!')
-      res.status(200).json({ success: true })
+      res.status(200).json({})
     }
   } else {
-    console.log('\n\nUnsupported method: ', method)
-    res.status(405).json({ success: false, message: 'Method not allowed' })
+    console.log('\nUnsupported method: ', method)
+    res.status(405).json({ error: 'Method not allowed' })
   }
 }

@@ -9,6 +9,13 @@
   margin-bottom: 1rem;
 }
 
+.metric_detail .chart_container {
+  position: relative;
+  height: 20em;
+  width: 80%;
+  margin: auto;
+}
+
 .metric_detail .detail_field {
   background-color: #ffffff;
 }
@@ -24,4 +31,8 @@
   right: 25%;
   z-index: 5;
   padding: 10px;
+}
+
+.metric_detail .editor_dock_spacer {
+  height: 10em;
 }

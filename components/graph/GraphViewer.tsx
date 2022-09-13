@@ -17,12 +17,12 @@ import ReactFlow, {
   useReactFlow,
 } from 'react-flow-renderer'
 
-import ControlPanel from './ControlPanel'
-import EditorDock from './editing/EditorDock'
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
 import styles from '../../styles/GraphViewer.module.css'
+import ControlPanel from './ControlPanel'
+import EditorDock from './editing/EditorDock'
 
 type GraphViewerProps = {}
 const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
@@ -111,7 +111,6 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
 
   // selecting any function node or input edge selects all connected others
   // right now this essentially insures that an editor can't partially delete a formula
-  // TODO: add formula editing
   const onSelect = useCallback(
     (nodeOrEdge: Node | Edge) => {
       if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {

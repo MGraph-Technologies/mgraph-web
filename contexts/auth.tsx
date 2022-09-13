@@ -1,3 +1,4 @@
+import { Session } from '@supabase/supabase-js'
 import {
   createContext,
   ReactNode,
@@ -6,7 +7,6 @@ import {
   useEffect,
   useState,
 } from 'react'
-import { Session } from '@supabase/supabase-js'
 
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'

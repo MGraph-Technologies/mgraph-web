@@ -1,24 +1,30 @@
 import { useRouter } from 'next/router'
 import { Button } from 'primereact/button'
+import { Dropdown } from 'primereact/dropdown'
 import { Toolbar } from 'primereact/toolbar'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
-import { EditText, EditTextarea, onSaveProps } from 'react-edit-text'
+import { EditText, EditTextarea } from 'react-edit-text'
 import { Edge, Node } from 'react-flow-renderer'
 import 'react-edit-text/dist/index.css'
 
-import ControlPanel from './ControlPanel'
-import { getFunctionSymbol } from './FunctionNode'
 import { useEditability } from '../../contexts/editability'
+import { useAuth } from '../../contexts/auth'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricDetail.module.css'
+import { supabase } from '../../utils/supabaseClient'
+import LineChart from '../LineChart'
+import QueryRunner, { QueryResult } from '../QueryRunner'
+import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
+import { getFunctionSymbol } from './FunctionNode'
 
 type MetricDetailProps = {
   metricId: string | string[] | undefined
 }
 const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const router = useRouter()
-  const { organizationName } = router.query
+  const { organizationId, organizationName } = useAuth()
+  const { editingEnabled } = useEditability()
 
   const { graph, getConnectedObjects } = useGraph()
   const [metricNode, setMetricNode] = useState<Node | undefined>(undefined)
@@ -27,10 +33,22 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [description, setDescription] = useState('')
   const [inputs, setInputs] = useState('')
   const [outputs, setOutputs] = useState('')
-  const [owner, setOwner] = useState('') // TODO: make a graph object
-  const [source, setSource] = useState('')
+  const [owner, setOwner] = useState('')
+  const [sourceCode, setSourceCode] = useState('')
+  const [sourceDatabaseConnectionId, setSourceDatabaseConnectionId] =
+    useState('')
+  const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] =
+    useState('')
+  const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
+  const [initialDetailPopulationComplete, setInitialDetailPopulationComplete] =
+    useState(false)
 
-  const { editingEnabled } = useEditability()
+  const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
+
+  const [queryResult, setQueryResult] = useState<QueryResult>({
+    status: 'processing',
+    data: null,
+  })
 
   const populateMetricNode = useCallback(() => {
     if (metricId) {
@@ -43,11 +61,33 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   const populateDetails = useCallback(() => {
     if (metricNode) {
-      setName(metricNode.data.name)
-      setDescription(metricNode.data.description)
-      setOwner(metricNode.data.owner)
-      setSource(metricNode.data.source)
+      // execute source code on canceled change
+      // (we also execute on EditTextarea-saved change below)
+      if (
+        initialDetailPopulationComplete &&
+        (metricNode.data.sourceCode !== sourceCode ||
+          metricNode.data.sourceDatabaseConnectionId !==
+            sourceDatabaseConnectionId)
+      ) {
+        setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+      }
+      setName(metricNode.data.name || '')
+      setDescription(metricNode.data.description || '')
+      setOwner(metricNode.data.owner || '')
+      const _sourceCode = metricNode.data.sourceCode || ''
+      setSourceCode(_sourceCode)
+      const _sourceDatabaseConnectionId =
+        metricNode.data.sourceDatabaseConnectionId || ''
+      setSourceDatabaseConnectionId(_sourceDatabaseConnectionId)
+      if (!_sourceCode || !_sourceDatabaseConnectionId) {
+        setQueryResult({
+          status: 'empty',
+          data: null,
+        })
+      }
+      setInitialDetailPopulationComplete(true)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metricNode])
   useEffect(() => {
     populateDetails()
@@ -157,7 +197,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     async (str: string) => {
       const matches = str.match(functionTypeIdRegex)
       if (matches) {
-        const symbol = await getFunctionSymbol(matches[1])
+        let symbol = await getFunctionSymbol(matches[1])
         return str.replace(matches[0], symbol)
       } else {
         return str
@@ -189,6 +229,55 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     [metricNode]
   )
 
+  const populateDatabaseConnections = useCallback(async () => {
+    if (organizationId) {
+      try {
+        let { data, error, status } = await supabase
+          .from('database_connections')
+          .select('id, name')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+
+        if (error && status !== 406) {
+          throw error
+        }
+
+        if (data) {
+          data.sort((a, b) => {
+            if (a.name < b.name) {
+              return -1
+            }
+            if (a.name > b.name) {
+              return 1
+            }
+            return 0
+          })
+          setDatabaseConnections(data)
+        }
+      } catch (error: any) {
+        alert(error.message)
+      }
+    }
+  }, [organizationId])
+  useEffect(() => {
+    populateDatabaseConnections()
+  }, [populateDatabaseConnections])
+  useEffect(() => {
+    const sourceDatabaseConnection = databaseConnections.find(
+      (databaseConnection) =>
+        databaseConnection.id === sourceDatabaseConnectionId
+    )
+    if (sourceDatabaseConnection) {
+      setSourceDatabaseConnectionName(sourceDatabaseConnection.name)
+    } else {
+      setSourceDatabaseConnectionName('')
+    }
+  }, [
+    sourceDatabaseConnectionId,
+    databaseConnections,
+    setSourceDatabaseConnectionName,
+  ])
+
   return (
     <div className={styles.metric_detail}>
       <div className={styles.header}>
@@ -218,7 +307,28 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         </h1>
         <ControlPanel />
       </div>
-      <div className={styles.detail_field}>Chart TBA</div>
+      <div className={styles.chart_container}>
+        <QueryRunner
+          statement={sourceCode}
+          databaseConnectionId={sourceDatabaseConnectionId}
+          parentNodeId={metricNode ? metricNode.id : ''}
+          refreshes={queryRunnerRefreshes}
+          setQueryResult={setQueryResult}
+        />
+        <LineChart queryResult={queryResult} />
+      </div>
+      <h2>Owner</h2>
+      <EditText
+        id="owner-field"
+        className={
+          editingEnabled ? styles.detail_field_editable : styles.detail_field
+        }
+        value={owner}
+        readonly={!editingEnabled}
+        placeholder={editingEnabled ? 'Add...' : '-'}
+        onChange={(e) => setOwner(e.target.value)}
+        onSave={({ value }) => saveDetail('owner', value)}
+      />
       <h2>Description</h2>
       <EditTextarea
         id="description-field"
@@ -247,34 +357,51 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         readonly={true}
         placeholder={'-'}
       />
-      <h2>Owner</h2>
-      <EditText
-        id="owner-field"
-        className={
-          editingEnabled ? styles.detail_field_editable : styles.detail_field
-        }
-        value={owner}
-        readonly={!editingEnabled}
-        placeholder={editingEnabled ? 'Add...' : '-'}
-        onChange={(e) => setOwner(e.target.value)}
-        onSave={({ value }) => saveDetail('owner', value)}
-      />
       <h2>Source</h2>
+      <h3>Database</h3>
+      <Dropdown
+        id="source-database-connection-dropdown"
+        value={sourceDatabaseConnectionName}
+        options={databaseConnections.map((dc) => dc.name)}
+        onChange={(e) => {
+          const newSourceDatabaseConnection = databaseConnections.find(
+            (dc) => dc.name === e.value
+          )
+          if (newSourceDatabaseConnection) {
+            setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
+            saveDetail(
+              'sourceDatabaseConnectionId',
+              newSourceDatabaseConnection.id
+            )
+            setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+            // name updating handled by useEffect above
+          }
+        }}
+        disabled={!editingEnabled}
+      />
+      <h3>Code</h3>
       <EditTextarea
-        id="source-field"
+        id="source-code-field"
         className={
           editingEnabled ? styles.detail_field_editable : styles.detail_field
         }
-        value={source}
+        value={sourceCode}
         readonly={!editingEnabled}
         placeholder={editingEnabled ? 'Add...' : '-'}
-        onChange={(e) => setSource(e.target.value)}
-        onSave={({ value }) => saveDetail('source', value)}
+        onChange={(e) => setSourceCode(e.target.value)}
+        onSave={({ value }) => {
+          setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+          saveDetail('sourceCode', value)
+        }}
       />
       {editingEnabled ? (
-        <div className={styles.editor_dock}>
-          <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
-        </div>
+        <>
+          <div className={styles.editor_dock}>
+            <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
+          </div>
+          {/* ensure final module can be seen underneath editor dock */}
+          <div className={styles.editor_dock_spacer} />
+        </>
       ) : null}
     </div>
   )

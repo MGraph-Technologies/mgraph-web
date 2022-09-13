@@ -2,12 +2,12 @@ import { Button } from 'primereact/button'
 import { Toolbar } from 'primereact/toolbar'
 import React, { FunctionComponent, useCallback, useState } from 'react'
 
-import FormulaEditor from './FormulaEditor'
-import UndoRedoSaveAndCancelGraphEditingButtons from './UndoRedoSaveAndCancelGraphEditingButtons'
-import styles from '../../../styles/EditorDock.module.css'
 import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
+import styles from '../../../styles/EditorDock.module.css'
 import { analytics } from '../../../utils/segmentClient'
+import FormulaEditor from './FormulaEditor'
+import UndoRedoSaveAndCancelGraphEditingButtons from './UndoRedoSaveAndCancelGraphEditingButtons'
 
 type EditorDockProps = {}
 const _EditorDock: FunctionComponent<EditorDockProps> = () => {
