@@ -1,3 +1,4 @@
 .graph_viewer_container {
   flex-grow: 1;
+  overflow: auto;
 }

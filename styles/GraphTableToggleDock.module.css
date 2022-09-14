@@ -1,0 +1,22 @@
+.graph_table_toggle_dock {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.graph_table_toggle_dock .toggle_buttons {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.graph_table_toggle_dock .toggle_buttons button {
+  width: auto;
+  padding: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+}

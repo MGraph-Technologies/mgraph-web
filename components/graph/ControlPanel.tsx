@@ -15,10 +15,15 @@ import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/ControlPanel.module.css'
 import { analytics } from '../../utils/segmentClient'
 
-type ControlPanelProps = {}
-const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
+type ControlPanelProps = {
+  hideEditButton?: boolean
+}
+const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
+  hideEditButton,
+}) => {
   const { userCanEdit, userIsAdmin } = useAuth()
   const { editingEnabled, enableEditing } = useEditability()
+  const showEditButton = userCanEdit && !hideEditButton
   const {
     globalQueryRefreshes,
     setGlobalQueryRefreshes,
@@ -133,7 +138,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = () => {
             }
           }}
         />
-        {userCanEdit ? (
+        {showEditButton ? (
           <Button
             id="edit-button"
             className={styles.button}
