@@ -3,6 +3,7 @@ import React, { FunctionComponent, useEffect, useState } from 'react'
 
 import { useEditability } from '../../contexts/editability'
 import styles from '../../styles/GraphTableToggleDock.module.css'
+import { analytics } from '../../utils/segmentClient'
 
 type GraphTableToggleDockProps = {
   showGraphTable: boolean
@@ -16,7 +17,11 @@ const _GraphTableToggleDock: FunctionComponent<GraphTableToggleDockProps> = ({
   const [activeIndex, setActiveIndex] = useState(0)
 
   useEffect(() => {
-    setShowGraphTable(activeIndex === 1)
+    const _showGraphTable = activeIndex === 1
+    setShowGraphTable(_showGraphTable)
+    analytics.track('toggle_graph_table', {
+      show_graph_table: _showGraphTable,
+    })
   }, [activeIndex, setShowGraphTable])
 
   if (!editingEnabled) {
