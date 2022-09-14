@@ -120,13 +120,13 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         <Column
           field="data.name"
           header="Metric"
-          style={{ 'max-width': '25%' }}
+          style={{ maxWidth: '25%' }}
           sortable
           filter
           filterPlaceholder="Search"
           showFilterMenu={false}
         />
-        <Column body={trendCellBodyTemplate} style={{ 'min-width': '50%' }} />
+        <Column body={trendCellBodyTemplate} style={{ minWidth: '50%' }} />
         <Column body={infoCellBodyTemplate} align="center" />
         <Column body={linkCellBodyTemplate} align="center" />
       </DataTable>
