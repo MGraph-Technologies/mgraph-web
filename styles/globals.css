@@ -31,3 +31,7 @@ a {
     stroke: #6466e9;
   }
 }
+
+.p-paginator {
+  justify-content: right !important;
+}

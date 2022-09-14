@@ -183,9 +183,10 @@ const LineChart: FunctionComponent<LineChartProps> = ({ queryResult }) => {
                       position: 'bottom',
                       align: 'end',
                     },
-                    legend: {
-                      position: 'bottom' as const,
-                    },
+                    legend:
+                      datasets.length > 1
+                        ? { position: 'bottom' }
+                        : { display: false },
                   },
                 }}
               />
