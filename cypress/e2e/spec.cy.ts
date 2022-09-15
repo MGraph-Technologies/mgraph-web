@@ -78,6 +78,21 @@ describe('Graphviewer viewing as admin', () => {
     cy.url().should('include', '/mgraph')
   })
 
+  it('Clicks to and inspects table view', () => {
+    cy.visit('/mgraph')
+    cy.get('[class*=pi-table]').should('exist')
+    cy.get('[class*=pi-sitemap]').should('exist')
+    cy.get('[class*=pi-table]').click()
+    cy.get('[id=query-settings-button]').should('exist')
+    cy.contains('td', 'Metric')
+    cy.contains('td', '# of Inputs')
+    cy.get('td').find('[class*=GraphTable_chart_container]').should('exist')
+    cy.get('td').find('[class*=pi-info-circle]').should('exist')
+    cy.get('td').find('[class*=pi-angle-right]').should('exist')
+    cy.get('td').find('[class*=pi-angle-right]').first().click()
+    cy.url().should('include', '/metrics/')
+  })
+
   it('Clicks through to access management page', () => {
     cy.visit('/mgraph')
     cy.get('[class*=Header_account_menu_container]').click()
