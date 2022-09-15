@@ -84,6 +84,7 @@ type GraphContextType = {
         calledFrom?: string
       ) => (Node<any> | Edge<any>)[])
     | undefined
+  getInputNodes: ((node: Node) => Node[]) | undefined
   globalQueryRefreshes: number
   setGlobalQueryRefreshes: Dispatch<SetStateAction<number>> | undefined
   queryParameters: {
@@ -120,6 +121,7 @@ const graphContextDefaultValues: GraphContextType = {
   formFunctionNode: undefined,
   formInputEdge: undefined,
   getConnectedObjects: undefined,
+  getInputNodes: undefined,
   globalQueryRefreshes: 0,
   setGlobalQueryRefreshes: undefined,
   queryParameters: {},
@@ -639,6 +641,33 @@ export function GraphProvider({ children }: GraphProps) {
     [graph]
   )
 
+  const getInputNodes = useCallback(
+    (reference: Node) => {
+      let inputNodes: Node[] = []
+      // select immediate input nodes
+      graph.edges.forEach((edge) => {
+        if (
+          edge.data.targetId === reference.id &&
+          edge.type === 'input' &&
+          edge.data.sourceId
+        ) {
+          const inputNode = graph.nodes.find(
+            (node) => node.id === edge.data.sourceId
+          )
+          if (inputNode) {
+            inputNodes = inputNodes.concat(
+              [inputNode],
+              // recursively select input nodes of input nodes
+              getInputNodes(inputNode)
+            )
+          }
+        }
+      })
+      return inputNodes
+    },
+    [graph]
+  )
+
   const [globalQueryRefreshes, setGlobalQueryRefreshes] = useState(0)
 
   const [queryParameters, setQueryParameters] = useState<{
@@ -866,6 +895,7 @@ export function GraphProvider({ children }: GraphProps) {
     formFunctionNode: formFunctionNode,
     formInputEdge: formInputEdge,
     getConnectedObjects: getConnectedObjects,
+    getInputNodes: getInputNodes,
     globalQueryRefreshes: globalQueryRefreshes,
     setGlobalQueryRefreshes: setGlobalQueryRefreshes,
     queryParameters: queryParameters,
