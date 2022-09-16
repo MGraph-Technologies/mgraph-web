@@ -24,14 +24,13 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
       setMetricsTableLoading(true)
       let _nodes = graph.nodes.filter((node) => node.type === 'metric')
       _nodes.forEach(
-        (node) => (
-          node.data = {
+        (node) =>
+          (node.data = {
             ...node.data,
             numInputMetrics: getInputNodes!(node).filter(
               (inputNode) => inputNode.type === 'metric'
-            ).length
-          }
-        )
+            ).length,
+          })
       )
       setMetrics(_nodes)
       setMetricsTableLoading(false)
@@ -149,12 +148,12 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
           body={infoCellBodyTemplate}
           align="center"
           style={{ maxWidth: '5%' }}
-          />
+        />
         <Column
           body={linkCellBodyTemplate}
           align="center"
           style={{ maxWidth: '5%' }}
-          />
+        />
       </DataTable>
     </div>
   )
