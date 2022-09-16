@@ -1,6 +1,6 @@
 import { FilterMatchMode } from 'primereact/api'
 import { Column } from 'primereact/column'
-import { DataTable } from 'primereact/datatable'
+import { DataTable, DataTableFilterMeta, DataTablePFSEvent } from 'primereact/datatable'
 import { Dropdown } from 'primereact/dropdown'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
@@ -206,6 +206,16 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     [organizationId, roles]
   )
 
+  const [usersTableFilters, setUsersTableFilters] = useState<DataTableFilterMeta>({
+    'users.email': {
+      value: null,
+      matchMode: FilterMatchMode.CONTAINS,
+    },
+    'roles.name': {
+      value: null,
+      matchMode: FilterMatchMode.CONTAINS,
+    },
+  })
   return (
     <Workspace>
       <div className={styles.access_management_container}>
@@ -239,15 +249,27 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
             paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
             filterDisplay="row"
-            filters={{
-              'users.email': {
-                value: null,
-                matchMode: FilterMatchMode.CONTAINS,
-              },
-              'roles.name': {
-                value: null,
-                matchMode: FilterMatchMode.CONTAINS,
-              },
+            filters={usersTableFilters}
+            onFilter={(e: DataTablePFSEvent) => {
+              for (let key in e.filters) {
+                const newFilter: any = e.filters[key]
+                const oldFilter: any  = usersTableFilters[key]
+                if (
+                  !oldFilter ||
+                  oldFilter.value !== newFilter.value ||
+                  oldFilter.matchMode !== newFilter.matchMode
+                ) {
+                  analytics.track('filter_users_table', {
+                    key: key,
+                    value: newFilter.value,
+                    matchMode: newFilter.matchMode,
+                  })
+                }
+              }
+              setUsersTableFilters({
+                ...usersTableFilters,
+                ...e.filters
+              })
             }}
             emptyMessage="No users found"
           >
