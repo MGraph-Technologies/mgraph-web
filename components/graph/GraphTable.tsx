@@ -14,7 +14,7 @@ import ControlPanel from './ControlPanel'
 
 type GraphTableProps = {}
 const GraphTable: FunctionComponent<GraphTableProps> = () => {
-  const { graph } = useGraph()
+  const { graph, getInputNodes } = useGraph()
   const { organizationId, organizationName } = useAuth()
 
   const [metricsTableLoading, setMetricsTableLoading] = useState(true)
@@ -22,11 +22,20 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
   const populateMetrics = useCallback(() => {
     if (organizationId) {
       setMetricsTableLoading(true)
-      const _nodes = graph.nodes.filter((node) => node.type === 'metric')
+      let _nodes = graph.nodes.filter((node) => node.type === 'metric')
+      _nodes.forEach(
+        (node) =>
+          (node.data = {
+            ...node.data,
+            numInputMetrics: getInputNodes!(node).filter(
+              (inputNode) => inputNode.type === 'metric'
+            ).length,
+          })
+      )
       setMetrics(_nodes)
       setMetricsTableLoading(false)
     }
-  }, [organizationId, graph])
+  }, [organizationId, graph, getInputNodes])
   useEffect(() => {
     populateMetrics()
   }, [populateMetrics])
@@ -115,6 +124,8 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
             matchMode: FilterMatchMode.CONTAINS,
           },
         }}
+        sortField="data.numInputMetrics"
+        sortOrder={-1}
         emptyMessage="No metrics found"
       >
         <Column
@@ -126,9 +137,23 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
           filterPlaceholder="Search"
           showFilterMenu={false}
         />
+        <Column
+          field="data.numInputMetrics"
+          header="# of Inputs"
+          style={{ maxWidth: '5%' }}
+          sortable
+        />
         <Column body={trendCellBodyTemplate} style={{ minWidth: '50%' }} />
-        <Column body={infoCellBodyTemplate} align="center" />
-        <Column body={linkCellBodyTemplate} align="center" />
+        <Column
+          body={infoCellBodyTemplate}
+          align="center"
+          style={{ maxWidth: '5%' }}
+        />
+        <Column
+          body={linkCellBodyTemplate}
+          align="center"
+          style={{ maxWidth: '5%' }}
+        />
       </DataTable>
     </div>
   )

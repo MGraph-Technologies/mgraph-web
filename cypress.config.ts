@@ -13,6 +13,9 @@ export default defineConfig({
       runMode: 2,
       openMode: 2,
     },
+    // 13" macbook
+    viewportHeight: 1280,
+    viewportWidth: 800,
     screenshotOnRunFailure: false,
     video: false,
     setupNodeEvents(on, config) {
