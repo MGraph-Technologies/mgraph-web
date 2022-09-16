@@ -141,12 +141,20 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         <Column
           field="data.numInputMetrics"
           header="# of Inputs"
-          style={{ maxWidth: '10%' }}
+          style={{ maxWidth: '5%' }}
           sortable
         />
         <Column body={trendCellBodyTemplate} style={{ minWidth: '50%' }} />
-        <Column body={infoCellBodyTemplate} align="center" />
-        <Column body={linkCellBodyTemplate} align="center" />
+        <Column
+          body={infoCellBodyTemplate}
+          align="center"
+          style={{ maxWidth: '5%' }}
+          />
+        <Column
+          body={linkCellBodyTemplate}
+          align="center"
+          style={{ maxWidth: '5%' }}
+          />
       </DataTable>
     </div>
   )
