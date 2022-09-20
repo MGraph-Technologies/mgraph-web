@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { FunctionComponent } from 'react'
 
@@ -9,9 +10,14 @@ const Header: FunctionComponent<HeaderProps> = () => {
   return (
     <div className={styles.header}>
       <div className={styles.mgraph_logo_container}>
-        <h1>
-          <Link href="/">MGraph</Link>
-        </h1>
+        <Link href="/">
+          <Image
+            src="/mgraph_logo.svg"
+            alt="mgraph logo"
+            height={50}
+            width={150}
+          />
+        </Link>
       </div>
       <div className={styles.account_menu_container}>
         <AccountMenu />
