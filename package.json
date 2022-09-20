@@ -12,6 +12,7 @@
     "cy:run": "cypress run"
   },
   "dependencies": {
+    "@sentry/nextjs": "^7.13.0",
     "chart.js": "^3.9.1",
     "chartjs-adapter-moment": "^1.0.0",
     "crypto-js": "^4.1.1",
