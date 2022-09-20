@@ -22,7 +22,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
       <button
         type="button"
         onClick={() => {
-          throw new Error("Sentry Frontend Error 2");
+          throw new Error("Sentry Frontend Error 3");
         }}
       >
         Throw error
