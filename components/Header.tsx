@@ -19,6 +19,14 @@ const Header: FunctionComponent<HeaderProps> = () => {
           />
         </Link>
       </div>
+      <button
+        type="button"
+        onClick={() => {
+          throw new Error("Sentry Frontend Error 2");
+        }}
+      >
+        Throw error
+      </button>
       <div className={styles.account_menu_container}>
         <AccountMenu />
       </div>
