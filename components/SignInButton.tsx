@@ -44,6 +44,7 @@ const SignInButton: FunctionComponent<Props> = () => {
         onMouseLeave={(e) => {
           setButtonImgSrc(GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT)
         }}
+        loading="eager"
       />
     </div>
   )
