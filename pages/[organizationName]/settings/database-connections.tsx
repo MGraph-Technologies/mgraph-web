@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import { FunctionComponent } from 'react'
 
 import Workspace from '../../../components/Workspace'
@@ -9,14 +10,19 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
   const { organizationId } = useAuth()
 
   return (
-    <Workspace>
-      <div className={styles.database_connections_container}>
-        <p>
-          To add, remove, or edit database connections, please contact an MGraph
-          team member.
-        </p>
-      </div>
-    </Workspace>
+    <>
+      <Head>
+        <title>Database Connections - MGraph</title>
+      </Head>
+      <Workspace>
+        <div className={styles.database_connections_container}>
+          <p>
+            To add, remove, or edit database connections, please contact an MGraph
+            team member.
+          </p>
+        </div>
+      </Workspace>
+    </>
   )
 }
 

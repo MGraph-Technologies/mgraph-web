@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import { FilterMatchMode } from 'primereact/api'
 import { Column } from 'primereact/column'
 import { DataTable, DataTableFilterMeta, DataTablePFSEvent } from 'primereact/datatable'
@@ -217,83 +218,88 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     },
   })
   return (
-    <Workspace>
-      <div className={styles.access_management_container}>
-        <div className={styles.access_management_title}>Access Management</div>
-        <h2>Add Users</h2>
-        <p>
-          No need for invitations; anyone under your organization&apos;s domain
-          can access MGraph via Google SSO - just share a link!
-        </p>
-        <h3>Default role for new users:</h3>
-        <Dropdown
-          value={orgDefaultRoleName}
-          options={roles.map((r) => r.name)}
-          onChange={(e) => {
-            const roleId = roles.find((r) => r.name === e.value).id
-            updateOrgDefaultRole(roleId)
-          }}
-          style={{ width: '25%' }}
-        />
-        <br></br>
-        <h2>Edit Users</h2>
-        <div className={styles.users_table_container}>
-          <DataTable
-            paginator
-            scrollable
-            className="p-datatable-users"
-            value={users}
-            loading={usersTableLoading}
-            scrollHeight="flex"
-            rows={10}
-            paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
-            currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
-            filterDisplay="row"
-            filters={usersTableFilters}
-            onFilter={(e: DataTablePFSEvent) => {
-              for (let key in e.filters) {
-                const newFilter: any = e.filters[key]
-                const oldFilter: any  = usersTableFilters[key]
-                if (
-                  !oldFilter ||
-                  oldFilter.value !== newFilter.value ||
-                  oldFilter.matchMode !== newFilter.matchMode
-                ) {
-                  analytics.track('filter_users_table', {
-                    key: key,
-                    value: newFilter.value,
-                    matchMode: newFilter.matchMode,
-                  })
-                }
-              }
-              setUsersTableFilters({
-                ...usersTableFilters,
-                ...e.filters
-              })
+    <>
+      <Head>
+        <title>Access Management — MGraph</title>
+      </Head>
+      <Workspace>
+        <div className={styles.access_management_container}>
+          <div className={styles.access_management_title}>Access Management</div>
+          <h2>Add Users</h2>
+          <p>
+            No need for invitations; anyone under your organization&apos;s domain
+            can access MGraph via Google SSO - just share a link!
+          </p>
+          <h3>Default role for new users:</h3>
+          <Dropdown
+            value={orgDefaultRoleName}
+            options={roles.map((r) => r.name)}
+            onChange={(e) => {
+              const roleId = roles.find((r) => r.name === e.value).id
+              updateOrgDefaultRole(roleId)
             }}
-            emptyMessage="No users found"
-          >
-            <Column
-              field="users.email"
-              header="Email"
-              sortable
-              filter
-              filterPlaceholder="Search"
-              showFilterMenu={false}
-            />
-            <Column
-              field="roles.name"
-              header="Role"
-              body={roleBodyTemplate}
-              sortable
-              filter
-              filterPlaceholder="Search"
-              showFilterMenu={false}
-            />
-          </DataTable>
+            style={{ width: '25%' }}
+          />
+          <br></br>
+          <h2>Edit Users</h2>
+          <div className={styles.users_table_container}>
+            <DataTable
+              paginator
+              scrollable
+              className="p-datatable-users"
+              value={users}
+              loading={usersTableLoading}
+              scrollHeight="flex"
+              rows={10}
+              paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
+              currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+              filterDisplay="row"
+              filters={usersTableFilters}
+              onFilter={(e: DataTablePFSEvent) => {
+                for (let key in e.filters) {
+                  const newFilter: any = e.filters[key]
+                  const oldFilter: any  = usersTableFilters[key]
+                  if (
+                    !oldFilter ||
+                    oldFilter.value !== newFilter.value ||
+                    oldFilter.matchMode !== newFilter.matchMode
+                  ) {
+                    analytics.track('filter_users_table', {
+                      key: key,
+                      value: newFilter.value,
+                      matchMode: newFilter.matchMode,
+                    })
+                  }
+                }
+                setUsersTableFilters({
+                  ...usersTableFilters,
+                  ...e.filters
+                })
+              }}
+              emptyMessage="No users found"
+            >
+              <Column
+                field="users.email"
+                header="Email"
+                sortable
+                filter
+                filterPlaceholder="Search"
+                showFilterMenu={false}
+              />
+              <Column
+                field="roles.name"
+                header="Role"
+                body={roleBodyTemplate}
+                sortable
+                filter
+                filterPlaceholder="Search"
+                showFilterMenu={false}
+              />
+            </DataTable>
+          </div>
         </div>
-      </div>
-    </Workspace>
+      </Workspace>
+    </>
   )
 }
 

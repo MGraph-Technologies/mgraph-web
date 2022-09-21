@@ -12,12 +12,7 @@ const Home: NextPage = () => {
   return (
     <div className={styles.container}>
       <Head>
-        <title>MGraph: How and Why Your Organization is Performing</title>
-        <meta
-          name="description"
-          content="MGraph is a comprehensive, realtime view of how and why you organization is performing"
-        />
-        <link rel="icon" href="/favicon.ico" />
+        <title>MGraph</title>
       </Head>
 
       <main className={styles.main}>

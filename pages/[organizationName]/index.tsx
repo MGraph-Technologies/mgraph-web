@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import { FunctionComponent, useState } from 'react'
 import { ReactFlowProvider } from 'react-flow-renderer'
 
@@ -11,21 +12,26 @@ type OrganizationHomeProps = {}
 const OrganizationHome: FunctionComponent<OrganizationHomeProps> = () => {
   const [showGraphTable, setShowGraphTable] = useState(false)
   return (
-    <Workspace>
-      <div className={styles.graph_viewer_container}>
-        {showGraphTable ? (
-          <GraphTable />
-        ) : (
-          <ReactFlowProvider>
-            <GraphViewer />
-          </ReactFlowProvider>
-        )}
-      </div>
-      <GraphTableToggleDock
-        showGraphTable={showGraphTable}
-        setShowGraphTable={setShowGraphTable}
-      />
-    </Workspace>
+    <>
+      <Head>
+        <title>MGraph</title>
+      </Head>
+      <Workspace>
+        <div className={styles.graph_viewer_container}>
+          {showGraphTable ? (
+            <GraphTable />
+          ) : (
+            <ReactFlowProvider>
+              <GraphViewer />
+            </ReactFlowProvider>
+          )}
+        </div>
+        <GraphTableToggleDock
+          showGraphTable={showGraphTable}
+          setShowGraphTable={setShowGraphTable}
+        />
+      </Workspace>
+    </>
   )
 }
 

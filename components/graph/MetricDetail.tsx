@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { Button } from 'primereact/button'
 import { Dropdown } from 'primereact/dropdown'
@@ -280,6 +281,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   return (
     <div className={styles.metric_detail}>
+      <Head>
+        <title>{name ? `Metric: ${name}` : 'Metric'} — MGraph</title>
+      </Head>
       <div className={styles.header}>
         {editingEnabled ? null : (
           <Button
