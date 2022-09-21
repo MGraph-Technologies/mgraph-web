@@ -7,9 +7,12 @@ import { supabase } from '../utils/supabaseClient'
 type Props = {}
 
 const SignInButton: FunctionComponent<Props> = () => {
-  const GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT = '/btn_google_signin_dark_normal_web@2x.png'
-  const GOOGLE_SIGN_IN_BTN_IMG_SRC_HOVER = '/btn_google_signin_dark_focus_web@2x.png'
-  const GOOGLE_SIGN_IN_BTN_IMG_SRC_CLICK = '/btn_google_signin_dark_pressed_web@2x.png'
+  const GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT =
+    '/btn_google_signin_dark_normal_web@2x.png'
+  const GOOGLE_SIGN_IN_BTN_IMG_SRC_HOVER =
+    '/btn_google_signin_dark_focus_web@2x.png'
+  const GOOGLE_SIGN_IN_BTN_IMG_SRC_CLICK =
+    '/btn_google_signin_dark_pressed_web@2x.png'
   const [buttonImgSrc, setButtonImgSrc] = useState(
     GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT
   )
