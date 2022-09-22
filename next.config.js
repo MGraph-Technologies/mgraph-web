@@ -2,6 +2,13 @@
 const { withSentryConfig } = require('@sentry/nextjs');
 
 const moduleExports = {
+  images: {
+    domains: [
+      'foijfafafqxtuwqjshcu.supabase.co', // dev
+      'yvyswaeeardmmcwqgybm.supabase.co', // staging
+      'qfajvvqhnbvjgvgesooj.supabase.co', // prod
+    ],
+  },
   reactStrictMode: true,
   sentry: {
     // Use `hidden-source-map` rather than `source-map` as the Webpack `devtool`

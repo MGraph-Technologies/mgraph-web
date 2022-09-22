@@ -1,16 +1,19 @@
+import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Avatar } from 'primereact/avatar'
 import { Menu } from 'primereact/menu'
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '../contexts/auth'
+import styles from '../styles/AccountMenu.module.css'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
 type Props = {}
 
 const AccountMenu: FunctionComponent<Props> = () => {
-  const { session, organizationName, userIsAdmin } = useAuth()
+  const { session, organizationName, organizationLogoStoragePath, userIsAdmin } = useAuth()
 
   const [userEmail, setUserEmail] = useState('')
   const [avatarChar, setAvatarChar] = useState('')
@@ -71,6 +74,21 @@ const AccountMenu: FunctionComponent<Props> = () => {
 
   return (
     <>
+      {organizationLogoStoragePath ? ( 
+        // if org logo is available, we'll show that in Header
+        // and show powered by MGraph here
+        <>
+          <Link href="/">
+            <Image
+              src="/powered_by_mgraph.svg"
+              alt="Powered by MGraph"
+              height={50}
+              width={150}
+            />
+          </Link>
+          <div className={styles.vertical_line} />
+        </>
+      ) : null}
       <Menu model={overlayMenuItems} popup ref={overlayMenu} />
       <Avatar
         label={avatarChar}

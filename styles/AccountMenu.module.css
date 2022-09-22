@@ -1,0 +1,6 @@
+.vertical_line {
+  border-left: 1px solid #787878;
+  margin-left: 1em;
+  margin-right: 1em;
+  height: 20px;
+}
