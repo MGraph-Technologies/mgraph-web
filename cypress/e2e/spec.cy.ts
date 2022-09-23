@@ -1,7 +1,7 @@
 describe('App landing page, unauthenticated', () => {
   it('Visits the app landing page', () => {
     cy.visit('/')
-    cy.contains('Sign in')
+    cy.get('[alt="Sign in with Google"]').should('be.visible')
   })
 })
 
