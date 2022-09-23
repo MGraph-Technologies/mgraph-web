@@ -153,7 +153,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         parentNodeId: parentNodeId,
         statement: parameterizeStatement(),
       }
-      analytics.track('executed_query', queryBody)
+      analytics.track('execute_query', queryBody)
       fetch('/api/v1/queries', {
         method: 'POST',
         body: JSON.stringify(queryBody),
