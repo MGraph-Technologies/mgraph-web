@@ -15,6 +15,7 @@ type AuthContextType = {
   session: Session | null
   organizationId: string
   organizationName: string
+  organizationLogoStoragePath: string
   organizationEnabled: boolean
   userIsAdmin: boolean
   userCanEdit: boolean
@@ -25,6 +26,7 @@ const authContextTypeValues: AuthContextType = {
   session: null,
   organizationId: '',
   organizationName: '',
+  organizationLogoStoragePath: '',
   organizationEnabled: false,
   userIsAdmin: false,
   userCanEdit: false,
@@ -59,6 +61,8 @@ export function AuthProvider({ children }: AuthProps) {
 
   const [organizationId, setOrganizationId] = useState('')
   const [organizationName, setOrganizationName] = useState('')
+  const [organizationLogoStoragePath, setOrganizationLogoStoragePath] =
+    useState('')
   const [organizationEnabled, setOrganizationEnabled] = useState(false)
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [userCanEdit, setUserCanEdit] = useState(false)
@@ -68,7 +72,9 @@ export function AuthProvider({ children }: AuthProps) {
       try {
         let { data, error, status } = await supabase
           .from('organization_members')
-          .select('organizations ( id, name, enabled ), roles ( name )')
+          .select(
+            'organizations ( id, name, logo_storage_path, enabled ), roles ( name )'
+          )
           .is('deleted_at', null)
           .eq('user_id', session?.user?.id || '')
           .single()
@@ -80,6 +86,7 @@ export function AuthProvider({ children }: AuthProps) {
         if (data) {
           setOrganizationId(data.organizations.id)
           setOrganizationName(data.organizations.name)
+          setOrganizationLogoStoragePath(data.organizations.logo_storage_path)
           setOrganizationEnabled(data.organizations.enabled)
           const _userIsAdmin = data.roles.name === 'admin'
           setUserIsAdmin(_userIsAdmin)
@@ -100,6 +107,7 @@ export function AuthProvider({ children }: AuthProps) {
     session,
     organizationId,
     organizationName,
+    organizationLogoStoragePath,
     organizationEnabled,
     userIsAdmin,
     userCanEdit,

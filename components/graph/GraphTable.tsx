@@ -2,12 +2,18 @@ import { useRouter } from 'next/router'
 import { FilterMatchMode } from 'primereact/api'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
-import { DataTable } from 'primereact/datatable'
+import {
+  DataTable,
+  DataTableFilterMeta,
+  DataTablePFSEvent,
+  DataTableSortOrderType,
+} from 'primereact/datatable'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../../contexts/auth'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/GraphTable.module.css'
+import { analytics } from '../../utils/segmentClient'
 import LineChart from '../LineChart'
 import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
@@ -80,6 +86,11 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         icon="pi pi-info-circle"
         tooltip={`Description: ${rowData.data.description}
             \nOwner: ${rowData.data.owner}`}
+        onMouseEnter={(e) => {
+          analytics.track('view_tooltip', {
+            nodeId: rowData.data.id,
+          })
+        }}
       />
     )
   }
@@ -98,8 +109,59 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
     )
   }
 
+  const [first, setFirst] = useState(0)
+  const onPage = (e: DataTablePFSEvent) => {
+    analytics.track('change_table_page', {
+      table: 'graph',
+      page: e.page,
+      first: e.first,
+    })
+    setFirst(e.first)
+  }
+
+  const [filters, setFilters] = useState<DataTableFilterMeta>({
+    'data.name': {
+      value: null,
+      matchMode: FilterMatchMode.CONTAINS,
+    },
+  })
+  const onFilter = (e: DataTablePFSEvent) => {
+    for (let key in e.filters) {
+      const newFilter: any = e.filters[key]
+      const oldFilter: any = filters[key]
+      if (
+        !oldFilter ||
+        oldFilter.value !== newFilter.value ||
+        oldFilter.matchMode !== newFilter.matchMode
+      ) {
+        analytics.track('filter_table', {
+          table: 'graph',
+          key: key,
+          value: newFilter.value,
+          matchMode: newFilter.matchMode,
+        })
+      }
+    }
+    setFilters({
+      ...filters,
+      ...e.filters,
+    })
+  }
+
+  const [sortField, setSortField] = useState('data.numInputMetrics')
+  const [sortOrder, setSortOrder] = useState<DataTableSortOrderType>(-1)
+  const onSort = (e: DataTablePFSEvent) => {
+    analytics.track('sort_table', {
+      table: 'graph',
+      sortField: e.sortField,
+      sortOrder: e.sortOrder,
+    })
+    setSortField(e.sortField)
+    setSortOrder(e.sortOrder)
+  }
+
   return (
-    <div className={styles.metrics_table_container}>
+    <div className={styles.graph_table_container}>
       <div className={styles.control_panel_container}>
         <ControlPanel hideEditButton={true} />
       </div>
@@ -117,15 +179,14 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
         paginatorPosition="bottom"
+        first={first}
+        onPage={onPage}
         filterDisplay="row"
-        filters={{
-          'data.name': {
-            value: null,
-            matchMode: FilterMatchMode.CONTAINS,
-          },
-        }}
-        sortField="data.numInputMetrics"
-        sortOrder={-1}
+        filters={filters}
+        onFilter={onFilter}
+        sortField={sortField}
+        sortOrder={sortOrder}
+        onSort={onSort}
         emptyMessage="No metrics found"
       >
         <Column

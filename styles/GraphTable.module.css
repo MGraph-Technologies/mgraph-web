@@ -1,13 +1,13 @@
-.metrics_table_container {
+.graph_table_container {
   width: 100%;
   height: 100%;
 }
 
-.metrics_table_container .control_panel_container {
+.graph_table_container .control_panel_container {
   position: relative;
 }
 
-.metrics_table_container .chart_container {
+.graph_table_container .chart_container {
   position: relative;
   height: 10em;
   width: 100%;

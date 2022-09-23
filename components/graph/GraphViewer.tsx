@@ -12,21 +12,21 @@ import ReactFlow, {
   MiniMap,
   Node,
   NodeChange,
+  Viewport,
   applyEdgeChanges,
   applyNodeChanges,
   useReactFlow,
 } from 'react-flow-renderer'
 
-import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
 import styles from '../../styles/GraphViewer.module.css'
+import { analytics } from '../../utils/segmentClient'
 import ControlPanel from './ControlPanel'
 import EditorDock from './editing/EditorDock'
 
 type GraphViewerProps = {}
 const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
-  const { userCanView } = useAuth()
   const { editingEnabled } = useEditability()
   const { initialGraph, graph, undo, redo, updateGraph, getConnectedObjects } =
     useGraph()
@@ -167,38 +167,64 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     [getConnectedObjects, updateGraph, graph]
   )
 
+  let lastMoveEndAt = 0
+  const onMoveEnd = (event: any, viewport: Viewport) => {
+    /* 
+      fire change_graph_viewport analytics event
+      (since onMoveEnd fires continuously while scrolling,
+        below logic ensures analytic only fires if no subsequent
+        onMoveEnd fires within 100ms)
+    */
+    const moveEndAt = Date.now()
+    lastMoveEndAt = moveEndAt
+    setTimeout(
+      (onMoveEndAt) => {
+        if (onMoveEndAt === lastMoveEndAt) {
+          analytics.track('change_graph_viewport', {
+            x: viewport.x,
+            y: viewport.y,
+            zoom: viewport.zoom,
+            event_type: event?.type,
+          })
+        }
+      },
+      100,
+      moveEndAt
+    )
+  }
+
   return (
-    <>
-      {userCanView ? (
-        <div className={styles.graph_viewer}>
-          <ReactFlow
-            nodes={graph.nodes}
-            edges={graph.edges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            onNodeClick={(_event, node) => onSelect(node)}
-            onNodesChange={onNodesChange}
-            onEdgeClick={(_event, edge) => onSelect(edge)}
-            onEdgesChange={onEdgesChange}
-            onNodeDragStart={onNodeDragStart}
-            nodesDraggable={editingEnabled}
-            nodesConnectable={false}
-            panOnScroll={true}
-            minZoom={0.1}
-            maxZoom={10}
-            deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
-            multiSelectionKeyCode={[actionKey]}
-          >
-            <ControlPanel />
-            <Controls showInteractive={false} />
-            <EditorDock />
-            <MiniMap />
-          </ReactFlow>
-        </div>
-      ) : (
-        <div>Please contact your administrator for access.</div>
-      )}
-    </>
+    <div className={styles.graph_viewer}>
+      <ReactFlow
+        nodes={graph.nodes}
+        edges={graph.edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        onNodeClick={(_event, node) => onSelect(node)}
+        onNodesChange={onNodesChange}
+        onEdgeClick={(_event, edge) => onSelect(edge)}
+        onEdgesChange={onEdgesChange}
+        onNodeDragStart={onNodeDragStart}
+        onMoveEnd={onMoveEnd}
+        nodesDraggable={editingEnabled}
+        nodesConnectable={false}
+        panOnScroll={true}
+        minZoom={0.01}
+        maxZoom={10}
+        deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
+        multiSelectionKeyCode={[actionKey]}
+        onlyRenderVisibleElements={false}
+        proOptions={{
+          account: 'paid-pro',
+          hideAttribution: true,
+        }}
+      >
+        <ControlPanel />
+        <Controls showInteractive={false} />
+        <EditorDock />
+        <MiniMap nodeColor="#AFADFF" nodeStrokeColor="#AFADFF" />
+      </ReactFlow>
+    </div>
   )
 }
 

@@ -1,3 +1,4 @@
+import { withSentry } from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 
@@ -9,10 +10,7 @@ import {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('\n\nNew request to /api/v1/queries/[queryId]/results...')
   const method = req.method
   if (method === 'GET') {
@@ -118,3 +116,5 @@ export default async function handler(
     })
   }
 }
+
+export default withSentry(handler)

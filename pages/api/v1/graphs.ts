@@ -1,3 +1,4 @@
+import { withSentry } from '@sentry/nextjs'
 import {
   createClient,
   PostgrestError,
@@ -98,10 +99,7 @@ async function upsert(
     .upsert(records, { returning: 'minimal' })
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('\n\nNew request to /api/v1/graphs')
   const method = req.method
   if (method === 'PUT') {
@@ -245,3 +243,5 @@ export default async function handler(
     res.status(405).json({ error: 'Method not allowed' })
   }
 }
+
+export default withSentry(handler)

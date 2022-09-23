@@ -19,7 +19,7 @@ const InputEdge: FunctionComponent<EdgeProps> = ({
   targetY,
   sourcePosition,
   targetPosition,
-  style = {},
+  style = { strokeWidth: 3 },
 }) => {
   const edgePath = getSmoothStepPath({
     sourceX,

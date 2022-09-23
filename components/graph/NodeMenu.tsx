@@ -52,7 +52,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
         </>
       ) : null}
       {editingEnabled && displayColorPicker ? (
-        <>
+        <div className={styles.color_picker}>
           <TwitterPicker
             color={color}
             onChangeComplete={(color) => handleColorChangeComplete(color)}
@@ -63,7 +63,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
             icon="pi pi-times"
             onClick={() => setDisplayColorPicker(false)}
           />
-        </>
+        </div>
       ) : null}
     </div>
   )

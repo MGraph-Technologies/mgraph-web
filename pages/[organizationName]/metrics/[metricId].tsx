@@ -10,6 +10,7 @@ const MetricDetailPage: FunctionComponent<MetricDetailPageProps> = () => {
   const router = useRouter()
   const { metricId } = router.query
   return (
+    // head populated by MetricDetail
     <Workspace>
       <div className={styles.metric_detail_container}>
         <MetricDetail metricId={metricId} />
