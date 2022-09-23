@@ -127,7 +127,8 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         paginatorPosition="bottom"
         first={first}
         onPage={(e: DataTablePFSEvent) => {
-          analytics.track('change_graph_table_page', {
+          analytics.track('change_table_page', {
+            table: 'graph',
             page: e.page,
             first: e.first,
           })
@@ -144,7 +145,8 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
               oldFilter.value !== newFilter.value ||
               oldFilter.matchMode !== newFilter.matchMode
             ) {
-              analytics.track('filter_graph_table', {
+              analytics.track('filter_table', {
+                table: 'graph',
                 key: key,
                 value: newFilter.value,
                 matchMode: newFilter.matchMode,

@@ -256,7 +256,8 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
               first={usersTableFirst}
               onPage={(e: DataTablePFSEvent) => {
-                analytics.track('change_users_table_page', {
+                analytics.track('change_table_page', {
+                  table: 'users',
                   page: e.page,
                   first: e.first,
                 })
@@ -273,7 +274,8 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
                     oldFilter.value !== newFilter.value ||
                     oldFilter.matchMode !== newFilter.matchMode
                   ) {
-                    analytics.track('filter_users_table', {
+                    analytics.track('filter_table', {
+                      table: 'users',
                       key: key,
                       value: newFilter.value,
                       matchMode: newFilter.matchMode,
