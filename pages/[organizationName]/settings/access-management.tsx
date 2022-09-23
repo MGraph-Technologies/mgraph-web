@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import { FilterMatchMode } from 'primereact/api'
 import { Column } from 'primereact/column'
-import { DataTable, DataTableFilterMeta, DataTablePFSEvent } from 'primereact/datatable'
+import { DataTable, DataTableFilterMeta, DataTablePFSEvent, DataTableSortOrderType } from 'primereact/datatable'
 import { Dropdown } from 'primereact/dropdown'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
@@ -218,6 +218,8 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
       matchMode: FilterMatchMode.CONTAINS,
     },
   })
+  const [usersTableSortField, setUsersTableSortField] = useState('users.email')
+  const [usersTableSortOrder, setUsersTableSortOrder] = useState<DataTableSortOrderType>(1)
   return (
     <>
       <Head>
@@ -286,6 +288,17 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
                   ...usersTableFilters,
                   ...e.filters
                 })
+              }}
+              sortField={usersTableSortField}
+              sortOrder={usersTableSortOrder}
+              onSort={(e: DataTablePFSEvent) => {
+                analytics.track('sort_table', {
+                  table: 'users',
+                  sortField: e.sortField,
+                  sortOrder: e.sortOrder,
+                })
+                setUsersTableSortField(e.sortField)
+                setUsersTableSortOrder(e.sortOrder)
               }}
               emptyMessage="No users found"
             >

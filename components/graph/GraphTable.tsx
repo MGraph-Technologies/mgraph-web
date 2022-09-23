@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import { FilterMatchMode } from 'primereact/api'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
-import { DataTable, DataTableFilterMeta, DataTablePFSEvent } from 'primereact/datatable'
+import { DataTable, DataTableFilterMeta, DataTablePFSEvent, DataTableSortOrderType } from 'primereact/datatable'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../../contexts/auth'
@@ -106,6 +106,8 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
       matchMode: FilterMatchMode.CONTAINS,
     },
   })
+  const [sortField, setSortField] = useState('data.numInputMetrics')
+  const [sortOrder, setSortOrder] = useState<DataTableSortOrderType>(-1)
   return (
     <div className={styles.graph_table_container}>
       <div className={styles.control_panel_container}>
@@ -158,8 +160,17 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
             ...e.filters
           })
         }}
-        sortField="data.numInputMetrics"
-        sortOrder={-1}
+        sortField={sortField}
+        sortOrder={sortOrder}
+        onSort={(e: DataTablePFSEvent) => {
+          analytics.track('sort_table', {
+            table: 'graph',
+            sortField: e.sortField,
+            sortOrder: e.sortOrder,
+          })
+          setSortField(e.sortField)
+          setSortOrder(e.sortOrder)
+        }}
         emptyMessage="No metrics found"
       >
         <Column
