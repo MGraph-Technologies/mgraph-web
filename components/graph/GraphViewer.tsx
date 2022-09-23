@@ -209,6 +209,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         maxZoom={10}
         deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
         multiSelectionKeyCode={[actionKey]}
+        onlyRenderVisibleElements={false}
         proOptions={{
           account: 'paid-pro',
           hideAttribution: true,
