@@ -81,6 +81,11 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         icon="pi pi-info-circle"
         tooltip={`Description: ${rowData.data.description}
             \nOwner: ${rowData.data.owner}`}
+        onMouseEnter={(e) => {
+          analytics.track('view_tooltip', {
+            nodeId: rowData.data.id,
+          })
+        }}
       />
     )
   }
