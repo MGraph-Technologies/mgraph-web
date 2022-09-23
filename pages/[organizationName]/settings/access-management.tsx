@@ -28,15 +28,6 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
       }
 
       if (data) {
-        data.sort((a, b) => {
-          if (a.name < b.name) {
-            return -1
-          }
-          if (a.name > b.name) {
-            return 1
-          }
-          return 0
-        })
         setRoles(data)
       }
     } catch (error: any) {
@@ -261,7 +252,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     setUsersTableSortField(e.sortField)
     setUsersTableSortOrder(e.sortOrder)
   }
-  
+
   return (
     <>
       <Head>
