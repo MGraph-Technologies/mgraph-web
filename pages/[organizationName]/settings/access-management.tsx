@@ -208,6 +208,15 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
   )
 
   const [usersTableFirst, setUsersTableFirst] = useState(0)
+  const usersTableOnPage = (e: DataTablePFSEvent) => {
+    analytics.track('change_table_page', {
+      table: 'users',
+      page: e.page,
+      first: e.first,
+    })
+    setUsersTableFirst(e.first)
+  }
+
   const [usersTableFilters, setUsersTableFilters] = useState<DataTableFilterMeta>({
     'users.email': {
       value: null,
@@ -218,8 +227,41 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
       matchMode: FilterMatchMode.CONTAINS,
     },
   })
+  const usersTableOnFilter = (e: DataTablePFSEvent) => {
+    for (let key in e.filters) {
+      const newFilter: any = e.filters[key]
+      const oldFilter: any  = usersTableFilters[key]
+      if (
+        !oldFilter ||
+        oldFilter.value !== newFilter.value ||
+        oldFilter.matchMode !== newFilter.matchMode
+      ) {
+        analytics.track('filter_table', {
+          table: 'users',
+          key: key,
+          value: newFilter.value,
+          matchMode: newFilter.matchMode,
+        })
+      }
+    }
+    setUsersTableFilters({
+      ...usersTableFilters,
+      ...e.filters
+    })
+  }
+
   const [usersTableSortField, setUsersTableSortField] = useState('users.email')
   const [usersTableSortOrder, setUsersTableSortOrder] = useState<DataTableSortOrderType>(1)
+  const usersTableOnSort = (e: DataTablePFSEvent) => {
+    analytics.track('sort_table', {
+      table: 'users',
+      sortField: e.sortField,
+      sortOrder: e.sortOrder,
+    })
+    setUsersTableSortField(e.sortField)
+    setUsersTableSortOrder(e.sortOrder)
+  }
+  
   return (
     <>
       <Head>
@@ -257,49 +299,13 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
               paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
               first={usersTableFirst}
-              onPage={(e: DataTablePFSEvent) => {
-                analytics.track('change_table_page', {
-                  table: 'users',
-                  page: e.page,
-                  first: e.first,
-                })
-                setUsersTableFirst(e.first)
-              }}
+              onPage={usersTableOnPage}
               filterDisplay="row"
               filters={usersTableFilters}
-              onFilter={(e: DataTablePFSEvent) => {
-                for (let key in e.filters) {
-                  const newFilter: any = e.filters[key]
-                  const oldFilter: any  = usersTableFilters[key]
-                  if (
-                    !oldFilter ||
-                    oldFilter.value !== newFilter.value ||
-                    oldFilter.matchMode !== newFilter.matchMode
-                  ) {
-                    analytics.track('filter_table', {
-                      table: 'users',
-                      key: key,
-                      value: newFilter.value,
-                      matchMode: newFilter.matchMode,
-                    })
-                  }
-                }
-                setUsersTableFilters({
-                  ...usersTableFilters,
-                  ...e.filters
-                })
-              }}
+              onFilter={usersTableOnFilter}
               sortField={usersTableSortField}
               sortOrder={usersTableSortOrder}
-              onSort={(e: DataTablePFSEvent) => {
-                analytics.track('sort_table', {
-                  table: 'users',
-                  sortField: e.sortField,
-                  sortOrder: e.sortOrder,
-                })
-                setUsersTableSortField(e.sortField)
-                setUsersTableSortOrder(e.sortOrder)
-              }}
+              onSort={usersTableOnSort}
               emptyMessage="No users found"
             >
               <Column

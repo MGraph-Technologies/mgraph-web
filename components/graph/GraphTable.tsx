@@ -105,14 +105,56 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
   }
 
   const [first, setFirst] = useState(0)
+  const onPage = (e: DataTablePFSEvent) => {
+    analytics.track('change_table_page', {
+      table: 'graph',
+      page: e.page,
+      first: e.first,
+    })
+    setFirst(e.first)
+  }
+
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     'data.name': {
       value: null,
       matchMode: FilterMatchMode.CONTAINS,
     },
   })
+  const onFilter = (e: DataTablePFSEvent) => {
+    for (let key in e.filters) {
+      const newFilter: any = e.filters[key]
+      const oldFilter: any  = filters[key]
+      if (
+        !oldFilter ||
+        oldFilter.value !== newFilter.value ||
+        oldFilter.matchMode !== newFilter.matchMode
+      ) {
+        analytics.track('filter_table', {
+          table: 'graph',
+          key: key,
+          value: newFilter.value,
+          matchMode: newFilter.matchMode,
+        })
+      }
+    }
+    setFilters({
+      ...filters,
+      ...e.filters
+    })
+  }
+
   const [sortField, setSortField] = useState('data.numInputMetrics')
   const [sortOrder, setSortOrder] = useState<DataTableSortOrderType>(-1)
+  const onSort = (e: DataTablePFSEvent) => {
+    analytics.track('sort_table', {
+      table: 'graph',
+      sortField: e.sortField,
+      sortOrder: e.sortOrder,
+    })
+    setSortField(e.sortField)
+    setSortOrder(e.sortOrder)
+  }
+  
   return (
     <div className={styles.graph_table_container}>
       <div className={styles.control_panel_container}>
@@ -133,49 +175,13 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
         paginatorPosition="bottom"
         first={first}
-        onPage={(e: DataTablePFSEvent) => {
-          analytics.track('change_table_page', {
-            table: 'graph',
-            page: e.page,
-            first: e.first,
-          })
-          setFirst(e.first)
-        }}
+        onPage={onPage}
         filterDisplay="row"
         filters={filters}
-        onFilter={(e: DataTablePFSEvent) => {
-          for (let key in e.filters) {
-            const newFilter: any = e.filters[key]
-            const oldFilter: any  = filters[key]
-            if (
-              !oldFilter ||
-              oldFilter.value !== newFilter.value ||
-              oldFilter.matchMode !== newFilter.matchMode
-            ) {
-              analytics.track('filter_table', {
-                table: 'graph',
-                key: key,
-                value: newFilter.value,
-                matchMode: newFilter.matchMode,
-              })
-            }
-          }
-          setFilters({
-            ...filters,
-            ...e.filters
-          })
-        }}
+        onFilter={onFilter}
         sortField={sortField}
         sortOrder={sortOrder}
-        onSort={(e: DataTablePFSEvent) => {
-          analytics.track('sort_table', {
-            table: 'graph',
-            sortField: e.sortField,
-            sortOrder: e.sortOrder,
-          })
-          setSortField(e.sortField)
-          setSortOrder(e.sortOrder)
-        }}
+        onSort={onSort}
         emptyMessage="No metrics found"
       >
         <Column
