@@ -205,7 +205,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         nodesDraggable={editingEnabled}
         nodesConnectable={false}
         panOnScroll={true}
-        minZoom={0.1}
+        minZoom={0.01}
         maxZoom={10}
         deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
         multiSelectionKeyCode={[actionKey]}
