@@ -12,6 +12,7 @@ import ReactFlow, {
   MiniMap,
   Node,
   NodeChange,
+  Viewport,
   applyEdgeChanges,
   applyNodeChanges,
   useReactFlow,
@@ -20,6 +21,7 @@ import ReactFlow, {
 import { useEditability } from '../../contexts/editability'
 import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
 import styles from '../../styles/GraphViewer.module.css'
+import { analytics } from '../../utils/segmentClient'
 import ControlPanel from './ControlPanel'
 import EditorDock from './editing/EditorDock'
 
@@ -165,6 +167,28 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     [getConnectedObjects, updateGraph, graph]
   )
 
+  let lastMoveEndAt = 0
+  const onMoveEnd = (event: any, viewport: Viewport) => {
+    /* 
+      fire change_graph_viewport analytics event
+      (since onMoveEnd fires continuously while scrolling,
+        below logic ensures analytic only fires if no subsequent
+        onMoveEnd fires within 100ms)
+    */
+    const moveEndAt = Date.now()
+    lastMoveEndAt = moveEndAt
+    setTimeout((onMoveEndAt) => {
+      if (onMoveEndAt === lastMoveEndAt) {
+        analytics.track('change_graph_viewport', {
+          x: viewport.x,
+          y: viewport.y,
+          zoom: viewport.zoom,
+          event_type: event?.type,
+        })
+      }
+    }, 100, moveEndAt)
+  }
+
   return (
     <div className={styles.graph_viewer}>
       <ReactFlow
@@ -177,6 +201,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         onEdgeClick={(_event, edge) => onSelect(edge)}
         onEdgesChange={onEdgesChange}
         onNodeDragStart={onNodeDragStart}
+        onMoveEnd={onMoveEnd}
         nodesDraggable={editingEnabled}
         nodesConnectable={false}
         panOnScroll={true}
