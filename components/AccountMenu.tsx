@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Avatar } from 'primereact/avatar'
 import { Menu } from 'primereact/menu'
@@ -78,14 +77,13 @@ const AccountMenu: FunctionComponent<Props> = () => {
         // if org logo is available, we'll show that in Header
         // and show powered by MGraph here
         <>
-          <Link href="/">
-            <Image
-              src="/powered_by_mgraph.svg"
-              alt="Powered by MGraph"
-              height={50}
-              width={150}
-            />
-          </Link>
+          <Image
+            src="/powered_by_mgraph.svg"
+            alt="Powered by MGraph"
+            height={50}
+            width={150}
+            onClick={() => router.push('/')}
+          />
           <div className={styles.vertical_line} />
         </>
       ) : null}

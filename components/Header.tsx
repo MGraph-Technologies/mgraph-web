@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import router from 'next/router'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../contexts/auth'
@@ -35,15 +35,14 @@ const Header: FunctionComponent<HeaderProps> = () => {
   return (
     <div className={styles.header}>
       <div className={styles.mgraph_logo_container}>
-        <Link href="/">
-          <Image
-            src='logo.svg'
-            loader={() => logoUrl}
-            alt={logoAlt}
-            height={50}
-            width={150}
-          />
-        </Link>
+      <Image
+        src='logo.svg'
+        loader={() => logoUrl}
+        alt={logoAlt}
+        height={50}
+        width={150}
+        onClick={() => router.push('/')}
+      />
       </div>
       <div className={styles.account_menu_container}>
         <AccountMenu />
