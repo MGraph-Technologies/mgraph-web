@@ -99,6 +99,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
     )
   }
 
+  const [first, setFirst] = useState(0)
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     'data.name': {
       value: null,
@@ -124,6 +125,14 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
         paginatorPosition="bottom"
+        first={first}
+        onPage={(e: DataTablePFSEvent) => {
+          analytics.track('change_graph_table_page', {
+            page: e.page,
+            first: e.first,
+          })
+          setFirst(e.first)
+        }}
         filterDisplay="row"
         filters={filters}
         onFilter={(e: DataTablePFSEvent) => {

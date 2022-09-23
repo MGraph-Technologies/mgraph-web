@@ -207,6 +207,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     [organizationId, roles]
   )
 
+  const [usersTableFirst, setUsersTableFirst] = useState(0)
   const [usersTableFilters, setUsersTableFilters] = useState<DataTableFilterMeta>({
     'users.email': {
       value: null,
@@ -253,6 +254,14 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
               rows={10}
               paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+              first={usersTableFirst}
+              onPage={(e: DataTablePFSEvent) => {
+                analytics.track('change_users_table_page', {
+                  page: e.page,
+                  first: e.first,
+                })
+                setUsersTableFirst(e.first)
+              }}
               filterDisplay="row"
               filters={usersTableFilters}
               onFilter={(e: DataTablePFSEvent) => {
