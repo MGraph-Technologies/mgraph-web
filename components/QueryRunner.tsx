@@ -28,7 +28,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   setQueryResult,
 }) => {
   const { session } = useAuth()
-  const { globalQueryRefreshes, queryParameters } = useGraph()
+  const { globalQueryRefreshes, setGlobalQueryRefreshes, queryParameters } = useGraph()
   const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
 
@@ -189,11 +189,19 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   ])
 
   useEffect(() => {
-    if (refreshes > 0 || globalQueryRefreshes > 0) {
+    if (refreshes > 0) {
       executeQuery()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshes, globalQueryRefreshes])
+  }, [refreshes])
+
+  useEffect(() => {
+    if (globalQueryRefreshes > 0 && setGlobalQueryRefreshes) {
+      executeQuery()
+      setGlobalQueryRefreshes(0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [globalQueryRefreshes])
 
   return <></>
 }
