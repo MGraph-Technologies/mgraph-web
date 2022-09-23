@@ -217,7 +217,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         <ControlPanel />
         <Controls showInteractive={false} />
         <EditorDock />
-        <MiniMap />
+        <MiniMap 
+          nodeColor='#AFADFF'
+          nodeStrokeColor='#AFADFF'
+        />
       </ReactFlow>
     </div>
   )
