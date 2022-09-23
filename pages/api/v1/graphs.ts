@@ -1,4 +1,4 @@
-import { withSentry } from "@sentry/nextjs"
+import { withSentry } from '@sentry/nextjs'
 import {
   createClient,
   PostgrestError,

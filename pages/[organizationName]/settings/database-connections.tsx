@@ -17,8 +17,8 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
       <Workspace>
         <div className={styles.database_connections_container}>
           <p>
-            To add, remove, or edit database connections, please contact an MGraph
-            team member.
+            To add, remove, or edit database connections, please contact an
+            MGraph team member.
           </p>
         </div>
       </Workspace>

@@ -2,7 +2,12 @@ import { useRouter } from 'next/router'
 import { FilterMatchMode } from 'primereact/api'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
-import { DataTable, DataTableFilterMeta, DataTablePFSEvent, DataTableSortOrderType } from 'primereact/datatable'
+import {
+  DataTable,
+  DataTableFilterMeta,
+  DataTablePFSEvent,
+  DataTableSortOrderType,
+} from 'primereact/datatable'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../../contexts/auth'
@@ -123,7 +128,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
   const onFilter = (e: DataTablePFSEvent) => {
     for (let key in e.filters) {
       const newFilter: any = e.filters[key]
-      const oldFilter: any  = filters[key]
+      const oldFilter: any = filters[key]
       if (
         !oldFilter ||
         oldFilter.value !== newFilter.value ||
@@ -139,7 +144,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
     }
     setFilters({
       ...filters,
-      ...e.filters
+      ...e.filters,
     })
   }
 
@@ -154,7 +159,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
     setSortField(e.sortField)
     setSortOrder(e.sortOrder)
   }
-  
+
   return (
     <div className={styles.graph_table_container}>
       <div className={styles.control_panel_container}>

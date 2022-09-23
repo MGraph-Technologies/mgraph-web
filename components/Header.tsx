@@ -12,11 +12,13 @@ const Header: FunctionComponent<HeaderProps> = () => {
   const { organizationLogoStoragePath } = useAuth()
   const [logoUrl, setLogoUrl] = useState('')
   const [logoAlt, setLogoAlt] = useState('')
-  
+
   const populateLogoProps = useCallback(async () => {
     if (organizationLogoStoragePath) {
       try {
-        const signedUrl = await storagePathToSignedUrl(organizationLogoStoragePath)
+        const signedUrl = await storagePathToSignedUrl(
+          organizationLogoStoragePath
+        )
         if (signedUrl) {
           setLogoUrl(signedUrl)
           setLogoAlt('Organization logo')
@@ -35,14 +37,14 @@ const Header: FunctionComponent<HeaderProps> = () => {
   return (
     <div className={styles.header}>
       <div className={styles.mgraph_logo_container}>
-      <Image
-        src='logo.svg'
-        loader={() => logoUrl}
-        alt={logoAlt}
-        height={50}
-        width={150}
-        onClick={() => router.push('/')}
-      />
+        <Image
+          src="logo.svg"
+          loader={() => logoUrl}
+          alt={logoAlt}
+          height={50}
+          width={150}
+          onClick={() => router.push('/')}
+        />
       </div>
       <div className={styles.account_menu_container}>
         <AccountMenu />

@@ -177,16 +177,20 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     */
     const moveEndAt = Date.now()
     lastMoveEndAt = moveEndAt
-    setTimeout((onMoveEndAt) => {
-      if (onMoveEndAt === lastMoveEndAt) {
-        analytics.track('change_graph_viewport', {
-          x: viewport.x,
-          y: viewport.y,
-          zoom: viewport.zoom,
-          event_type: event?.type,
-        })
-      }
-    }, 100, moveEndAt)
+    setTimeout(
+      (onMoveEndAt) => {
+        if (onMoveEndAt === lastMoveEndAt) {
+          analytics.track('change_graph_viewport', {
+            x: viewport.x,
+            y: viewport.y,
+            zoom: viewport.zoom,
+            event_type: event?.type,
+          })
+        }
+      },
+      100,
+      moveEndAt
+    )
   }
 
   return (
@@ -218,10 +222,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         <ControlPanel />
         <Controls showInteractive={false} />
         <EditorDock />
-        <MiniMap 
-          nodeColor='#AFADFF'
-          nodeStrokeColor='#AFADFF'
-        />
+        <MiniMap nodeColor="#AFADFF" nodeStrokeColor="#AFADFF" />
       </ReactFlow>
     </div>
   )

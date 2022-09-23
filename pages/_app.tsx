@@ -24,13 +24,13 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
     router.events.on('routeChangeStart', handleRouteChange)
   })
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       analytics.track('window_pulse', {
         visibility: document.visibilityState,
       })
-    }, 1000*10)
+    }, 1000 * 10)
     const handleWindowBlur = () => {
       analytics.track('window_blur')
     }

@@ -35,7 +35,7 @@ const OrganizationHome: FunctionComponent<OrganizationHomeProps> = () => {
               setShowGraphTable={setShowGraphTable}
             />
           </>
-        )  : (
+        ) : (
           <div>Please contact your administrator for access.</div>
         )}
       </Workspace>

@@ -1,7 +1,12 @@
 import Head from 'next/head'
 import { FilterMatchMode } from 'primereact/api'
 import { Column } from 'primereact/column'
-import { DataTable, DataTableFilterMeta, DataTablePFSEvent, DataTableSortOrderType } from 'primereact/datatable'
+import {
+  DataTable,
+  DataTableFilterMeta,
+  DataTablePFSEvent,
+  DataTableSortOrderType,
+} from 'primereact/datatable'
 import { Dropdown } from 'primereact/dropdown'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
@@ -208,20 +213,21 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     setUsersTableFirst(e.first)
   }
 
-  const [usersTableFilters, setUsersTableFilters] = useState<DataTableFilterMeta>({
-    'users.email': {
-      value: null,
-      matchMode: FilterMatchMode.CONTAINS,
-    },
-    'roles.name': {
-      value: null,
-      matchMode: FilterMatchMode.CONTAINS,
-    },
-  })
+  const [usersTableFilters, setUsersTableFilters] =
+    useState<DataTableFilterMeta>({
+      'users.email': {
+        value: null,
+        matchMode: FilterMatchMode.CONTAINS,
+      },
+      'roles.name': {
+        value: null,
+        matchMode: FilterMatchMode.CONTAINS,
+      },
+    })
   const usersTableOnFilter = (e: DataTablePFSEvent) => {
     for (let key in e.filters) {
       const newFilter: any = e.filters[key]
-      const oldFilter: any  = usersTableFilters[key]
+      const oldFilter: any = usersTableFilters[key]
       if (
         !oldFilter ||
         oldFilter.value !== newFilter.value ||
@@ -237,12 +243,13 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     }
     setUsersTableFilters({
       ...usersTableFilters,
-      ...e.filters
+      ...e.filters,
     })
   }
 
   const [usersTableSortField, setUsersTableSortField] = useState('users.email')
-  const [usersTableSortOrder, setUsersTableSortOrder] = useState<DataTableSortOrderType>(1)
+  const [usersTableSortOrder, setUsersTableSortOrder] =
+    useState<DataTableSortOrderType>(1)
   const usersTableOnSort = (e: DataTablePFSEvent) => {
     analytics.track('sort_table', {
       table: 'users',
@@ -260,11 +267,13 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
       </Head>
       <Workspace>
         <div className={styles.access_management_container}>
-          <div className={styles.access_management_title}>Access Management</div>
+          <div className={styles.access_management_title}>
+            Access Management
+          </div>
           <h2>Add Users</h2>
           <p>
-            No need for invitations; anyone under your organization&apos;s domain
-            can access MGraph via Google SSO - just share a link!
+            No need for invitations; anyone under your organization&apos;s
+            domain can access MGraph via Google SSO - just share a link!
           </p>
           <h3>Default role for new users:</h3>
           <Dropdown

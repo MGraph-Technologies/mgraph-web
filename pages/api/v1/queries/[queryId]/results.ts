@@ -1,4 +1,4 @@
-import { withSentry } from "@sentry/nextjs"
+import { withSentry } from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 

@@ -28,7 +28,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   setQueryResult,
 }) => {
   const { session } = useAuth()
-  const { globalQueryRefreshes, setGlobalQueryRefreshes, queryParameters } = useGraph()
+  const { globalQueryRefreshes, setGlobalQueryRefreshes, queryParameters } =
+    useGraph()
   const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
 

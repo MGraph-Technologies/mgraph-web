@@ -12,7 +12,12 @@ import { supabase } from '../utils/supabaseClient'
 type Props = {}
 
 const AccountMenu: FunctionComponent<Props> = () => {
-  const { session, organizationName, organizationLogoStoragePath, userIsAdmin } = useAuth()
+  const {
+    session,
+    organizationName,
+    organizationLogoStoragePath,
+    userIsAdmin,
+  } = useAuth()
 
   const [userEmail, setUserEmail] = useState('')
   const [avatarChar, setAvatarChar] = useState('')
@@ -73,7 +78,7 @@ const AccountMenu: FunctionComponent<Props> = () => {
 
   return (
     <>
-      {organizationLogoStoragePath ? ( 
+      {organizationLogoStoragePath ? (
         // if org logo is available, we'll show that in Header
         // and show powered by MGraph here
         <>

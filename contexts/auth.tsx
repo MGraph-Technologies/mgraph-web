@@ -61,7 +61,8 @@ export function AuthProvider({ children }: AuthProps) {
 
   const [organizationId, setOrganizationId] = useState('')
   const [organizationName, setOrganizationName] = useState('')
-  const [organizationLogoStoragePath, setOrganizationLogoStoragePath] = useState('')
+  const [organizationLogoStoragePath, setOrganizationLogoStoragePath] =
+    useState('')
   const [organizationEnabled, setOrganizationEnabled] = useState(false)
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [userCanEdit, setUserCanEdit] = useState(false)
@@ -71,7 +72,9 @@ export function AuthProvider({ children }: AuthProps) {
       try {
         let { data, error, status } = await supabase
           .from('organization_members')
-          .select('organizations ( id, name, logo_storage_path, enabled ), roles ( name )')
+          .select(
+            'organizations ( id, name, logo_storage_path, enabled ), roles ( name )'
+          )
           .is('deleted_at', null)
           .eq('user_id', session?.user?.id || '')
           .single()
