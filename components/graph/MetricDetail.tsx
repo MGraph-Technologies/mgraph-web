@@ -159,7 +159,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         // concatenate formula to input or output as appropriate
         const expand = (inputsOrOutputs: string) => {
           return inputsOrOutputs.concat(
-            inputsOrOutputs,
             inputsOrOutputs.length > 0 ? '\n\n' : '',
             formulaObjectsSorted
               .map((formulaObject) => {
