@@ -30,7 +30,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       analytics.track('window_pulse', {
         visibility: document.visibilityState,
       })
-    }, 1000)
+    }, 1000*10)
     const handleWindowBlur = () => {
       analytics.track('window_blur')
     }
