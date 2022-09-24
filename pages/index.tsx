@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import type { NextPage } from 'next'
 import Head from 'next/head'
 
@@ -16,8 +17,8 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Welcome to MGraph!</h1>
-        <div className="container" style={{ padding: '50px 0 100px 0' }}>
+        <Image src="/logo.svg" alt="MGraph Logo" height={200} width={600} />
+        <div className="container" style={{ padding: '0 0 4rem 0' }}>
           {!session ? (
             <SignInButton />
           ) : (
