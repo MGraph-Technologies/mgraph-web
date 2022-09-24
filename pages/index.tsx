@@ -17,12 +17,7 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <Image
-          src="/logo.svg"
-          alt="MGraph Logo"
-          height={200}
-          width={600}
-        />
+        <Image src="/logo.svg" alt="MGraph Logo" height={200} width={600} />
         <div className="container" style={{ padding: '0 0 4rem 0' }}>
           {!session ? (
             <SignInButton />
