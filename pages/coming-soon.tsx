@@ -13,8 +13,8 @@ const ComingSoon: FunctionComponent<Props> = () => {
       </Head>
       <Header />
       <p>
-        Thanks for your interest in MGraph! We&#39;ll be in touch as soon as
-        it&#39;s available to you.
+        Thanks for your interest in MGraph — you&#39;ve been added to our waitlist and 
+        we&#39;ll be in touch soon!
       </p>
     </div>
   )
