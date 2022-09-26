@@ -6,6 +6,8 @@ import React, {
   useState,
 } from 'react'
 import ReactFlow, {
+  Background,
+  BackgroundVariant,
   Controls,
   Edge,
   EdgeChange,
@@ -208,6 +210,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         onMoveEnd={onMoveEnd}
         nodesDraggable={editingEnabled}
         nodesConnectable={false}
+        snapToGrid={true}
+        snapGrid={[16, 16]}
         panOnScroll={true}
         minZoom={0.01}
         maxZoom={10}
@@ -219,6 +223,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
           hideAttribution: true,
         }}
       >
+        {editingEnabled ? (
+          <Background variant={BackgroundVariant.Lines} gap={16} size={1} />
+        ) : null}
         <ControlPanel />
         <Controls showInteractive={false} />
         <EditorDock />
