@@ -284,16 +284,14 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         <title>{name ? `Metric: ${name}` : 'Metric'} — MGraph</title>
       </Head>
       <div className={styles.header}>
-        {editingEnabled ? null : (
-          <Button
-            id="back-to-graphviewer-button"
-            className="p-button-text"
-            icon="pi pi-angle-left"
-            onClick={() => {
-              router.push('/' + organizationName)
-            }}
-          />
-        )}
+        <Button
+          id="back-to-graphviewer-button"
+          className="p-button-text"
+          icon="pi pi-angle-left"
+          onClick={() => {
+            router.push('/' + organizationName)
+          }}
+        />
         <h1>
           <EditText
             id="name-field"
