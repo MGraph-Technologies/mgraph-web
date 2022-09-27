@@ -27,6 +27,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         .from('roles')
         .select('id, name')
         .is('deleted_at', null)
+        .order('level', { ascending: true })
 
       if (error && status !== 406) {
         throw error

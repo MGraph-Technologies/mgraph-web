@@ -1,9 +1,6 @@
-.color_picker {
-  display: flex;
-  flex-direction: row;
-}
-
-.menu button {
+.menu_container {
   width: auto;
   padding: 0px;
+  display: flex;
+  flex-direction: row;
 }

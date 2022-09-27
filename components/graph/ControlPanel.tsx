@@ -121,7 +121,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
         <Button
           id="query-settings-button"
           className={styles.button}
-          icon="pi pi-cog"
+          icon="pi pi-sliders-h"
           onClick={(event) => {
             analytics.track('view_query_settings')
             overlayPanel.current?.toggle(event)
