@@ -295,9 +295,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         <EditText
           id="name-field"
           className={
-            editingEnabled
-              ? styles.detail_field_editable
-              : styles.detail_field
+            editingEnabled ? styles.detail_field_editable : styles.detail_field
           }
           value={name}
           readonly={!editingEnabled}

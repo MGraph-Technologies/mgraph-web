@@ -30,8 +30,15 @@ import EditorDock from './editing/EditorDock'
 type GraphViewerProps = {}
 const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   const { editingEnabled } = useEditability()
-  const { initialGraph, graph, setReactFlowInstance, undo, redo, updateGraph, getConnectedObjects } =
-    useGraph()
+  const {
+    initialGraph,
+    graph,
+    setReactFlowInstance,
+    undo,
+    redo,
+    updateGraph,
+    getConnectedObjects,
+  } = useGraph()
 
   const actionKey = navigator.platform.match(/Mac/i) ? 'Meta' : 'Control'
   const [actionKeyPressed, setActionKeyPressed] = useState(false)

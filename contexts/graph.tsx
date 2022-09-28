@@ -384,16 +384,15 @@ export function GraphProvider({ children }: GraphProps) {
     if (!newNodeTypeId) {
       throw new Error(`Could not find node type id for ${newNodeType}`)
     }
-    
+
     const rfRendererElement = document.querySelector('.react-flow__renderer')!
-    const { x, y } = (
-      (reactFlowInstance && reactFlowInstance.project)
+    const { x, y } =
+      reactFlowInstance && reactFlowInstance.project
         ? reactFlowInstance.project({
-          x: rfRendererElement.clientWidth/2,
-          y: rfRendererElement.clientHeight/2,
-        })
+            x: rfRendererElement.clientWidth / 2,
+            y: rfRendererElement.clientHeight / 2,
+          })
         : { x: 0, y: 0 }
-    )
     const newNodeId = uuidv4()
     const newNodeData: MetricNodeProperties = {
       id: newNodeId, // needed for setNodeDataToChange
