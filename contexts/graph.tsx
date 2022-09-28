@@ -45,6 +45,10 @@ type QueryParameterValues = {
 type GraphContextType = {
   initialGraph: Graph
   graph: Graph
+  /* reactFlowInstance is produced by useReactFlow(), which must be called
+    in a component that is wrapped in a ReactFlowProvider. Thus, we can't
+    instantiate it directly here but instead pass it back from GraphViewer. */
+  setReactFlowInstance: Dispatch<SetStateAction<any>> | undefined
   undo: (() => void) | undefined
   redo: (() => void) | undefined
   canUndo: boolean
@@ -109,6 +113,7 @@ const graphContextDefaultValues: GraphContextType = {
     nodes: [],
     edges: [],
   },
+  setReactFlowInstance: undefined,
   undo: undefined,
   redo: undefined,
   canUndo: false,
@@ -153,6 +158,8 @@ export function GraphProvider({ children }: GraphProps) {
       behavior: 'destroyFuture',
       ignoreIdenticalMutations: false,
     })
+
+  const [reactFlowInstance, setReactFlowInstance] = useState<any>()
 
   const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
     Object.fromEntries(Object.keys(nodeTypes).map((key) => [key, '']))
@@ -377,9 +384,16 @@ export function GraphProvider({ children }: GraphProps) {
     if (!newNodeTypeId) {
       throw new Error(`Could not find node type id for ${newNodeType}`)
     }
-    // TODO: set dynamically; challenge is can't use useReactFlow here
-    const x = 0
-    const y = 0
+    
+    const rfRendererElement = document.querySelector('.react-flow__renderer')!
+    const { x, y } = (
+      (reactFlowInstance && reactFlowInstance.project)
+        ? reactFlowInstance.project({
+          x: rfRendererElement.clientWidth/2,
+          y: rfRendererElement.clientHeight/2,
+        })
+        : { x: 0, y: 0 }
+    )
     const newNodeId = uuidv4()
     const newNodeData: MetricNodeProperties = {
       id: newNodeId, // needed for setNodeDataToChange
@@ -404,7 +418,7 @@ export function GraphProvider({ children }: GraphProps) {
       },
     }
     return newNode
-  }, [nodeTypeIds, organizationId, setNodeDataToChange])
+  }, [nodeTypeIds, reactFlowInstance, organizationId, setNodeDataToChange])
 
   const formFunctionNode = useCallback(
     (
@@ -883,6 +897,7 @@ export function GraphProvider({ children }: GraphProps) {
   const value = {
     initialGraph: initialGraph,
     graph: graph,
+    setReactFlowInstance: setReactFlowInstance,
     undo: undo,
     redo: redo,
     canUndo: canUndo,
