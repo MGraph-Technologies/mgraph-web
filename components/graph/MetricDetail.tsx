@@ -292,20 +292,22 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             router.push('/' + organizationName)
           }}
         />
-        <h1>
-          <EditText
-            id="name-field"
-            className={
-              editingEnabled
-                ? styles.detail_field_editable
-                : styles.detail_field
-            }
-            value={name}
-            readonly={!editingEnabled}
-            onChange={(e) => setName(e.target.value)}
-            onSave={({ value }) => saveDetail('name', value)}
-          />
-        </h1>
+        <EditText
+          id="name-field"
+          className={
+            editingEnabled
+              ? styles.detail_field_editable
+              : styles.detail_field
+          }
+          value={name}
+          readonly={!editingEnabled}
+          style={{
+            fontSize: '2em',
+            fontWeight: 'bold',
+          }}
+          onChange={(e) => setName(e.target.value)}
+          onSave={({ value }) => saveDetail('name', value)}
+        />
         <ControlPanel />
       </div>
       <div className={styles.chart_container}>
