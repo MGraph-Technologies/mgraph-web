@@ -87,9 +87,9 @@ describe('Graphviewer viewing as admin', () => {
     cy.contains('td', 'Metric')
     cy.contains('td', '# of Inputs')
     cy.get('td').find('[class*=GraphTable_chart_container]').should('exist')
-    cy.get('td').find('[class*=pi-info-circle]').should('exist')
-    cy.get('td').find('[class*=pi-angle-right]').should('exist')
-    cy.get('td').find('[class*=pi-angle-right]').first().click()
+    cy.get('td').find('[class*=pi-info-circle]').should('be.visible')
+    cy.get('td').find('[class*=pi-angle-right]').should('be.visible')
+    cy.get('td').find('[class*=pi-angle-right]').first().click({ force: true })
     cy.url().should('include', '/metrics/')
   })
 
