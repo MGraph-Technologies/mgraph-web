@@ -12,6 +12,7 @@ const Workspace: FunctionComponent<WorkspaceProps> = ({ children }) => {
   const router = useRouter()
   const { organizationName } = router.query
   const {
+    session,
     organizationName: userOrganizationName,
     organizationEnabled: userOrganizationEnabled,
   } = useAuth()
@@ -19,7 +20,7 @@ const Workspace: FunctionComponent<WorkspaceProps> = ({ children }) => {
   const renderAuthorized =
     organizationName === userOrganizationName && userOrganizationEnabled
   useEffect(() => {
-    if (userOrganizationName && !renderAuthorized) {
+    if (!session || (userOrganizationName && !renderAuthorized)) {
       // route to home page if user isn't authorized to view this organization
       router.push('/')
     }
