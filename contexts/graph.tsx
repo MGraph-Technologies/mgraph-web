@@ -706,8 +706,11 @@ export function GraphProvider({ children }: GraphProps) {
           .from('database_query_parameters')
           .select('id, user_id, name, value, deleted_at')
           // rls limits to records from user's org where user_id is user's or null
+          /* output user's records first, so below logic to overwrite deleted user
+            records with org default records will work */
+          .order('user_id', { ascending: true })
+          // in rare case of multiple org defaults, use first one
           .order('created_at', { ascending: true })
-        // in rare case of multiple org defaults, use first one
 
         if (error && status !== 406) {
           throw error
