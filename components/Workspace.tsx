@@ -19,11 +19,11 @@ const Workspace: FunctionComponent<WorkspaceProps> = ({ children }) => {
   const renderAuthorized =
     organizationName === userOrganizationName && userOrganizationEnabled
   useEffect(() => {
-    if (!renderAuthorized) {
+    if (userOrganizationName && !renderAuthorized) {
       // route to home page if user isn't authorized to view this organization
       router.push('/')
     }
-  }, [renderAuthorized, router])
+  }, [renderAuthorized, userOrganizationName, router])
 
   return renderAuthorized ? (
     <div className={styles.workspace}>
