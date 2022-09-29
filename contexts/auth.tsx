@@ -12,7 +12,7 @@ import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
 type AuthContextType = {
-  session: Session | null
+  session: Session | null | undefined
   organizationId: string
   organizationName: string
   organizationLogoStoragePath: string
@@ -44,7 +44,7 @@ type AuthProps = {
 }
 
 export function AuthProvider({ children }: AuthProps) {
-  const [session, setSession] = useState<Session | null>(null)
+  const [session, setSession] = useState<Session | null | undefined>(undefined)
 
   useEffect(() => {
     const session = supabase.auth.session()

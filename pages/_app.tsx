@@ -5,12 +5,11 @@ import 'primereact/resources/primereact.min.css' //core css
 import 'primereact/resources/themes/lara-light-indigo/theme.css' //theme
 import { useEffect } from 'react'
 
-import { AuthProvider, useAuth } from '../contexts/auth'
+import { AuthProvider } from '../contexts/auth'
 import { EditabilityProvider } from '../contexts/editability'
 import { GraphProvider } from '../contexts/graph'
 import '../styles/globals.css'
 import { analytics } from '../utils/segmentClient'
-import { supabase } from '../utils/supabaseClient'
 
 function MyApp({ Component, pageProps }: AppProps) {
   // Report page views to segment
