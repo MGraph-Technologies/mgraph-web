@@ -235,12 +235,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
       >
         <Background
           variant={
-            editingEnabled
-              ? BackgroundVariant.Dots
-              : BackgroundVariant.Lines
+            editingEnabled ? BackgroundVariant.Dots : BackgroundVariant.Lines
           }
           gap={16}
-          size={1} 
+          size={1}
         />
         <ControlPanel />
         <Controls showInteractive={false} />
