@@ -25,7 +25,6 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
     (color: ColorResult) => {
       setColor(color.hex)
       saveColor(color)
-      setDisplayColorPicker(false)
     },
     [setColor, saveColor]
   )
@@ -49,7 +48,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
             onChangeComplete={(color) => handleColorChangeComplete(color)}
           />
           <Button
-            id="cancel-node-coloring-button"
+            id="close-node-coloring-button"
             className="p-button-text p-button-lg"
             icon="pi pi-times"
             onClick={() => setDisplayColorPicker(false)}
