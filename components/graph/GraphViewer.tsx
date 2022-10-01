@@ -233,13 +233,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
           hideAttribution: true,
         }}
       >
-        <Background
-          variant={
-            editingEnabled ? BackgroundVariant.Dots : BackgroundVariant.Lines
-          }
-          gap={16}
-          size={1}
-        />
+        {editingEnabled
+          ? <Background variant={BackgroundVariant.Lines} gap={16} size={1} />
+          : null}
         <ControlPanel />
         <Controls showInteractive={false} />
         <EditorDock />
