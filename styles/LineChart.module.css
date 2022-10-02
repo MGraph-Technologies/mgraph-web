@@ -18,6 +18,7 @@
   font-size: 1.5rem;
   font-weight: 600;
   background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 5px;
 }
 
 .progress_spinner_container {
