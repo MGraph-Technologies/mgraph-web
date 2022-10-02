@@ -154,6 +154,8 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
           <QueryParameterField titleCaseName="Ending Date" />
           <QueryParameterField titleCaseName="Frequency" />
           <QueryParameterField titleCaseName="Group By" />
+          <QueryParameterField titleCaseName="Conditions" />
+          <QueryParameterField titleCaseName="Show Unfinished Values" />
         </OverlayPanel>
       </div>
     )
