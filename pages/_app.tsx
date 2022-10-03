@@ -1,3 +1,4 @@
+import moment from 'moment-timezone'
 import type { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import 'primeicons/primeicons.css' //icons
@@ -24,6 +25,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     router.events.on('routeChangeStart', handleRouteChange)
   })
 
+  // window analytics
   useEffect(() => {
     const interval = setInterval(() => {
       analytics.track('window_pulse', {
@@ -44,6 +46,11 @@ function MyApp({ Component, pageProps }: AppProps) {
       window.removeEventListener('focus', handleWindowFocus)
     }
   })
+
+  // don't transform charttimezones
+  useEffect(() => {
+    moment.tz.setDefault('UTC')
+  }, [])
 
   return (
     <AuthProvider>
