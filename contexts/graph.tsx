@@ -655,7 +655,7 @@ export function GraphProvider({ children }: GraphProps) {
   )
 
   const getInputNodes = useCallback(
-    (reference: Node) => {
+    (reference: Node, traversedNodes: Node[] = []) => {
       let inputNodes: Node[] = []
       // select immediate input nodes
       graph.edges.forEach((edge) => {
@@ -667,11 +667,15 @@ export function GraphProvider({ children }: GraphProps) {
           const inputNode = graph.nodes.find(
             (node) => node.id === edge.data.sourceId
           )
-          if (inputNode) {
+          if (
+            inputNode &&
+            // prevent infinite recursion from cycles
+            traversedNodes.findIndex((node) => node.id === inputNode.id) === -1
+          ) {
             inputNodes = inputNodes.concat(
               [inputNode],
               // recursively select input nodes of input nodes
-              getInputNodes(inputNode)
+              getInputNodes(inputNode, traversedNodes.concat(inputNode))
             )
           }
         }
