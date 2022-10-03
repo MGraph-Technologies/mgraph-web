@@ -46,7 +46,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       window.removeEventListener('focus', handleWindowFocus)
     }
   })
-  
+
   // don't transform charttimezones
   useEffect(() => {
     moment.tz.setDefault('UTC')

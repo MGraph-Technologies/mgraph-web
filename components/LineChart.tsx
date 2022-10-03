@@ -144,8 +144,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({ queryResult }) => {
         )
         const numberToOverlay =
           datasets.length === 1
-            // last non-null value
-            ? Number(datasets[0].data.reverse().find((d) => d.y !== null)?.y)
+            ? // last non-null value
+              Number(datasets[0].data.reverse().find((d) => d.y !== null)?.y)
             : null
         const numberToOverlayString =
           numberToOverlay !== null
