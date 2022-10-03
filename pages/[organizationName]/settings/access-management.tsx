@@ -37,7 +37,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         setRoles(data)
       }
     } catch (error: any) {
-      alert(error.message)
+      console.error(error.message)
     }
   }, [])
   useEffect(() => {
@@ -74,7 +74,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
           setUsersTableLoading(false)
         }
       } catch (error: any) {
-        alert(error.message)
+        console.error(error.message)
       }
     }
   }, [organizationId])
@@ -106,7 +106,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         analytics.track('update_user_role_error', {
           message: error.message,
         })
-        alert(error.message)
+        console.error(error.message)
       } finally {
         analytics.track('update_user_role', {
           user_id: userId,
@@ -161,7 +161,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
           )
         }
       } catch (error: any) {
-        alert(error.message)
+        console.error(error.message)
       }
     }
   }, [organizationId, roles])
@@ -191,7 +191,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         analytics.track('update_org_default_role_error', {
           message: error.message,
         })
-        alert(error.message)
+        console.error(error.message)
       } finally {
         analytics.track('update_org_default_role', {
           role_id: roleId,
