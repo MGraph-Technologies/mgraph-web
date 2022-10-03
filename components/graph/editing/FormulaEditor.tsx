@@ -76,7 +76,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         )
       }
     } catch (error: any) {
-      alert(error.message)
+      console.error(error.message)
     }
   }
   useEffect(() => {

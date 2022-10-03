@@ -95,7 +95,7 @@ export function AuthProvider({ children }: AuthProps) {
           setUserCanView(_userCanEdit || data.roles.name === 'viewer')
         }
       } catch (error: any) {
-        alert(error.message)
+        console.error(error.message)
       }
     }
   }, [session?.user?.id])

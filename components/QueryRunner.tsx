@@ -72,7 +72,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           setGetQueryIdComplete(true)
         }
       } catch (error: any) {
-        alert(error.message)
+        console.error(error.message)
       }
     }
   }, [
@@ -137,7 +137,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           }
         })
         .catch((error) => {
-          alert(error.message)
+          console.error(error.message)
         })
     }
   }, [session, queryId, setQueryResult])

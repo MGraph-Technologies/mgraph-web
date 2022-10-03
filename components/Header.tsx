@@ -24,7 +24,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
           setLogoAlt('Organization logo')
         }
       } catch (error: any) {
-        alert(error.message)
+        console.error(error.message)
       }
     } else {
       setLogoUrl('/logo.svg')

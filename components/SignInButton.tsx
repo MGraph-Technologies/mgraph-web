@@ -25,7 +25,7 @@ const SignInButton: FunctionComponent<Props> = () => {
       })
       if (error) throw error
     } catch (error: any) {
-      alert(error.error_description || error.message)
+      console.error(error.error_description || error.message)
     } finally {
       setButtonImgSrc(GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT)
     }

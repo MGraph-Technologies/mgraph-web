@@ -188,7 +188,7 @@ export function GraphProvider({ children }: GraphProps) {
         }
       }
     } catch (error: any) {
-      alert(error.message)
+      console.error(error.message)
     }
   }
   useEffect(() => {
@@ -223,7 +223,7 @@ export function GraphProvider({ children }: GraphProps) {
         }
       }
     } catch (error: any) {
-      alert(error.message)
+      console.error(error.message)
     }
   }
   useEffect(() => {
@@ -309,7 +309,7 @@ export function GraphProvider({ children }: GraphProps) {
           reset(parsedGraph)
         }
       } catch (error: any) {
-        alert(error.message)
+        console.error(error.message)
       }
     }
   }, [organizationId, reset])
@@ -752,7 +752,7 @@ export function GraphProvider({ children }: GraphProps) {
           })
         }
       } catch (error: any) {
-        alert(error.message)
+        console.error(error.message)
       }
     }
   }, [organizationId])
@@ -788,7 +788,7 @@ export function GraphProvider({ children }: GraphProps) {
               setGlobalQueryRefreshes(globalQueryRefreshes + 1)
             })
         } catch (error: any) {
-          alert(error.message)
+          console.error(error.message)
         }
       }
     },
@@ -832,7 +832,7 @@ export function GraphProvider({ children }: GraphProps) {
                 setGlobalQueryRefreshes(globalQueryRefreshes + 1)
               })
           } catch (error: any) {
-            alert(error.message)
+            console.error(error.message)
           }
         }
       }
@@ -887,7 +887,7 @@ export function GraphProvider({ children }: GraphProps) {
               setGlobalQueryRefreshes(globalQueryRefreshes + 1)
             })
         } catch (error: any) {
-          alert(error.message)
+          console.error(error.message)
         }
       }
     },

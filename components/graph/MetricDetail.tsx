@@ -255,7 +255,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           setDatabaseConnections(data)
         }
       } catch (error: any) {
-        alert(error.message)
+        console.error(error.message)
       }
     }
   }, [organizationId])

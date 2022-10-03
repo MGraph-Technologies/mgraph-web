@@ -35,7 +35,7 @@ export async function getFunctionSymbol(
       _symbol = queryData[0].symbol
     }
   } catch (error: any) {
-    alert(error.message)
+    console.error(error.message)
   } finally {
     return _symbol
   }
