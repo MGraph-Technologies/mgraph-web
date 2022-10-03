@@ -32,6 +32,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     useGraph()
   const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
+  const [getQueryResultComplete, setGetQueryResultComplete] = useState(false)
 
   const parameterizeStatement = useCallback(() => {
     return statement.replace(/{{(.*?)}}/g, (_match, p1) => {
@@ -88,6 +89,9 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   }, [getQueryId])
 
   const getQueryResult = useCallback(async () => {
+    if (getQueryResultComplete) {
+      return
+    }
     const accessToken = session?.access_token
     if (accessToken && queryId) {
       fetch('/api/v1/queries/' + queryId + '/results', {
@@ -101,6 +105,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
             query_id: queryId,
             status: response.status,
           })
+          setGetQueryResultComplete(true)
           if (response.status === 200) {
             response.json().then((data) => {
               setQueryResult({
@@ -140,7 +145,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           console.error(error.message)
         })
     }
-  }, [session, queryId, setQueryResult])
+  }, [getQueryResultComplete, session, queryId, setQueryResult])
 
   useEffect(() => {
     getQueryResult()
@@ -166,6 +171,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           if (response.status === 200) {
             response.json().then((data) => {
               setGetQueryIdComplete(false)
+              setGetQueryResultComplete(false)
               setQueryId(data.queryId)
             })
           } else {
