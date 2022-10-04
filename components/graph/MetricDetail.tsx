@@ -344,20 +344,28 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       />
       <h2>Inputs</h2>
       {/* inputs set via function editor */}
-      <EditTextarea
-        className={styles.detail_field}
-        value={inputs.match(functionTypeIdRegex) ? '' : inputs}
-        readonly={true}
-        placeholder={'-'}
-      />
+      <pre>
+        <code>
+          <EditTextarea
+            className={styles.detail_field}
+            value={inputs.match(functionTypeIdRegex) ? '' : inputs}
+            readonly={true}
+            placeholder={'-'}
+          />
+        </code>
+      </pre>
       <h2>Outputs</h2>
       {/* outputs set via function editor */}
-      <EditTextarea
-        className={styles.detail_field}
-        value={outputs.match(functionTypeIdRegex) ? '' : outputs}
-        readonly={true}
-        placeholder={'-'}
-      />
+      <pre>
+        <code>
+          <EditTextarea
+            className={styles.detail_field}
+            value={outputs.match(functionTypeIdRegex) ? '' : outputs}
+            readonly={true}
+            placeholder={'-'}
+          />
+        </code>
+      </pre>
       <h2>Source</h2>
       <h3>Database</h3>
       <Dropdown
