@@ -52,10 +52,6 @@ export function AuthProvider({ children }: AuthProps) {
 
     supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
-      if (event == 'SIGNED_IN' && session && session.user) {
-        analytics.identify(session.user.id)
-        analytics.track('login')
-      }
     })
   }, [])
 
@@ -67,8 +63,8 @@ export function AuthProvider({ children }: AuthProps) {
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [userCanEdit, setUserCanEdit] = useState(false)
   const [userCanView, setUserCanView] = useState(false)
-  const routeToOrganizationIfEnabled = useCallback(async () => {
-    if (session?.user?.id) {
+  const populateAuthState = useCallback(async () => {
+    if (session?.user) {
       try {
         let { data, error, status } = await supabase
           .from('organization_members')
@@ -76,7 +72,7 @@ export function AuthProvider({ children }: AuthProps) {
             'organizations ( id, name, logo_storage_path, enabled ), roles ( name )'
           )
           .is('deleted_at', null)
-          .eq('user_id', session?.user?.id || '')
+          .eq('user_id', session.user.id || '')
           .single()
 
         if (error && status !== 406) {
@@ -92,16 +88,27 @@ export function AuthProvider({ children }: AuthProps) {
           setUserIsAdmin(_userIsAdmin)
           const _userCanEdit = _userIsAdmin || data.roles.name === 'editor'
           setUserCanEdit(_userCanEdit)
-          setUserCanView(_userCanEdit || data.roles.name === 'viewer')
+          const _userCanView = _userCanEdit || data.roles.name === 'viewer'
+          setUserCanView(_userCanView)
+
+          analytics.identify(session.user.id, {
+            email: session.user.email,
+            organization_id: data.organizations.id,
+            organization_name: data.organizations.name,
+            is_admin: _userIsAdmin,
+            can_edit: _userCanEdit,
+            can_view: _userCanView,
+          })
+          analytics.track('login')
         }
       } catch (error: any) {
         console.error(error.message)
       }
     }
-  }, [session?.user?.id])
+  }, [session?.user])
   useEffect(() => {
-    routeToOrganizationIfEnabled()
-  }, [routeToOrganizationIfEnabled])
+    populateAuthState()
+  }, [populateAuthState])
 
   const value = {
     session,
