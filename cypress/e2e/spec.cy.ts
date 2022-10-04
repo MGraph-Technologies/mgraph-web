@@ -244,7 +244,8 @@ describe('Metric detail editing', () => {
     // edit field
     const newValue = Math.random().toString(36)
     cy.get('[id=description-field').click()
-    cy.get('textarea').clear().type(newValue).parent().click() // click outside of textarea to save
+    cy.get('textarea').clear().type(newValue)
+    cy.get('[class*=Header]').first().click() // click outside of textarea to save
     cy.contains(newValue).should('exist')
 
     // undo
@@ -270,7 +271,8 @@ describe('Metric detail editing', () => {
     // edit field
     const newValue = Math.random().toString(36)
     cy.get('[id=description-field').click()
-    cy.get('textarea').clear().type(newValue).parent().click()
+    cy.get('textarea').clear().type(newValue)
+    cy.get('[class*=Header]').first().click()
     cy.contains(newValue).should('exist')
 
     // save
@@ -294,7 +296,8 @@ describe('Metric detail editing', () => {
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
     cy.get('[id=source-code-field').click()
-    cy.get('textarea').clear().type(newQuery).parent().click()
+    cy.get('textarea').clear().type(newQuery)
+    cy.get('[class*=Header]').first().click()
 
     // see results
     cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
@@ -319,7 +322,8 @@ describe('Metric detail editing', () => {
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
     cy.get('[id=source-code-field').click()
-    cy.get('textarea').clear().type(newQuery).parent().click()
+    cy.get('textarea').clear().type(newQuery)
+    cy.get('[class*=Header]').first().click()
     cy.get('[id=save-button]').click()
 
     // see results on metric detail page
@@ -349,7 +353,8 @@ describe('Metric detail editing', () => {
     // edit query
     const newQuery = 'SELECT x'
     cy.get('[id=source-code-field').click()
-    cy.get('textarea').clear().type(newQuery).parent().click()
+    cy.get('textarea').clear().type(newQuery)
+    cy.get('[class*=Header]').first().click()
 
     // see results
     cy.get('[class*=MetricDetail_chart_container]')
@@ -371,7 +376,8 @@ describe('Metric detail editing', () => {
     // edit query
     const newQuery = "SELECT TRUE, 'all', 1"
     cy.get('[id=source-code-field').click()
-    cy.get('textarea').clear().type(newQuery).parent().click()
+    cy.get('textarea').clear().type(newQuery)
+    cy.get('[class*=Header]').first().click()
 
     // see results
     cy.get('[class*=MetricDetail_chart_container]')
@@ -502,8 +508,7 @@ describe('Metric detail editing', () => {
     cy.get('textarea')
       .clear()
       .type(newQuery, { parseSpecialCharSequences: false })
-      .parent()
-      .click()
+    cy.get('[class*=Header]').first().click()
 
     // see results
     cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
