@@ -381,20 +381,25 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         disabled={!editingEnabled}
       />
       <h3>Code</h3>
-      <EditTextarea
-        id="source-code-field"
-        className={
-          editingEnabled ? styles.detail_field_editable : styles.detail_field
-        }
-        value={sourceCode}
-        readonly={!editingEnabled}
-        placeholder={editingEnabled ? 'Add...' : '-'}
-        onChange={(e) => setSourceCode(e.target.value)}
-        onSave={({ value }) => {
-          setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-          saveDetail('sourceCode', value)
-        }}
-      />
+      <pre>
+        <code>
+          <EditTextarea
+            id="source-code-field"
+            className={
+              editingEnabled ? styles.detail_field_editable : styles.detail_field
+            }
+            rows={10}
+            value={sourceCode}
+            readonly={!editingEnabled}
+            placeholder={editingEnabled ? 'Add...' : '-'}
+            onChange={(e) => setSourceCode(e.target.value)}
+            onSave={({ value }) => {
+              setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+              saveDetail('sourceCode', value)
+            }}
+          />
+        </code>
+      </pre>
       {editingEnabled ? (
         <>
           <div className={styles.editor_dock}>
