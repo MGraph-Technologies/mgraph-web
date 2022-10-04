@@ -508,8 +508,7 @@ describe('Metric detail editing', () => {
     cy.get('textarea')
       .clear()
       .type(newQuery, { parseSpecialCharSequences: false })
-      .parent()
-      .click()
+    cy.get('[class*=Header]').first().click()
 
     // see results
     cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
