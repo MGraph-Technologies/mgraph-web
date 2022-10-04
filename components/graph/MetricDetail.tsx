@@ -394,7 +394,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           <EditTextarea
             id="source-code-field"
             className={
-              editingEnabled ? styles.detail_field_editable : styles.detail_field
+              editingEnabled
+                ? styles.detail_field_editable
+                : styles.detail_field
             }
             rows={10}
             value={sourceCode}
