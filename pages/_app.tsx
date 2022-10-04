@@ -23,6 +23,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       analytics.page(url)
     }
     router.events.on('routeChangeStart', handleRouteChange)
+    return () => {
+      router.events.off('routeChangeStart', handleRouteChange)
+    }
   })
 
   // window analytics
