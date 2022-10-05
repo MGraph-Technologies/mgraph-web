@@ -72,6 +72,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           const columns = queryStatus.resultSetMetaData.rowType
           const rows = queryStatus.data
           const executedAt = new Date(queryStatus.createdOn)
+          res.setHeader('Cache-Control', 'max-age=31536000')
           res.status(200).json({
             columns: columns,
             rows: rows,
