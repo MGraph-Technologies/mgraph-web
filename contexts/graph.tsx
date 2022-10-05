@@ -147,7 +147,7 @@ type GraphProps = {
 }
 
 export function GraphProvider({ children }: GraphProps) {
-  const { session, organizationId } = useAuth()
+  const { session, organizationId, userOnMobile } = useAuth()
 
   const [initialGraph, setInitialGraph] = useState<Graph>({
     nodes: [],
@@ -290,6 +290,9 @@ export function GraphProvider({ children }: GraphProps) {
           })
           const parsedEdges = edgesData.map((e) => {
             let parsedEdge = e.react_flow_meta
+            if (userOnMobile) {
+              parsedEdge.animated = false
+            }
             const parsedProperties = e.properties
             parsedEdge.data = {
               id: parsedProperties.id,
@@ -312,7 +315,7 @@ export function GraphProvider({ children }: GraphProps) {
         console.error(error.message)
       }
     }
-  }, [organizationId, reset])
+  }, [userOnMobile, organizationId, reset])
   useEffect(() => {
     if (loadGraph) {
       loadGraph()

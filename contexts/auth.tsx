@@ -20,6 +20,7 @@ type AuthContextType = {
   userIsAdmin: boolean
   userCanEdit: boolean
   userCanView: boolean
+  userOnMobile: boolean
 }
 
 const authContextTypeValues: AuthContextType = {
@@ -31,6 +32,7 @@ const authContextTypeValues: AuthContextType = {
   userIsAdmin: false,
   userCanEdit: false,
   userCanView: false,
+  userOnMobile: false,
 }
 
 const AuthContext = createContext<AuthContextType>(authContextTypeValues)
@@ -63,6 +65,7 @@ export function AuthProvider({ children }: AuthProps) {
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [userCanEdit, setUserCanEdit] = useState(false)
   const [userCanView, setUserCanView] = useState(false)
+  const [userOnMobile, setUserOnMobile] = useState(false)
   const populateAuthState = useCallback(async () => {
     if (session?.user) {
       try {
@@ -90,6 +93,7 @@ export function AuthProvider({ children }: AuthProps) {
           setUserCanEdit(_userCanEdit)
           const _userCanView = _userCanEdit || data.roles.name === 'viewer'
           setUserCanView(_userCanView)
+          setUserOnMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
 
           analytics.identify(session.user.id, {
             email: session.user.email,
@@ -119,6 +123,7 @@ export function AuthProvider({ children }: AuthProps) {
     userIsAdmin,
     userCanEdit,
     userCanView,
+    userOnMobile,
   }
   return (
     <>
