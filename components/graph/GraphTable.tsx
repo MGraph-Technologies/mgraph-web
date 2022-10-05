@@ -84,10 +84,8 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         id="link-to-detail-button"
         className="p-button-text p-button-lg"
         icon="pi pi-info-circle"
-        tooltip={
-          `Description: ${rowData.data.description}
-          \nOwner: ${rowData.data.owner}`
-        }
+        tooltip={`Description: ${rowData.data.description}
+          \nOwner: ${rowData.data.owner}`}
         tooltipOptions={{
           position: 'left',
           style: { width: '500px' },
