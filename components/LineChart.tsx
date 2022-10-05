@@ -10,6 +10,7 @@ import {
 } from 'chart.js'
 import 'chartjs-adapter-moment'
 import { Message } from 'primereact/message'
+import { ProgressSpinner } from 'primereact/progressspinner'
 import { FunctionComponent, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 
@@ -197,7 +198,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({ queryResult }) => {
     case 'processing':
       return (
         <div className={styles.progress_spinner_container}>
-          Loading...
+          <ProgressSpinner style={centerStyle} strokeWidth="4" />
         </div>
       )
     case 'expired':
