@@ -93,9 +93,7 @@ export function AuthProvider({ children }: AuthProps) {
           setUserCanEdit(_userCanEdit)
           const _userCanView = _userCanEdit || data.roles.name === 'viewer'
           setUserCanView(_userCanView)
-          setUserOnMobile(
-            /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-          )
+          setUserOnMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
 
           analytics.identify(session.user.id, {
             email: session.user.email,
