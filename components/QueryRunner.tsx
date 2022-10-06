@@ -2,7 +2,6 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../contexts/auth'
 import { useGraph } from '../contexts/graph'
-import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
 export type QueryResult = {
