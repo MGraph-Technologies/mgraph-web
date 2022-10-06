@@ -2,11 +2,16 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../contexts/auth'
 import { useGraph } from '../contexts/graph'
-import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
 export type QueryResult = {
-  status: 'success' | 'processing' | 'expired' | 'error' | 'empty'
+  status:
+    | 'unexecuted'
+    | 'success'
+    | 'processing'
+    | 'expired'
+    | 'error'
+    | 'empty'
   data: any | null
 }
 
@@ -71,6 +76,13 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         if (data && data.length > 0) {
           setQueryId(data[0].id)
           setGetQueryIdComplete(true)
+        } else {
+          setQueryResult({
+            status: 'unexecuted',
+            data: null,
+          })
+          setGetQueryResultComplete(true)
+          setGetQueryIdComplete(true)
         }
       } catch (error: any) {
         console.error(error.message)
@@ -83,6 +95,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     databaseConnectionId,
     statement,
     parameterizeStatement,
+    setQueryResult,
   ])
   useEffect(() => {
     getQueryId()
