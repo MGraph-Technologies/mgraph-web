@@ -91,6 +91,10 @@ type GraphContextType = {
   getInputNodes: ((node: Node) => Node[]) | undefined
   globalQueryRefreshes: number
   setGlobalQueryRefreshes: Dispatch<SetStateAction<number>> | undefined
+  queriesLoading: Array<string>
+  /* ^would prefer to use a Set here, but that doesn't work with useState
+    https://stackoverflow.com/questions/58806883/how-to-use-set-with-reacts-usestate */
+  setQueriesLoading: Dispatch<SetStateAction<Array<string>>> | undefined
   queryParameters: {
     [name: string]: QueryParameterValues
   }
@@ -129,6 +133,8 @@ const graphContextDefaultValues: GraphContextType = {
   getInputNodes: undefined,
   globalQueryRefreshes: 0,
   setGlobalQueryRefreshes: undefined,
+  queriesLoading: [] as string[],
+  setQueriesLoading: undefined,
   queryParameters: {},
   initializeQueryParameter: undefined,
   resetQueryParameterUserValue: undefined,
@@ -689,6 +695,7 @@ export function GraphProvider({ children }: GraphProps) {
   )
 
   const [globalQueryRefreshes, setGlobalQueryRefreshes] = useState(0)
+  const [queriesLoading, setQueriesLoading] = useState([] as string[])
 
   const [queryParameters, setQueryParameters] = useState<{
     [name: string]: QueryParameterValues
@@ -922,6 +929,8 @@ export function GraphProvider({ children }: GraphProps) {
     getInputNodes: getInputNodes,
     globalQueryRefreshes: globalQueryRefreshes,
     setGlobalQueryRefreshes: setGlobalQueryRefreshes,
+    queriesLoading: queriesLoading,
+    setQueriesLoading: setQueriesLoading,
     queryParameters: queryParameters,
     initializeQueryParameter: initializeQueryParameter,
     resetQueryParameterUserValue: resetQueryParameterUserValue,

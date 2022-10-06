@@ -68,6 +68,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
           databaseConnectionId={rowData?.data.sourceDatabaseConnectionId}
           parentNodeId={rowData?.data.id}
           refreshes={0}
+          queryResult={queryResult}
           setQueryResult={setQueryResult}
         />
         <LineChart queryResult={queryResult} />

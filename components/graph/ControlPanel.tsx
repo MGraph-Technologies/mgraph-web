@@ -27,6 +27,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   const {
     globalQueryRefreshes,
     setGlobalQueryRefreshes,
+    queriesLoading,
     queryParameters,
     initializeQueryParameter,
     resetQueryParameterUserValue,
@@ -118,26 +119,37 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   } else {
     return (
       <div className={styles.control_panel}>
-        <Button
-          id="query-settings-button"
-          className={styles.button}
-          icon="pi pi-sliders-h"
-          onClick={(event) => {
-            analytics.track('view_query_settings')
-            overlayPanel.current?.toggle(event)
-          }}
-        />
-        <Button
-          id="global-query-refresh-button"
-          className={styles.button}
-          icon="pi pi-refresh"
-          onClick={() => {
-            if (setGlobalQueryRefreshes) {
-              analytics.track('refresh_queries')
-              setGlobalQueryRefreshes(globalQueryRefreshes + 1)
-            }
-          }}
-        />
+        {queriesLoading.length > 0 ? (
+          <Button
+            id="graph-loading-indicator-button"
+            className={styles.button}
+            icon="pi pi-refresh"
+            loading
+          />
+        ) : (
+          <>
+            <Button
+              id="query-settings-button"
+              className={styles.button}
+              icon="pi pi-sliders-h"
+              onClick={(event) => {
+                analytics.track('view_query_settings')
+                overlayPanel.current?.toggle(event)
+              }}
+            />
+            <Button
+              id="global-query-refresh-button"
+              className={styles.button}
+              icon="pi pi-refresh"
+              onClick={() => {
+                if (setGlobalQueryRefreshes) {
+                  analytics.track('refresh_queries')
+                  setGlobalQueryRefreshes(globalQueryRefreshes + 1)
+                }
+              }}
+            />
+          </>
+        )}
         {showEditButton ? (
           <Button
             id="edit-button"
