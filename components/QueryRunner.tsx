@@ -5,7 +5,13 @@ import { useGraph } from '../contexts/graph'
 import { supabase } from '../utils/supabaseClient'
 
 export type QueryResult = {
-  status: 'unexecuted' | 'success' | 'processing' | 'expired' | 'error' | 'empty'
+  status:
+    | 'unexecuted'
+    | 'success'
+    | 'processing'
+    | 'expired'
+    | 'error'
+    | 'empty'
   data: any | null
 }
 
@@ -73,7 +79,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         } else {
           setQueryResult({
             status: 'unexecuted',
-            data: null
+            data: null,
           })
           setGetQueryResultComplete(true)
           setGetQueryIdComplete(true)
