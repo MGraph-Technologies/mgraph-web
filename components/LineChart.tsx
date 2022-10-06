@@ -125,6 +125,14 @@ const LineChart: FunctionComponent<LineChartProps> = ({ queryResult }) => {
     width: '100%',
   }
   switch (queryResult.status) {
+    case 'unexecuted':
+      return (
+        <Message
+          severity="info"
+          text="Query not yet executed; refresh query to view chart."
+          style={centerStyle}
+        />
+      )
     case 'success':
       if (
         !queryResult.data ||
