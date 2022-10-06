@@ -308,116 +308,115 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         />
         <ControlPanel />
       </div>
-      <div className={styles.chart_container}>
-        <QueryRunner
-          statement={sourceCode}
-          databaseConnectionId={sourceDatabaseConnectionId}
-          parentNodeId={metricNode ? metricNode.id : ''}
-          refreshes={queryRunnerRefreshes}
-          setQueryResult={setQueryResult}
-        />
-        <LineChart queryResult={queryResult} />
-      </div>
-      <h2>Owner</h2>
-      <EditText
-        id="owner-field"
-        className={
-          editingEnabled ? styles.detail_field_editable : styles.detail_field
-        }
-        value={owner}
-        readonly={!editingEnabled}
-        placeholder={editingEnabled ? 'Add...' : '-'}
-        onChange={(e) => setOwner(e.target.value)}
-        onSave={({ value }) => saveDetail('owner', value)}
-      />
-      <h2>Description</h2>
-      <EditTextarea
-        id="description-field"
-        className={
-          editingEnabled ? styles.detail_field_editable : styles.detail_field
-        }
-        value={description}
-        readonly={!editingEnabled}
-        placeholder={editingEnabled ? 'Add...' : '-'}
-        onChange={(e) => setDescription(e.target.value)}
-        onSave={({ value }) => saveDetail('description', value)}
-      />
-      <h2>Inputs</h2>
-      {/* inputs set via function editor */}
-      <pre>
-        <code>
-          <EditTextarea
-            className={styles.detail_field}
-            value={inputs.match(functionTypeIdRegex) ? '' : inputs}
-            readonly={true}
-            placeholder={'-'}
+      <div className={styles.body}>
+        <div className={styles.chart_container}>
+          <QueryRunner
+            statement={sourceCode}
+            databaseConnectionId={sourceDatabaseConnectionId}
+            parentNodeId={metricNode ? metricNode.id : ''}
+            refreshes={queryRunnerRefreshes}
+            setQueryResult={setQueryResult}
           />
-        </code>
-      </pre>
-      <h2>Outputs</h2>
-      {/* outputs set via function editor */}
-      <pre>
-        <code>
-          <EditTextarea
-            className={styles.detail_field}
-            value={outputs.match(functionTypeIdRegex) ? '' : outputs}
-            readonly={true}
-            placeholder={'-'}
-          />
-        </code>
-      </pre>
-      <h2>Source</h2>
-      <h3>Database</h3>
-      <Dropdown
-        id="source-database-connection-dropdown"
-        value={sourceDatabaseConnectionName}
-        options={databaseConnections.map((dc) => dc.name)}
-        onChange={(e) => {
-          const newSourceDatabaseConnection = databaseConnections.find(
-            (dc) => dc.name === e.value
-          )
-          if (newSourceDatabaseConnection) {
-            setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
-            saveDetail(
-              'sourceDatabaseConnectionId',
-              newSourceDatabaseConnection.id
-            )
-            setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-            // name updating handled by useEffect above
+          <LineChart queryResult={queryResult} />
+        </div>
+        <h2>Owner</h2>
+        <EditText
+          id="owner-field"
+          className={
+            editingEnabled ? styles.detail_field_editable : styles.detail_field
           }
-        }}
-        disabled={!editingEnabled}
-      />
-      <h3>Code</h3>
-      <pre>
-        <code>
-          <EditTextarea
-            id="source-code-field"
-            className={
-              editingEnabled
-                ? styles.detail_field_editable
-                : styles.detail_field
-            }
-            rows={10}
-            value={sourceCode}
-            readonly={!editingEnabled}
-            placeholder={editingEnabled ? 'Add...' : '-'}
-            onChange={(e) => setSourceCode(e.target.value)}
-            onSave={({ value }) => {
+          value={owner}
+          readonly={!editingEnabled}
+          placeholder={editingEnabled ? 'Add...' : '-'}
+          onChange={(e) => setOwner(e.target.value)}
+          onSave={({ value }) => saveDetail('owner', value)}
+        />
+        <h2>Description</h2>
+        <EditTextarea
+          id="description-field"
+          className={
+            editingEnabled ? styles.detail_field_editable : styles.detail_field
+          }
+          value={description}
+          readonly={!editingEnabled}
+          placeholder={editingEnabled ? 'Add...' : '-'}
+          onChange={(e) => setDescription(e.target.value)}
+          onSave={({ value }) => saveDetail('description', value)}
+        />
+        <h2>Inputs</h2>
+        {/* inputs set via function editor */}
+        <pre>
+          <code>
+            <EditTextarea
+              className={styles.detail_field}
+              value={inputs.match(functionTypeIdRegex) ? '' : inputs}
+              readonly={true}
+              placeholder={'-'}
+            />
+          </code>
+        </pre>
+        <h2>Outputs</h2>
+        {/* outputs set via function editor */}
+        <pre>
+          <code>
+            <EditTextarea
+              className={styles.detail_field}
+              value={outputs.match(functionTypeIdRegex) ? '' : outputs}
+              readonly={true}
+              placeholder={'-'}
+            />
+          </code>
+        </pre>
+        <h2>Source</h2>
+        <h3>Database</h3>
+        <Dropdown
+          id="source-database-connection-dropdown"
+          value={sourceDatabaseConnectionName}
+          options={databaseConnections.map((dc) => dc.name)}
+          onChange={(e) => {
+            const newSourceDatabaseConnection = databaseConnections.find(
+              (dc) => dc.name === e.value
+            )
+            if (newSourceDatabaseConnection) {
+              setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
+              saveDetail(
+                'sourceDatabaseConnectionId',
+                newSourceDatabaseConnection.id
+              )
               setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-              saveDetail('sourceCode', value)
-            }}
-          />
-        </code>
-      </pre>
+              // name updating handled by useEffect above
+            }
+          }}
+          disabled={!editingEnabled}
+        />
+        <h3>Code</h3>
+        <pre>
+          <code>
+            <EditTextarea
+              id="source-code-field"
+              className={
+                editingEnabled
+                  ? styles.detail_field_editable
+                  : styles.detail_field
+              }
+              rows={10}
+              value={sourceCode}
+              readonly={!editingEnabled}
+              placeholder={editingEnabled ? 'Add...' : '-'}
+              onChange={(e) => setSourceCode(e.target.value)}
+              onSave={({ value }) => {
+                setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+                saveDetail('sourceCode', value)
+              }}
+            />
+          </code>
+        </pre>
+      </div>
+      {/* ensure final module can be seen underneath editor dock */}
       {editingEnabled ? (
-        <>
-          <div className={styles.editor_dock}>
-            <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
-          </div>
-          {/* ensure final module can be seen underneath editor dock */}
-          <div className={styles.editor_dock_spacer} />
-        </>
+        <div className={styles.editor_dock}>
+          <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
+        </div>
       ) : null}
     </div>
   )
