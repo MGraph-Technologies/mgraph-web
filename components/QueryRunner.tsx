@@ -101,10 +101,6 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         },
       })
         .then((response) => {
-          analytics.track('got_query_result', {
-            query_id: queryId,
-            status: response.status,
-          })
           setGetQueryResultComplete(true)
           if (response.status === 200) {
             response.json().then((data) => {
@@ -159,7 +155,6 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         parentNodeId: parentNodeId,
         statement: parameterizeStatement(),
       }
-      analytics.track('execute_query', queryBody)
       fetch('/api/v1/queries', {
         method: 'POST',
         body: JSON.stringify(queryBody),
