@@ -124,6 +124,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   }
 
   const overlayPanel = useRef<OverlayPanel>(null)
+  const [initialQueryParameters, setInitialQueryParameters] = useState<any>({})
 
   if (editingEnabled) {
     return null
@@ -174,7 +175,20 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
             }}
           />
         ) : null}
-        <OverlayPanel id="query-parameters-overlay" ref={overlayPanel}>
+        <OverlayPanel
+          id="query-parameters-overlay"
+          ref={overlayPanel}
+          onShow={() => {
+            setInitialQueryParameters(queryParameters)
+          }}
+          onHide={() => {
+            Object.keys(initialQueryParameters).forEach((key) => {
+              if (initialQueryParameters[key].userValue !== queryParameters[key].userValue) {
+                setGlobalQueryRefreshes!(globalQueryRefreshes + 1)
+              }
+            })
+          }}
+          >
           <QueryParameterField titleCaseName="Beginning Date" />
           <QueryParameterField titleCaseName="Ending Date" />
           <QueryParameterField titleCaseName="Frequency" />

@@ -795,7 +795,6 @@ export function GraphProvider({ children }: GraphProps) {
                 ...prev,
                 [name]: qp,
               }))
-              setGlobalQueryRefreshes(globalQueryRefreshes + 1)
             })
         } catch (error: any) {
           console.error(error.message)
@@ -806,8 +805,6 @@ export function GraphProvider({ children }: GraphProps) {
       queryParameters,
       organizationId,
       session,
-      setGlobalQueryRefreshes,
-      globalQueryRefreshes,
     ]
   )
 
@@ -839,7 +836,6 @@ export function GraphProvider({ children }: GraphProps) {
                   ...prev,
                   [name]: qp,
                 }))
-                setGlobalQueryRefreshes(globalQueryRefreshes + 1)
               })
           } catch (error: any) {
             console.error(error.message)
@@ -852,8 +848,6 @@ export function GraphProvider({ children }: GraphProps) {
       resetQueryParameterUserValue,
       organizationId,
       session,
-      setGlobalQueryRefreshes,
-      globalQueryRefreshes,
     ]
   )
 
@@ -894,7 +888,6 @@ export function GraphProvider({ children }: GraphProps) {
                 ...prev,
                 [name]: qp,
               }))
-              setGlobalQueryRefreshes(globalQueryRefreshes + 1)
             })
         } catch (error: any) {
           console.error(error.message)
@@ -905,8 +898,6 @@ export function GraphProvider({ children }: GraphProps) {
       queryParameters,
       organizationId,
       session,
-      setGlobalQueryRefreshes,
-      globalQueryRefreshes,
     ]
   )
 
