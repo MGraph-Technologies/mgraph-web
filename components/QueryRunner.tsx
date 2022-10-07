@@ -48,11 +48,9 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   useEffect(() => {
     if (parentNodeId) {
       setQueriesLoading!((prev) => {
-        return (
-          queryResult.status === 'processing'
-            ? [...prev, parentNodeId]
-            : prev.filter((id) => id !== parentNodeId)
-        )
+        return queryResult.status === 'processing'
+          ? [...prev, parentNodeId]
+          : prev.filter((id) => id !== parentNodeId)
       })
     }
   }, [setQueriesLoading, queryResult, parentNodeId])
@@ -172,12 +170,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           console.error(error.message)
         })
     }
-  }, [
-    getQueryResultComplete,
-    session,
-    queryId,
-    setQueryResult,
-  ])
+  }, [getQueryResultComplete, session, queryId, setQueryResult])
 
   useEffect(() => {
     getQueryResult()

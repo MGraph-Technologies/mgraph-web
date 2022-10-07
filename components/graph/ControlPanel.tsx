@@ -131,38 +131,37 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   } else {
     return (
       <div className={styles.control_panel}>
-        {graph.nodes.length === 0 ? null : (
-          graphLoading || queriesLoading.length > 0 ? (
+        {graph.nodes.length === 0 ? null : graphLoading ||
+          queriesLoading.length > 0 ? (
+          <Button
+            id="graph-loading-indicator-button"
+            className={styles.button}
+            icon="pi pi-refresh"
+            loading
+          />
+        ) : (
+          <>
             <Button
-              id="graph-loading-indicator-button"
+              id="query-settings-button"
+              className={styles.button}
+              icon="pi pi-sliders-h"
+              onClick={(event) => {
+                analytics.track('view_query_settings')
+                overlayPanel.current?.toggle(event)
+              }}
+            />
+            <Button
+              id="global-query-refresh-button"
               className={styles.button}
               icon="pi pi-refresh"
-              loading
+              onClick={() => {
+                if (setGlobalQueryRefreshes) {
+                  analytics.track('refresh_queries')
+                  setGlobalQueryRefreshes(globalQueryRefreshes + 1)
+                }
+              }}
             />
-          ) : (
-            <>
-              <Button
-                id="query-settings-button"
-                className={styles.button}
-                icon="pi pi-sliders-h"
-                onClick={(event) => {
-                  analytics.track('view_query_settings')
-                  overlayPanel.current?.toggle(event)
-                }}
-              />
-              <Button
-                id="global-query-refresh-button"
-                className={styles.button}
-                icon="pi pi-refresh"
-                onClick={() => {
-                  if (setGlobalQueryRefreshes) {
-                    analytics.track('refresh_queries')
-                    setGlobalQueryRefreshes(globalQueryRefreshes + 1)
-                  }
-                }}
-              />
-            </>
-          )
+          </>
         )}
         {showEditButton ? (
           <Button
@@ -183,12 +182,15 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
           }}
           onHide={() => {
             Object.keys(initialQueryParameters).forEach((key) => {
-              if (initialQueryParameters[key].userValue !== queryParameters[key].userValue) {
+              if (
+                initialQueryParameters[key].userValue !==
+                queryParameters[key].userValue
+              ) {
                 setGlobalQueryRefreshes!(globalQueryRefreshes + 1)
               }
             })
           }}
-          >
+        >
           <QueryParameterField titleCaseName="Beginning Date" />
           <QueryParameterField titleCaseName="Ending Date" />
           <QueryParameterField titleCaseName="Frequency" />

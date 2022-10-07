@@ -101,18 +101,21 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
   }, [])
 
   const router = useRouter()
-  const linkCellBodyTemplate = useCallback((rowData: any) => {
-    return (
-      <Button
-        id="link-to-detail-button"
-        className="p-button-text p-button-lg"
-        icon="pi pi-angle-right"
-        onClick={() => {
-          router.push(`/${organizationName}/metrics/${rowData.id}`)
-        }}
-      />
-    )
-  }, [router,  organizationName])
+  const linkCellBodyTemplate = useCallback(
+    (rowData: any) => {
+      return (
+        <Button
+          id="link-to-detail-button"
+          className="p-button-text p-button-lg"
+          icon="pi pi-angle-right"
+          onClick={() => {
+            router.push(`/${organizationName}/metrics/${rowData.id}`)
+          }}
+        />
+      )
+    },
+    [router, organizationName]
+  )
 
   const [first, setFirst] = useState(0)
   const onPage = (e: DataTablePFSEvent) => {

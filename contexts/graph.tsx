@@ -801,11 +801,7 @@ export function GraphProvider({ children }: GraphProps) {
         }
       }
     },
-    [
-      queryParameters,
-      organizationId,
-      session,
-    ]
+    [queryParameters, organizationId, session]
   )
 
   const setQueryParameterUserValue = useCallback(
@@ -843,12 +839,7 @@ export function GraphProvider({ children }: GraphProps) {
         }
       }
     },
-    [
-      queryParameters,
-      resetQueryParameterUserValue,
-      organizationId,
-      session,
-    ]
+    [queryParameters, resetQueryParameterUserValue, organizationId, session]
   )
 
   const setQueryParameterOrgDefaultValue = useCallback(
@@ -894,11 +885,7 @@ export function GraphProvider({ children }: GraphProps) {
         }
       }
     },
-    [
-      queryParameters,
-      organizationId,
-      session,
-    ]
+    [queryParameters, organizationId, session]
   )
 
   const value = {
