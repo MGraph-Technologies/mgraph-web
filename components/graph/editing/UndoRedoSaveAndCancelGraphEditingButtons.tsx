@@ -1,5 +1,5 @@
 import { Button } from 'primereact/button'
-import { FunctionComponent, useCallback } from 'react'
+import { FunctionComponent, useCallback, useState } from 'react'
 
 import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
@@ -11,6 +11,8 @@ const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
 > = () => {
   const { disableEditing } = useEditability()
   const { undo, redo, canUndo, canRedo, loadGraph, saveGraph } = useGraph()
+
+  const [saving, setSaving] = useState(false)
 
   const onCancel = useCallback(() => {
     if (!loadGraph) {
@@ -28,6 +30,7 @@ const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
     if (!loadGraph) {
       throw new Error('loadGraph is not defined')
     }
+    setSaving(true)
     saveGraph().then((response) => {
       if (response?.status === 200) {
         // only reset if the save was successful
@@ -40,6 +43,7 @@ const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
         })
         console.error(response)
       }
+      setSaving(false)
     })
   }, [saveGraph, disableEditing, loadGraph])
 
@@ -72,6 +76,7 @@ const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
       <Button
         id="save-button"
         label="Save"
+        loading={saving}
         onClick={onSave}
         disabled={!saveGraph || !loadGraph}
       />
