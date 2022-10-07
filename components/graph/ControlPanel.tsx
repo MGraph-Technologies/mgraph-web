@@ -181,14 +181,15 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
             setInitialQueryParameters(queryParameters)
           }}
           onHide={() => {
-            Object.keys(initialQueryParameters).forEach((key) => {
-              if (
-                initialQueryParameters[key].userValue !==
-                queryParameters[key].userValue
-              ) {
-                setGlobalQueryRefreshes!(globalQueryRefreshes + 1)
-              }
+            const parameterChanged = Object.keys(queryParameters).some((key) => {
+              return (
+                queryParameters[key].userValue !==
+                initialQueryParameters[key].userValue
+              )
             })
+            if (parameterChanged) {
+              setGlobalQueryRefreshes!(globalQueryRefreshes + 1)
+            }
           }}
         >
           <QueryParameterField titleCaseName="Beginning Date" />
