@@ -25,6 +25,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   const { editingEnabled, enableEditing } = useEditability()
   const showEditButton = userCanEdit && !hideEditButton
   const {
+    graph,
     globalQueryRefreshes,
     setGlobalQueryRefreshes,
     queriesLoading,
@@ -34,6 +35,16 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     setQueryParameterUserValue,
     setQueryParameterOrgDefaultValue,
   } = useGraph()
+
+  const [graphLoading, setGraphloading] = useState(true)
+  useEffect(() => {
+    if (graph.nodes.length > 0) {
+      // little buffer to avoid flickering before queries are loaded
+      setTimeout(() => {
+        setGraphloading(false)
+      }, 100)
+    }
+  }, [graph])
 
   type QueryParameterFieldProps = {
     titleCaseName: string
@@ -119,7 +130,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   } else {
     return (
       <div className={styles.control_panel}>
-        {queriesLoading.length > 0 ? (
+        {graphLoading || queriesLoading.length > 0 ? (
           <Button
             id="graph-loading-indicator-button"
             className={styles.button}
