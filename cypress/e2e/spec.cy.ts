@@ -396,7 +396,7 @@ describe('Metric detail editing', () => {
 
     // set group_by parameter
     const randomGroupBy = Math.random().toString(36)
-    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').click()
     cy.get('[id=group_by-field]')
       .clear()
@@ -407,7 +407,7 @@ describe('Metric detail editing', () => {
     // see that parameter persists
     cy.reload()
     cy.wait(1000) // wait for page to load
-    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy)
 
     // set parameter as default
@@ -416,7 +416,7 @@ describe('Metric detail editing', () => {
     // see that parameter persists as org default
     cy.reload()
     cy.wait(1000) // wait for page to load
-    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
 
@@ -432,7 +432,7 @@ describe('Metric detail editing', () => {
     // see that new parameter persists
     cy.reload()
     cy.wait(1000) // wait for page to load
-    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy2)
 
     // reset new parameter
@@ -446,7 +446,7 @@ describe('Metric detail editing', () => {
     // see that default parameter persists
     cy.reload()
     cy.wait(1000) // wait for page to load
-    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
   })
@@ -459,7 +459,7 @@ describe('Metric detail editing', () => {
     cy.wait(1000)
 
     // set parameters
-    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=beginning_date-field').click()
     cy.get('[id=beginning_date-field]')
       .clear()
@@ -481,7 +481,7 @@ describe('Metric detail editing', () => {
       .type("'" + randomGroupBy + "'")
       .parent()
       .click()
-    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=query-settings-button]').click().wait(100)
 
     // begin editing
     cy.get('[id=edit-button]').click()
