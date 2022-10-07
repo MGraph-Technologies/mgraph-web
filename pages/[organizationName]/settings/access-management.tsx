@@ -118,7 +118,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     [organizationId]
   )
 
-  const roleBodyTemplate = (rowData: any) => {
+  const roleBodyTemplate = useCallback((rowData: any) => {
     return (
       <Dropdown
         value={rowData.roles.name}
@@ -137,7 +137,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         style={{ width: '100%' }}
       />
     )
-  }
+  }, [roles, updateUserRole, users])
 
   const [orgDefaultRoleName, setOrgDefaultRoleName] = useState('')
   const populateOrgDefaultRoleName = useCallback(async () => {

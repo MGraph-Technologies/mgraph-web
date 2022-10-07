@@ -75,11 +75,11 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
       </div>
     )
   }
-  const trendCellBodyTemplate = (rowData: any) => {
+  const trendCellBodyTemplate = useCallback((rowData: any) => {
     return <TrendCellBodyTemplateFC rowData={rowData} />
-  }
+  }, [])
 
-  const infoCellBodyTemplate = (rowData: any) => {
+  const infoCellBodyTemplate = useCallback((rowData: any) => {
     return (
       <Button
         id="link-to-detail-button"
@@ -98,10 +98,10 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         }}
       />
     )
-  }
+  }, [])
 
   const router = useRouter()
-  const linkCellBodyTemplate = (rowData: any) => {
+  const linkCellBodyTemplate = useCallback((rowData: any) => {
     return (
       <Button
         id="link-to-detail-button"
@@ -112,7 +112,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         }}
       />
     )
-  }
+  }, [router,  organizationName])
 
   const [first, setFirst] = useState(0)
   const onPage = (e: DataTablePFSEvent) => {
