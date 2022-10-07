@@ -46,13 +46,15 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   const [getQueryResultComplete, setGetQueryResultComplete] = useState(false)
 
   useEffect(() => {
-    setQueriesLoading!((prev) => {
-      return (
-        queryResult.status === 'processing'
-          ? [...prev, parentNodeId]
-          : prev.filter((id) => id !== parentNodeId)
-      )
-    })
+    if (parentNodeId) {
+      setQueriesLoading!((prev) => {
+        return (
+          queryResult.status === 'processing'
+            ? [...prev, parentNodeId]
+            : prev.filter((id) => id !== parentNodeId)
+        )
+      })
+    }
   }, [setQueriesLoading, queryResult, parentNodeId])
 
   const parameterizeStatement = useCallback(() => {
