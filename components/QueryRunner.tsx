@@ -53,6 +53,9 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           : prev.filter((id) => id !== parentNodeId)
       })
     }
+    return () => {
+      setQueriesLoading!((prev) => prev.filter((id) => id !== parentNodeId))
+    }
   }, [setQueriesLoading, queryResult, parentNodeId])
 
   const parameterizeStatement = useCallback(() => {
