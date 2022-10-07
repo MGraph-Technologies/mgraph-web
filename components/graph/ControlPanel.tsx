@@ -181,12 +181,14 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
             setInitialQueryParameters(queryParameters)
           }}
           onHide={() => {
-            const parameterChanged = Object.keys(queryParameters).some((key) => {
-              return (
-                queryParameters[key].userValue !==
-                initialQueryParameters[key].userValue
-              )
-            })
+            const parameterChanged = Object.keys(queryParameters).some(
+              (key) => {
+                return (
+                  queryParameters[key].userValue !==
+                  initialQueryParameters[key].userValue
+                )
+              }
+            )
             if (parameterChanged) {
               setGlobalQueryRefreshes!(globalQueryRefreshes + 1)
             }
