@@ -168,7 +168,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
   return (
     <div className={styles.graph_table_container}>
       <div className={styles.control_panel_container}>
-        <ControlPanel hideEditButton={true} />
+        <ControlPanel />
       </div>
       <DataTable
         paginator
