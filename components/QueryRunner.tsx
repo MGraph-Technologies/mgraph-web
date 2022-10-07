@@ -20,6 +20,7 @@ type QueryRunnerProps = {
   databaseConnectionId: string
   parentNodeId: string
   refreshes: number // increment this number to force a refresh
+  queryResult: QueryResult
   setQueryResult: (queryResult: QueryResult) => void
 }
 /* TODO: it seems a little strange that this is a component, but it operates
@@ -30,14 +31,32 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   databaseConnectionId,
   parentNodeId,
   refreshes,
+  queryResult,
   setQueryResult,
 }) => {
   const { session } = useAuth()
-  const { globalQueryRefreshes, setGlobalQueryRefreshes, queryParameters } =
-    useGraph()
+  const {
+    globalQueryRefreshes,
+    setGlobalQueryRefreshes,
+    setQueriesLoading,
+    queryParameters,
+  } = useGraph()
   const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
   const [getQueryResultComplete, setGetQueryResultComplete] = useState(false)
+
+  useEffect(() => {
+    if (parentNodeId) {
+      setQueriesLoading!((prev) => {
+        return queryResult.status === 'processing'
+          ? [...prev, parentNodeId]
+          : prev.filter((id) => id !== parentNodeId)
+      })
+    }
+    return () => {
+      setQueriesLoading!((prev) => prev.filter((id) => id !== parentNodeId))
+    }
+  }, [setQueriesLoading, queryResult, parentNodeId])
 
   const parameterizeStatement = useCallback(() => {
     return statement.replace(/{{(.*?)}}/g, (_match, p1) => {
@@ -163,6 +182,10 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   const executeQuery = useCallback(async () => {
     const accessToken = session?.access_token
     if (accessToken && parentNodeId && databaseConnectionId) {
+      setQueryResult({
+        status: 'processing',
+        data: null,
+      })
       const queryBody = {
         databaseConnectionId: databaseConnectionId,
         parentNodeId: parentNodeId,

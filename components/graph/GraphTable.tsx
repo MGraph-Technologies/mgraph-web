@@ -68,17 +68,18 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
           databaseConnectionId={rowData?.data.sourceDatabaseConnectionId}
           parentNodeId={rowData?.data.id}
           refreshes={0}
+          queryResult={queryResult}
           setQueryResult={setQueryResult}
         />
         <LineChart queryResult={queryResult} />
       </div>
     )
   }
-  const trendCellBodyTemplate = (rowData: any) => {
+  const trendCellBodyTemplate = useCallback((rowData: any) => {
     return <TrendCellBodyTemplateFC rowData={rowData} />
-  }
+  }, [])
 
-  const infoCellBodyTemplate = (rowData: any) => {
+  const infoCellBodyTemplate = useCallback((rowData: any) => {
     return (
       <Button
         id="link-to-detail-button"
@@ -97,21 +98,24 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         }}
       />
     )
-  }
+  }, [])
 
   const router = useRouter()
-  const linkCellBodyTemplate = (rowData: any) => {
-    return (
-      <Button
-        id="link-to-detail-button"
-        className="p-button-text p-button-lg"
-        icon="pi pi-angle-right"
-        onClick={() => {
-          router.push(`/${organizationName}/metrics/${rowData.id}`)
-        }}
-      />
-    )
-  }
+  const linkCellBodyTemplate = useCallback(
+    (rowData: any) => {
+      return (
+        <Button
+          id="link-to-detail-button"
+          className="p-button-text p-button-lg"
+          icon="pi pi-angle-right"
+          onClick={() => {
+            router.push(`/${organizationName}/metrics/${rowData.id}`)
+          }}
+        />
+      )
+    },
+    [router, organizationName]
+  )
 
   const [first, setFirst] = useState(0)
   const onPage = (e: DataTablePFSEvent) => {
@@ -167,7 +171,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
   return (
     <div className={styles.graph_table_container}>
       <div className={styles.control_panel_container}>
-        <ControlPanel hideEditButton={true} />
+        <ControlPanel />
       </div>
       <DataTable
         paginator

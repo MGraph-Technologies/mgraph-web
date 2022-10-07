@@ -118,26 +118,29 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     [organizationId]
   )
 
-  const roleBodyTemplate = (rowData: any) => {
-    return (
-      <Dropdown
-        value={rowData.roles.name}
-        options={roles.map((r) => r.name)}
-        onChange={(e) => {
-          const roleId = roles.find((r) => r.name === e.value).id
-          updateUserRole(rowData.user_id, roleId)
-          let newRoles = users.map((user) => {
-            if (user.user_id === rowData.user_id) {
-              user.roles.name = e.value
-            }
-            return user
-          })
-          setUsers(newRoles)
-        }}
-        style={{ width: '100%' }}
-      />
-    )
-  }
+  const roleBodyTemplate = useCallback(
+    (rowData: any) => {
+      return (
+        <Dropdown
+          value={rowData.roles.name}
+          options={roles.map((r) => r.name)}
+          onChange={(e) => {
+            const roleId = roles.find((r) => r.name === e.value).id
+            updateUserRole(rowData.user_id, roleId)
+            let newRoles = users.map((user) => {
+              if (user.user_id === rowData.user_id) {
+                user.roles.name = e.value
+              }
+              return user
+            })
+            setUsers(newRoles)
+          }}
+          style={{ width: '100%' }}
+        />
+      )
+    },
+    [roles, updateUserRole, users]
+  )
 
   const [orgDefaultRoleName, setOrgDefaultRoleName] = useState('')
   const populateOrgDefaultRoleName = useCallback(async () => {

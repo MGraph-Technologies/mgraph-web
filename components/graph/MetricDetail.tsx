@@ -315,6 +315,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             databaseConnectionId={sourceDatabaseConnectionId}
             parentNodeId={metricNode ? metricNode.id : ''}
             refreshes={queryRunnerRefreshes}
+            queryResult={queryResult}
             setQueryResult={setQueryResult}
           />
           <LineChart queryResult={queryResult} />

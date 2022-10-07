@@ -25,14 +25,26 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   const { editingEnabled, enableEditing } = useEditability()
   const showEditButton = userCanEdit && !hideEditButton
   const {
+    graph,
     globalQueryRefreshes,
     setGlobalQueryRefreshes,
+    queriesLoading,
     queryParameters,
     initializeQueryParameter,
     resetQueryParameterUserValue,
     setQueryParameterUserValue,
     setQueryParameterOrgDefaultValue,
   } = useGraph()
+
+  const [graphLoading, setGraphloading] = useState(true)
+  useEffect(() => {
+    if (graph.nodes.length > 0) {
+      // little buffer to avoid flickering before queries are loaded
+      setTimeout(() => {
+        setGraphloading(false)
+      }, 100)
+    }
+  }, [graph])
 
   type QueryParameterFieldProps = {
     titleCaseName: string
@@ -112,32 +124,45 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   }
 
   const overlayPanel = useRef<OverlayPanel>(null)
+  const [initialQueryParameters, setInitialQueryParameters] = useState<any>({})
 
   if (editingEnabled) {
     return null
   } else {
     return (
       <div className={styles.control_panel}>
-        <Button
-          id="query-settings-button"
-          className={styles.button}
-          icon="pi pi-sliders-h"
-          onClick={(event) => {
-            analytics.track('view_query_settings')
-            overlayPanel.current?.toggle(event)
-          }}
-        />
-        <Button
-          id="global-query-refresh-button"
-          className={styles.button}
-          icon="pi pi-refresh"
-          onClick={() => {
-            if (setGlobalQueryRefreshes) {
-              analytics.track('refresh_queries')
-              setGlobalQueryRefreshes(globalQueryRefreshes + 1)
-            }
-          }}
-        />
+        {graph.nodes.length === 0 ? null : graphLoading ||
+          queriesLoading.length > 0 ? (
+          <Button
+            id="graph-loading-indicator-button"
+            className={styles.button}
+            icon="pi pi-refresh"
+            loading
+          />
+        ) : (
+          <>
+            <Button
+              id="query-settings-button"
+              className={styles.button}
+              icon="pi pi-sliders-h"
+              onClick={(event) => {
+                analytics.track('view_query_settings')
+                overlayPanel.current?.toggle(event)
+              }}
+            />
+            <Button
+              id="global-query-refresh-button"
+              className={styles.button}
+              icon="pi pi-refresh"
+              onClick={() => {
+                if (setGlobalQueryRefreshes) {
+                  analytics.track('refresh_queries')
+                  setGlobalQueryRefreshes(globalQueryRefreshes + 1)
+                }
+              }}
+            />
+          </>
+        )}
         {showEditButton ? (
           <Button
             id="edit-button"
@@ -149,7 +174,26 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
             }}
           />
         ) : null}
-        <OverlayPanel id="query-parameters-overlay" ref={overlayPanel}>
+        <OverlayPanel
+          id="query-parameters-overlay"
+          ref={overlayPanel}
+          onShow={() => {
+            setInitialQueryParameters(queryParameters)
+          }}
+          onHide={() => {
+            const parameterChanged = Object.keys(queryParameters).some(
+              (key) => {
+                return (
+                  queryParameters[key].userValue !==
+                  initialQueryParameters[key].userValue
+                )
+              }
+            )
+            if (parameterChanged) {
+              setGlobalQueryRefreshes!(globalQueryRefreshes + 1)
+            }
+          }}
+        >
           <QueryParameterField titleCaseName="Beginning Date" />
           <QueryParameterField titleCaseName="Ending Date" />
           <QueryParameterField titleCaseName="Frequency" />

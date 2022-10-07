@@ -110,6 +110,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
           databaseConnectionId={data.sourceDatabaseConnectionId}
           parentNodeId={data.id}
           refreshes={0}
+          queryResult={queryResult}
           setQueryResult={setQueryResult}
         />
         <LineChart queryResult={queryResult} />
