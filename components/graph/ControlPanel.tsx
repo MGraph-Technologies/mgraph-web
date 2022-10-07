@@ -130,36 +130,38 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   } else {
     return (
       <div className={styles.control_panel}>
-        {graphLoading || queriesLoading.length > 0 ? (
-          <Button
-            id="graph-loading-indicator-button"
-            className={styles.button}
-            icon="pi pi-refresh"
-            loading
-          />
-        ) : (
-          <>
+        {graph.nodes.length === 0 ? null : (
+          graphLoading || queriesLoading.length > 0 ? (
             <Button
-              id="query-settings-button"
-              className={styles.button}
-              icon="pi pi-sliders-h"
-              onClick={(event) => {
-                analytics.track('view_query_settings')
-                overlayPanel.current?.toggle(event)
-              }}
-            />
-            <Button
-              id="global-query-refresh-button"
+              id="graph-loading-indicator-button"
               className={styles.button}
               icon="pi pi-refresh"
-              onClick={() => {
-                if (setGlobalQueryRefreshes) {
-                  analytics.track('refresh_queries')
-                  setGlobalQueryRefreshes(globalQueryRefreshes + 1)
-                }
-              }}
+              loading
             />
-          </>
+          ) : (
+            <>
+              <Button
+                id="query-settings-button"
+                className={styles.button}
+                icon="pi pi-sliders-h"
+                onClick={(event) => {
+                  analytics.track('view_query_settings')
+                  overlayPanel.current?.toggle(event)
+                }}
+              />
+              <Button
+                id="global-query-refresh-button"
+                className={styles.button}
+                icon="pi pi-refresh"
+                onClick={() => {
+                  if (setGlobalQueryRefreshes) {
+                    analytics.track('refresh_queries')
+                    setGlobalQueryRefreshes(globalQueryRefreshes + 1)
+                  }
+                }}
+              />
+            </>
+          )
         )}
         {showEditButton ? (
           <Button
