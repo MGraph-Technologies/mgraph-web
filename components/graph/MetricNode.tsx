@@ -88,24 +88,26 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   useEffect(() => {
     const thisNode = graph.nodes.find((node) => node.id === data.id)
     if (!reactFlowViewport || !reactFlowRenderer || !thisNode) return
-    const xLower = -reactFlowViewport.x / reactFlowViewport.zoom
-    const xUpper =
-      xLower + reactFlowRenderer.clientWidth / reactFlowViewport.zoom
-    const yLower = -reactFlowViewport.y / reactFlowViewport.zoom
-    const yUpper =
-      yLower + reactFlowRenderer.clientHeight / reactFlowViewport.zoom
+    const scale = 1 / reactFlowViewport.zoom
+    const clientWidthScaled = reactFlowRenderer.clientWidth * scale
+    const clientHeightScaled = reactFlowRenderer.clientHeight * scale
+    const rendererXLower = -reactFlowViewport.x * scale
+    const rendererXUpper = rendererXLower + clientWidthScaled
+    const rendererYLower = -reactFlowViewport.y * scale
+    const rendererYUpper = rendererYLower + clientHeightScaled
     const nodeXLower = xPos
     const nodeXUpper = xPos + thisNode.width!
     const nodeYLower = yPos
     const nodeYUpper = yPos + thisNode.height!
+    const xBuffer = userOnMobile ? 0 : clientWidthScaled / 2
+    const yBuffer = userOnMobile ? 0 : clientHeightScaled / 2
+    const minZoom = userOnMobile ? 0.2 : 0.1
     setRenderChart(
-      !userOnMobile ||
-        (userOnMobile &&
-          reactFlowViewport.zoom > 0.2 &&
-          nodeXLower < xUpper &&
-          nodeXUpper > xLower &&
-          nodeYLower < yUpper &&
-          nodeYUpper > yLower)
+      nodeXLower < rendererXUpper + xBuffer &&
+        nodeXUpper > rendererXLower - xBuffer &&
+        nodeYLower < rendererYUpper + yBuffer &&
+        nodeYUpper > rendererYLower - yBuffer &&
+        reactFlowViewport.zoom > minZoom
     )
   }, [
     graph,
