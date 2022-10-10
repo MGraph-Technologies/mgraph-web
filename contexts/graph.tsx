@@ -51,9 +51,13 @@ type GraphContextType = {
   reactFlowInstance: any
   setReactFlowInstance: Dispatch<SetStateAction<any>> | undefined
   reactFlowRenderer: Element | undefined
-  setReactFlowRenderer: Dispatch<SetStateAction<Element | undefined>> | undefined
+  setReactFlowRenderer:
+    | Dispatch<SetStateAction<Element | undefined>>
+    | undefined
   reactFlowViewport: Viewport | undefined
-  setReactFlowViewport: Dispatch<SetStateAction<Viewport | undefined>> | undefined
+  setReactFlowViewport:
+    | Dispatch<SetStateAction<Viewport | undefined>>
+    | undefined
   undo: (() => void) | undefined
   redo: (() => void) | undefined
   canUndo: boolean
@@ -434,7 +438,13 @@ export function GraphProvider({ children }: GraphProps) {
       },
     }
     return newNode
-  }, [nodeTypeIds, reactFlowInstance, reactFlowRenderer, organizationId, setNodeDataToChange])
+  }, [
+    nodeTypeIds,
+    reactFlowInstance,
+    reactFlowRenderer,
+    organizationId,
+    setNodeDataToChange,
+  ])
 
   const formFunctionNode = useCallback(
     (

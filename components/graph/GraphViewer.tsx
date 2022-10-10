@@ -80,9 +80,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   const reactFlowInstance = useReactFlow()
   useEffect(() => {
     setReactFlowInstance!(reactFlowInstance)
-    setReactFlowRenderer!(
-      document.querySelector('.react-flow__renderer')!
-    )
+    setReactFlowRenderer!(document.querySelector('.react-flow__renderer')!)
   }, [reactFlowInstance, setReactFlowInstance, setReactFlowRenderer])
   useEffect(() => {
     reactFlowInstance.fitView()

@@ -32,7 +32,10 @@ type LineChartProps = {
   queryResult: QueryResult
   renderChart?: boolean
 }
-const LineChart: FunctionComponent<LineChartProps> = ({ queryResult, renderChart = true }) => {
+const LineChart: FunctionComponent<LineChartProps> = ({
+  queryResult,
+  renderChart = true,
+}) => {
   const { userOnMobile } = useAuth()
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 

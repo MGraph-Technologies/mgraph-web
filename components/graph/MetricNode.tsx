@@ -34,11 +34,16 @@ export type MetricNodeProperties = {
 }
 type MetricNodeProps = {
   data: MetricNodeProperties
-  selected: boolean,
-  xPos: number,
-  yPos: number,
+  selected: boolean
+  xPos: number
+  yPos: number
 }
-const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected, xPos, yPos }) => {
+const MetricNode: FunctionComponent<MetricNodeProps> = ({
+  data,
+  selected,
+  xPos,
+  yPos,
+}) => {
   const { organizationName } = router.query
   const { userOnMobile } = useAuth()
   const { editingEnabled } = useEditability()
@@ -83,31 +88,33 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected, xPos, 
   useEffect(() => {
     const thisNode = graph.nodes.find((node) => node.id === data.id)
     if (!reactFlowViewport || !reactFlowRenderer || !thisNode) return
-    const xLower = - reactFlowViewport.x / reactFlowViewport.zoom
-    const xUpper = xLower + reactFlowRenderer.clientWidth / reactFlowViewport.zoom
-    const yLower = - reactFlowViewport.y / reactFlowViewport.zoom
-    const yUpper = yLower + reactFlowRenderer.clientHeight / reactFlowViewport.zoom
+    const xLower = -reactFlowViewport.x / reactFlowViewport.zoom
+    const xUpper =
+      xLower + reactFlowRenderer.clientWidth / reactFlowViewport.zoom
+    const yLower = -reactFlowViewport.y / reactFlowViewport.zoom
+    const yUpper =
+      yLower + reactFlowRenderer.clientHeight / reactFlowViewport.zoom
     const nodeXLower = xPos
     const nodeXUpper = xPos + thisNode.width!
     const nodeYLower = yPos
     const nodeYUpper = yPos + thisNode.height!
     setRenderChart(
-      (
-        (
-          userOnMobile
-          && reactFlowViewport.zoom > 0.2
-        )
-        || (
-          !userOnMobile
-          && reactFlowViewport.zoom > 0.1
-        )
-      )
-      && nodeXLower < xUpper 
-      && nodeXUpper > xLower 
-      && nodeYLower < yUpper 
-      && nodeYUpper > yLower
+      ((userOnMobile && reactFlowViewport.zoom > 0.2) ||
+        (!userOnMobile && reactFlowViewport.zoom > 0.1)) &&
+        nodeXLower < xUpper &&
+        nodeXUpper > xLower &&
+        nodeYLower < yUpper &&
+        nodeYUpper > yLower
     )
-  }, [graph, data.id, reactFlowViewport, reactFlowRenderer, xPos, yPos, userOnMobile])
+  }, [
+    graph,
+    data.id,
+    reactFlowViewport,
+    reactFlowRenderer,
+    xPos,
+    yPos,
+    userOnMobile,
+  ])
 
   return (
     <div
