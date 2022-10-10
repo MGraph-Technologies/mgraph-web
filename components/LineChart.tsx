@@ -16,6 +16,7 @@ import { Line } from 'react-chartjs-2'
 
 import { QueryResult } from './QueryRunner'
 import styles from '../styles/LineChart.module.css'
+import { useAuth } from '../contexts/auth'
 
 ChartJS.register(
   Legend,
@@ -32,6 +33,7 @@ type LineChartProps = {
   renderChart?: boolean
 }
 const LineChart: FunctionComponent<LineChartProps> = ({ queryResult, renderChart = true }) => {
+  const { userOnMobile } = useAuth()
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
   const checkColumnsStructure = (columns: any) => {
@@ -209,7 +211,11 @@ const LineChart: FunctionComponent<LineChartProps> = ({ queryResult, renderChart
     case 'processing':
       return (
         <div className={styles.progress_spinner_container}>
-          <ProgressSpinner style={centerStyle} strokeWidth="4" />
+          {userOnMobile ? (
+            <>Loading...</>
+          ) : (
+            <ProgressSpinner style={centerStyle} strokeWidth="4" />
+          )}
         </div>
       )
     case 'expired':
