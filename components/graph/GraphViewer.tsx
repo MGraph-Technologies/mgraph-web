@@ -34,6 +34,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     initialGraph,
     graph,
     setReactFlowInstance,
+    reactFlowRenderer,
     setReactFlowRenderer,
     setReactFlowViewport,
     undo,
@@ -203,6 +204,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
             y: viewport.y,
             zoom: viewport.zoom,
             event_type: event?.type,
+            width: reactFlowRenderer?.clientWidth,
+            height: reactFlowRenderer?.clientHeight,
           })
         }
       },
