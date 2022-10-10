@@ -29,8 +29,9 @@ ChartJS.register(
 
 type LineChartProps = {
   queryResult: QueryResult
+  renderChart?: boolean
 }
-const LineChart: FunctionComponent<LineChartProps> = ({ queryResult }) => {
+const LineChart: FunctionComponent<LineChartProps> = ({ queryResult, renderChart = true }) => {
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
   const checkColumnsStructure = (columns: any) => {
@@ -173,32 +174,34 @@ const LineChart: FunctionComponent<LineChartProps> = ({ queryResult }) => {
                   <h1>{numberToOverlayString}</h1>
                 </div>
               ) : null}
-              <Line
-                data={{
-                  datasets: datasets,
-                }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: {
-                    x: {
-                      type: 'time',
+              {renderChart ? (
+                <Line
+                  data={{
+                    datasets: datasets,
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                      x: {
+                        type: 'time',
+                      },
                     },
-                  },
-                  plugins: {
-                    subtitle: {
-                      display: true,
-                      text: 'Last updated: ' + queryResult.data.executedAt,
-                      position: 'bottom',
-                      align: 'end',
+                    plugins: {
+                      subtitle: {
+                        display: true,
+                        text: 'Last updated: ' + queryResult.data.executedAt,
+                        position: 'bottom',
+                        align: 'end',
+                      },
+                      legend:
+                        datasets.length > 1
+                          ? { position: 'bottom' }
+                          : { display: false },
                     },
-                    legend:
-                      datasets.length > 1
-                        ? { position: 'bottom' }
-                        : { display: false },
-                  },
-                }}
-              />
+                  }}
+                />
+              ) : null}
             </div>
           </>
         )

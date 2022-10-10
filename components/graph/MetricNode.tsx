@@ -9,8 +9,10 @@ import { ColorResult } from 'react-color'
 import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
+import { useAuth } from '../../contexts/auth'
 
 import { useEditability } from '../../contexts/editability'
+import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
 import LineChart from '../LineChart'
 import QueryRunner, { QueryResult } from '../QueryRunner'
@@ -32,11 +34,15 @@ export type MetricNodeProperties = {
 }
 type MetricNodeProps = {
   data: MetricNodeProperties
-  selected: boolean
+  selected: boolean,
+  xPos: number,
+  yPos: number,
 }
-const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
+const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected, xPos, yPos }) => {
   const { organizationName } = router.query
+  const { userOnMobile } = useAuth()
   const { editingEnabled } = useEditability()
+  const { graph, reactFlowRenderer, reactFlowViewport } = useGraph()
   const nodeHandleSize = '0px'
 
   const [name, setName] = useState('')
@@ -72,6 +78,33 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
         : 'processing',
     data: null,
   })
+
+  const [renderChart, setRenderChart] = useState(false)
+  useEffect(() => {
+    const thisNode = graph.nodes.find((node) => node.id === data.id)
+    if (!reactFlowViewport || !reactFlowRenderer || !thisNode) return
+    const xLower = - reactFlowViewport.x / reactFlowViewport.zoom
+    const xUpper = xLower + reactFlowRenderer.clientWidth / reactFlowViewport.zoom
+    const yLower = - reactFlowViewport.y / reactFlowViewport.zoom
+    const yUpper = yLower + reactFlowRenderer.clientHeight / reactFlowViewport.zoom
+    const nodeXLower = xPos
+    const nodeXUpper = xPos + thisNode.width!
+    const nodeYLower = yPos
+    const nodeYUpper = yPos + thisNode.height!
+    setRenderChart(
+      (
+        userOnMobile
+        && reactFlowViewport.zoom > 0.2
+        && nodeXLower < xUpper 
+        && nodeXUpper > xLower 
+        && nodeYLower < yUpper 
+        && nodeYUpper > yLower
+       )
+       || (
+        !userOnMobile
+       )
+    )
+  }, [graph, data.id, reactFlowViewport, reactFlowRenderer, xPos, yPos, userOnMobile])
 
   return (
     <div
@@ -113,7 +146,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected }) => {
           queryResult={queryResult}
           setQueryResult={setQueryResult}
         />
-        <LineChart queryResult={queryResult} />
+        <LineChart queryResult={queryResult} renderChart={renderChart} />
       </div>
       <Handle
         type="source"
