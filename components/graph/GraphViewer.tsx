@@ -34,6 +34,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     initialGraph,
     graph,
     setReactFlowInstance,
+    setReactFlowRenderer,
+    setReactFlowViewport,
     undo,
     redo,
     updateGraph,
@@ -77,7 +79,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   const reactFlowInstance = useReactFlow()
   useEffect(() => {
     setReactFlowInstance!(reactFlowInstance)
-  }, [reactFlowInstance, setReactFlowInstance])
+    setReactFlowRenderer!(
+      document.querySelector('.react-flow__renderer')!
+    )
+  }, [reactFlowInstance, setReactFlowInstance, setReactFlowRenderer])
   useEffect(() => {
     reactFlowInstance.fitView()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -192,6 +197,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     setTimeout(
       (onMoveEndAt) => {
         if (onMoveEndAt === lastMoveEndAt) {
+          setReactFlowViewport!(viewport)
           analytics.track('change_graph_viewport', {
             x: viewport.x,
             y: viewport.y,

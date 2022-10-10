@@ -8,7 +8,7 @@ import {
   useEffect,
   useState,
 } from 'react'
-import { Edge, Node, XYPosition } from 'react-flow-renderer'
+import { Edge, Node, Viewport, XYPosition } from 'react-flow-renderer'
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -48,7 +48,12 @@ type GraphContextType = {
   /* reactFlowInstance is produced by useReactFlow(), which must be called
     in a component that is wrapped in a ReactFlowProvider. Thus, we can't
     instantiate it directly here but instead pass it back from GraphViewer. */
+  reactFlowInstance: any
   setReactFlowInstance: Dispatch<SetStateAction<any>> | undefined
+  reactFlowRenderer: Element | undefined
+  setReactFlowRenderer: Dispatch<SetStateAction<Element | undefined>> | undefined
+  reactFlowViewport: Viewport | undefined
+  setReactFlowViewport: Dispatch<SetStateAction<Viewport | undefined>> | undefined
   undo: (() => void) | undefined
   redo: (() => void) | undefined
   canUndo: boolean
@@ -117,7 +122,12 @@ const graphContextDefaultValues: GraphContextType = {
     nodes: [],
     edges: [],
   },
+  reactFlowInstance: undefined,
   setReactFlowInstance: undefined,
+  reactFlowRenderer: undefined,
+  setReactFlowRenderer: undefined,
+  reactFlowViewport: undefined,
+  setReactFlowViewport: undefined,
   undo: undefined,
   redo: undefined,
   canUndo: false,
@@ -166,6 +176,8 @@ export function GraphProvider({ children }: GraphProps) {
     })
 
   const [reactFlowInstance, setReactFlowInstance] = useState<any>()
+  const [reactFlowRenderer, setReactFlowRenderer] = useState<Element>()
+  const [reactFlowViewport, setReactFlowViewport] = useState<Viewport>()
 
   const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
     Object.fromEntries(Object.keys(nodeTypes).map((key) => [key, '']))
@@ -391,12 +403,11 @@ export function GraphProvider({ children }: GraphProps) {
       throw new Error(`Could not find node type id for ${newNodeType}`)
     }
 
-    const rfRendererElement = document.querySelector('.react-flow__renderer')!
     const { x, y } =
       reactFlowInstance && reactFlowInstance.project
         ? reactFlowInstance.project({
-            x: rfRendererElement.clientWidth / 2,
-            y: rfRendererElement.clientHeight / 2,
+            x: reactFlowRenderer!.clientWidth / 2,
+            y: reactFlowRenderer!.clientHeight / 2,
           })
         : { x: 0, y: 0 }
     const newNodeId = uuidv4()
@@ -423,7 +434,7 @@ export function GraphProvider({ children }: GraphProps) {
       },
     }
     return newNode
-  }, [nodeTypeIds, reactFlowInstance, organizationId, setNodeDataToChange])
+  }, [nodeTypeIds, reactFlowInstance, reactFlowRenderer, organizationId, setNodeDataToChange])
 
   const formFunctionNode = useCallback(
     (
@@ -888,7 +899,12 @@ export function GraphProvider({ children }: GraphProps) {
   const value = {
     initialGraph: initialGraph,
     graph: graph,
+    reactFlowInstance: reactFlowInstance,
     setReactFlowInstance: setReactFlowInstance,
+    reactFlowRenderer: reactFlowRenderer,
+    setReactFlowRenderer: setReactFlowRenderer,
+    reactFlowViewport: reactFlowViewport,
+    setReactFlowViewport: setReactFlowViewport,
     undo: undo,
     redo: redo,
     canUndo: canUndo,
