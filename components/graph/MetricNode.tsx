@@ -93,16 +93,19 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({ data, selected, xPos, 
     const nodeYUpper = yPos + thisNode.height!
     setRenderChart(
       (
-        userOnMobile
-        && reactFlowViewport.zoom > 0.2
-        && nodeXLower < xUpper 
-        && nodeXUpper > xLower 
-        && nodeYLower < yUpper 
-        && nodeYUpper > yLower
-       )
-       || (
-        !userOnMobile
-       )
+        (
+          userOnMobile
+          && reactFlowViewport.zoom > 0.2
+        )
+        || (
+          !userOnMobile
+          && reactFlowViewport.zoom > 0.1
+        )
+      )
+      && nodeXLower < xUpper 
+      && nodeXUpper > xLower 
+      && nodeYLower < yUpper 
+      && nodeYUpper > yLower
     )
   }, [graph, data.id, reactFlowViewport, reactFlowRenderer, xPos, yPos, userOnMobile])
 
