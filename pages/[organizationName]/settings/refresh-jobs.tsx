@@ -127,6 +127,9 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
               if (error && status !== 406) {
                 throw error
               } else if (data) {
+                analytics.track('delete_refresh_job', {
+                  id: rowData.id,
+                })
                 populateRefreshJobs()
               }
             } catch (error: any) {
@@ -196,12 +199,16 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                               slack_to: newJobSlackTo,
                             },
                           ])
+                          .select()
 
                         if (error && status !== 406) {
                           throw error
                         }
 
                         if (data) {
+                          analytics.track('create_refresh_job', {
+                            id: data[0].id,
+                          })
                           populateRefreshJobs()
                           overlayPanel.current?.hide()
                           clearFields()
