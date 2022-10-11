@@ -42,7 +42,11 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
     setValue,
     tooltip,
   }) => {
-    const id = 'new-job-' + label.toLowerCase().replaceAll(' ', '-')
+    const id = (
+      'new-job-'
+      + label.toLowerCase().replaceAll(' ', '-')
+      + '-field'
+    )
     return (
       <div className={styles.new_refresh_job_field_container}>
         <div>
@@ -236,6 +240,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
             <DataTable
               paginator
               scrollable
+              id="refresh-jobs-table"
               className="p-datatable-refresh_jobs"
               value={refreshJobs}
               loading={refreshJobsTableLoading}
