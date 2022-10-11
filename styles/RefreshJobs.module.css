@@ -26,7 +26,7 @@
   display: flex;
   flex-direction: row;
   justify-content: center;
-  padding-bottom: 1rem; 
+  padding-bottom: 1rem;
 }
 
 .save_cancel_button_container {
@@ -38,7 +38,6 @@
 .save_cancel_button_container .save_cancel_button_spacer {
   width: 0.5rem;
 }
-
 
 .refresh_jobs_container .refresh_jobs_table_container {
   width: 100%;

@@ -2,12 +2,15 @@ import { EditText } from 'react-edit-text'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
-import {
-  DataTable,
-  DataTablePFSEvent,
-} from 'primereact/datatable'
+import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { OverlayPanel } from 'primereact/overlaypanel'
-import React, { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react'
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 
 import Workspace from '../../../components/Workspace'
 import { useAuth } from '../../../contexts/auth'
@@ -31,48 +34,42 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
   }, [])
 
   type NewRefreshJobFieldProps = {
-    label: string,
-    value: string,
-    setValue: (value: string) => void,
-    tooltip?: string,
+    label: string
+    value: string
+    setValue: (value: string) => void
+    tooltip?: string
   }
-  const NewRefreshJobField: FunctionComponent<NewRefreshJobFieldProps> = useCallback(({
-    label,
-    value,
-    setValue,
-    tooltip,
-  }) => {
-    const id = (
-      'new-job-'
-      + label.toLowerCase().replaceAll(' ', '-')
-      + '-field'
-    )
-    return (
-      <div className={styles.new_refresh_job_field_container}>
-        <div>
-          <b><label htmlFor={id}>{label}</label></b>
-          <EditText
-            id={id}
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value)
+  const NewRefreshJobField: FunctionComponent<NewRefreshJobFieldProps> =
+    useCallback(({ label, value, setValue, tooltip }) => {
+      const id =
+        'new-job-' + label.toLowerCase().replaceAll(' ', '-') + '-field'
+      return (
+        <div className={styles.new_refresh_job_field_container}>
+          <div>
+            <b>
+              <label htmlFor={id}>{label}</label>
+            </b>
+            <EditText
+              id={id}
+              value={value}
+              onChange={(e) => {
+                setValue(e.target.value)
+              }}
+              style={{ width: '200px', border: '1px solid #ccc' }}
+            />
+          </div>
+          <Button
+            className="p-button-text p-button-sm"
+            icon="pi pi-info-circle"
+            tooltip={tooltip}
+            tooltipOptions={{
+              position: 'left',
+              style: { width: '500px' },
             }}
-            style={{ width: '200px', border: '1px solid #ccc' }}
           />
         </div>
-        <Button
-          className="p-button-text p-button-sm"
-          icon="pi pi-info-circle"
-          tooltip={tooltip}
-          tooltipOptions={{
-            position: 'left',
-            style: { width: '500px' },
-          }}
-          />
-      </div>
-    )
-  }, [])
-  
+      )
+    }, [])
 
   const [refreshJobsTableLoading, setRefreshJobsTableLoading] = useState(true)
   const [refreshJobs, setRefreshJobs] = useState<any[]>([])
@@ -113,7 +110,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
     })
     setRefreshJobsTableFirst(e.first)
   }
-  
+
   const deleteCellBodyTemplate = useCallback(
     (rowData: any) => {
       return (
@@ -153,39 +150,34 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
       </Head>
       <Workspace>
         <div className={styles.refresh_jobs_container}>
-          <div className={styles.refresh_jobs_title}>
-            Refresh Jobs
-          </div>
+          <div className={styles.refresh_jobs_title}>Refresh Jobs</div>
           <div className={styles.new_refresh_job_container}>
             <Button
-                id="new-refresh-job-button"
-                icon="pi pi-plus"
-                onClick={(event) => {
-                  overlayPanel.current?.toggle(event)
-                }}
-              />
-            <OverlayPanel
-              id="new-refresh-job-overlay"
-              ref={overlayPanel}
-            >
+              id="new-refresh-job-button"
+              icon="pi pi-plus"
+              onClick={(event) => {
+                overlayPanel.current?.toggle(event)
+              }}
+            />
+            <OverlayPanel id="new-refresh-job-overlay" ref={overlayPanel}>
               <NewRefreshJobField
                 label="Schedule"
                 value={newJobSchedule}
                 setValue={setNewJobSchedule}
                 tooltip="A cron expression in UTC time; max hourly frequency"
-                />
+              />
               <NewRefreshJobField
                 label="Email To"
                 value={newJobEmailTo}
                 setValue={setNewJobEmailTo}
                 tooltip="Email addresses to be notified upon refresh job completion, comma separated"
-                />
+              />
               <NewRefreshJobField
                 label="Slack To"
                 value={newJobSlackTo}
                 setValue={setNewJobSlackTo}
                 tooltip="Slack channels to be notified upon refresh job completion, comma separated"
-                />
+              />
               <div className={styles.save_cancel_button_container}>
                 <Button
                   id="save-refresh-job-button"
@@ -253,26 +245,11 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
               filterDisplay="row"
               emptyMessage="No refresh jobs found"
             >
-              <Column
-                field="schedule"
-                header="Schedule"
-              />
-              <Column
-                field="email_to"
-                header="Email To"
-              />
-              <Column
-                field="slack_to"
-                header="Slack To"
-              />
-              <Column
-                field="created_at"
-                header="Created At"
-              />
-              <Column
-                body={deleteCellBodyTemplate}
-                align="center"
-              />
+              <Column field="schedule" header="Schedule" />
+              <Column field="email_to" header="Email To" />
+              <Column field="slack_to" header="Slack To" />
+              <Column field="created_at" header="Created At" />
+              <Column body={deleteCellBodyTemplate} align="center" />
             </DataTable>
           </div>
         </div>

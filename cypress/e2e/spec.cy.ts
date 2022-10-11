@@ -560,16 +560,23 @@ describe('Admin settings', () => {
     cy.get('[id=new-job-email-to-field]').type(newJobEmailTo)
     cy.get('[id=new-job-slack-to-field]').type(newJobSlackTo)
     cy.get('[id=save-refresh-job-button]').click()
-    cy.get('[id=refresh-jobs-table]').contains(newJobEmailTo).parent('tr')
+    cy.get('[id=refresh-jobs-table]')
+      .contains(newJobEmailTo)
+      .parent('tr')
       .within(() => {
         cy.get('td').contains('0 13 * * *').should('exist')
         cy.get('td').contains(newJobSlackTo).should('exist')
       })
 
     // delete job
-    cy.get('[id=refresh-jobs-table]').contains(newJobEmailTo).parent('tr')
-      .find('[id=delete-refresh-job-button]').click()
-    cy.get('[id=refresh-jobs-table]').contains(newJobEmailTo).should('not.exist')
+    cy.get('[id=refresh-jobs-table]')
+      .contains(newJobEmailTo)
+      .parent('tr')
+      .find('[id=delete-refresh-job-button]')
+      .click()
+    cy.get('[id=refresh-jobs-table]')
+      .contains(newJobEmailTo)
+      .should('not.exist')
   })
 })
 
