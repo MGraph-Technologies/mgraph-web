@@ -106,6 +106,13 @@ describe('Graphviewer viewing as admin', () => {
     cy.get('[class=p-menuitem]').contains('Database Connections').click()
     cy.url().should('include', '/database-connections')
   })
+
+  it('Clicks through to refresh jobs page', () => {
+    cy.visit('/mgraph')
+    cy.get('[class*=Header_account_menu_container]').click()
+    cy.get('[class=p-menuitem]').contains('Refresh Jobs').click()
+    cy.url().should('include', '/refresh-jobs')
+  })
 })
 
 describe('Graphviewer viewing as viewer', () => {
@@ -538,6 +545,38 @@ describe('Admin settings', () => {
   it('Visits database connections page and sees expected content', () => {
     cy.visit('/mgraph/settings/database-connections')
     cy.get('body').contains('please contact an MGraph team member')
+  })
+
+  it('Visits refresh jobs page, then adds and deletes a job', () => {
+    // visit page
+    cy.visit('/mgraph/settings/refresh-jobs')
+
+    // add job
+    const randomString = Math.random().toString(36)
+    const newJobEmailTo = randomString + '@mgraph.us'
+    const newJobSlackTo = '#' + randomString
+    cy.get('[id=new-refresh-job-button]').click()
+    cy.get('[id=new-job-schedule-field]').type('0 13 * * *')
+    cy.get('[id=new-job-email-to-field]').type(newJobEmailTo)
+    cy.get('[id=new-job-slack-to-field]').type(newJobSlackTo)
+    cy.get('[id=save-refresh-job-button]').click()
+    cy.get('[id=refresh-jobs-table]')
+      .contains(newJobEmailTo)
+      .parent('tr')
+      .within(() => {
+        cy.get('td').contains('0 13 * * *').should('exist')
+        cy.get('td').contains(newJobSlackTo).should('exist')
+      })
+
+    // delete job
+    cy.get('[id=refresh-jobs-table]')
+      .contains(newJobEmailTo)
+      .parent('tr')
+      .find('[id=delete-refresh-job-button]')
+      .click()
+    cy.get('[id=refresh-jobs-table]')
+      .contains(newJobEmailTo)
+      .should('not.exist')
   })
 })
 
