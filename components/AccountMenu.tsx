@@ -71,6 +71,14 @@ const AccountMenu: FunctionComponent<Props> = () => {
                 '/' + organizationName + '/settings/database-connections'
               ),
           },
+          {
+            label: 'Refresh Jobs',
+            icon: 'pi pi-clock',
+            command: () =>
+              router.push(
+                '/' + organizationName + '/settings/refresh-jobs'
+              ),
+          },
         ],
       },
     ]
