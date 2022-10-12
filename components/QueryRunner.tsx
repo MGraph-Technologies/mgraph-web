@@ -126,7 +126,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
     const accessToken = session?.access_token
     if (accessToken && queryId) {
-      fetch('/api/v1/queries/' + queryId + '/results', {
+      fetch('/api/v1/database-queries/' + queryId + '/results', {
         method: 'GET',
         headers: {
           'supabase-access-token': accessToken,
@@ -191,7 +191,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         parentNodeId: parentNodeId,
         statement: parameterizeStatement(),
       }
-      fetch('/api/v1/queries', {
+      fetch('/api/v1/database-queries', {
         method: 'POST',
         body: JSON.stringify(queryBody),
         headers: {
