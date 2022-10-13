@@ -164,7 +164,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                 label="Schedule"
                 value={newJobSchedule}
                 setValue={setNewJobSchedule}
-                tooltip="A cron expression in UTC time; max hourly frequency"
+                tooltip="A cron expression in UTC time; max every-minute frequency"
               />
               <NewRefreshJobField
                 label="Email To"
