@@ -5,6 +5,7 @@ import { isValidCron } from 'cron-validator'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const REFRESH_JOB_RUN_TIMEOUT_SECONDS = 3600
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('\n\nNew request to /api/v1/refresh-jobs/orchestrations...')
@@ -14,12 +15,45 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       (req.headers['supabase-service-role-key'] as string) || ''
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
     
-    // send pending_notification refresh job runs to finisher
+    // clean up timed out pending_notification refresh job runs
+    const timeoutThreshold = 
+      new Date(Date.now() - REFRESH_JOB_RUN_TIMEOUT_SECONDS * 1000).toUTCString()
+    try {
+      let { data, error, status } = await supabase
+        .from('refresh_job_runs')
+        .update({
+          status: 'notification_timed_out',
+          updated_at: new Date(),
+        })
+        .eq('status', 'pending_notification')
+        .lt('created_at', timeoutThreshold)
+        .select('id')
+
+      if (error && status !== 406 && status !== 404) {
+        throw error
+      }
+
+      if (status === 404) {
+        console.log('No timed out pending_notification refresh job runs found.')
+      }
+
+      if (data) {
+        console.log(`Cleaned up ${data.length} timed out refresh job runs.`)
+      }
+    } catch (error: any) {
+      console.log('\nError: ', error.message)
+      return res.status(500).json({
+        error: error.message,
+      })
+    }
+
+    // send other pending_notification refresh job runs to finisher
     try {
       let { data, error, status } = await supabase
         .from('refresh_job_runs')
         .select(`id, refresh_job_id`)
         .eq('status', 'pending_notification')
+        .gte('created_at', timeoutThreshold)
 
       if (error && status !== 406) {
         throw error
