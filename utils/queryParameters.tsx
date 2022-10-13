@@ -12,24 +12,40 @@ export type QueryParameters = {
   [name: string]: QueryParameterValues
 }
 
-export const initializeQueryParameters = (
-  names: string[],
-  queryParameters: QueryParameters,
+export const getLatestQueryId = async (
+  statement: string,
+  databaseConnectionId: string,
+  parentNodeId: string,
+  supabase: SupabaseClient,
 ) => {
-  let newQueryParameters = { ...queryParameters }
-  names.forEach((name) => {
-    newQueryParameters = {
-      ...newQueryParameters,
-      [name]: {
-        userRecordId: uuidv4(),
-        userValue: '',
-        orgDefaultRecordId: uuidv4(),
-        orgDefaultValue: '',
-      },
+  let queryId: string | null = null
+  try {
+    let { data, error, status } = await supabase
+      .from('database_queries')
+      .select('id')
+      .is('deleted_at', null)
+      .match({
+        database_connection_id: databaseConnectionId,
+        parent_node_id: parentNodeId,
+        statement: statement,
+      })
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    if (error && status !== 406) {
+      throw error
     }
-  })
-  return newQueryParameters
+
+    if (data && data.length > 0) {
+      queryId = data[0].id
+    }
+  } catch (error: any) {
+    console.error(error.message)
+  }
+  
+  return queryId
 }
+
 
 export const getQueryParameters = async (
   organizationId: string,
@@ -90,6 +106,25 @@ export const getQueryParameters = async (
     console.error(error.message)
   }
   return queryParameters
+}
+
+export const initializeQueryParameters = (
+  names: string[],
+  queryParameters: QueryParameters,
+) => {
+  let newQueryParameters = { ...queryParameters }
+  names.forEach((name) => {
+    newQueryParameters = {
+      ...newQueryParameters,
+      [name]: {
+        userRecordId: uuidv4(),
+        userValue: '',
+        orgDefaultRecordId: uuidv4(),
+        orgDefaultValue: '',
+      },
+    }
+  })
+  return newQueryParameters
 }
 
 export const parameterizeStatement = (

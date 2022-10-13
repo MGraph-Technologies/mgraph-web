@@ -27,7 +27,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (data) {
         data.forEach(async (run) => {
-          console.log(`\nRefresh job run ${run.id} is still running. Sending to finisher...`)
+          console.log(`\nRefresh job run ${run.id} is pending notification. Sending to finisher...`)
           fetch(process.env.API_BASE_URL + `/api/v1/refresh-jobs/${run.refresh_job_id}/runs/${run.id}`, {
             method: 'PATCH',
             headers: {
