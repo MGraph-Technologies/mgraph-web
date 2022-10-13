@@ -3,6 +3,7 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../contexts/auth'
 import { useGraph } from '../contexts/graph'
 import { supabase } from '../utils/supabaseClient'
+import { parameterizeStatement } from '../utils/queryParameters'
 
 export type QueryResult = {
   status:
@@ -58,17 +59,6 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
   }, [setQueriesLoading, queryResult, parentNodeId])
 
-  const parameterizeStatement = useCallback(() => {
-    return statement.replace(/{{(.*?)}}/g, (_match, p1) => {
-      const snakeCaseName = p1.toLowerCase().replace(/ /g, '_')
-      if (queryParameters[snakeCaseName]) {
-        return queryParameters[snakeCaseName].userValue
-      } else {
-        return '{{' + p1 + '}}'
-      }
-    })
-  }, [statement, queryParameters])
-
   const getQueryId = useCallback(async () => {
     if (getQueryIdComplete) {
       return
@@ -83,7 +73,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           .match({
             database_connection_id: databaseConnectionId,
             parent_node_id: parentNodeId,
-            statement: parameterizeStatement(),
+            statement: parameterizeStatement(statement, queryParameters),
           })
           .order('created_at', { ascending: false })
           .limit(1)
@@ -113,7 +103,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     parentNodeId,
     databaseConnectionId,
     statement,
-    parameterizeStatement,
+    queryParameters,
     setQueryResult,
   ])
   useEffect(() => {
@@ -189,7 +179,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       const queryBody = {
         databaseConnectionId: databaseConnectionId,
         parentNodeId: parentNodeId,
-        statement: parameterizeStatement(),
+        statement: parameterizeStatement(statement, queryParameters),
       }
       fetch('/api/v1/database-queries', {
         method: 'POST',
@@ -222,7 +212,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     session,
     databaseConnectionId,
     parentNodeId,
-    parameterizeStatement,
+    statement,
+    queryParameters,
     setQueryResult,
   ])
 
