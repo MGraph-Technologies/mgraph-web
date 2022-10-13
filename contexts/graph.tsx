@@ -247,87 +247,41 @@ export function GraphProvider({ children }: GraphProps) {
   }, [])
 
   const loadGraph = useCallback(async () => {
-    if (organizationId) {
-      try {
-        let { data: nodesData, error: nodesError } = await supabase
-          .from('nodes')
-          .select('properties, react_flow_meta')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null)
-
-        if (nodesError) {
-          throw nodesError
-        }
-
-        let { data: edgesData, error: edgesError } = await supabase
-          .from('edges')
-          .select('properties, react_flow_meta')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null)
-
-        if (edgesError) {
-          throw edgesError
-        }
-
-        if (nodesData && edgesData) {
-          const parsedNodes = nodesData.map((n) => {
-            let parsedNode = n.react_flow_meta
-            const parsedProperties = n.properties
-            if (parsedNode.type === 'metric') {
-              parsedNode.data = {
-                // explicit construction so properties added outside of react flow don't break it
-                id: parsedProperties.id,
-                organizationId: parsedProperties.organizationId,
-                typeId: parsedProperties.typeId,
-                name: parsedProperties.name,
-                description: parsedProperties.description,
-                owner: parsedProperties.owner,
-                sourceCode: parsedProperties.sourceCode,
-                sourceDatabaseConnectionId:
-                  parsedProperties.sourceDatabaseConnectionId,
-                color: parsedProperties.color,
-                initialProperties: parsedProperties,
-                setNodeDataToChange: setNodeDataToChange,
-              } as MetricNodeProperties
-            }
-            if (parsedNode.type === 'function') {
-              parsedNode.data = {
-                id: parsedProperties.id,
-                organizationId: parsedProperties.organizationId,
-                typeId: parsedProperties.typeId,
-                functionTypeId: parsedProperties.functionTypeId,
-                color: parsedProperties.color,
-                initialProperties: parsedProperties,
-                setNodeDataToChange: setNodeDataToChange,
-              } as FunctionNodeProperties
-            }
-            return parsedNode
-          })
-          const parsedEdges = edgesData.map((e) => {
-            let parsedEdge = e.react_flow_meta
-            const parsedProperties = e.properties
-            parsedEdge.data = {
-              id: parsedProperties.id,
-              organizationId: parsedProperties.organizationId,
-              typeId: parsedProperties.typeId,
-              sourceId: parsedProperties.sourceId,
-              targetId: parsedProperties.targetId,
-              initialProperties: parsedProperties,
-            } as InputEdgeProperties
-            return parsedEdge
-          })
-          const parsedGraph = {
-            nodes: parsedNodes,
-            edges: parsedEdges,
-          }
-          setInitialGraph(parsedGraph)
-          reset(parsedGraph)
-        }
-      } catch (error: any) {
-        console.error(error.message)
-      }
+    const accessToken = session?.access_token
+    if (!accessToken || !organizationId) {
+      return
     }
-  }, [organizationId, reset])
+    try {
+      fetch(`/api/v1/graphs/${organizationId}`, {
+        method: 'GET',
+        headers: {
+          'supabase-access-token': accessToken,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          let _graph = data.graph as Graph
+          if (_graph) {
+            _graph = {
+              edges: _graph.edges,
+              nodes: _graph.nodes.map((node) => {
+                return {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    setNodeDataToChange: setNodeDataToChange,
+                  },
+                }
+              })
+            }
+            setInitialGraph(_graph)
+            reset(_graph)
+          }
+        })
+    } catch (error: any) {
+      console.error(error.message)
+    }
+  }, [session, organizationId, reset])
   useEffect(() => {
     if (loadGraph) {
       loadGraph()
@@ -336,14 +290,14 @@ export function GraphProvider({ children }: GraphProps) {
 
   const saveGraph = useCallback(async () => {
     const accessToken = session?.access_token
-    if (!accessToken) {
+    if (!accessToken || !organizationId) {
       return
     }
     // remove selections
     graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
     graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
 
-    return fetch('/api/v1/graphs', {
+    return fetch(`/api/v1/graphs/${organizationId}`, {
       method: 'PUT',
       body: JSON.stringify({
         initialGraph: initialGraph,
@@ -353,7 +307,7 @@ export function GraphProvider({ children }: GraphProps) {
         'supabase-access-token': accessToken,
       },
     })
-  }, [session, graph, initialGraph])
+  }, [session, organizationId, graph, initialGraph])
 
   const updateGraph = useCallback(
     (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
