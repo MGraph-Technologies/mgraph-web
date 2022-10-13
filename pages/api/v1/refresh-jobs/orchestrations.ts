@@ -14,12 +14,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       (req.headers['supabase-service-role-key'] as string) || ''
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
     
-    // send still-running refresh job runs to finisher
+    // send pending_notification refresh job runs to finisher
     try {
       let { data, error, status } = await supabase
         .from('refresh_job_runs')
         .select(`id, refresh_job_id`)
-        .eq('status', 'running')
+        .eq('status', 'pending_notification')
 
       if (error && status !== 406) {
         throw error
