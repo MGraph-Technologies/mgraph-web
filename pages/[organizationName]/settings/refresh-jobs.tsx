@@ -24,12 +24,10 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
 
   const overlayPanel = useRef<OverlayPanel>(null)
   const [newJobSchedule, setNewJobSchedule] = useState<string>('')
-  const [newJobEmailTo, setNewJobEmailTo] = useState<string>('')
   const [newJobSlackTo, setNewJobSlackTo] = useState<string>('')
 
   const clearFields = useCallback(() => {
     setNewJobSchedule('')
-    setNewJobEmailTo('')
     setNewJobSlackTo('')
   }, [])
 
@@ -79,7 +77,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
       try {
         let { data, error, status } = await supabase
           .from('refresh_jobs')
-          .select('id, schedule, email_to, slack_to, created_at')
+          .select('id, schedule, slack_to, created_at')
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true })
@@ -167,12 +165,6 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                 tooltip="A cron expression in UTC time; max every-minute frequency"
               />
               <NewRefreshJobField
-                label="Email To"
-                value={newJobEmailTo}
-                setValue={setNewJobEmailTo}
-                tooltip="Email addresses to be notified upon refresh job completion, comma separated"
-              />
-              <NewRefreshJobField
                 label="Slack To"
                 value={newJobSlackTo}
                 setValue={setNewJobSlackTo}
@@ -191,7 +183,6 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                             {
                               organization_id: organizationId,
                               schedule: newJobSchedule,
-                              email_to: newJobEmailTo,
                               slack_to: newJobSlackTo,
                             },
                           ])
@@ -246,7 +237,6 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
               emptyMessage="No refresh jobs found"
             >
               <Column field="schedule" header="Schedule" />
-              <Column field="email_to" header="Email To" />
               <Column field="slack_to" header="Slack To" />
               <Column field="created_at" header="Created At" />
               <Column body={deleteCellBodyTemplate} align="center" />
