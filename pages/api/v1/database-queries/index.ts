@@ -3,13 +3,16 @@ import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { v4 as uuidv4 } from 'uuid'
 
-import { decryptCredentials, makeToken } from '../../../utils/snowflakeCrypto'
+import {
+  decryptCredentials,
+  makeToken,
+} from '../../../../utils/snowflakeCrypto'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log('\n\nNew request to /api/v1/queries...')
+  console.log('\n\nNew request to /api/v1/database-queries...')
   const method = req.method
   if (method === 'POST') {
     const body = JSON.parse(req.body)

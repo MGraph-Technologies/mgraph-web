@@ -2,6 +2,10 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../contexts/auth'
 import { useGraph } from '../contexts/graph'
+import {
+  getLatestQueryId,
+  parameterizeStatement,
+} from '../utils/queryParameters'
 import { supabase } from '../utils/supabaseClient'
 
 export type QueryResult = {
@@ -58,17 +62,6 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
   }, [setQueriesLoading, queryResult, parentNodeId])
 
-  const parameterizeStatement = useCallback(() => {
-    return statement.replace(/{{(.*?)}}/g, (_match, p1) => {
-      const snakeCaseName = p1.toLowerCase().replace(/ /g, '_')
-      if (queryParameters[snakeCaseName]) {
-        return queryParameters[snakeCaseName].userValue
-      } else {
-        return '{{' + p1 + '}}'
-      }
-    })
-  }, [statement, queryParameters])
-
   const getQueryId = useCallback(async () => {
     if (getQueryIdComplete) {
       return
@@ -76,24 +69,14 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     const accessToken = session?.access_token
     if (accessToken && databaseConnectionId && parentNodeId && statement) {
       try {
-        let { data, error, status } = await supabase
-          .from('database_queries')
-          .select('id')
-          .is('deleted_at', null)
-          .match({
-            database_connection_id: databaseConnectionId,
-            parent_node_id: parentNodeId,
-            statement: parameterizeStatement(),
-          })
-          .order('created_at', { ascending: false })
-          .limit(1)
-
-        if (error && status !== 406) {
-          throw error
-        }
-
-        if (data && data.length > 0) {
-          setQueryId(data[0].id)
+        let queryId = await getLatestQueryId(
+          parameterizeStatement(statement, queryParameters),
+          databaseConnectionId,
+          parentNodeId,
+          supabase
+        )
+        if (queryId) {
+          setQueryId(queryId)
           setGetQueryIdComplete(true)
         } else {
           setQueryResult({
@@ -113,7 +96,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     parentNodeId,
     databaseConnectionId,
     statement,
-    parameterizeStatement,
+    queryParameters,
     setQueryResult,
   ])
   useEffect(() => {
@@ -126,7 +109,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
     const accessToken = session?.access_token
     if (accessToken && queryId) {
-      fetch('/api/v1/queries/' + queryId + '/results', {
+      fetch('/api/v1/database-queries/' + queryId + '/results', {
         method: 'GET',
         headers: {
           'supabase-access-token': accessToken,
@@ -189,9 +172,9 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       const queryBody = {
         databaseConnectionId: databaseConnectionId,
         parentNodeId: parentNodeId,
-        statement: parameterizeStatement(),
+        statement: parameterizeStatement(statement, queryParameters),
       }
-      fetch('/api/v1/queries', {
+      fetch('/api/v1/database-queries', {
         method: 'POST',
         body: JSON.stringify(queryBody),
         headers: {
@@ -222,7 +205,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     session,
     databaseConnectionId,
     parentNodeId,
-    parameterizeStatement,
+    statement,
+    queryParameters,
     setQueryResult,
   ])
 

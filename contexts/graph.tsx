@@ -20,6 +20,11 @@ import MetricNode, {
   MetricNodeProperties,
 } from '../components/graph/MetricNode'
 import { supabase } from '../utils/supabaseClient'
+import {
+  QueryParameters,
+  getQueryParameters,
+  initializeQueryParameters,
+} from '../utils/queryParameters'
 import { useAuth } from './auth'
 
 export const nodeTypes = {
@@ -35,12 +40,6 @@ export type Graph = {
   edges: Edge[]
 }
 type TypeIdMap = { [key: string]: string }
-type QueryParameterValues = {
-  userRecordId: string
-  userValue: string // what is in effect for the user and injected into queries
-  orgDefaultRecordId: string
-  orgDefaultValue: string // used if no overriding user-specific record
-}
 
 type GraphContextType = {
   initialGraph: Graph
@@ -104,9 +103,7 @@ type GraphContextType = {
   /* ^would prefer to use a Set here, but that doesn't work with useState
     https://stackoverflow.com/questions/58806883/how-to-use-set-with-reacts-usestate */
   setQueriesLoading: Dispatch<SetStateAction<Array<string>>> | undefined
-  queryParameters: {
-    [name: string]: QueryParameterValues
-  }
+  queryParameters: QueryParameters
   initializeQueryParameter: ((name: string) => void) | undefined
   resetQueryParameterUserValue: ((name: string) => Promise<void>) | undefined
   setQueryParameterUserValue:
@@ -254,87 +251,41 @@ export function GraphProvider({ children }: GraphProps) {
   }, [])
 
   const loadGraph = useCallback(async () => {
-    if (organizationId) {
-      try {
-        let { data: nodesData, error: nodesError } = await supabase
-          .from('nodes')
-          .select('properties, react_flow_meta')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null)
-
-        if (nodesError) {
-          throw nodesError
-        }
-
-        let { data: edgesData, error: edgesError } = await supabase
-          .from('edges')
-          .select('properties, react_flow_meta')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null)
-
-        if (edgesError) {
-          throw edgesError
-        }
-
-        if (nodesData && edgesData) {
-          const parsedNodes = nodesData.map((n) => {
-            let parsedNode = n.react_flow_meta
-            const parsedProperties = n.properties
-            if (parsedNode.type === 'metric') {
-              parsedNode.data = {
-                // explicit construction so properties added outside of react flow don't break it
-                id: parsedProperties.id,
-                organizationId: parsedProperties.organizationId,
-                typeId: parsedProperties.typeId,
-                name: parsedProperties.name,
-                description: parsedProperties.description,
-                owner: parsedProperties.owner,
-                sourceCode: parsedProperties.sourceCode,
-                sourceDatabaseConnectionId:
-                  parsedProperties.sourceDatabaseConnectionId,
-                color: parsedProperties.color,
-                initialProperties: parsedProperties,
-                setNodeDataToChange: setNodeDataToChange,
-              } as MetricNodeProperties
-            }
-            if (parsedNode.type === 'function') {
-              parsedNode.data = {
-                id: parsedProperties.id,
-                organizationId: parsedProperties.organizationId,
-                typeId: parsedProperties.typeId,
-                functionTypeId: parsedProperties.functionTypeId,
-                color: parsedProperties.color,
-                initialProperties: parsedProperties,
-                setNodeDataToChange: setNodeDataToChange,
-              } as FunctionNodeProperties
-            }
-            return parsedNode
-          })
-          const parsedEdges = edgesData.map((e) => {
-            let parsedEdge = e.react_flow_meta
-            const parsedProperties = e.properties
-            parsedEdge.data = {
-              id: parsedProperties.id,
-              organizationId: parsedProperties.organizationId,
-              typeId: parsedProperties.typeId,
-              sourceId: parsedProperties.sourceId,
-              targetId: parsedProperties.targetId,
-              initialProperties: parsedProperties,
-            } as InputEdgeProperties
-            return parsedEdge
-          })
-          const parsedGraph = {
-            nodes: parsedNodes,
-            edges: parsedEdges,
-          }
-          setInitialGraph(parsedGraph)
-          reset(parsedGraph)
-        }
-      } catch (error: any) {
-        console.error(error.message)
-      }
+    const accessToken = session?.access_token
+    if (!accessToken || !organizationId) {
+      return
     }
-  }, [organizationId, reset])
+    try {
+      fetch(`/api/v1/graphs/${organizationId}`, {
+        method: 'GET',
+        headers: {
+          'supabase-access-token': accessToken,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          let _graph = data.graph as Graph
+          if (_graph) {
+            _graph = {
+              edges: _graph.edges,
+              nodes: _graph.nodes.map((node) => {
+                return {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    setNodeDataToChange: setNodeDataToChange,
+                  },
+                }
+              }),
+            }
+            setInitialGraph(_graph)
+            reset(_graph)
+          }
+        })
+    } catch (error: any) {
+      console.error(error.message)
+    }
+  }, [session, organizationId, reset])
   useEffect(() => {
     if (loadGraph) {
       loadGraph()
@@ -343,14 +294,14 @@ export function GraphProvider({ children }: GraphProps) {
 
   const saveGraph = useCallback(async () => {
     const accessToken = session?.access_token
-    if (!accessToken) {
+    if (!accessToken || !organizationId) {
       return
     }
     // remove selections
     graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
     graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
 
-    return fetch('/api/v1/graphs', {
+    return fetch(`/api/v1/graphs/${organizationId}`, {
       method: 'PUT',
       body: JSON.stringify({
         initialGraph: initialGraph,
@@ -360,7 +311,7 @@ export function GraphProvider({ children }: GraphProps) {
         'supabase-access-token': accessToken,
       },
     })
-  }, [session, graph, initialGraph])
+  }, [session, organizationId, graph, initialGraph])
 
   const updateGraph = useCallback(
     (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
@@ -715,78 +666,25 @@ export function GraphProvider({ children }: GraphProps) {
   const [globalQueryRefreshes, setGlobalQueryRefreshes] = useState(0)
   const [queriesLoading, setQueriesLoading] = useState([] as string[])
 
-  const [queryParameters, setQueryParameters] = useState<{
-    [name: string]: QueryParameterValues
-  }>({})
-
-  const initializeQueryParameter = (name: string) => {
-    setQueryParameters((prev) => ({
-      ...prev,
-      [name]: {
-        userRecordId: uuidv4(),
-        userValue: '',
-        orgDefaultRecordId: uuidv4(),
-        orgDefaultValue: '',
-      },
-    }))
-  }
+  const [queryParameters, setQueryParameters] = useState<QueryParameters>({})
 
   const populateQueryParameters = useCallback(async () => {
-    if (organizationId) {
-      try {
-        let { data, error, status } = await supabase
-          .from('database_query_parameters')
-          .select('id, user_id, name, value, deleted_at')
-          // rls limits to records from user's org where user_id is user's or null
-          /* output user's records first, so below logic to overwrite deleted user
-            records with org default records will work */
-          .order('user_id', { ascending: true })
-          // in rare case of multiple org defaults, use first one
-          .order('created_at', { ascending: true })
-
-        if (error && status !== 406) {
-          throw error
-        }
-
-        if (data) {
-          // initializing record ids enables upserts to work (idempotently) if there's no existing pg record
-          const names = data.map((row) => row.name)
-          names.forEach(initializeQueryParameter)
-          // populate with real records where available
-          data.forEach((row) => {
-            if (row.user_id) {
-              setQueryParameters((prev) => ({
-                ...prev,
-                [row.name]: {
-                  userRecordId: row.id,
-                  userValue: row.deleted_at === null ? row.value : '',
-                  orgDefaultRecordId: prev[row.name].orgDefaultRecordId,
-                  orgDefaultValue: prev[row.name].orgDefaultValue,
-                },
-              }))
-            } else {
-              setQueryParameters((prev) => ({
-                ...prev,
-                [row.name]: {
-                  userRecordId: prev[row.name].userRecordId,
-                  userValue: prev[row.name].userValue
-                    ? prev[row.name].userValue
-                    : row.value,
-                  orgDefaultRecordId: row.id,
-                  orgDefaultValue: row.value,
-                },
-              }))
-            }
-          })
-        }
-      } catch (error: any) {
-        console.error(error.message)
-      }
+    if (organizationId && session?.user) {
+      const queryParameters = await getQueryParameters(
+        organizationId,
+        supabase,
+        session.user.id
+      )
+      setQueryParameters(queryParameters)
     }
-  }, [organizationId])
+  }, [organizationId, session])
   useEffect(() => {
     populateQueryParameters()
   }, [populateQueryParameters])
+
+  const initializeQueryParameter = (name: string) => {
+    setQueryParameters((prev) => initializeQueryParameters([name], prev))
+  }
 
   const resetQueryParameterUserValue = useCallback(
     async (name: string) => {

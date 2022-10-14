@@ -553,15 +553,13 @@ describe('Admin settings', () => {
 
     // add job
     const randomString = Math.random().toString(36)
-    const newJobEmailTo = randomString + '@mgraph.us'
     const newJobSlackTo = '#' + randomString
     cy.get('[id=new-refresh-job-button]').click()
     cy.get('[id=new-job-schedule-field]').type('0 13 * * *')
-    cy.get('[id=new-job-email-to-field]').type(newJobEmailTo)
     cy.get('[id=new-job-slack-to-field]').type(newJobSlackTo)
     cy.get('[id=save-refresh-job-button]').click()
     cy.get('[id=refresh-jobs-table]')
-      .contains(newJobEmailTo)
+      .contains(newJobSlackTo)
       .parent('tr')
       .within(() => {
         cy.get('td').contains('0 13 * * *').should('exist')
@@ -570,12 +568,12 @@ describe('Admin settings', () => {
 
     // delete job
     cy.get('[id=refresh-jobs-table]')
-      .contains(newJobEmailTo)
+      .contains(newJobSlackTo)
       .parent('tr')
       .find('[id=delete-refresh-job-button]')
       .click()
     cy.get('[id=refresh-jobs-table]')
-      .contains(newJobEmailTo)
+      .contains(newJobSlackTo)
       .should('not.exist')
   })
 })

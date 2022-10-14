@@ -11,11 +11,13 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log('\n\nNew request to /api/v1/queries/[queryId]/results...')
+  console.log(
+    '\n\nNew request to /api/v1/database-queries/[databaseQueryId]/results...'
+  )
   const method = req.method
   if (method === 'GET') {
     console.log('\nQuery: ', req.query)
-    const { queryId } = req.query
+    const { databaseQueryId } = req.query
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
@@ -32,7 +34,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           )
         `
         )
-        .eq('id', queryId)
+        .eq('id', databaseQueryId)
         .is('deleted_at', null)
         .single()
 
