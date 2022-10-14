@@ -11,7 +11,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log('\n\nNew request to /api/v1/database-queries/[databaseQueryId]/results...')
+  console.log(
+    '\n\nNew request to /api/v1/database-queries/[databaseQueryId]/results...'
+  )
   const method = req.method
   if (method === 'GET') {
     console.log('\nQuery: ', req.query)

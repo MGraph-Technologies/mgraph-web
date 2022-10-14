@@ -1,4 +1,4 @@
-import { SupabaseClient } from "@supabase/supabase-js"
+import { SupabaseClient } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
 
 type QueryParameterValues = {
@@ -16,7 +16,7 @@ export const getLatestQueryId = async (
   statement: string,
   databaseConnectionId: string,
   parentNodeId: string,
-  supabase: SupabaseClient,
+  supabase: SupabaseClient
 ) => {
   let queryId: string | null = null
   try {
@@ -42,10 +42,9 @@ export const getLatestQueryId = async (
   } catch (error: any) {
     console.error(error.message)
   }
-  
+
   return queryId
 }
-
 
 export const getQueryParameters = async (
   organizationId: string,
@@ -110,7 +109,7 @@ export const getQueryParameters = async (
 
 export const initializeQueryParameters = (
   names: string[],
-  queryParameters: QueryParameters,
+  queryParameters: QueryParameters
 ) => {
   let newQueryParameters = { ...queryParameters }
   names.forEach((name) => {

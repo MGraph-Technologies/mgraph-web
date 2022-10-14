@@ -62,8 +62,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               description: properties.description,
               owner: properties.owner,
               sourceCode: properties.sourceCode,
-              sourceDatabaseConnectionId:
-                properties.sourceDatabaseConnectionId,
+              sourceDatabaseConnectionId: properties.sourceDatabaseConnectionId,
               color: properties.color,
               initialProperties: properties,
               setNodeDataToChange: () => {},
@@ -100,14 +99,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           edges: edges,
         }
         res.status(200).json({
-          graph: graph
+          graph: graph,
         })
       }
     } catch (error: any) {
       console.log('\nError: ', error.message)
-      res.status(500).json({ 
-        error: error.message
-       })
+      res.status(500).json({
+        error: error.message,
+      })
     }
   } else if (method === 'PUT') {
     const body = JSON.parse(req.body)

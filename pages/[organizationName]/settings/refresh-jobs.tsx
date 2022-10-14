@@ -142,10 +142,10 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
   )
 
   const columnStyle = {
-    'width': '25%',
+    width: '25%',
     'word-wrap': 'break-word',
     'word-break': 'break-all',
-    'white-space': 'normal'
+    'white-space': 'normal',
   }
 
   return (
@@ -243,16 +243,8 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
               filterDisplay="row"
               emptyMessage="No refresh jobs found"
             >
-              <Column
-                field="schedule"
-                header="Schedule"
-                style={columnStyle}
-              />
-              <Column
-                field="slack_to"
-                header="Slack To" 
-                style={columnStyle}
-                />
+              <Column field="schedule" header="Schedule" style={columnStyle} />
+              <Column field="slack_to" header="Slack To" style={columnStyle} />
               <Column
                 field="created_at"
                 header="Created At"

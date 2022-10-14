@@ -2,7 +2,10 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../contexts/auth'
 import { useGraph } from '../contexts/graph'
-import { getLatestQueryId, parameterizeStatement } from '../utils/queryParameters'
+import {
+  getLatestQueryId,
+  parameterizeStatement,
+} from '../utils/queryParameters'
 import { supabase } from '../utils/supabaseClient'
 
 export type QueryResult = {

@@ -20,7 +20,11 @@ import MetricNode, {
   MetricNodeProperties,
 } from '../components/graph/MetricNode'
 import { supabase } from '../utils/supabaseClient'
-import { QueryParameters, getQueryParameters, initializeQueryParameters } from '../utils/queryParameters'
+import {
+  QueryParameters,
+  getQueryParameters,
+  initializeQueryParameters,
+} from '../utils/queryParameters'
 import { useAuth } from './auth'
 
 export const nodeTypes = {
@@ -272,7 +276,7 @@ export function GraphProvider({ children }: GraphProps) {
                     setNodeDataToChange: setNodeDataToChange,
                   },
                 }
-              })
+              }),
             }
             setInitialGraph(_graph)
             reset(_graph)
@@ -663,7 +667,7 @@ export function GraphProvider({ children }: GraphProps) {
   const [queriesLoading, setQueriesLoading] = useState([] as string[])
 
   const [queryParameters, setQueryParameters] = useState<QueryParameters>({})
-  
+
   const populateQueryParameters = useCallback(async () => {
     if (organizationId && session?.user) {
       const queryParameters = await getQueryParameters(
