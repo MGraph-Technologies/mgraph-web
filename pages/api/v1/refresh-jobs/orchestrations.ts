@@ -64,7 +64,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (data) {
         data.forEach(async (run) => {
           console.log(`\nRefresh job run ${run.id} is pending notification. Sending to finisher...`)
-          fetch(process.env.API_BASE_URL + `/api/v1/refresh-jobs/${run.refresh_job_id}/runs/${run.id}`, {
+          fetch(process.env.APP_BASE_URL + `/api/v1/refresh-jobs/${run.refresh_job_id}/runs/${run.id}`, {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             if ((next.getTime() >= minuteStart.getTime() && next.getTime() < minuteEnd.getTime()) || 
                 (prev.getTime() >= minuteStart.getTime() && prev.getTime() < minuteEnd.getTime())) {
               console.log(`\nRefresh job ${refreshJob.id} is scheduled to run this minute. Sending to initiator...`)
-              fetch(process.env.API_BASE_URL + `/api/v1/refresh-jobs/${refreshJob.id}`, {
+              fetch(process.env.APP_BASE_URL + `/api/v1/refresh-jobs/${refreshJob.id}`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

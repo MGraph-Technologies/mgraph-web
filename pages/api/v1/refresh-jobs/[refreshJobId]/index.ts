@@ -32,7 +32,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       // get organization's metric nodes
       const graphResp = await fetch(
-        process.env.API_BASE_URL + `/api/v1/graphs/${refreshJobData.organization_id}`,
+        process.env.APP_BASE_URL + `/api/v1/graphs/${refreshJobData.organization_id}`,
         {
           method: 'GET',
           headers: {
@@ -55,7 +55,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (statement && databaseConnectionId) {
           const parameterizedStatement = parameterizeStatement(statement, queryParameters)
           console.log(`\nExecuting query for node ${node.id}...`)
-          fetch(process.env.API_BASE_URL + '/api/v1/database-queries', {
+          fetch(process.env.APP_BASE_URL + '/api/v1/database-queries', {
             method: 'POST',
             body: JSON.stringify({
               databaseConnectionId: databaseConnectionId,

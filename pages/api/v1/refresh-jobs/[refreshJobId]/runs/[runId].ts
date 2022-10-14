@@ -21,7 +21,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // get refresh job record
       const { data: refreshJobData, error: refreshJobError, status: refreshJobStatus } = await supabase
         .from('refresh_jobs')
-        .select('organization_id, email_to, slack_to')
+        .select('organization_id, email_to, slack_to, organizations ( name )')
         .eq('id', refreshJobId)
         .single()
 
@@ -35,7 +35,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       // get organization's metric nodes
       const graphResp = await fetch(
-        process.env.API_BASE_URL + `/api/v1/graphs/${refreshJobData.organization_id}`,
+        process.env.APP_BASE_URL + `/api/v1/graphs/${refreshJobData.organization_id}`,
         {
           method: 'GET',
           headers: {
@@ -70,7 +70,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           if (latestQueryId) {
             console.log(`\nGetting query status for query id ${latestQueryId}...`)
             const queryResult = await fetch(
-              process.env.API_BASE_URL + `/api/v1/database-queries/${latestQueryId}/results`,
+              process.env.APP_BASE_URL + `/api/v1/database-queries/${latestQueryId}/results`,
               {
                 method: 'GET',
                 headers: {
@@ -92,8 +92,64 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(202).json({})
       }
 
-      // if no queries are still running, update the run record
-      console.log(`\nNo queries are still running. Updating refresh_job_runs record ${runId}...`)
+      // send slack notification, if applicable
+      console.log(`\nNo queries are still running.`)
+      if (refreshJobData.slack_to) {
+        console.log(`\nBeginning slack messaging...`)
+        const slackWebhooks = refreshJobData.slack_to.split(',')
+        const organizationName = refreshJobData.organizations.name
+        const organizationNameEncoded = encodeURIComponent(organizationName)
+        const organizationNameWords = organizationName.split(' ')
+        const organizationNameTitleCased = organizationNameWords.map((word: string) => {
+          return word.charAt(0).toUpperCase() + word.slice(1)
+        }).join(' ')
+        const organizationNameTitleCasedWithApostrophe = 
+          organizationNameTitleCased.charAt(organizationNameTitleCased.length - 1) === 's' ?
+          `${organizationNameTitleCased}'` :
+          `${organizationNameTitleCased}'s`
+        slackWebhooks.forEach(async (slackWebhook: string) => {
+          const body = {
+            text: `${organizationNameTitleCasedWithApostrophe} MGraph has refreshed!`,
+            blocks: [
+              {
+                type: "header",
+                text: {
+                  type: "plain_text",
+                  text: `:chart_with_upwards_trend: :chart_with_upwards_trend: :chart_with_upwards_trend:`,
+                  emoji: true
+                }
+              },
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: `*${organizationNameTitleCasedWithApostrophe} MGraph has refreshed!*`
+                }
+              },
+              {
+                type: "section",
+                fields: [
+                  {
+                    type: "mrkdwn",
+                    text: `See the latest metrics here: ${process.env.APP_BASE_URL}/${organizationNameEncoded}`
+                  }
+                ]
+              },
+            ],
+          }
+          console.log(`\nSending slack message to ${slackWebhook} with body:`, body)
+          const slackResp = await fetch(slackWebhook, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+          })
+          console.log(`\nSlack response: ${slackResp.status}`)
+        })
+      }
+
+      console.log(`\nSuccess. Updating refresh_job_runs record ${runId}...`)
       const { data: refreshJobRunData, error: refreshJobRunError, status: refreshJobRunStatus } = await supabase
         .from('refresh_job_runs')
         .update({ 
@@ -110,8 +166,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!refreshJobRunData) {
         throw new Error('Refresh job run not found.')
       }
-
-      // TODO: send email and/or slack notification
 
       return res.status(200).json({})
     } catch (error: any) {

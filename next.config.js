@@ -3,7 +3,7 @@ const { withSentryConfig } = require('@sentry/nextjs')
 
 const moduleExports = {
   env: {
-    API_BASE_URL: process.env.VERCEL_URL || 'http://localhost:3000',
+    APP_BASE_URL: process.env.VERCEL_URL || 'http://localhost:3000',
   },
   images: {
     domains: [

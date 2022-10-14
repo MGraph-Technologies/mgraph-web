@@ -176,7 +176,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                 label="Slack To"
                 value={newJobSlackTo}
                 setValue={setNewJobSlackTo}
-                tooltip="Slack channels to be notified upon refresh job completion, comma separated"
+                tooltip="Slack webhook urls to be notified upon refresh job completion, comma separated"
               />
               <div className={styles.save_cancel_button_container}>
                 <Button
