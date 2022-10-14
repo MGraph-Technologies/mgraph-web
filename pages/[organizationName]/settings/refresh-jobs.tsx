@@ -141,6 +141,13 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
     [populateRefreshJobs]
   )
 
+  const columnStyle = {
+    'width': '25%',
+    'word-wrap': 'break-word',
+    'word-break': 'break-all',
+    'white-space': 'normal'
+  }
+
   return (
     <>
       <Head>
@@ -236,9 +243,21 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
               filterDisplay="row"
               emptyMessage="No refresh jobs found"
             >
-              <Column field="schedule" header="Schedule" />
-              <Column field="slack_to" header="Slack To" />
-              <Column field="created_at" header="Created At" />
+              <Column
+                field="schedule"
+                header="Schedule"
+                style={columnStyle}
+              />
+              <Column
+                field="slack_to"
+                header="Slack To" 
+                style={columnStyle}
+                />
+              <Column
+                field="created_at"
+                header="Created At"
+                style={columnStyle}
+              />
               <Column body={deleteCellBodyTemplate} align="center" />
             </DataTable>
           </div>
