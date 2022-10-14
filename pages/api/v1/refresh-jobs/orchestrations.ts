@@ -16,6 +16,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
     
     // clean up timed out pending_notification refresh job runs
+    console.log('\nCleaning up timed out pending_notification refresh job runs...')
     const timeoutThreshold = 
       new Date(Date.now() - REFRESH_JOB_RUN_TIMEOUT_SECONDS * 1000).toUTCString()
     try {
@@ -48,6 +49,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     // send other pending_notification refresh job runs to finisher
+    console.log('\nProgressing other pending_notification refresh job runs...')
     try {
       let { data, error, status } = await supabase
         .from('refresh_job_runs')
@@ -78,7 +80,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       })
     }
     
-    // send this-minute refresh job runs to initiator
+    // send this-minuted-scheduled refresh job runs to initiator
+    console.log('\nInitiating this-minute-scheduled refresh job runs...')
     try {
       let { data, error, status } = await supabase
         .from('refresh_jobs')
