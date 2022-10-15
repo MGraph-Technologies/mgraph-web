@@ -128,7 +128,7 @@ const logRefreshJobRun = async (
     ])
     .single()
 
-  if (refreshJobRunError && refreshJobRunStatus !== 406) {
+  if (refreshJobRunError) {
     console.error('\nError: refreshJobRunError')
   }
 

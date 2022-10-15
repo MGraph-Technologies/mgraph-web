@@ -123,7 +123,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                 .update({ deleted_at: new Date() })
                 .eq('id', rowData.id)
 
-              if (error && status !== 406) {
+              if (error) {
                 throw error
               } else if (data) {
                 analytics.track('delete_refresh_job', {
@@ -195,7 +195,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                           ])
                           .select()
 
-                        if (error && status !== 406) {
+                        if (error) {
                           throw error
                         }
 
