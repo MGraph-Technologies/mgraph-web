@@ -96,24 +96,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             })
           }
         } else {
-          console.log('\nError')
+          console.error('\nError')
           return res.status(500).json({})
         }
       } else {
         const errorMessage = 'Query not found'
-        console.log('\nError: ', errorMessage)
+        console.error('\nError: ', errorMessage)
         return res.status(404).json({
           error: errorMessage,
         })
       }
     } catch (error: any) {
-      console.log('\nError: ', error.message)
+      console.error('\nError: ', error.message)
       return res.status(500).json({
         error: error.message,
       })
     }
   } else {
-    console.log('\nUnsupported method: ', method)
+    console.error('\nUnsupported method: ', method)
     return res.status(405).json({
       error: 'Method not allowed',
     })

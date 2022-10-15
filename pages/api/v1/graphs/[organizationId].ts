@@ -103,7 +103,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       }
     } catch (error: any) {
-      console.log('\nError: ', error.message)
+      console.error('\nError: ', error.message)
       return res.status(500).json({
         error: error.message,
       })
@@ -232,7 +232,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     if (upsertErrors.length > 0) {
-      console.log('\nErrors: ', upsertErrors)
+      console.error('\nErrors: ', upsertErrors)
       res
         .status(500)
         .json({ success: false, message: 'Failed to upsert nodes' })
@@ -241,7 +241,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(200).json({})
     }
   } else {
-    console.log('\nUnsupported method: ', method)
+    console.error('\nUnsupported method: ', method)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 }
