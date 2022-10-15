@@ -95,14 +95,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       )
       return res.status(200).json({})
     } catch (error: any) {
-      console.log('\nError: ', error.message)
+      console.error('\nError: ', error.message)
       await logRefreshJobRun(refreshJobId as string, supabase, 'error')
       return res.status(500).json({
         error: error.message,
       })
     }
   } else {
-    console.log('\nUnsupported method: ', method)
+    console.error('\nUnsupported method: ', method)
     return res.status(405).json({
       error: 'Method not allowed',
     })
@@ -128,8 +128,8 @@ const logRefreshJobRun = async (
     ])
     .single()
 
-  if (refreshJobRunError && refreshJobRunStatus !== 406) {
-    console.log('\nError: refreshJobRunError')
+  if (refreshJobRunError) {
+    console.error('\nError: refreshJobRunError')
   }
 
   if (refreshJobRunData) {

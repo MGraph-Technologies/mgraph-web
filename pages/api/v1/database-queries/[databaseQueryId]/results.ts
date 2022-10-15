@@ -75,46 +75,46 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           const rows = queryStatus.data
           const executedAt = new Date(queryStatus.createdOn)
           res.setHeader('Cache-Control', 'max-age=31536000')
-          res.status(200).json({
+          return res.status(200).json({
             columns: columns,
             rows: rows,
             executedAt: executedAt,
           })
         } else if (queryStatusResp.status === 202) {
           console.log('\nQuery still processing')
-          res.status(202).json({})
+          return res.status(202).json({})
         } else if (queryStatusResp.status === 422) {
           if (queryStatus.message === 'Result not found') {
             console.log('\nQuery expired')
-            res.status(410).json({
+            return res.status(410).json({
               error: 'Results expired',
             })
           } else {
             console.log('\nQuery failed')
-            res.status(422).json({
+            return res.status(422).json({
               error: queryStatus.message,
             })
           }
         } else {
-          console.log('\nError')
-          res.status(500).json({})
+          console.error('\nError')
+          return res.status(500).json({})
         }
       } else {
         const errorMessage = 'Query not found'
-        console.log('\nError: ', errorMessage)
-        res.status(404).json({
+        console.error('\nError: ', errorMessage)
+        return res.status(404).json({
           error: errorMessage,
         })
       }
     } catch (error: any) {
-      console.log('\nError: ', error.message)
-      res.status(500).json({
+      console.error('\nError: ', error.message)
+      return res.status(500).json({
         error: error.message,
       })
     }
   } else {
-    console.log('\nUnsupported method: ', method)
-    res.status(405).json({
+    console.error('\nUnsupported method: ', method)
+    return res.status(405).json({
       error: 'Method not allowed',
     })
   }

@@ -33,7 +33,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         .lt('created_at', timeoutThreshold)
         .select('id')
 
-      if (error && status !== 406 && status !== 404) {
+      if (error && status !== 404) {
+        // 404 means no rows were updated
         throw error
       }
 
@@ -45,7 +46,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log(`Cleaned up ${data.length} timed out refresh job runs.`)
       }
     } catch (error: any) {
-      console.log('\nError: ', error.message)
+      console.error('\nError: ', error.message)
       return res.status(500).json({
         error: error.message,
       })
@@ -83,7 +84,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       }
     } catch (error: any) {
-      console.log('\nError: ', error.message)
+      console.error('\nError: ', error.message)
       return res.status(500).json({
         error: error.message,
       })
@@ -152,13 +153,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       return res.status(200).json({})
     } catch (error: any) {
-      console.log('\nError: ', error.message)
+      console.error('\nError: ', error.message)
       return res.status(500).json({
         error: error.message,
       })
     }
   } else {
-    console.log('\nUnsupported method: ', method)
+    console.error('\nUnsupported method: ', method)
     return res.status(405).json({
       error: 'Method not allowed',
     })
