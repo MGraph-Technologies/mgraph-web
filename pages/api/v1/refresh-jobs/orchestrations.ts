@@ -33,7 +33,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         .lt('created_at', timeoutThreshold)
         .select('id')
 
-      if (error && status !== 404) { // 404 means no rows were updated
+      if (error && status !== 404) {
+        // 404 means no rows were updated
         throw error
       }
 
