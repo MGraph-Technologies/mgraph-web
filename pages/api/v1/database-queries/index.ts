@@ -100,25 +100,25 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           throw error
         }
         console.log('\nQuery ID: ', queryId)
-        res.status(200).json({
+        return res.status(200).json({
           queryId: queryId,
         })
       } else {
         const errorMessage = 'Database connection not found'
         console.log('\nError: ', errorMessage)
-        res.status(404).json({
+        return res.status(404).json({
           error: errorMessage,
         })
       }
     } catch (error: any) {
       console.log('\nError: ', error.message)
-      res.status(500).json({
+      return res.status(500).json({
         error: error.message,
       })
     }
   } else {
     console.log('\nUnsupported method: ', method)
-    res.status(405).json({
+    return res.status(405).json({
       error: 'Method not allowed',
     })
   }
