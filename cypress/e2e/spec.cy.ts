@@ -210,6 +210,41 @@ describe('Graphviewer editing', () => {
       .should('not.exist')
   })
 
+  it('Adds mission, connects it with a formula, then cancels addition', () => {
+    cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
+    cy.wait(1000)
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // add and rename mission
+    const newMission = Math.random().toString(36)
+    cy.get('[id=add-mission-toggle]').click().click() // reset toggle
+    cy.get('.react-flow__controls-fitview').click()
+    cy.get('.react-flow__node-mission').click()
+    cy.get('textarea').clear().type(newMission).type('{enter}')
+    cy.get('.react-flow__node-mission')
+      .contains(newMission)
+      .should('be.visible')
+
+    // add formula
+    cy.get('[id=add-formula-button]').click()
+    cy.get('[id=formula-field]')
+      .click()
+      .type('mission')
+      .wait(1000)
+      .type('{enter}') // wait for suggestion to load
+      .type('f')
+      .wait(1000)
+      .type('{enter}')
+      .type('Active Users')
+      .wait(1000)
+      .type('{enter}')
+    cy.get('[id=save-formula-button]').click()
+  })
+
   // TODO: add and save (was having trouble with deletion)
 })
 
