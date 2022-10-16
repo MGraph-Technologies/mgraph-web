@@ -169,7 +169,7 @@ describe('Graphviewer editing', () => {
     cy.get('[id=add-metric-button]').click()
     cy.get('.react-flow__controls-fitview').click()
     cy.get('.react-flow__node-metric').contains('New Metric').click()
-    cy.get('input').clear().type(newMetricName).type('{enter}')
+    cy.get('input').first().clear().type(newMetricName).type('{enter}')
     cy.get('.react-flow__node-metric')
       .contains(newMetricName)
       .should('be.visible')
