@@ -73,7 +73,10 @@ type GraphContextType = {
   setNodeDataToChange:
     | Dispatch<
         SetStateAction<
-          MissionNodeProperties | MetricNodeProperties | FunctionNodeProperties | undefined
+          | MissionNodeProperties
+          | MetricNodeProperties
+          | FunctionNodeProperties
+          | undefined
         >
       >
     | undefined

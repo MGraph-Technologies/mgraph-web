@@ -78,11 +78,7 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
     >
       <div className={styles.header}>
         <div className={styles.buttons}>
-          <NodeMenu
-            color={color}
-            setColor={setColor}
-            saveColor={saveColor}
-          />
+          <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
         </div>
       </div>
       <div className={styles.mission_container} ref={ref} style={{ fontSize }}>

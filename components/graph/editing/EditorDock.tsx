@@ -1,7 +1,12 @@
 import { Button } from 'primereact/button'
 import { InputSwitch } from 'primereact/inputswitch'
 import { Toolbar } from 'primereact/toolbar'
-import React, { FunctionComponent, useCallback, useEffect, useState } from 'react'
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 
 import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
@@ -37,9 +42,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
 
   const [missionToggleChecked, setMissionToggleChecked] = useState(false)
   useEffect(() => {
-    setMissionToggleChecked(
-      graph.nodes.some((node) => node.type === 'mission'),
-    )
+    setMissionToggleChecked(graph.nodes.some((node) => node.type === 'mission'))
   }, [graph.nodes])
   const addMissionNode = useCallback(() => {
     if (!formMissionNode) {
@@ -84,7 +87,10 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
                   label="+ Formula"
                   onClick={onFormulaAddition}
                 />
-                <label htmlFor="add-mission-toggle" className={styles.toggle_label}>
+                <label
+                  htmlFor="add-mission-toggle"
+                  className={styles.toggle_label}
+                >
                   Show Mission
                 </label>
                 <InputSwitch
