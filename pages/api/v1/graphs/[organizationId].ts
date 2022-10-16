@@ -12,6 +12,7 @@ import { Edge, Node } from 'react-flow-renderer'
 import { FunctionNodeProperties } from '../../../../components/graph/FunctionNode'
 import { InputEdgeProperties } from '../../../../components/graph/InputEdge'
 import { MetricNodeProperties } from '../../../../components/graph/MetricNode'
+import { MissionNodeProperties } from '../../../../components/graph/MissionNode'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -52,6 +53,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const nodes = nodesData.map((n) => {
           let node = n.react_flow_meta
           const properties = n.properties
+          if (node.type === 'mission') {
+            node.data = {
+              // explicit construction so properties added outside of react flow don't break it
+              id: properties.id,
+              organizationId: properties.organizationId,
+              typeId: properties.typeId,
+              color: properties.color,
+              mission: properties.mission,
+              initialProperties: properties,
+              setNodeDataToChange: () => {},
+            } as MissionNodeProperties
+          }
           if (node.type === 'metric') {
             node.data = {
               // explicit construction so properties added outside of react flow don't break it

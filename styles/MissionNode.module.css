@@ -1,0 +1,30 @@
+.mission_node {
+  height: 9em;
+  width: 128em;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.mission_node .header {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  height: 2em;
+  z-index: 4;
+}
+
+.mission_node .header .buttons {
+  position: absolute;
+  margin: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 0px;
+  display: flex;
+  flex-direction: row;
+}
+
+.mission_node .mission_container {
+  height: 100%;
+  width: 100%;
+}

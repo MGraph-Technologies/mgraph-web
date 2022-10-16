@@ -19,6 +19,9 @@ import InputEdge, { InputEdgeProperties } from '../components/graph/InputEdge'
 import MetricNode, {
   MetricNodeProperties,
 } from '../components/graph/MetricNode'
+import MissionNode, {
+  MissionNodeProperties,
+} from '../components/graph/MissionNode'
 import { supabase } from '../utils/supabaseClient'
 import {
   QueryParameters,
@@ -28,6 +31,7 @@ import {
 import { useAuth } from './auth'
 
 export const nodeTypes = {
+  mission: MissionNode,
   metric: MetricNode,
   function: FunctionNode,
 }
@@ -69,10 +73,11 @@ type GraphContextType = {
   setNodeDataToChange:
     | Dispatch<
         SetStateAction<
-          MetricNodeProperties | FunctionNodeProperties | undefined
+          MissionNodeProperties | MetricNodeProperties | FunctionNodeProperties | undefined
         >
       >
     | undefined
+  formMissionNode: (() => Node<any>) | undefined
   formMetricNode: (() => Node<any>) | undefined
   formFunctionNode:
     | ((
@@ -137,6 +142,7 @@ const graphContextDefaultValues: GraphContextType = {
   saveGraph: undefined,
   updateGraph: undefined,
   setNodeDataToChange: undefined,
+  formMissionNode: undefined,
   formMetricNode: undefined,
   formFunctionNode: undefined,
   formInputEdge: undefined,
@@ -335,7 +341,7 @@ export function GraphProvider({ children }: GraphProps) {
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
   const [nodeDataToChange, setNodeDataToChange] = useState<
-    MetricNodeProperties | FunctionNodeProperties
+    MissionNodeProperties | MetricNodeProperties | FunctionNodeProperties
   >()
   useEffect(() => {
     if (nodeDataToChange) {
@@ -350,6 +356,48 @@ export function GraphProvider({ children }: GraphProps) {
       setNodeDataToChange(undefined) // avoid infinite loop
     }
   }, [nodeDataToChange, setNodeDataToChange, updateGraph, graph.nodes])
+
+  const formMissionNode = useCallback(() => {
+    const newNodeType = 'mission'
+    const newNodeTypeId = nodeTypeIds[newNodeType]
+    if (!newNodeTypeId) {
+      throw new Error(`Could not find node type id for ${newNodeType}`)
+    }
+
+    const { x, y } =
+      reactFlowInstance && reactFlowInstance.project
+        ? reactFlowInstance.project({
+            x: reactFlowRenderer!.clientWidth / 2,
+            y: reactFlowRenderer!.clientHeight / 2,
+          })
+        : { x: 0, y: 0 }
+    const newNodeId = uuidv4()
+    const newNodeData: MissionNodeProperties = {
+      id: newNodeId, // needed for setNodeDataToChange
+      organizationId: organizationId,
+      typeId: newNodeTypeId,
+      color: '#FFFFFF',
+      mission: '',
+      initialProperties: {},
+      setNodeDataToChange: setNodeDataToChange,
+    }
+    const newNode: Node = {
+      id: newNodeId,
+      data: newNodeData,
+      type: newNodeType,
+      position: {
+        x: x,
+        y: y,
+      },
+    }
+    return newNode
+  }, [
+    nodeTypeIds,
+    reactFlowInstance,
+    reactFlowRenderer,
+    organizationId,
+    setNodeDataToChange,
+  ])
 
   const formMetricNode = useCallback(() => {
     const newNodeType = 'metric'
@@ -821,6 +869,7 @@ export function GraphProvider({ children }: GraphProps) {
     saveGraph: saveGraph,
     updateGraph: updateGraph,
     setNodeDataToChange: setNodeDataToChange,
+    formMissionNode: formMissionNode,
     formMetricNode: formMetricNode,
     formFunctionNode: formFunctionNode,
     formInputEdge: formInputEdge,

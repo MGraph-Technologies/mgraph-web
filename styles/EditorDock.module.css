@@ -1,9 +1,9 @@
 .editor_dock {
   position: absolute;
   bottom: 10px;
-  left: 25%;
-  right: 25%;
-  z-index: 5;
+  left: 20%;
+  right: 20%;
+  z-index: 6;
   padding: 10px;
 }
 
@@ -15,4 +15,16 @@
   width: auto;
   padding: 5px;
   margin-left: 5px;
+}
+
+.editor_dock .editor_toolbar .toggle {
+  padding: 5px;
+  margin-left: 5px;
+}
+
+.editor_dock .editor_toolbar .toggle_label {
+  padding: 5px;
+  margin-left: 20px;
+  font-weight: bold;
+  color: #4F45E4;
 }
