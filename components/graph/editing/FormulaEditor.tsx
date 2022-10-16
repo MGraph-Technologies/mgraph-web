@@ -25,10 +25,15 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
   const [selectedSymbolIds, setSelectedSymbolIds] = useState<string[]>([])
   const [suggestions, setSuggestions] = useState<NodeSymbol[]>([])
 
+  // TODO: come up with a variable name that incorporates mission
   const metrics: NodeSymbol[] = graph.nodes
-    .filter((node) => node.type === 'metric')
+    .filter((node) => node.type === 'metric' || node.type === 'mission')
     .map((node) => {
-      return { id: node.data.id, display: node.data.name, functionTypeId: null }
+      return {
+        id: node.data.id,
+        display: node.type === 'mission' ? 'Mission' : node.data.name,
+        functionTypeId: null,
+      }
     })
   const [identities, setIdentities] = useState<NodeSymbol[]>([])
   const [operators, setOperators] = useState<NodeSymbol[]>([])
