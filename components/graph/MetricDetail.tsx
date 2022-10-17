@@ -417,6 +417,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             id="source-code-field"
             value={sourceCode}
             onValueChange={(code) => setSourceCode(code)}
+            onBlur={() => {
+              saveDetail('sourceCode', sourceCode)
+              setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+            }}
             highlight={(code) => highlight(code, 'sql')}
             textareaClassName="react-simple-code-editor-textarea"
           />
