@@ -6,6 +6,8 @@ import { Toolbar } from 'primereact/toolbar'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { EditText, EditTextarea } from 'react-edit-text'
 import { Edge, Node } from 'react-flow-renderer'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { docco } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
 import 'react-edit-text/dist/index.css'
 
 import { useEditability } from '../../contexts/editability'
@@ -395,25 +397,35 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         />
         <h3>Code</h3>
         <pre>
-          <code>
-            <EditTextarea
-              id="source-code-field"
-              className={
-                editingEnabled
-                  ? styles.detail_field_editable
-                  : styles.detail_field
-              }
-              rows={10}
-              value={sourceCode}
-              readonly={!editingEnabled}
-              placeholder={editingEnabled ? 'Add...' : '-'}
-              onChange={(e) => setSourceCode(e.target.value)}
-              onSave={({ value }) => {
-                setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-                saveDetail('sourceCode', value)
-              }}
-            />
-          </code>
+          {editingEnabled ? (
+            <code>
+              <EditTextarea
+                id="source-code-field"
+                className={
+                  editingEnabled
+                    ? styles.detail_field_editable
+                    : styles.detail_field
+                }
+                rows={10}
+                value={sourceCode}
+                readonly={!editingEnabled}
+                placeholder={editingEnabled ? 'Add...' : '-'}
+                onChange={(e) => setSourceCode(e.target.value)}
+                onSave={({ value }) => {
+                  setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+                  saveDetail('sourceCode', value)
+                }}
+              />
+            </code>
+          ) : (
+            <SyntaxHighlighter
+              language="sql"
+              style={docco}
+              showLineNumbers={true}
+            >
+              {sourceCode}
+            </SyntaxHighlighter>
+          )}
         </pre>
       </div>
       {/* ensure final module can be seen underneath editor dock */}
