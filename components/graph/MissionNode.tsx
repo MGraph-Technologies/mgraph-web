@@ -60,7 +60,7 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
     },
     onFinish: () => {
       setResizeInProgress(false)
-    }
+    },
   })
 
   const [color, setColor] = useState('#FFFFFF')

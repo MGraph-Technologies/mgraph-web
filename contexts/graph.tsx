@@ -646,7 +646,8 @@ export function GraphProvider({ children }: GraphProps) {
       if (
         reference.type === 'function' ||
         // only traverse from metric/mission nodes on first call
-        ((reference.type === 'metric' || reference.type === 'mission') && calledFrom === '')
+        ((reference.type === 'metric' || reference.type === 'mission') &&
+          calledFrom === '')
       ) {
         // select connected edges
         graph.edges.forEach((edge) => {
