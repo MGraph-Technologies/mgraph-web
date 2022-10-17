@@ -293,7 +293,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       <code
         className="hljs"
         dangerouslySetInnerHTML={{
-          __html: hljs.highlight(code, { language }).value
+          __html: hljs.highlight(code, { language }).value,
         }}
       />
     )
@@ -419,11 +419,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             onValueChange={(code) => setSourceCode(code)}
             highlight={(code) => highlight(code, 'sql')}
             textareaClassName="react-simple-code-editor-textarea"
-            />
+          />
         ) : (
-          <pre>
-            {highlight(sourceCode, 'sql')}
-          </pre>
+          <pre>{highlight(sourceCode, 'sql')}</pre>
         )}
       </div>
       {/* ensure final module can be seen underneath editor dock */}
