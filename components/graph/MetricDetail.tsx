@@ -112,18 +112,19 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           getConnectedObjects(metricConnectedIdentity)
         )
         let formulaObjectsSorted: (Node<any> | Edge<any>)[] = []
-        // add output metric
-        const outputMetric = formulaObjects.find(
+        // add output
+        const output = formulaObjects.find(
           (formulaObject) =>
-            formulaObject.type === 'metric' &&
+            (formulaObject.type === 'metric' ||
+              formulaObject.type === 'mission') &&
             graph.edges.find(
               (edge) =>
                 edge.data.targetId === formulaObject.id &&
                 edge.data.sourceId === metricConnectedIdentity.id
             )
         )
-        if (outputMetric) {
-          formulaObjectsSorted.push(outputMetric)
+        if (output) {
+          formulaObjectsSorted.push(output)
         }
         // add subsequent objects
         while (
@@ -132,7 +133,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         ) {
           const lastObject =
             formulaObjectsSorted[formulaObjectsSorted.length - 1]!
-          if (['function', 'metric'].includes(lastObject.type!)) {
+          if (['function', 'metric', 'mission'].includes(lastObject.type!)) {
             const nextObject = formulaObjects.find(
               (formulaObject) =>
                 formulaObject.type === 'input' &&
@@ -162,7 +163,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             inputsOrOutputs.length > 0 ? '\n\n' : '',
             formulaObjectsSorted
               .map((formulaObject) => {
-                if (formulaObject.type === 'metric') {
+                if (formulaObject.type === 'mission') {
+                  return 'Mission'
+                } else if (formulaObject.type === 'metric') {
                   return formulaObject.data.name
                 } else if (formulaObject.type === 'function') {
                   // subsequently replaced by replaceFunctionTypeIdWithSymbol

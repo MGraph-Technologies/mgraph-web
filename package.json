@@ -31,6 +31,7 @@
     "react-dom": "18.2.0",
     "react-edit-text": "^5.0.2",
     "react-flow-renderer": "^10.3.8",
+    "use-fit-text": "^2.4.0",
     "use-undoable": "^3.3.11",
     "uuid": "^8.3.2"
   },

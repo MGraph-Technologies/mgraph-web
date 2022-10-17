@@ -25,10 +25,14 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
   const [selectedSymbolIds, setSelectedSymbolIds] = useState<string[]>([])
   const [suggestions, setSuggestions] = useState<NodeSymbol[]>([])
 
-  const metrics: NodeSymbol[] = graph.nodes
-    .filter((node) => node.type === 'metric')
+  const variables: NodeSymbol[] = graph.nodes
+    .filter((node) => node.type === 'metric' || node.type === 'mission')
     .map((node) => {
-      return { id: node.data.id, display: node.data.name, functionTypeId: null }
+      return {
+        id: node.data.id,
+        display: node.type === 'mission' ? 'Mission' : node.data.name,
+        functionTypeId: null,
+      }
     })
   const [identities, setIdentities] = useState<NodeSymbol[]>([])
   const [operators, setOperators] = useState<NodeSymbol[]>([])
@@ -85,7 +89,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
 
   const filterSuggestions = (
     symbols: NodeSymbol[],
-    symbolsType: 'identity' | 'operator' | 'metric',
+    symbolsType: 'identity' | 'operator' | 'variable',
     query: string
   ): NodeSymbol[] => {
     let results: NodeSymbol[] = []
@@ -98,7 +102,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     }
     results = results.filter(
       (r) =>
-        symbolsType !== 'metric' ||
+        symbolsType !== 'variable' ||
         !formula.find((f) => f.display === r.display)
     )
     results = results.map((r) => {
@@ -120,9 +124,9 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     return results
   }
   const generateSuggestions = (event: { query: string }): void => {
-    // formula is of the form [metric] [identity] [metric] [operator] [metric] [operator] ...
+    // formula is of the form [variable] [identity] [variable] [operator] [variable] [operator] ...
     if (formula.length === 0 || formula[formula.length - 1].functionTypeId) {
-      setSuggestions(filterSuggestions(metrics, 'metric', event.query))
+      setSuggestions(filterSuggestions(variables, 'variable', event.query))
     } else if (formula.length === 1) {
       setSuggestions(filterSuggestions(identities, 'identity', event.query))
     } else {
@@ -163,10 +167,10 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     2) for each operator in the inputs, we create a new function node and associated input edges
     3) finally, we create an identity function node and associated input edges
     
-    Input edges always link functions to the metric on their right. The first function is linked
-    to the metric on its left, while subsequent functions are linked to the previous function (so 
+    Input edges always link functions to the variable on their right. The first function is linked
+    to the variable on its left, while subsequent functions are linked to the previous function (so 
     that the formula is connected and parseable). All functions display shorthand linkage from the
-    metric on their left to the metric on their right for readability.
+    variable on their left to the variable on their right for readability.
     
     1: https://www.figma.com/file/nxWoiYjVROIJXmEPjN0JTI/MGraph-Function-Builder-Concept */
     if (!formFunctionNode) {
@@ -182,14 +186,14 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
       analytics.track('save_formula_error', {
         type: 'formula_too_short',
       })
-      alert('Formula should relate at least two metrics')
+      alert('Formula should relate at least two variables')
       return
     }
     if (formula[formula.length - 1].functionTypeId) {
       analytics.track('save_formula_error', {
         type: 'formula_ends_with_function',
       })
-      alert('Formula should end with a metric')
+      alert('Formula should end with a variable')
       return
     }
 
@@ -201,73 +205,73 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
     for (let i = 0; i < inputSymbols.length; i++) {
       const inputSymbol = inputSymbols[i]
       if (inputSymbol.functionTypeId) {
-        const leftMetric = graph.nodes.find(
+        const leftVariable = graph.nodes.find(
           (node) => node.data.id === inputSymbols[i - 1].id
         )
-        if (!leftMetric) {
-          throw new Error('left metric not found')
+        if (!leftVariable) {
+          throw new Error('left variable not found')
         }
-        const rightMetric = graph.nodes.find(
+        const rightVariable = graph.nodes.find(
           (node) => node.data.id === inputSymbols[i + 1].id
         )
-        if (!rightMetric) {
-          throw new Error('right metric not found')
+        if (!rightVariable) {
+          throw new Error('right variable not found')
         }
 
         const newFunctionNode = formFunctionNode(
           inputSymbol.id,
           inputSymbol.functionTypeId,
-          [leftMetric],
-          rightMetric
+          [leftVariable],
+          rightVariable
         )
         newFunctionNodes.push(newFunctionNode)
 
         if (i === 1) {
-          newInputEdges.push(formInputEdge(leftMetric, newFunctionNode))
+          newInputEdges.push(formInputEdge(leftVariable, newFunctionNode))
         } else {
           const previousFunctionNode =
             newFunctionNodes[newFunctionNodes.length - 2]
           newInputEdges.push(
-            formInputEdge(previousFunctionNode, newFunctionNode, leftMetric)
+            formInputEdge(previousFunctionNode, newFunctionNode, leftVariable)
           )
         }
 
         newInputEdges.push(
           formInputEdge(
-            rightMetric,
+            rightVariable,
             newFunctionNode,
             newFunctionNode,
-            rightMetric
+            rightVariable
           )
         )
       }
     }
 
-    let outputMetricSymbol = outputSymbols[0]
-    let outputMetric = graph.nodes.find(
-      (node) => node.data.id === outputMetricSymbol.id
+    let outputVariableSymbol = outputSymbols[0]
+    let outputVariable = graph.nodes.find(
+      (node) => node.data.id === outputVariableSymbol.id
     )
-    if (!outputMetric) {
-      throw new Error('output metric not found')
+    if (!outputVariable) {
+      throw new Error('output variable not found')
     }
     let identitySymbol = outputSymbols[1]
     if (!identitySymbol.functionTypeId) {
       throw new Error('identity symbol is not a function')
     }
 
-    let lastInputMetricSymbol = inputSymbols[inputSymbols.length - 1]
-    let lastInputMetric = graph.nodes.find(
-      (node) => node.data.id === lastInputMetricSymbol.id
+    let lastInputVariableSymbol = inputSymbols[inputSymbols.length - 1]
+    let lastInputVariable = graph.nodes.find(
+      (node) => node.data.id === lastInputVariableSymbol.id
     )
-    if (!lastInputMetric) {
-      throw new Error('last input metric not found')
+    if (!lastInputVariable) {
+      throw new Error('last input variable not found')
     }
 
     const identityFunctionNode = formFunctionNode(
       identitySymbol.id,
       identitySymbol.functionTypeId,
-      [lastInputMetric],
-      outputMetric
+      [lastInputVariable],
+      outputVariable
     )
     newFunctionNodes.push(identityFunctionNode)
 
@@ -275,11 +279,11 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
       formInputEdge(
         newFunctionNodes.length >= 2
           ? newFunctionNodes[newFunctionNodes.length - 2]
-          : lastInputMetric,
+          : lastInputVariable,
         identityFunctionNode,
-        lastInputMetric
+        lastInputVariable
       ),
-      formInputEdge(identityFunctionNode, outputMetric)
+      formInputEdge(identityFunctionNode, outputVariable)
     )
 
     if (newFunctionNodes.length > 0 && newInputEdges.length > 0) {

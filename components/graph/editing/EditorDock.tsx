@@ -1,6 +1,12 @@
 import { Button } from 'primereact/button'
+import { InputSwitch } from 'primereact/inputswitch'
 import { Toolbar } from 'primereact/toolbar'
-import React, { FunctionComponent, useCallback, useState } from 'react'
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 
 import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
@@ -12,7 +18,7 @@ import UndoRedoSaveAndCancelGraphEditingButtons from './UndoRedoSaveAndCancelGra
 type EditorDockProps = {}
 const _EditorDock: FunctionComponent<EditorDockProps> = () => {
   const { editingEnabled } = useEditability()
-  const { graph, updateGraph, formMetricNode } = useGraph()
+  const { graph, updateGraph, formMetricNode, formMissionNode } = useGraph()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
 
   const onFormulaAddition = useCallback(() => {
@@ -34,6 +40,32 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
     }
   }, [formMetricNode, updateGraph, graph.nodes])
 
+  const [missionToggleChecked, setMissionToggleChecked] = useState(false)
+  useEffect(() => {
+    setMissionToggleChecked(graph.nodes.some((node) => node.type === 'mission'))
+  }, [graph.nodes])
+  const addMissionNode = useCallback(() => {
+    if (!formMissionNode) {
+      throw new Error('formMetricNode is not defined')
+    }
+    if (!updateGraph) {
+      throw new Error('updateGraph is not defined')
+    }
+    const newNode = formMissionNode()
+    if (newNode) {
+      analytics.track('add_mission_node')
+      updateGraph('nodes', graph.nodes.concat(newNode), true)
+    }
+  }, [formMissionNode, updateGraph, graph.nodes])
+  const deleteMissionNode = useCallback(() => {
+    if (!updateGraph) {
+      throw new Error('updateGraph is not defined')
+    }
+    const newNodes = graph.nodes.filter((node) => node.type !== 'mission')
+    analytics.track('delete_mission_node')
+    updateGraph('nodes', newNodes, true)
+  }, [updateGraph, graph.nodes])
+
   if (editingEnabled) {
     return (
       <div className={styles.editor_dock}>
@@ -43,7 +75,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
           <Toolbar
             className={styles.editor_toolbar}
             left={
-              <div>
+              <>
                 <Button
                   id="add-metric-button"
                   label="+ Metric"
@@ -55,7 +87,25 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
                   label="+ Formula"
                   onClick={onFormulaAddition}
                 />
-              </div>
+                <label
+                  htmlFor="add-mission-toggle"
+                  className={styles.toggle_label}
+                >
+                  Show Mission
+                </label>
+                <InputSwitch
+                  id="add-mission-toggle"
+                  className={styles.toggle}
+                  checked={missionToggleChecked}
+                  onChange={(e) => {
+                    if (e.value) {
+                      addMissionNode()
+                    } else {
+                      deleteMissionNode()
+                    }
+                  }}
+                />
+              </>
             }
             right={<UndoRedoSaveAndCancelGraphEditingButtons />}
           />
