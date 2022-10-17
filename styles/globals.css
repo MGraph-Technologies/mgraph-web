@@ -35,3 +35,10 @@ a {
 .p-paginator {
   justify-content: right !important;
 }
+
+/* align with highlight.js */
+.react-simple-code-editor-textarea {
+  padding: 1em !important;
+  font-size: 1em !important;
+  font-family: monospace !important;
+}

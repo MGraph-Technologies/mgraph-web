@@ -1,3 +1,6 @@
+import hljs from 'highlight.js/lib/core'
+import sql from 'highlight.js/lib/languages/sql'
+import 'highlight.js/styles/docco.css'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { Button } from 'primereact/button'
@@ -6,8 +9,7 @@ import { Toolbar } from 'primereact/toolbar'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { EditText, EditTextarea } from 'react-edit-text'
 import { Edge, Node } from 'react-flow-renderer'
-import SyntaxHighlighter from 'react-syntax-highlighter'
-import { docco } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
+import Editor from 'react-simple-code-editor'
 import 'react-edit-text/dist/index.css'
 
 import { useEditability } from '../../contexts/editability'
@@ -20,6 +22,8 @@ import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import { getFunctionSymbol } from './FunctionNode'
+
+hljs.registerLanguage('sql', sql)
 
 type MetricDetailProps = {
   metricId: string | string[] | undefined
@@ -283,6 +287,18 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     setSourceDatabaseConnectionName,
   ])
 
+  // https://github.com/highlightjs/highlight.js/issues/925
+  const highlight = (code: string, language: string) => {
+    return (
+      <code
+        className="hljs"
+        dangerouslySetInnerHTML={{
+          __html: hljs.highlight(code, { language }).value
+        }}
+      />
+    )
+  }
+
   return (
     <div className={styles.metric_detail}>
       <Head>
@@ -396,37 +412,19 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           disabled={!editingEnabled}
         />
         <h3>Code</h3>
-        <pre>
-          {editingEnabled ? (
-            <code>
-              <EditTextarea
-                id="source-code-field"
-                className={
-                  editingEnabled
-                    ? styles.detail_field_editable
-                    : styles.detail_field
-                }
-                rows={10}
-                value={sourceCode}
-                readonly={!editingEnabled}
-                placeholder={editingEnabled ? 'Add...' : '-'}
-                onChange={(e) => setSourceCode(e.target.value)}
-                onSave={({ value }) => {
-                  setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-                  saveDetail('sourceCode', value)
-                }}
-              />
-            </code>
-          ) : (
-            <SyntaxHighlighter
-              language="sql"
-              style={docco}
-              showLineNumbers={true}
-            >
-              {sourceCode}
-            </SyntaxHighlighter>
-          )}
-        </pre>
+        {editingEnabled ? (
+          <Editor
+            id="source-code-field"
+            value={sourceCode}
+            onValueChange={(code) => setSourceCode(code)}
+            highlight={(code) => highlight(code, 'sql')}
+            textareaClassName="react-simple-code-editor-textarea"
+            />
+        ) : (
+          <pre>
+            {highlight(sourceCode, 'sql')}
+          </pre>
+        )}
       </div>
       {/* ensure final module can be seen underneath editor dock */}
       {editingEnabled ? (
