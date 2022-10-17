@@ -31,6 +31,7 @@
     "react-dom": "18.2.0",
     "react-edit-text": "^5.0.2",
     "react-flow-renderer": "^10.3.8",
+    "react-syntax-highlighter": "^15.5.0",
     "use-fit-text": "^2.4.0",
     "use-undoable": "^3.3.11",
     "uuid": "^8.3.2"
@@ -46,6 +47,7 @@
     "@types/react-color": "^3.0.6",
     "@types/react-dom": "18.0.5",
     "@types/react-edit-text": "^5.0.1",
+    "@types/react-syntax-highlighter": "^15.5.5",
     "@types/uuid": "^8.3.4",
     "cypress": "^10.3.0",
     "cypress-dotenv": "^2.0.0",
