@@ -645,8 +645,8 @@ export function GraphProvider({ children }: GraphProps) {
       let connectedObjects: (Node | Edge)[] = []
       if (
         reference.type === 'function' ||
-        // only traverse from metric nodes on first call
-        (reference.type === 'metric' && calledFrom === '')
+        // only traverse from metric/mission nodes on first call
+        ((reference.type === 'metric' || reference.type === 'mission') && calledFrom === '')
       ) {
         // select connected edges
         graph.edges.forEach((edge) => {
@@ -668,7 +668,7 @@ export function GraphProvider({ children }: GraphProps) {
           if (
             (node.id === reference.data.sourceId ||
               node.id === reference.data.targetId) &&
-            ['function', 'metric'].includes(node.type || '') &&
+            ['function', 'metric', 'mission'].includes(node.type || '') &&
             node.id !== calledFrom
           ) {
             connectedObjects = connectedObjects.concat(
