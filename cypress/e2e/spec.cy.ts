@@ -286,7 +286,7 @@ describe('Metric detail editing', () => {
     // edit field
     const newValue = Math.random().toString(36)
     cy.get('[id=description-field').click()
-    cy.get('textarea').clear().type(newValue)
+    cy.get('[id=description-field').clear().type(newValue)
     cy.get('[class*=Header]').first().click() // click outside of textarea to save
     cy.contains(newValue).should('exist')
 
@@ -313,7 +313,7 @@ describe('Metric detail editing', () => {
     // edit field
     const newValue = Math.random().toString(36)
     cy.get('[id=description-field').click()
-    cy.get('textarea').clear().type(newValue)
+    cy.get('[id=description-field').clear().type(newValue)
     cy.get('[class*=Header]').first().click()
     cy.contains(newValue).should('exist')
 
@@ -338,7 +338,7 @@ describe('Metric detail editing', () => {
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
     cy.get('[id=source-code-field').click()
-    cy.get('textarea').clear().type(newQuery)
+    cy.get('[id=source-code-field').clear().type(newQuery)
     cy.get('[class*=Header]').first().click()
 
     // see results
@@ -364,7 +364,7 @@ describe('Metric detail editing', () => {
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
     cy.get('[id=source-code-field').click()
-    cy.get('textarea').clear().type(newQuery)
+    cy.get('[id=source-code-field').clear().type(newQuery)
     cy.get('[class*=Header]').first().click()
     cy.get('[id=save-button]').click()
 
@@ -395,7 +395,7 @@ describe('Metric detail editing', () => {
     // edit query
     const newQuery = 'SELECT x'
     cy.get('[id=source-code-field').click()
-    cy.get('textarea').clear().type(newQuery)
+    cy.get('[id=source-code-field').clear().type(newQuery)
     cy.get('[class*=Header]').first().click()
 
     // see results
@@ -418,7 +418,7 @@ describe('Metric detail editing', () => {
     // edit query
     const newQuery = "SELECT TRUE, 'all', 1"
     cy.get('[id=source-code-field').click()
-    cy.get('textarea').clear().type(newQuery)
+    cy.get('[id=source-code-field').clear().type(newQuery)
     cy.get('[class*=Header]').first().click()
 
     // see results
@@ -547,7 +547,7 @@ describe('Metric detail editing', () => {
         ${randomInt}
     `
     cy.get('[id=source-code-field').click()
-    cy.get('textarea')
+    cy.get('[id=source-code-field')
       .clear()
       .type(newQuery, { parseSpecialCharSequences: false })
     cy.get('[class*=Header]').first().click()
