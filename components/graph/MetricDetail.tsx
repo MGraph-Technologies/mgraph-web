@@ -112,8 +112,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           getConnectedObjects(metricConnectedIdentity)
         )
         let formulaObjectsSorted: (Node<any> | Edge<any>)[] = []
-        // add output metric
-        const outputMetric = formulaObjects.find(
+        // add output
+        const output = formulaObjects.find(
           (formulaObject) =>
             (formulaObject.type === 'metric' ||
               formulaObject.type === 'mission') &&
@@ -123,8 +123,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                 edge.data.sourceId === metricConnectedIdentity.id
             )
         )
-        if (outputMetric) {
-          formulaObjectsSorted.push(outputMetric)
+        if (output) {
+          formulaObjectsSorted.push(output)
         }
         // add subsequent objects
         while (
