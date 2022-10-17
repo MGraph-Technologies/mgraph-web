@@ -339,7 +339,7 @@ describe('Metric detail editing', () => {
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
     cy.get('[id=source-code-field').click()
     cy.get('[id=source-code-field').clear().type(newQuery)
-    cy.get('[class*=Header]').first().click()
+    cy.get('[id=refresh-query-button]').first().click()
 
     // see results
     cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
@@ -396,7 +396,7 @@ describe('Metric detail editing', () => {
     const newQuery = 'SELECT x'
     cy.get('[id=source-code-field').click()
     cy.get('[id=source-code-field').clear().type(newQuery)
-    cy.get('[class*=Header]').first().click()
+    cy.get('[id=refresh-query-button]').first().click()
 
     // see results
     cy.get('[class*=MetricDetail_chart_container]')
@@ -419,7 +419,7 @@ describe('Metric detail editing', () => {
     const newQuery = "SELECT TRUE, 'all', 1"
     cy.get('[id=source-code-field').click()
     cy.get('[id=source-code-field').clear().type(newQuery)
-    cy.get('[class*=Header]').first().click()
+    cy.get('[id=refresh-query-button]').first().click()
 
     // see results
     cy.get('[class*=MetricDetail_chart_container]')
@@ -550,7 +550,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=source-code-field')
       .clear()
       .type(newQuery, { parseSpecialCharSequences: false })
-    cy.get('[class*=Header]').first().click()
+    cy.get('[id=refresh-query-button]').first().click()
 
     // see results
     cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear

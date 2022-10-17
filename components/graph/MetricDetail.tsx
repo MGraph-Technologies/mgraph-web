@@ -411,7 +411,20 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           }}
           disabled={!editingEnabled}
         />
-        <h3>Code</h3>
+        <h3>
+          Code
+          {editingEnabled && (
+            <Button
+              id="refresh-query-button"
+              className="p-button-text p-button-sm"
+              icon="pi pi-refresh"
+              onClick={() => {
+                setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+              }}
+              style={{ marginLeft: '1em' }}
+            />
+          )}
+        </h3>
         {editingEnabled ? (
           <Editor
             id="source-code-field"
