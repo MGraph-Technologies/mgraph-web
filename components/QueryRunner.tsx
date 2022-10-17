@@ -92,7 +92,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
   }, [
     getQueryIdComplete,
-    session,
+    session?.access_token,
     parentNodeId,
     databaseConnectionId,
     statement,
@@ -156,7 +156,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           console.error(error.message)
         })
     }
-  }, [getQueryResultComplete, session, queryId, setQueryResult])
+  }, [getQueryResultComplete, session?.access_token, queryId, setQueryResult])
 
   useEffect(() => {
     getQueryResult()
@@ -202,7 +202,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         })
     }
   }, [
-    session,
+    session?.access_token,
     databaseConnectionId,
     parentNodeId,
     statement,

@@ -294,7 +294,7 @@ export function GraphProvider({ children }: GraphProps) {
     } catch (error: any) {
       console.error(error.message)
     }
-  }, [session, organizationId, reset])
+  }, [session?.access_token, organizationId, reset])
   useEffect(() => {
     if (loadGraph) {
       loadGraph()
@@ -320,7 +320,7 @@ export function GraphProvider({ children }: GraphProps) {
         'supabase-access-token': accessToken,
       },
     })
-  }, [session, organizationId, graph, initialGraph])
+  }, [session?.access_token, organizationId, graph, initialGraph])
 
   const updateGraph = useCallback(
     (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
