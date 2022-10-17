@@ -43,6 +43,7 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
   }, [data.mission])
   const saveMission = useCallback(
     ({ value }: onSaveProps) => {
+      setResizeInProgress(true)
       let newData = { ...data }
       newData.mission = value
       data.setNodeDataToChange(newData)
@@ -50,9 +51,16 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
     [data]
   )
 
+  const [resizeInProgess, setResizeInProgress] = useState(true)
   const { fontSize, ref } = useFitText({
     maxFontSize: 10000,
     minFontSize: 0,
+    onStart: () => {
+      setResizeInProgress(true)
+    },
+    onFinish: () => {
+      setResizeInProgress(false)
+    }
   })
 
   const [color, setColor] = useState('#FFFFFF')
@@ -93,6 +101,7 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
             overflowWrap: 'break-word',
             textAlign: 'center',
             fontWeight: 'bold',
+            visibility: resizeInProgess ? 'hidden' : 'visible',
           }}
           onChange={(e) => setMission(e.target.value)}
           onSave={saveMission}
