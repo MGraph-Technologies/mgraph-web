@@ -1,3 +1,4 @@
+import router from 'next/router'
 import React, {
   FunctionComponent,
   MouseEvent as ReactMouseEvent,
@@ -20,6 +21,7 @@ import ReactFlow, {
   useReactFlow,
 } from 'react-flow-renderer'
 
+import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
 import styles from '../../styles/GraphViewer.module.css'
@@ -29,6 +31,7 @@ import EditorDock from './editing/EditorDock'
 
 type GraphViewerProps = {}
 const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
+  const { organizationName } = useAuth()
   const { editingEnabled } = useEditability()
   const {
     initialGraph,
@@ -225,7 +228,15 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         edges={graph.edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onNodeClick={(_event, node) => onSelect(node)}
+        onNodeClick={(_event, node) => {
+          if (editingEnabled) {
+            onSelect(node)
+          } else {
+            if (node.type === 'metric') {
+              router.push(`${organizationName}/metrics/${node.id}`)
+            }
+          }
+        }}
         onNodesChange={onNodesChange}
         onEdgeClick={(_event, edge) => onSelect(edge)}
         onEdgesChange={onEdgesChange}
