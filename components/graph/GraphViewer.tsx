@@ -36,6 +36,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     setReactFlowInstance,
     reactFlowRenderer,
     setReactFlowRenderer,
+    reactFlowViewport,
     setReactFlowViewport,
     undo,
     redo,
@@ -83,7 +84,12 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     setReactFlowRenderer!(document.querySelector('.react-flow__renderer')!)
   }, [reactFlowInstance, setReactFlowInstance, setReactFlowRenderer])
   useEffect(() => {
-    reactFlowInstance.fitView()
+    if (reactFlowViewport) {
+      // persist viewport within a tab's page views
+      reactFlowInstance.setViewport(reactFlowViewport)
+    } else {
+      reactFlowInstance.fitView()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reactFlowInstance.viewportInitialized, initialGraph])
 
