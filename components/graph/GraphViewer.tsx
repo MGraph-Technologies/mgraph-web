@@ -1,9 +1,9 @@
+import router from 'next/router'
 import React, {
   FunctionComponent,
   MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
-  useState,
 } from 'react'
 import ReactFlow, {
   Background,
@@ -20,8 +20,10 @@ import ReactFlow, {
   useReactFlow,
 } from 'react-flow-renderer'
 
+import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
+import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/GraphViewer.module.css'
 import { analytics } from '../../utils/segmentClient'
 import ControlPanel from './ControlPanel'
@@ -29,6 +31,7 @@ import EditorDock from './editing/EditorDock'
 
 type GraphViewerProps = {}
 const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
+  const { organizationName } = useAuth()
   const { editingEnabled } = useEditability()
   const {
     initialGraph,
@@ -43,14 +46,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     updateGraph,
     getConnectedObjects,
   } = useGraph()
+  const { actionKey, actionKeyPressed, push } = useBrowser()
 
-  const actionKey = navigator.platform.match(/Mac/i) ? 'Meta' : 'Control'
-  const [actionKeyPressed, setActionKeyPressed] = useState(false)
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
-      if (e.key === actionKey) {
-        setActionKeyPressed(true)
-      }
       if (actionKeyPressed && !e.shiftKey && e.key === 'z' && undo) {
         undo()
       }
@@ -63,20 +62,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     return () => {
       document.removeEventListener('keydown', keyDownHandler)
     }
-  }, [actionKey, actionKeyPressed, undo, redo])
-
-  useEffect(() => {
-    const keyUpHandler = (e: KeyboardEvent) => {
-      if (e.key === actionKey) {
-        setActionKeyPressed(false)
-      }
-    }
-    document.addEventListener('keyup', keyUpHandler)
-    // clean up
-    return () => {
-      document.removeEventListener('keyup', keyUpHandler)
-    }
-  }, [actionKey, actionKeyPressed])
+  }, [actionKeyPressed, undo, redo])
 
   const reactFlowInstance = useReactFlow()
   useEffect(() => {
@@ -225,7 +211,15 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         edges={graph.edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onNodeClick={(_event, node) => onSelect(node)}
+        onNodeClick={(_event, node) => {
+          if (editingEnabled) {
+            onSelect(node)
+          } else {
+            if (node.type === 'metric') {
+              push(`${organizationName}/metrics/${node.id}`)
+            }
+          }
+        }}
         onNodesChange={onNodesChange}
         onEdgeClick={(_event, edge) => onSelect(edge)}
         onEdgesChange={onEdgesChange}

@@ -1,9 +1,9 @@
-import router from 'next/router'
 import { Button } from 'primereact/button'
 import { FunctionComponent, useCallback, useState } from 'react'
 import { ColorResult, TwitterPicker } from 'react-color'
 
 import { useEditability } from '../../contexts/editability'
+import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/NodeMenu.module.css'
 
 type NodeMenuProps = {
@@ -19,6 +19,7 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
   linkTo = '',
 }) => {
   const { editingEnabled } = useEditability()
+  const { push } = useBrowser()
 
   const [displayColorPicker, setDisplayColorPicker] = useState(false)
   const handleColorChangeComplete = useCallback(
@@ -61,7 +62,10 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
           className="p-button-text p-button-lg"
           icon="pi pi-angle-right"
           onClick={() => {
-            router.push(linkTo)
+            if (editingEnabled) {
+              // entire node is clickable if editing is disabled
+              push(linkTo)
+            }
           }}
         />
       ) : null}

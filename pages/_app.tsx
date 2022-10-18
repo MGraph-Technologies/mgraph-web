@@ -9,6 +9,7 @@ import { useEffect } from 'react'
 import { AuthProvider } from '../contexts/auth'
 import { EditabilityProvider } from '../contexts/editability'
 import { GraphProvider } from '../contexts/graph'
+import { BrowserProvider } from '../contexts/browser'
 import '../styles/globals.css'
 import { analytics } from '../utils/segmentClient'
 
@@ -59,7 +60,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     <AuthProvider>
       <GraphProvider>
         <EditabilityProvider>
-          <Component {...pageProps} />
+          <BrowserProvider>
+            <Component {...pageProps} />
+          </BrowserProvider>
         </EditabilityProvider>
       </GraphProvider>
     </AuthProvider>

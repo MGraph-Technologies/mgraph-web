@@ -5,6 +5,7 @@ import { Menu } from 'primereact/menu'
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '../contexts/auth'
+import { useBrowser } from '../contexts/browser'
 import styles from '../styles/AccountMenu.module.css'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
@@ -18,6 +19,7 @@ const AccountMenu: FunctionComponent<Props> = () => {
     organizationLogoStoragePath,
     userIsAdmin,
   } = useAuth()
+  const { push } = useBrowser()
 
   const [userEmail, setUserEmail] = useState('')
   const [avatarChar, setAvatarChar] = useState('')
@@ -59,23 +61,19 @@ const AccountMenu: FunctionComponent<Props> = () => {
             label: 'Access Management',
             icon: 'pi pi-users',
             command: () =>
-              router.push(
-                '/' + organizationName + '/settings/access-management'
-              ),
+              push('/' + organizationName + '/settings/access-management'),
           },
           {
             label: 'Database Connections',
             icon: 'pi pi-database',
             command: () =>
-              router.push(
-                '/' + organizationName + '/settings/database-connections'
-              ),
+              push('/' + organizationName + '/settings/database-connections'),
           },
           {
             label: 'Refresh Jobs',
             icon: 'pi pi-clock',
             command: () =>
-              router.push('/' + organizationName + '/settings/refresh-jobs'),
+              push('/' + organizationName + '/settings/refresh-jobs'),
           },
         ],
       },
@@ -93,7 +91,7 @@ const AccountMenu: FunctionComponent<Props> = () => {
             alt="Powered by MGraph"
             height={50}
             width={150}
-            onClick={() => router.push('/')}
+            onClick={() => push('/')}
           />
           <div className={styles.vertical_line} />
         </>
