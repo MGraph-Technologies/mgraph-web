@@ -2,7 +2,6 @@ import hljs from 'highlight.js/lib/core'
 import sql from 'highlight.js/lib/languages/sql'
 import 'highlight.js/styles/docco.css'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
 import { Button } from 'primereact/button'
 import { Dropdown } from 'primereact/dropdown'
 import { Toolbar } from 'primereact/toolbar'
@@ -12,9 +11,10 @@ import { Edge, Node } from 'react-flow-renderer'
 import Editor from 'react-simple-code-editor'
 import 'react-edit-text/dist/index.css'
 
-import { useEditability } from '../../contexts/editability'
 import { useAuth } from '../../contexts/auth'
+import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
+import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/MetricDetail.module.css'
 import { supabase } from '../../utils/supabaseClient'
 import LineChart from '../LineChart'
@@ -29,9 +29,9 @@ type MetricDetailProps = {
   metricId: string | string[] | undefined
 }
 const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
-  const router = useRouter()
   const { organizationId, organizationName } = useAuth()
   const { editingEnabled } = useEditability()
+  const { push } = useBrowser()
 
   const { graph, getConnectedObjects } = useGraph()
   const [metricNode, setMetricNode] = useState<Node | undefined>(undefined)
@@ -310,7 +310,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           className="p-button-text"
           icon="pi pi-angle-left"
           onClick={() => {
-            router.push('/' + organizationName)
+            push('/' + organizationName)
           }}
         />
         <EditText

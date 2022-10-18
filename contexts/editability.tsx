@@ -20,11 +20,11 @@ export function useEditability() {
   return useContext(EditabilityContext)
 }
 
-type EditingEnabledProps = {
+type EditabilityProps = {
   children: ReactNode
 }
 
-export function EditabilityProvider({ children }: EditingEnabledProps) {
+export function EditabilityProvider({ children }: EditabilityProps) {
   const [editingEnabled, setEditingEnabled] = useState(false)
   const enableEditing = () => setEditingEnabled(true)
   const disableEditing = () => setEditingEnabled(false)

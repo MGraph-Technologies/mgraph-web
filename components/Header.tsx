@@ -1,8 +1,8 @@
 import Image from 'next/image'
-import router from 'next/router'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../contexts/auth'
+import { useBrowser } from '../contexts/browser'
 import styles from '../styles/Header.module.css'
 import { storagePathToSignedUrl } from '../utils/supabaseClient'
 import AccountMenu from './AccountMenu'
@@ -10,6 +10,7 @@ import AccountMenu from './AccountMenu'
 type HeaderProps = {}
 const Header: FunctionComponent<HeaderProps> = () => {
   const { organizationLogoStoragePath } = useAuth()
+  const { push } = useBrowser()
   const [logoUrl, setLogoUrl] = useState('')
   const [logoAlt, setLogoAlt] = useState('')
 
@@ -43,7 +44,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
           alt={logoAlt}
           height={50}
           width={150}
-          onClick={() => router.push('/')}
+          onClick={() => push('/')}
         />
       </div>
       <div className={styles.account_menu_container}>

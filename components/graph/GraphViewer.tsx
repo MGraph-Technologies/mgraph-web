@@ -4,7 +4,6 @@ import React, {
   MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
-  useState,
 } from 'react'
 import ReactFlow, {
   Background,
@@ -24,6 +23,7 @@ import ReactFlow, {
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
+import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/GraphViewer.module.css'
 import { analytics } from '../../utils/segmentClient'
 import ControlPanel from './ControlPanel'
@@ -46,14 +46,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     updateGraph,
     getConnectedObjects,
   } = useGraph()
+  const { actionKey, actionKeyPressed, push } = useBrowser()
 
-  const actionKey = navigator.platform.match(/Mac/i) ? 'Meta' : 'Control'
-  const [actionKeyPressed, setActionKeyPressed] = useState(false)
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
-      if (e.key === actionKey) {
-        setActionKeyPressed(true)
-      }
       if (actionKeyPressed && !e.shiftKey && e.key === 'z' && undo) {
         undo()
       }
@@ -66,20 +62,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     return () => {
       document.removeEventListener('keydown', keyDownHandler)
     }
-  }, [actionKey, actionKeyPressed, undo, redo])
-
-  useEffect(() => {
-    const keyUpHandler = (e: KeyboardEvent) => {
-      if (e.key === actionKey) {
-        setActionKeyPressed(false)
-      }
-    }
-    document.addEventListener('keyup', keyUpHandler)
-    // clean up
-    return () => {
-      document.removeEventListener('keyup', keyUpHandler)
-    }
-  }, [actionKey, actionKeyPressed])
+  }, [actionKeyPressed, undo, redo])
 
   const reactFlowInstance = useReactFlow()
   useEffect(() => {
@@ -233,7 +216,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
             onSelect(node)
           } else {
             if (node.type === 'metric') {
-              router.push(`${organizationName}/metrics/${node.id}`)
+              push(`${organizationName}/metrics/${node.id}`)
             }
           }
         }}

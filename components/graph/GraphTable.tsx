@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import { FilterMatchMode } from 'primereact/api'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
@@ -12,6 +11,7 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../../contexts/auth'
 import { useGraph } from '../../contexts/graph'
+import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/GraphTable.module.css'
 import { analytics } from '../../utils/segmentClient'
 import LineChart from '../LineChart'
@@ -22,6 +22,7 @@ type GraphTableProps = {}
 const GraphTable: FunctionComponent<GraphTableProps> = () => {
   const { graph, getInputNodes } = useGraph()
   const { organizationId, organizationName } = useAuth()
+  const { push } = useBrowser()
 
   const [metricsTableLoading, setMetricsTableLoading] = useState(true)
   const [metrics, setMetrics] = useState<any[]>([])
@@ -100,7 +101,6 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
     )
   }, [])
 
-  const router = useRouter()
   const linkCellBodyTemplate = useCallback(
     (rowData: any) => {
       return (
@@ -109,12 +109,12 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
           className="p-button-text p-button-lg"
           icon="pi pi-angle-right"
           onClick={() => {
-            router.push(`/${organizationName}/metrics/${rowData.id}`)
+            push(`/${organizationName}/metrics/${rowData.id}`)
           }}
         />
       )
     },
-    [router, organizationName]
+    [push, organizationName]
   )
 
   const [first, setFirst] = useState(0)
@@ -182,7 +182,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         loading={metricsTableLoading}
         rows={10}
         onRowClick={(e) => {
-          router.push(`/${organizationName}/metrics/${e.data.id}`)
+          push(`/${organizationName}/metrics/${e.data.id}`)
         }}
         paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
