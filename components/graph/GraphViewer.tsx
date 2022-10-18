@@ -117,10 +117,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     [updateGraph, graph.edges]
   )
 
-  // selecting any function node or input edge selects all connected others
-  // right now this essentially insures that an editor can't partially delete a formula
   const onSelect = useCallback(
     (nodeOrEdge: Node | Edge) => {
+      // clicking metric nodes opens metric detail when !editingEnabled
+      if (nodeOrEdge.type === 'metric' && !editingEnabled) {
+        push(`${organizationName}/metrics/${nodeOrEdge.id}`)
+      }
+      // selecting any function node or input edge highlights all connected others
+      // right now this essentially insures that an editor can't partially delete a formula
       if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {
         if (!getConnectedObjects) {
           throw new Error('getConnectedObjects not defined')
@@ -172,7 +176,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         )
       }
     },
-    [getConnectedObjects, updateGraph, graph]
+    [
+      editingEnabled,
+      organizationName,
+      push,
+      getConnectedObjects,
+      updateGraph,
+      graph,
+    ]
   )
 
   let lastMoveEndAt = 0
@@ -211,15 +222,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         edges={graph.edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onNodeClick={(_event, node) => {
-          if (editingEnabled) {
-            onSelect(node)
-          } else {
-            if (node.type === 'metric') {
-              push(`${organizationName}/metrics/${node.id}`)
-            }
-          }
-        }}
+        onNodeClick={(_event, node) => onSelect(node)}
         onNodesChange={onNodesChange}
         onEdgeClick={(_event, edge) => onSelect(edge)}
         onEdgesChange={onEdgesChange}
