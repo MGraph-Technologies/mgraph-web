@@ -46,15 +46,50 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     updateGraph,
     getConnectedObjects,
   } = useGraph()
-  const { actionKey, actionKeyPressed, push } = useBrowser()
+  const { actionKey, actionKeyPressed, shiftKeyPressed, push } = useBrowser()
+  const reactFlowInstance = useReactFlow()
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
-      if (actionKeyPressed && !e.shiftKey && e.key === 'z' && undo) {
-        undo()
-      }
-      if (actionKeyPressed && e.shiftKey && e.key === 'z' && redo) {
-        redo()
+      if (editingEnabled) {
+        if (actionKeyPressed && !shiftKeyPressed && e.key === 'z' && undo) {
+          undo()
+        }
+        if (actionKeyPressed && shiftKeyPressed && e.key === 'z' && redo) {
+          redo()
+        }
+      } else {
+        // move with arrow keys / WASD
+        const nudgeAmount = shiftKeyPressed ? 100 : 10
+        if (!actionKeyPressed && (e.key === 'ArrowUp' || e.key === 'w' || e.key  === 'W')) {
+          reactFlowInstance.setViewport({
+            ...reactFlowViewport!,
+            y: reactFlowViewport!.y + nudgeAmount,
+          })
+        } else if (!actionKeyPressed && (e.key === 'ArrowDown' || e.key === 's' || e.key  === 'S')) {
+          reactFlowInstance.setViewport({
+            ...reactFlowViewport!,
+            y: reactFlowViewport!.y - nudgeAmount,
+          })
+        } else if (!actionKeyPressed && (e.key === 'ArrowLeft' || e.key === 'a' || e.key  === 'A')) {
+          reactFlowInstance.setViewport({
+            ...reactFlowViewport!,
+            x: reactFlowViewport!.x + nudgeAmount,
+          })
+        } else if (!actionKeyPressed && (e.key === 'ArrowRight' || e.key === 'd' || e.key  === 'D')) {
+          reactFlowInstance.setViewport({
+            ...reactFlowViewport!,
+            x: reactFlowViewport!.x - nudgeAmount,
+          })
+        // zoom with +/- keys or action + arrow up / down
+        } else if (e.key === '-' || e.key === '_' || (actionKeyPressed && e.key === 'ArrowUp')) {
+          reactFlowInstance!.zoomOut()
+        } else if (e.key === '=' || e.key === '+' || (actionKeyPressed && e.key === 'ArrowDown')) {
+          reactFlowInstance!.zoomIn()
+        // fit with 0 or f key
+        } else if (e.key === '0' || e.key === 'f' || e.key === 'F') {
+          reactFlowInstance!.fitView()
+        }
       }
     }
     document.addEventListener('keydown', keyDownHandler)
@@ -62,9 +97,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     return () => {
       document.removeEventListener('keydown', keyDownHandler)
     }
-  }, [actionKeyPressed, undo, redo])
+  }, [editingEnabled, actionKeyPressed, shiftKeyPressed, undo, redo, reactFlowInstance, reactFlowViewport])
 
-  const reactFlowInstance = useReactFlow()
   useEffect(() => {
     setReactFlowInstance!(reactFlowInstance)
     setReactFlowRenderer!(document.querySelector('.react-flow__renderer')!)
@@ -188,6 +222,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
 
   let lastMoveEndAt = 0
   const onMoveEnd = (event: any, viewport: Viewport) => {
+    setReactFlowViewport!(viewport)
     /* 
       fire change_graph_viewport analytics event
       (since onMoveEnd fires continuously while scrolling,
@@ -199,7 +234,6 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     setTimeout(
       (onMoveEndAt) => {
         if (onMoveEndAt === lastMoveEndAt) {
-          setReactFlowViewport!(viewport)
           analytics.track('change_graph_viewport', {
             x: viewport.x,
             y: viewport.y,
