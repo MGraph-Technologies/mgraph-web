@@ -62,7 +62,10 @@ const NodeMenu: FunctionComponent<NodeMenuProps> = ({
           className="p-button-text p-button-lg"
           icon="pi pi-angle-right"
           onClick={() => {
-            push(linkTo)
+            if (editingEnabled) {
+              // entire node is clickable if editing is disabled
+              push(linkTo)
+            }
           }}
         />
       ) : null}
