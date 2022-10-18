@@ -52,11 +52,12 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
       if (editingEnabled) {
-        if (actionKeyPressed && !shiftKeyPressed && e.key === 'z' && undo) {
-          undo()
-        }
-        if (actionKeyPressed && shiftKeyPressed && e.key === 'z' && redo) {
-          redo()
+        if (actionKeyPressed) {
+          if (!shiftKeyPressed && e.key === 'z' && undo) {
+            undo()
+          } else if (shiftKeyPressed && e.key === 'z' && redo) {
+            redo()
+          }
         }
       } else {
         // zoom with action + arrow up / down, to match scroll pad behavior
