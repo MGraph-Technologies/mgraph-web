@@ -1,4 +1,3 @@
-import router from 'next/router'
 import React, {
   FunctionComponent,
   MouseEvent as ReactMouseEvent,
@@ -46,7 +45,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     updateGraph,
     getConnectedObjects,
   } = useGraph()
-  const { actionKey, actionKeyPressed, shiftKeyPressed, push } = useBrowser()
+  const { actionKey, actionKeyPressed, altKeyPressed, shiftKeyPressed, push } =
+    useBrowser()
   const reactFlowInstance = useReactFlow()
 
   useEffect(() => {
@@ -183,7 +183,17 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     (nodeOrEdge: Node | Edge) => {
       // clicking metric nodes opens metric detail when !editingEnabled
       if (nodeOrEdge.type === 'metric' && !editingEnabled) {
-        push(`${organizationName}/metrics/${nodeOrEdge.id}`)
+        if (altKeyPressed) {
+          const metricNode = nodeOrEdge as Node
+          reactFlowInstance.fitBounds({
+            x: metricNode.position.x,
+            y: metricNode.position.y,
+            width: metricNode.width!,
+            height: metricNode.height!,
+          })
+        } else {
+          push(`${organizationName}/metrics/${nodeOrEdge.id}`)
+        }
       }
       // selecting any function node or input edge highlights all connected others
       // right now this essentially insures that an editor can't partially delete a formula
@@ -240,6 +250,8 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     },
     [
       editingEnabled,
+      altKeyPressed,
+      reactFlowInstance,
       organizationName,
       push,
       getConnectedObjects,

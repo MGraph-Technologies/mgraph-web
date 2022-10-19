@@ -11,6 +11,7 @@ import {
 type BrowserContextType = {
   actionKey: string
   actionKeyPressed: boolean
+  altKeyPressed: boolean
   shiftKeyPressed: boolean
   push: (path: string) => void
 }
@@ -18,6 +19,7 @@ type BrowserContextType = {
 const browserContextDefaultValues: BrowserContextType = {
   actionKey: 'Meta',
   actionKeyPressed: false,
+  altKeyPressed: false,
   shiftKeyPressed: false,
   push: (path: string) => router.push(path),
 }
@@ -41,12 +43,15 @@ export function BrowserProvider({ children }: BrowserProps) {
     setActionKey(navigator.platform.match(/Mac/i) ? 'Meta' : 'Control')
   }, [])
   const [actionKeyPressed, setActionKeyPressed] = useState(false)
+  const [altKeyPressed, setAltKeyPressed] = useState(false)
   const [shiftKeyPressed, setShiftKeyPressed] = useState(false)
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
       if (e.key === actionKey) {
         setActionKeyPressed(true)
+      } else if (e.key === 'Alt') {
+        setAltKeyPressed(true)
       } else if (e.key === 'Shift') {
         setShiftKeyPressed(true)
       }
@@ -62,6 +67,8 @@ export function BrowserProvider({ children }: BrowserProps) {
     const keyUpHandler = (e: KeyboardEvent) => {
       if (e.key === actionKey) {
         setActionKeyPressed(false)
+      } else if (e.key === 'Alt') {
+        setAltKeyPressed(false)
       } else if (e.key === 'Shift') {
         setShiftKeyPressed(false)
       }
@@ -81,6 +88,7 @@ export function BrowserProvider({ children }: BrowserProps) {
       } else if (actionKey === 'Control') {
         setActionKeyPressed(e.ctrlKey)
       }
+      setAltKeyPressed(e.altKey)
       setShiftKeyPressed(e.shiftKey)
     }
     document.addEventListener('mousemove', mouseMoveHandler)
@@ -103,7 +111,13 @@ export function BrowserProvider({ children }: BrowserProps) {
     [actionKeyPressed, shiftKeyPressed]
   )
 
-  const value = { actionKey, actionKeyPressed, shiftKeyPressed, push }
+  const value = {
+    actionKey,
+    actionKeyPressed,
+    altKeyPressed,
+    shiftKeyPressed,
+    push,
+  }
   return (
     <>
       <BrowserContext.Provider value={value}>
