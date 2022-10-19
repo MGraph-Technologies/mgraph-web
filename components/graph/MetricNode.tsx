@@ -142,7 +142,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
             onChange={(e) => setName(e.target.value)}
             onSave={saveName}
           />
-          <NodeInfoButton nodeData={data} />
+          {!editingEnabled && <NodeInfoButton nodeData={data} />}
         </div>
         <div className={styles.buttons}>
           <NodeMenu
