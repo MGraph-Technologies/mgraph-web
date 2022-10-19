@@ -13,14 +13,17 @@ describe('App landing page, authenticated as member of enabled org', () => {
     )
   })
 
-  it('Visits the app landing page and is redirected to graphviewer', () => {
+  it('Visits the app landing page, is redirected to graphviewer, and sees full help menu', () => {
     cy.visit('/')
     cy.url().should('include', '/mgraph')
+    cy.get('[id="help-menu"]').click()
+    cy.get('[class=p-menuitem]').contains('Contact Us').should('be.visible')
+    cy.get('[class=p-menuitem]').contains('Runbook').should('be.visible')
   })
 
   it('Visits the app landing page, logs out, and is redirected', () => {
     cy.visit('/')
-    cy.get('[class*=Header_account_menu_container]').click()
+    cy.get('[id=account-menu]').click()
     cy.get('[class=p-menuitem]').contains('Sign Out').click()
     cy.location('pathname').should('eq', '/')
   })
@@ -37,9 +40,12 @@ describe('App landing page, authenticated as member of disabled org', () => {
     )
   })
 
-  it('Visits the app landing page and is redirected to coming_soon', () => {
+  it('Visits the app landing page, is redirected to coming_soon, and sees help menu without runbook', () => {
     cy.visit('/')
     cy.url().should('include', '/coming-soon')
+    cy.get('[id="help-menu"]').click()
+    cy.get('[class=p-menuitem]').contains('Contact Us').should('be.visible')
+    cy.get('[class=p-menuitem]').contains('Runbook').should('not.exist')
   })
 })
 
@@ -95,21 +101,21 @@ describe('Graphviewer viewing as admin', () => {
 
   it('Clicks through to access management page', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=Header_account_menu_container]').click()
+    cy.get('[id=account-menu]').click()
     cy.get('[class=p-menuitem]').contains('Access Management').click()
     cy.url().should('include', '/access-management')
   })
 
   it('Clicks through to database connections page', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=Header_account_menu_container]').click()
+    cy.get('[id=account-menu]').click()
     cy.get('[class=p-menuitem]').contains('Database Connections').click()
     cy.url().should('include', '/database-connections')
   })
 
   it('Clicks through to refresh jobs page', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=Header_account_menu_container]').click()
+    cy.get('[id=account-menu]').click()
     cy.get('[class=p-menuitem]').contains('Refresh Jobs').click()
     cy.url().should('include', '/refresh-jobs')
   })

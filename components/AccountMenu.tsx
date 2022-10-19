@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { Avatar } from 'primereact/avatar'
+import { Button } from 'primereact/button'
 import { Menu } from 'primereact/menu'
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
 
@@ -15,6 +16,7 @@ type Props = {}
 const AccountMenu: FunctionComponent<Props> = () => {
   const {
     session,
+    organizationEnabled,
     organizationName,
     organizationLogoStoragePath,
     userIsAdmin,
@@ -35,6 +37,23 @@ const AccountMenu: FunctionComponent<Props> = () => {
     supabase.auth.signOut()
     analytics.track('logout')
     router.push('/')
+  }
+
+  const helpMenu = useRef<Menu>(null)
+  let helpMenuItems = []
+  helpMenuItems = [
+    {
+      label: 'Contact Us',
+      icon: 'pi pi-envelope',
+      command: () => window.open('mailto:support@mgraph.us'),
+    },
+  ]
+  if (organizationEnabled) {
+    helpMenuItems.push({
+      label: 'Runbook',
+      icon: 'pi pi-fw pi-book',
+      command: () => window.open('https://runbook.mgraph.us', '_blank'),
+    })
   }
 
   const overlayMenu = useRef<Menu>(null)
@@ -96,8 +115,16 @@ const AccountMenu: FunctionComponent<Props> = () => {
           <div className={styles.vertical_line} />
         </>
       ) : null}
+      <Menu model={helpMenuItems} popup ref={helpMenu} />
+      <Button
+        id="help-menu"
+        className="p-button-rounded p-button-small p-button-text"
+        icon="pi pi-question-circle"
+        onClick={(event) => helpMenu.current?.toggle(event)}
+      />
       <Menu model={overlayMenuItems} popup ref={overlayMenu} />
       <Avatar
+        id="account-menu"
         label={avatarChar}
         onClick={(event) => overlayMenu.current?.toggle(event)}
       />
