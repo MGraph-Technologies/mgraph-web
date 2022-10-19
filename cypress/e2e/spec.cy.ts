@@ -101,21 +101,21 @@ describe('Graphviewer viewing as admin', () => {
 
   it('Clicks through to access management page', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=Header_account_menu_container]').click()
+    cy.get('[id=account-menu]').click()
     cy.get('[class=p-menuitem]').contains('Access Management').click()
     cy.url().should('include', '/access-management')
   })
 
   it('Clicks through to database connections page', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=Header_account_menu_container]').click()
+    cy.get('[id=account-menu]').click()
     cy.get('[class=p-menuitem]').contains('Database Connections').click()
     cy.url().should('include', '/database-connections')
   })
 
   it('Clicks through to refresh jobs page', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=Header_account_menu_container]').click()
+    cy.get('[id=account-menu]').click()
     cy.get('[class=p-menuitem]').contains('Refresh Jobs').click()
     cy.url().should('include', '/refresh-jobs')
   })
