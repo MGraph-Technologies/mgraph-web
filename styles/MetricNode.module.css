@@ -20,6 +20,8 @@
   top: 50%;
   transform: translateY(-50%);
   left: 0px;
+  display: flex;
+  flex-direction: row;
 }
 
 .metric_node .header .buttons {

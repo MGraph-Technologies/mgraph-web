@@ -1,4 +1,5 @@
 import router from 'next/router'
+import { Button } from 'primereact/button'
 import React, {
   FunctionComponent,
   useCallback,
@@ -140,6 +141,18 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
             onChange={(e) => setName(e.target.value)}
             onSave={saveName}
           />
+          {data.description && (
+            <Button
+              icon="pi pi-info-circle"
+              className="p-button-rounded p-button-sm p-button-text"
+              tooltip={`Description: ${data.description}
+              \nOwner: ${data.owner}`}
+              tooltipOptions={{
+                position: 'right',
+                style: { width: '500px' },
+              }}
+            />
+          )}
         </div>
         <div className={styles.buttons}>
           <NodeMenu
