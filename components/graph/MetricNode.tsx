@@ -17,6 +17,7 @@ import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
 import LineChart from '../LineChart'
 import QueryRunner, { QueryResult } from '../QueryRunner'
+import NodeInfoButton from './NodeInfoButton'
 import NodeMenu from './NodeMenu'
 
 export type MetricNodeProperties = {
@@ -141,18 +142,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
             onChange={(e) => setName(e.target.value)}
             onSave={saveName}
           />
-          {data.description && (
-            <Button
-              icon="pi pi-info-circle"
-              className="p-button-rounded p-button-sm p-button-text"
-              tooltip={`Description: ${data.description}
-              \nOwner: ${data.owner}`}
-              tooltipOptions={{
-                position: 'right',
-                style: { width: '500px' },
-              }}
-            />
-          )}
+          <NodeInfoButton nodeData={data} />
         </div>
         <div className={styles.buttons}>
           <NodeMenu

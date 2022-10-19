@@ -17,6 +17,7 @@ import { analytics } from '../../utils/segmentClient'
 import LineChart from '../LineChart'
 import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
+import NodeInfoButton from './NodeInfoButton'
 
 type GraphTableProps = {}
 const GraphTable: FunctionComponent<GraphTableProps> = () => {
@@ -81,24 +82,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
   }, [])
 
   const infoCellBodyTemplate = useCallback((rowData: any) => {
-    return (
-      <Button
-        id="link-to-detail-button"
-        className="p-button-text p-button-lg"
-        icon="pi pi-info-circle"
-        tooltip={`Description: ${rowData.data.description}
-          \nOwner: ${rowData.data.owner}`}
-        tooltipOptions={{
-          position: 'left',
-          style: { width: '500px' },
-        }}
-        onMouseEnter={(e) => {
-          analytics.track('view_tooltip', {
-            nodeId: rowData.data.id,
-          })
-        }}
-      />
-    )
+    return <NodeInfoButton nodeData={rowData.data} />
   }, [])
 
   const linkCellBodyTemplate = useCallback(
