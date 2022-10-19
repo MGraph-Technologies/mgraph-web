@@ -191,6 +191,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
             width: metricNode.width!,
             height: metricNode.height!,
           })
+          analytics.track('snap_to_metric_node', {
+            node_id: metricNode.id,
+          })
         } else {
           push(`${organizationName}/metrics/${nodeOrEdge.id}`)
         }
