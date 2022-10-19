@@ -56,7 +56,7 @@ export function BrowserProvider({ children }: BrowserProps) {
     return () => {
       document.removeEventListener('keydown', keyDownHandler)
     }
-  }, [actionKey, actionKeyPressed])
+  }, [actionKey])
 
   useEffect(() => {
     const keyUpHandler = (e: KeyboardEvent) => {
@@ -71,7 +71,24 @@ export function BrowserProvider({ children }: BrowserProps) {
     return () => {
       document.removeEventListener('keyup', keyUpHandler)
     }
-  }, [actionKey, actionKeyPressed])
+  }, [actionKey])
+
+  // avoid keyup detection failure after user action-tab switches windows
+  useEffect(() => {
+    const mouseMoveHandler = (e: MouseEvent) => {
+      if (actionKey === 'Meta') {
+        setActionKeyPressed(e.metaKey)
+      } else if (actionKey === 'Control') {
+        setActionKeyPressed(e.ctrlKey)
+      }
+      setShiftKeyPressed(e.shiftKey)
+    }
+    document.addEventListener('mousemove', mouseMoveHandler)
+    // clean up
+    return () => {
+      document.removeEventListener('mousemove', mouseMoveHandler)
+    }
+  }, [actionKey])
 
   // this feels like a util, but AFAICT it's not possible to use context in a util
   // so I'm putting it here for now
