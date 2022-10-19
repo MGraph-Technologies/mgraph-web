@@ -1,4 +1,5 @@
 import router from 'next/router'
+import { Button } from 'primereact/button'
 import React, {
   FunctionComponent,
   useCallback,
@@ -16,6 +17,7 @@ import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
 import LineChart from '../LineChart'
 import QueryRunner, { QueryResult } from '../QueryRunner'
+import NodeInfoButton from './NodeInfoButton'
 import NodeMenu from './NodeMenu'
 
 export type MetricNodeProperties = {
@@ -140,6 +142,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
             onChange={(e) => setName(e.target.value)}
             onSave={saveName}
           />
+          <NodeInfoButton nodeData={data} />
         </div>
         <div className={styles.buttons}>
           <NodeMenu
