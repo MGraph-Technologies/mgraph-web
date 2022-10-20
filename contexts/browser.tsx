@@ -13,6 +13,7 @@ type BrowserContextType = {
   actionKeyPressed: boolean
   altKeyPressed: boolean
   shiftKeyPressed: boolean
+  inputInProgress: boolean
   push: (path: string) => void
 }
 
@@ -21,6 +22,7 @@ const browserContextDefaultValues: BrowserContextType = {
   actionKeyPressed: false,
   altKeyPressed: false,
   shiftKeyPressed: false,
+  inputInProgress: false,
   push: (path: string) => router.push(path),
 }
 
@@ -45,6 +47,7 @@ export function BrowserProvider({ children }: BrowserProps) {
   const [actionKeyPressed, setActionKeyPressed] = useState(false)
   const [altKeyPressed, setAltKeyPressed] = useState(false)
   const [shiftKeyPressed, setShiftKeyPressed] = useState(false)
+  const [inputInProgress, setInputInProgress] = useState(false)
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
@@ -79,6 +82,26 @@ export function BrowserProvider({ children }: BrowserProps) {
       document.removeEventListener('keyup', keyUpHandler)
     }
   }, [actionKey])
+
+  useEffect(() => {
+    const inputHandler = (e: Event) => {
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        if (e.type === 'focusin') {
+          setInputInProgress(true)
+        } else if (e.type === 'focusout') {
+          setInputInProgress(false)
+        }
+      }
+    }
+    document.addEventListener('focusin', inputHandler)
+    document.addEventListener('focusout', inputHandler)
+    // clean up
+    return () => {
+      document.removeEventListener('focusin', inputHandler)
+      document.removeEventListener('focusout', inputHandler)
+    }
+  }, [])
 
   // avoid keyup detection failure after user action-tab switches windows
   useEffect(() => {
@@ -116,6 +139,7 @@ export function BrowserProvider({ children }: BrowserProps) {
     actionKeyPressed,
     altKeyPressed,
     shiftKeyPressed,
+    inputInProgress,
     push,
   }
   return (

@@ -45,8 +45,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     updateGraph,
     getConnectedObjects,
   } = useGraph()
-  const { actionKey, actionKeyPressed, altKeyPressed, shiftKeyPressed, push } =
-    useBrowser()
+  const {
+    actionKey,
+    actionKeyPressed,
+    altKeyPressed,
+    inputInProgress,
+    shiftKeyPressed,
+    push,
+  } = useBrowser()
   const reactFlowInstance = useReactFlow()
 
   useEffect(() => {
@@ -60,12 +66,15 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
           }
         }
       } else {
+        if (inputInProgress) {
+          return
+        }
         // zoom with action + arrow up / down, to match scroll pad behavior
         if (actionKeyPressed) {
           if (e.key === 'ArrowUp') {
-            reactFlowInstance!.zoomOut()
-          } else if (e.key === 'ArrowDown') {
             reactFlowInstance!.zoomIn()
+          } else if (e.key === 'ArrowDown') {
+            reactFlowInstance!.zoomOut()
           }
         } else {
           // move with arrow keys / WASD
@@ -123,6 +132,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     shiftKeyPressed,
     undo,
     redo,
+    inputInProgress,
     reactFlowInstance,
     reactFlowViewport,
   ])
