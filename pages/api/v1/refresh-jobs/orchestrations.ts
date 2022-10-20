@@ -70,7 +70,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           console.log(
             `\nRefresh job run ${run.id} is pending notification. Sending to finisher...`
           )
-          fetch(
+          const finisherRespPromise = fetch(
             process.env.APP_BASE_URL +
               `/api/v1/refresh-jobs/${run.refresh_job_id}/runs/${run.id}`,
             {
@@ -81,6 +81,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               },
             }
           )
+          console.log(`\nFinisher promise for refresh job run ${run.id}: `, finisherRespPromise)
         })
       }
     } catch (error: any) {
@@ -135,7 +136,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               console.log(
                 `\nRefresh job ${refreshJob.id} is scheduled to run this minute. Sending to initiator...`
               )
-              fetch(
+              const initiatorRespPromise = fetch(
                 process.env.APP_BASE_URL +
                   `/api/v1/refresh-jobs/${refreshJob.id}`,
                 {
@@ -146,6 +147,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                   },
                 }
               )
+              console.log(`\nInitiator promise for refresh job ${refreshJob.id}: `, initiatorRespPromise)
             }
           }
         })
