@@ -43,6 +43,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     globalQueryRefreshes,
     setGlobalQueryRefreshes,
     setQueriesLoading,
+    queriesToCancel,
+    setQueriesToCancel,
     queryParameters,
   } = useGraph()
   const [queryId, setQueryId] = useState('')
@@ -67,7 +69,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
     const accessToken = session?.access_token
-    if (accessToken && databaseConnectionId && parentNodeId && statement) {
+    if (accessToken && parentNodeId && databaseConnectionId && statement) {
       try {
         let queryId = await getLatestQueryId(
           parameterizeStatement(statement, queryParameters),
@@ -103,6 +105,27 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     getQueryId()
   }, [getQueryId])
 
+  const cancelQuery = useCallback(async () => {
+    if (getQueryResultComplete) {
+      return
+    }
+    const accessToken = session?.access_token
+    if (accessToken && queryId) {
+      fetch('/api/v1/database-queries/' + queryId + '/cancel', {
+        method: 'POST',
+        headers: {
+          'supabase-access-token': accessToken,
+        },
+      })
+    }
+  }, [getQueryResultComplete, session?.access_token, queryId])
+  useEffect(() => {
+    if (queriesToCancel?.includes(parentNodeId)) {
+      cancelQuery()
+      setQueriesToCancel!(queriesToCancel.filter((id) => id !== parentNodeId))
+    }
+  }, [queriesToCancel, setQueriesToCancel, parentNodeId, cancelQuery])
+
   const getQueryResult = useCallback(async () => {
     if (getQueryResultComplete) {
       return
@@ -116,7 +139,6 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         },
       })
         .then((response) => {
-          setGetQueryResultComplete(true)
           if (response.status === 200) {
             response.json().then((data) => {
               setQueryResult({
@@ -127,6 +149,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
                   executedAt: data.executedAt,
                 },
               })
+              setGetQueryResultComplete(true)
             })
           } else if (response.status === 202) {
             setQueryResult({
@@ -141,6 +164,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
               status: 'expired',
               data: null,
             })
+            setGetQueryResultComplete(true)
           } else {
             response.json().then((data) => {
               setQueryResult({
@@ -149,6 +173,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
                   error: data.error,
                 },
               })
+              setGetQueryResultComplete(true)
             })
           }
         })
@@ -184,9 +209,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         .then((response) => {
           if (response.status === 200) {
             response.json().then((data) => {
-              setGetQueryIdComplete(false)
-              setGetQueryResultComplete(false)
               setQueryId(data.queryId)
+              setGetQueryResultComplete(false)
             })
           } else {
             throw new Error(response.statusText)
@@ -203,8 +227,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
   }, [
     session?.access_token,
-    databaseConnectionId,
     parentNodeId,
+    databaseConnectionId,
     statement,
     queryParameters,
     setQueryResult,
