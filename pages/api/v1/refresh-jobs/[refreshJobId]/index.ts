@@ -72,17 +72,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             queryParameters
           )
           console.log(`\nExecuting query for node ${node.id}...`)
-          fetch(process.env.APP_BASE_URL + '/api/v1/database-queries', {
-            method: 'POST',
-            body: JSON.stringify({
-              databaseConnectionId: databaseConnectionId,
-              parentNodeId: node.id,
-              statement: parameterizedStatement,
-            }),
-            headers: {
-              'supabase-access-token': supabaseServiceRoleKey,
-            },
-          })
+          const queryResp = await fetch(
+            process.env.APP_BASE_URL + '/api/v1/database-queries',
+            {
+              method: 'POST',
+              body: JSON.stringify({
+                databaseConnectionId: databaseConnectionId,
+                parentNodeId: node.id,
+                statement: parameterizedStatement,
+              }),
+              headers: {
+                'supabase-access-token': supabaseServiceRoleKey,
+              },
+            }
+          )
+          console.log(
+            `\nQuery for node ${node.id} executed, status: ${queryResp.status}`
+          )
         }
       })
 
