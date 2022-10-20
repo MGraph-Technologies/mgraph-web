@@ -72,9 +72,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         // zoom with action + arrow up / down, to match scroll pad behavior
         if (actionKeyPressed) {
           if (e.key === 'ArrowUp') {
-            reactFlowInstance!.zoomOut()
-          } else if (e.key === 'ArrowDown') {
             reactFlowInstance!.zoomIn()
+          } else if (e.key === 'ArrowDown') {
+            reactFlowInstance!.zoomOut()
           }
         } else {
           // move with arrow keys / WASD
