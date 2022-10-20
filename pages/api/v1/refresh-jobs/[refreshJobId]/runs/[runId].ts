@@ -91,7 +91,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             console.log(
               `\nGetting query status for query id ${latestQueryId}...`
             )
-            const queryResult = await fetch(
+            const queryResultResp = await fetch(
               process.env.APP_BASE_URL +
                 `/api/v1/database-queries/${latestQueryId}/results`,
               {
@@ -102,7 +102,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 },
               }
             )
-            const queryStatus = queryResult.status
+            const queryStatus = queryResultResp.status
             console.log(
               `\nQuery status for query id ${latestQueryId}: ${queryStatus}`
             )
