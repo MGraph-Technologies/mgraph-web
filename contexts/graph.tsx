@@ -111,6 +111,8 @@ type GraphContextType = {
   /* ^would prefer to use a Set here, but that doesn't work with useState
     https://stackoverflow.com/questions/58806883/how-to-use-set-with-reacts-usestate */
   setQueriesLoading: Dispatch<SetStateAction<Array<string>>> | undefined
+  queriesToCancel: Array<string>
+  setQueriesToCancel: Dispatch<SetStateAction<Array<string>>> | undefined
   queryParameters: QueryParameters
   initializeQueryParameter: ((name: string) => void) | undefined
   resetQueryParameterUserValue: ((name: string) => Promise<void>) | undefined
@@ -155,6 +157,8 @@ const graphContextDefaultValues: GraphContextType = {
   setGlobalQueryRefreshes: undefined,
   queriesLoading: [] as string[],
   setQueriesLoading: undefined,
+  queriesToCancel: [] as string[],
+  setQueriesToCancel: undefined,
   queryParameters: {},
   initializeQueryParameter: undefined,
   resetQueryParameterUserValue: undefined,
@@ -717,6 +721,7 @@ export function GraphProvider({ children }: GraphProps) {
 
   const [globalQueryRefreshes, setGlobalQueryRefreshes] = useState(0)
   const [queriesLoading, setQueriesLoading] = useState([] as string[])
+  const [queriesToCancel, setQueriesToCancel] = useState([] as string[])
 
   const [queryParameters, setQueryParameters] = useState<QueryParameters>({})
 
@@ -883,6 +888,8 @@ export function GraphProvider({ children }: GraphProps) {
     setGlobalQueryRefreshes: setGlobalQueryRefreshes,
     queriesLoading: queriesLoading,
     setQueriesLoading: setQueriesLoading,
+    queriesToCancel: queriesToCancel,
+    setQueriesToCancel: setQueriesToCancel,
     queryParameters: queryParameters,
     initializeQueryParameter: initializeQueryParameter,
     resetQueryParameterUserValue: resetQueryParameterUserValue,

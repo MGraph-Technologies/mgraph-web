@@ -43,6 +43,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     globalQueryRefreshes,
     setGlobalQueryRefreshes,
     setQueriesLoading,
+    queriesToCancel,
+    setQueriesToCancel,
     queryParameters,
   } = useGraph()
   const [queryId, setQueryId] = useState('')
@@ -102,6 +104,27 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   useEffect(() => {
     getQueryId()
   }, [getQueryId])
+
+  const cancelQuery = useCallback(async () => {
+    if (getQueryResultComplete) {
+      return
+    }
+    const accessToken = session?.access_token
+    if (accessToken && queryId) {
+      fetch('/api/v1/database-queries/' + queryId + '/cancel', {
+        method: 'POST',
+        headers: {
+          'supabase-access-token': accessToken,
+        },
+      })
+    }
+  }, [getQueryResultComplete, session?.access_token, queryId])
+  useEffect(() => {
+    if (queriesToCancel?.includes(parentNodeId)) {
+      cancelQuery()
+      setQueriesToCancel!(queriesToCancel.filter((id) => id !== parentNodeId))
+    }
+  }, [queriesToCancel, setQueriesToCancel, parentNodeId, cancelQuery])
 
   const getQueryResult = useCallback(async () => {
     if (getQueryResultComplete) {

@@ -29,6 +29,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     globalQueryRefreshes,
     setGlobalQueryRefreshes,
     queriesLoading,
+    setQueriesToCancel,
     queryParameters,
     initializeQueryParameter,
     resetQueryParameterUserValue,
@@ -131,38 +132,56 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   } else {
     return (
       <div className={styles.control_panel}>
-        {graph.nodes.length === 0 ? null : graphLoading ||
-          queriesLoading.length > 0 ? (
-          <Button
-            id="graph-loading-indicator-button"
-            className={styles.button}
-            icon="pi pi-refresh"
-            loading
-          />
-        ) : (
-          <>
-            <Button
-              id="query-settings-button"
-              className={styles.button}
-              icon="pi pi-sliders-h"
-              onClick={(event) => {
-                analytics.track('view_query_settings')
-                overlayPanel.current?.toggle(event)
-              }}
-            />
-            <Button
-              id="global-query-refresh-button"
-              className={styles.button}
-              icon="pi pi-refresh"
-              onClick={() => {
-                if (setGlobalQueryRefreshes) {
-                  analytics.track('refresh_queries')
-                  setGlobalQueryRefreshes(globalQueryRefreshes + 1)
-                }
-              }}
-            />
-          </>
-        )}
+        {
+          // prettier-ignore
+          graph.nodes.length === 0 
+          ? null 
+          : graphLoading || queriesLoading.length > 0 ? (
+            <>
+              <Button
+                id="graph-loading-cancel-button"
+                className={`${styles.button} p-button-text`}
+                icon="pi pi-times-circle"
+                onClick={() => {
+                  if (queriesLoading) {
+                    setQueriesToCancel!(
+                      [...queriesLoading]
+                    )
+                  }
+                }}
+              />
+              <Button
+                id="graph-loading-indicator-button"
+                className={styles.button}
+                icon="pi pi-refresh"
+                loading
+              />
+            </>
+          ) : (
+            <>
+              <Button
+                id="query-settings-button"
+                className={styles.button}
+                icon="pi pi-sliders-h"
+                onClick={(event) => {
+                  analytics.track('view_query_settings')
+                  overlayPanel.current?.toggle(event)
+                }}
+              />
+              <Button
+                id="global-query-refresh-button"
+                className={styles.button}
+                icon="pi pi-refresh"
+                onClick={() => {
+                  if (setGlobalQueryRefreshes) {
+                    analytics.track('refresh_queries')
+                    setGlobalQueryRefreshes(globalQueryRefreshes + 1)
+                  }
+                }}
+              />
+            </>
+          )
+        }
         {showEditButton ? (
           <Button
             id="edit-button"
