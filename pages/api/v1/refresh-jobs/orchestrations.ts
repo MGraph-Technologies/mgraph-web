@@ -81,7 +81,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               },
             }
           )
-          console.log(`\nFinisher promise for refresh job run ${run.id}: `, finisherRespPromise)
+          console.log(
+            `\nFinisher promise for refresh job run ${run.id}: `,
+            finisherRespPromise
+          )
         })
       }
     } catch (error: any) {
@@ -147,7 +150,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                   },
                 }
               )
-              console.log(`\nInitiator promise for refresh job ${refreshJob.id}: `, initiatorRespPromise)
+              console.log(
+                `\nInitiator promise for refresh job ${refreshJob.id}: `,
+                initiatorRespPromise
+              )
             }
           }
         })
