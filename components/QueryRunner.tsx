@@ -116,7 +116,6 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         },
       })
         .then((response) => {
-          setGetQueryResultComplete(true)
           if (response.status === 200) {
             response.json().then((data) => {
               setQueryResult({
@@ -127,6 +126,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
                   executedAt: data.executedAt,
                 },
               })
+              setGetQueryResultComplete(true)
             })
           } else if (response.status === 202) {
             setQueryResult({
@@ -141,6 +141,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
               status: 'expired',
               data: null,
             })
+            setGetQueryResultComplete(true)
           } else {
             response.json().then((data) => {
               setQueryResult({
@@ -149,6 +150,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
                   error: data.error,
                 },
               })
+              setGetQueryResultComplete(true)
             })
           }
         })
