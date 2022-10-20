@@ -184,9 +184,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         .then((response) => {
           if (response.status === 200) {
             response.json().then((data) => {
-              setGetQueryIdComplete(false)
-              setGetQueryResultComplete(false)
               setQueryId(data.queryId)
+              setGetQueryResultComplete(false)
             })
           } else {
             throw new Error(response.statusText)
