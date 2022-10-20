@@ -164,7 +164,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
 
   const executeQuery = useCallback(async () => {
     const accessToken = session?.access_token
-    if (accessToken && parentNodeId && databaseConnectionId) {
+    if (accessToken && parentNodeId && databaseConnectionId && statement) {
       setQueryResult({
         status: 'processing',
         data: null,
