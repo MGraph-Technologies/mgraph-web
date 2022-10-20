@@ -67,7 +67,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
     const accessToken = session?.access_token
-    if (accessToken && databaseConnectionId && parentNodeId && statement) {
+    if (accessToken && parentNodeId && databaseConnectionId && statement) {
       try {
         let queryId = await getLatestQueryId(
           parameterizeStatement(statement, queryParameters),
@@ -202,8 +202,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
   }, [
     session?.access_token,
-    databaseConnectionId,
     parentNodeId,
+    databaseConnectionId,
     statement,
     queryParameters,
     setQueryResult,
