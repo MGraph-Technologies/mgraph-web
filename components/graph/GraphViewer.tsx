@@ -281,7 +281,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
        - firing analytic event only if no subsequent onMoveEnd
           fires within 100ms
        - saving reactFlowViewport only if no subsequent onMoveEnd
-          fires within 1s
+          fires within 500ms
       */
     const moveEndAt = Date.now()
     lastMoveEndAt = moveEndAt
@@ -307,7 +307,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
           setReactFlowViewport!(viewport)
         }
       },
-      1000,
+      500,
       moveEndAt
     )
   }
