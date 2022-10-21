@@ -81,23 +81,23 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
           const nudgeAmount = shiftKeyPressed ? 100 : 10
           if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
             reactFlowInstance.setViewport({
-              ...reactFlowViewport!,
-              y: reactFlowViewport!.y + nudgeAmount,
+              ...reactFlowInstance.getViewport()!,
+              y: reactFlowInstance.getViewport()!.y + nudgeAmount,
             })
           } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
             reactFlowInstance.setViewport({
-              ...reactFlowViewport!,
-              y: reactFlowViewport!.y - nudgeAmount,
+              ...reactFlowInstance.getViewport()!,
+              y: reactFlowInstance.getViewport()!.y - nudgeAmount,
             })
           } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
             reactFlowInstance.setViewport({
-              ...reactFlowViewport!,
-              x: reactFlowViewport!.x + nudgeAmount,
+              ...reactFlowInstance.getViewport()!,
+              x: reactFlowInstance.getViewport()!.x + nudgeAmount,
             })
           } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
             reactFlowInstance.setViewport({
-              ...reactFlowViewport!,
-              x: reactFlowViewport!.x - nudgeAmount,
+              ...reactFlowInstance.getViewport()!,
+              x: reactFlowInstance.getViewport()!.x - nudgeAmount,
             })
             // zoom with +/-  and i/o keys
           } else if (
@@ -275,13 +275,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
 
   let lastMoveEndAt = 0
   const onMoveEnd = (event: any, viewport: Viewport) => {
-    setReactFlowViewport!(viewport)
     /* 
-      fire change_graph_viewport analytics event
-      (since onMoveEnd fires continuously while scrolling,
-        below logic ensures analytic only fires if no subsequent
-        onMoveEnd fires within 100ms)
-    */
+      Since onMoveEnd fires continuously while scrolling,
+      below logic preserves performance by:
+       - firing analytic event only if no subsequent onMoveEnd
+          fires within 100ms
+       - saving reactFlowViewport only if no subsequent onMoveEnd
+          fires within 1s
+      */
     const moveEndAt = Date.now()
     lastMoveEndAt = moveEndAt
     setTimeout(
@@ -298,6 +299,15 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         }
       },
       100,
+      moveEndAt
+    )
+    setTimeout(
+      (onMoveEndAt) => {
+        if (onMoveEndAt === lastMoveEndAt) {
+          setReactFlowViewport!(viewport)
+        }
+      },
+      1000,
       moveEndAt
     )
   }
