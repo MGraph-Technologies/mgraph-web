@@ -128,18 +128,15 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   const [overlayPanelVisible, setOverlayPanelVisible] = useState(false)
   const [initialQueryParameters, setInitialQueryParameters] = useState<any>({})
   const refreshQueryIfParametersChanged = useCallback(() => {
-    const parameterChanged = Object.keys(queryParameters).some(
-      (key) => {
-        return (
-          queryParameters[key]?.userValue &&
-          initialQueryParameters[key]?.userValue &&
-          queryParameters[key].userValue !==
-            initialQueryParameters[key].userValue
-        )
-      }
-    )
+    const parameterChanged = Object.keys(queryParameters).some((key) => {
+      return (
+        queryParameters[key]?.userValue &&
+        initialQueryParameters[key]?.userValue &&
+        queryParameters[key].userValue !== initialQueryParameters[key].userValue
+      )
+    })
     if (parameterChanged) {
-      setGlobalQueryRefreshes!(prev => prev + 1)
+      setGlobalQueryRefreshes!((prev) => prev + 1)
     }
   }, [queryParameters, initialQueryParameters, setGlobalQueryRefreshes])
   useEffect(() => {
