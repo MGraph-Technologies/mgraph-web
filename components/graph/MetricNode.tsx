@@ -91,8 +91,10 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     const thisNode = graph.nodes.find((node) => node.id === data.id)
     if (!reactFlowViewport || !reactFlowRenderer || !thisNode) return
     const scale = 1 / reactFlowViewport.zoom
-    const clientWidthScaled = reactFlowRenderer.clientWidth * scale
-    const clientHeightScaled = reactFlowRenderer.clientHeight * scale
+    const clientWidth = reactFlowRenderer.clientWidth
+    const clientHeight = reactFlowRenderer.clientHeight
+    const clientWidthScaled = clientWidth * scale
+    const clientHeightScaled = clientHeight * scale
     const rendererXLower = -reactFlowViewport.x * scale
     const rendererXUpper = rendererXLower + clientWidthScaled
     const rendererYLower = -reactFlowViewport.y * scale
@@ -101,8 +103,8 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     const nodeXUpper = xPos + thisNode.width!
     const nodeYLower = yPos
     const nodeYUpper = yPos + thisNode.height!
-    const xBuffer = userOnMobile ? 0 : clientWidthScaled / 2
-    const yBuffer = userOnMobile ? 0 : clientHeightScaled / 2
+    const xBuffer = userOnMobile ? 0 : clientWidth
+    const yBuffer = userOnMobile ? 0 : clientHeight
     const minZoom = userOnMobile ? 0.2 : 0.1
     setRenderChart(
       nodeXLower < rendererXUpper + xBuffer &&
