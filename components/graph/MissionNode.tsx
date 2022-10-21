@@ -91,16 +91,21 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
       </div>
       <div className={styles.mission_container} ref={ref} style={{ fontSize }}>
         <EditTextarea
+          id="mission-field"
           value={mission}
           placeholder="Our mission is..."
           readonly={!editingEnabled}
           style={{
             height: '100%',
             width: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
             overflow: 'visible',
             overflowWrap: 'break-word',
             textAlign: 'center',
             fontWeight: 'bold',
+            backgroundColor: editingEnabled ? '#f8f8f8' : '#ffffff',
             visibility: resizeInProgess ? 'hidden' : 'visible',
           }}
           onChange={(e) => setMission(e.target.value)}
