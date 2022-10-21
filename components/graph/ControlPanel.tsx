@@ -125,7 +125,28 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   }
 
   const overlayPanel = useRef<OverlayPanel>(null)
+  const [overlayPanelVisible, setOverlayPanelVisible] = useState(false)
   const [initialQueryParameters, setInitialQueryParameters] = useState<any>({})
+  const refreshQueryIfParametersChanged = useCallback(() => {
+    const parameterChanged = Object.keys(queryParameters).some(
+      (key) => {
+        return (
+          queryParameters[key]?.userValue &&
+          initialQueryParameters[key]?.userValue &&
+          queryParameters[key].userValue !==
+            initialQueryParameters[key].userValue
+        )
+      }
+    )
+    if (parameterChanged) {
+      setGlobalQueryRefreshes!(prev => prev + 1)
+    }
+  }, [queryParameters, initialQueryParameters, setGlobalQueryRefreshes])
+  useEffect(() => {
+    if (!overlayPanelVisible) {
+      refreshQueryIfParametersChanged()
+    }
+  }, [overlayPanelVisible, refreshQueryIfParametersChanged])
 
   if (editingEnabled) {
     return null
@@ -198,19 +219,10 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
           ref={overlayPanel}
           onShow={() => {
             setInitialQueryParameters(queryParameters)
+            setOverlayPanelVisible(true)
           }}
           onHide={() => {
-            const parameterChanged = Object.keys(queryParameters).some(
-              (key) => {
-                return (
-                  queryParameters[key].userValue !==
-                  initialQueryParameters[key].userValue
-                )
-              }
-            )
-            if (parameterChanged) {
-              setGlobalQueryRefreshes!(globalQueryRefreshes + 1)
-            }
+            setOverlayPanelVisible(false)
           }}
         >
           <QueryParameterField titleCaseName="Beginning Date" />
