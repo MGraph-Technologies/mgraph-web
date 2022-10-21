@@ -1,3 +1,4 @@
+import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { OverlayPanel } from 'primereact/overlaypanel'
 import React, {
@@ -124,6 +125,18 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     )
   }
 
+  const [queryParameterUserValueInEffect, setQueryParameterUserValueInEffect] =
+    useState(false)
+  useEffect(() => {
+    setQueryParameterUserValueInEffect(
+      Object.keys(queryParameters).some(
+        (key) =>
+          queryParameters[key].userValue !==
+          queryParameters[key].orgDefaultValue
+      )
+    )
+  }, [queryParameters])
+
   const overlayPanel = useRef<OverlayPanel>(null)
   const [overlayPanelVisible, setOverlayPanelVisible] = useState(false)
   const [initialQueryParameters, setInitialQueryParameters] = useState<any>({})
@@ -179,13 +192,15 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
             <>
               <Button
                 id="query-settings-button"
-                className={styles.button}
+                className={`${styles.button} p-overlay-badge`}
                 icon="pi pi-sliders-h"
                 onClick={(event) => {
                   analytics.track('view_query_settings')
                   overlayPanel.current?.toggle(event)
                 }}
-              />
+              >
+                {queryParameterUserValueInEffect && <Badge severity="danger" />}
+              </Button>
               <Button
                 id="global-query-refresh-button"
                 className={styles.button}
