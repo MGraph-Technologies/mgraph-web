@@ -150,6 +150,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     })
     if (parameterChanged) {
       setGlobalQueryRefreshes!((prev) => prev + 1)
+      setInitialQueryParameters(queryParameters)
     }
   }, [queryParameters, initialQueryParameters, setGlobalQueryRefreshes])
   useEffect(() => {
