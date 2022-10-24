@@ -3,13 +3,16 @@ import React, {
   MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
+  useState,
 } from 'react'
 import ReactFlow, {
   Background,
   BackgroundVariant,
+  Connection,
   Controls,
   Edge,
   EdgeChange,
+  HandleType,
   MiniMap,
   Node,
   NodeChange,
@@ -43,6 +46,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     undo,
     redo,
     updateGraph,
+    setEdgeBeingUpdated,
     getConnectedObjects,
   } = useGraph()
   const {
@@ -189,6 +193,45 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     [updateGraph, graph.edges]
   )
 
+  const [edgeUpdateInProgress, setEdgeUpdateInProgress] = useState(false)
+  const onEdgeUpdateStart = useCallback(
+    (_event: React.MouseEvent, edge: Edge, handleType: HandleType) => {
+      setEdgeBeingUpdated!({ edge: edge, handleType: handleType })
+      setEdgeUpdateInProgress(true)
+    },
+    [setEdgeBeingUpdated, setEdgeUpdateInProgress]
+  )
+  const onEdgeUpdateEnd = useCallback(() => {
+    setEdgeBeingUpdated!(null)
+    setEdgeUpdateInProgress(false)
+  }, [setEdgeBeingUpdated, setEdgeUpdateInProgress])
+  const onEdgeUpdate = useCallback(
+    (oldEdge: Edge, newConnection: Connection) => {
+      if (!updateGraph) {
+        throw new Error('updateGraph not defined')
+      }
+      if (
+        !(
+          oldEdge.source === newConnection.source &&
+          oldEdge.target === newConnection.target
+        )
+      ) {
+        return // only allow same-source/target updates
+      }
+      const newEdge = {
+        ...oldEdge,
+        sourceHandle: newConnection.sourceHandle,
+        targetHandle: newConnection.targetHandle,
+      }
+      updateGraph(
+        'edges',
+        graph.edges.map((e) => (e.id === oldEdge.id ? newEdge : e)),
+        true
+      )
+    },
+    [updateGraph, graph.edges]
+  )
+
   const onSelect = useCallback(
     (nodeOrEdge: Node | Edge) => {
       // clicking metric nodes opens metric detail when !editingEnabled
@@ -322,11 +365,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         onNodeClick={(_event, node) => onSelect(node)}
         onNodesChange={onNodesChange}
         onEdgeClick={(_event, edge) => onSelect(edge)}
+        onEdgeUpdate={editingEnabled ? onEdgeUpdate : undefined}
+        onEdgeUpdateStart={editingEnabled ? onEdgeUpdateStart : undefined}
+        onEdgeUpdateEnd={editingEnabled ? onEdgeUpdateEnd : undefined}
         onEdgesChange={onEdgesChange}
         onNodeDragStart={onNodeDragStart}
         onMoveEnd={onMoveEnd}
         nodesDraggable={editingEnabled}
-        nodesConnectable={false}
+        nodesConnectable={edgeUpdateInProgress} // shows update preview while dragging
         snapToGrid={true}
         snapGrid={[16, 16]}
         panOnScroll={true}
