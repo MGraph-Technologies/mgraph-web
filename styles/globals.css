@@ -15,6 +15,13 @@ a {
   box-sizing: border-box;
 }
 
+/* align with highlight.js */
+.react-simple-code-editor-textarea {
+  padding: 1em !important;
+  font-size: 1em !important;
+  font-family: monospace !important;
+}
+
 @keyframes p-progress-spinner-color {
   100%,
   0% {
@@ -32,13 +39,11 @@ a {
   }
 }
 
-.p-paginator {
-  justify-content: right !important;
+/* prevent from blocking clicks on below items */
+.p-progress-spinner::before {
+  padding-top: 0 !important;
 }
 
-/* align with highlight.js */
-.react-simple-code-editor-textarea {
-  padding: 1em !important;
-  font-size: 1em !important;
-  font-family: monospace !important;
+.p-paginator {
+  justify-content: right !important;
 }
