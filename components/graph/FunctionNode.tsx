@@ -8,6 +8,7 @@ import { ColorResult } from 'react-color'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
 
+import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/FunctionNode.module.css'
 import { supabase } from '../../utils/supabaseClient'
 import NodeMenu from './NodeMenu'
@@ -59,7 +60,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
   data,
   selected,
 }) => {
-  const nodeHandleSize = '0px'
+  const { formNodeHandleStyle } = useGraph()
 
   const [symbol, setSymbol] = useState('')
   useEffect(() => {
@@ -104,81 +105,49 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
         type="source"
         id="top_source"
         position={Position.Top}
-        style={{
-          backgroundColor: 'Green',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'source', Position.Top)}
       />
       <Handle
         type="source"
         id="right_source"
         position={Position.Right}
-        style={{
-          backgroundColor: 'Green',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'source', Position.Right)}
       />
       <Handle
         type="source"
         id="bottom_source"
         position={Position.Bottom}
-        style={{
-          backgroundColor: 'Green',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'source', Position.Bottom)}
       />
       <Handle
         type="source"
         id="left_source"
         position={Position.Left}
-        style={{
-          backgroundColor: 'Green',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'source', Position.Left)}
       />
       <Handle
         type="target"
         id="top_target"
         position={Position.Top}
-        style={{
-          backgroundColor: 'Red',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'target', Position.Top)}
       />
       <Handle
         type="target"
         id="right_target"
         position={Position.Right}
-        style={{
-          backgroundColor: 'Red',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'target', Position.Right)}
       />
       <Handle
         type="target"
         id="bottom_target"
         position={Position.Bottom}
-        style={{
-          backgroundColor: 'Red',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'target', Position.Bottom)}
       />
       <Handle
         type="target"
         id="left_target"
         position={Position.Left}
-        style={{
-          backgroundColor: 'Red',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'target', Position.Left)}
       />
     </div>
   )

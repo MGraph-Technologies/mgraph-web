@@ -49,8 +49,8 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   const { organizationName } = router.query
   const { userOnMobile } = useAuth()
   const { editingEnabled } = useEditability()
-  const { graph, reactFlowRenderer, reactFlowViewport } = useGraph()
-  const nodeHandleSize = '0px'
+  const { graph, reactFlowRenderer, reactFlowViewport, formNodeHandleStyle } =
+    useGraph()
 
   const [name, setName] = useState('')
   useEffect(() => {
@@ -170,81 +170,49 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
         type="source"
         id="top_source"
         position={Position.Top}
-        style={{
-          backgroundColor: 'Green',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'source', Position.Top)}
       />
       <Handle
         type="source"
         id="right_source"
         position={Position.Right}
-        style={{
-          backgroundColor: 'Green',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'source', Position.Right)}
       />
       <Handle
         type="source"
         id="bottom_source"
         position={Position.Bottom}
-        style={{
-          backgroundColor: 'Green',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'source', Position.Bottom)}
       />
       <Handle
         type="source"
         id="left_source"
         position={Position.Left}
-        style={{
-          backgroundColor: 'Green',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'source', Position.Left)}
       />
       <Handle
         type="target"
         id="top_target"
         position={Position.Top}
-        style={{
-          backgroundColor: 'Red',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'target', Position.Top)}
       />
       <Handle
         type="target"
         id="right_target"
         position={Position.Right}
-        style={{
-          backgroundColor: 'Red',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'target', Position.Right)}
       />
       <Handle
         type="target"
         id="bottom_target"
         position={Position.Bottom}
-        style={{
-          backgroundColor: 'Red',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'target', Position.Bottom)}
       />
       <Handle
         type="target"
         id="left_target"
         position={Position.Left}
-        style={{
-          backgroundColor: 'Red',
-          width: nodeHandleSize,
-          height: nodeHandleSize,
-        }}
+        style={formNodeHandleStyle!(data.id, 'target', Position.Left)}
       />
     </div>
   )

@@ -8,7 +8,14 @@ import {
   useEffect,
   useState,
 } from 'react'
-import { Edge, Node, Viewport, XYPosition } from 'react-flow-renderer'
+import {
+  Edge,
+  HandleType,
+  Node,
+  Position,
+  Viewport,
+  XYPosition,
+} from 'react-flow-renderer'
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -29,6 +36,7 @@ import {
   initializeQueryParameters,
 } from '../utils/queryParameters'
 import { useAuth } from './auth'
+import { useEditability } from './editability'
 
 export const nodeTypes = {
   mission: MissionNode,
@@ -79,6 +87,16 @@ type GraphContextType = {
           | undefined
         >
       >
+    | undefined
+  setEdgeBeingUpdated:
+    | Dispatch<SetStateAction<{ edge: Edge; handleType: HandleType } | null>>
+    | undefined
+  formNodeHandleStyle:
+    | ((
+        nodeId: string,
+        handleType: HandleType,
+        handlePosition: Position
+      ) => React.CSSProperties)
     | undefined
   formMissionNode: (() => Node<any>) | undefined
   formMetricNode: (() => Node<any>) | undefined
@@ -147,6 +165,8 @@ const graphContextDefaultValues: GraphContextType = {
   saveGraph: undefined,
   updateGraph: undefined,
   setNodeDataToChange: undefined,
+  setEdgeBeingUpdated: undefined,
+  formNodeHandleStyle: undefined,
   formMissionNode: undefined,
   formMetricNode: undefined,
   formFunctionNode: undefined,
@@ -178,6 +198,7 @@ type GraphProps = {
 
 export function GraphProvider({ children }: GraphProps) {
   const { session, organizationId } = useAuth()
+  const { editingEnabled } = useEditability()
 
   const [initialGraph, setInitialGraph] = useState<Graph>({
     nodes: [],
@@ -363,6 +384,45 @@ export function GraphProvider({ children }: GraphProps) {
       setNodeDataToChange(undefined) // avoid infinite loop
     }
   }, [nodeDataToChange, setNodeDataToChange, updateGraph, graph.nodes])
+
+  const [edgeBeingUpdated, setEdgeBeingUpdated] = useState<{
+    edge: Edge
+    handleType: HandleType
+  } | null>(null)
+  const formNodeHandleStyle = useCallback(
+    (nodeId: string, handleType: HandleType, handlePosition: Position) => {
+      let handleSize = '0px'
+      if (editingEnabled) {
+        if (edgeBeingUpdated) {
+          const handleEligibleForConnection =
+            handleType !== edgeBeingUpdated?.handleType &&
+            edgeBeingUpdated?.edge[handleType] === nodeId
+          if (handleEligibleForConnection) {
+            handleSize = '24px'
+          }
+        } else {
+          const handleIsConnected = graph.edges.some((edge) => {
+            return (
+              edge[handleType] === nodeId &&
+              edge[(handleType + 'Handle') as keyof Edge]?.startsWith(
+                handlePosition
+              )
+            )
+          })
+          if (handleIsConnected) {
+            handleSize = '12px'
+          }
+        }
+      }
+      const handleColor = handleType === 'source' ? 'green' : 'red'
+      return {
+        width: handleSize,
+        height: handleSize,
+        backgroundColor: handleColor,
+      } as React.CSSProperties
+    },
+    [editingEnabled, edgeBeingUpdated, graph.edges]
+  )
 
   const formMissionNode = useCallback(() => {
     const newNodeType = 'mission'
@@ -878,6 +938,8 @@ export function GraphProvider({ children }: GraphProps) {
     saveGraph: saveGraph,
     updateGraph: updateGraph,
     setNodeDataToChange: setNodeDataToChange,
+    setEdgeBeingUpdated: setEdgeBeingUpdated,
+    formNodeHandleStyle: formNodeHandleStyle,
     formMissionNode: formMissionNode,
     formMetricNode: formMetricNode,
     formFunctionNode: formFunctionNode,

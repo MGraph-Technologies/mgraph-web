@@ -70,13 +70,13 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <AuthProvider>
-      <GraphProvider>
+      <BrowserProvider>
         <EditabilityProvider>
-          <BrowserProvider>
+          <GraphProvider>
             <Component {...pageProps} />
-          </BrowserProvider>
+          </GraphProvider>
         </EditabilityProvider>
-      </GraphProvider>
+      </BrowserProvider>
     </AuthProvider>
   )
 }
