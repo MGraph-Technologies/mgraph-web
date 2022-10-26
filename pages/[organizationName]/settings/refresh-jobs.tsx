@@ -10,6 +10,7 @@ import React, {
   useEffect,
   useState,
 } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
 import Workspace from '../../../components/Workspace'
 import { useAuth } from '../../../contexts/auth'
@@ -21,13 +22,17 @@ type RefreshJobsProps = {}
 const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
   const { organizationId } = useAuth()
 
-  const [showNewJobPopup, setShowNewJobPopup] = useState(false)
-  const [newJobSchedule, setNewJobSchedule] = useState<string>('')
-  const [newJobSlackTo, setNewJobSlackTo] = useState<string>('')
+  const [showUpsertJobPopup, setShowUpsertJobPopup] = useState(false)
+  const [upsertJobId, setUpsertJobId] = useState<string>('')
+  const [upsertJobSchedule, setUpsertJobSchedule] = useState<string>('')
+  const [upsertJobSlackTo, setUpsertJobSlackTo] = useState<string>('')
+  const [upsertJobIsNew, setUpsertJobIsNew] = useState(true)
 
   const clearFields = useCallback(() => {
-    setNewJobSchedule('')
-    setNewJobSlackTo('')
+    setUpsertJobId('')
+    setUpsertJobSchedule('')
+    setUpsertJobSlackTo('')
+    setUpsertJobIsNew(true)
   }, [])
 
   type NewRefreshJobFieldProps = {
@@ -108,33 +113,47 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
     setRefreshJobsTableFirst(e.first)
   }
 
-  const deleteCellBodyTemplate = useCallback(
+  const editCellBodyTemplate = useCallback(
     (rowData: any) => {
       return (
-        <Button
-          id="delete-refresh-job-button"
-          className="p-button-text p-button-lg"
-          icon="pi pi-trash"
-          onClick={async () => {
-            try {
-              let { data, error, status } = await supabase
-                .from('refresh_jobs')
-                .update({ deleted_at: new Date() })
-                .eq('id', rowData.id)
+        <>
+          <Button
+            id="edit-refresh-job-button"
+            className="p-button-text p-button-lg"
+            icon="pi pi-pencil"
+            onClick={() => {
+              setUpsertJobId(rowData.id)
+              setUpsertJobSchedule(rowData.schedule)
+              setUpsertJobSlackTo(rowData.slack_to)
+              setUpsertJobIsNew(false)
+              setShowUpsertJobPopup(true)
+            }}
+          />
+          <Button
+            id="delete-refresh-job-button"
+            className="p-button-text p-button-lg"
+            icon="pi pi-trash"
+            onClick={async () => {
+              try {
+                let { data, error, status } = await supabase
+                  .from('refresh_jobs')
+                  .update({ deleted_at: new Date() })
+                  .eq('id', rowData.id)
 
-              if (error) {
-                throw error
-              } else if (data) {
-                analytics.track('delete_refresh_job', {
-                  id: rowData.id,
-                })
-                populateRefreshJobs()
+                if (error) {
+                  throw error
+                } else if (data) {
+                  analytics.track('delete_refresh_job', {
+                    id: rowData.id,
+                  })
+                  populateRefreshJobs()
+                }
+              } catch (error: any) {
+                console.error(error.message)
               }
-            } catch (error: any) {
-              console.error(error.message)
-            }
-          }}
-        />
+            }}
+          />
+        </>
       )
     },
     [populateRefreshJobs]
@@ -160,13 +179,14 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
               id="new-refresh-job-button"
               icon="pi pi-plus"
               onClick={() => {
-                setShowNewJobPopup(true)
+                setUpsertJobId(uuidv4())
+                setShowUpsertJobPopup(true)
               }}
             />
             <Dialog
               id="new-refresh-job-dialog"
-              header="New Refresh Job"
-              visible={showNewJobPopup}
+              header={(upsertJobIsNew ? 'New' : 'Edit') + ' Refresh Job'}
+              visible={showUpsertJobPopup}
               resizable={false}
               draggable={false}
               closable={false} // use cancel button instead
@@ -174,14 +194,14 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
             >
               <NewRefreshJobField
                 label="Schedule"
-                value={newJobSchedule}
-                setValue={setNewJobSchedule}
+                value={upsertJobSchedule}
+                setValue={setUpsertJobSchedule}
                 tooltip="A cron expression in UTC time; max every-minute frequency"
               />
               <NewRefreshJobField
                 label="Slack To"
-                value={newJobSlackTo}
-                setValue={setNewJobSlackTo}
+                value={upsertJobSlackTo}
+                setValue={setUpsertJobSlackTo}
                 tooltip="Slack webhook urls to be notified upon refresh job completion, comma separated"
               />
               <div className={styles.save_cancel_button_container}>
@@ -190,16 +210,24 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                   label="Save"
                   onClick={async () => {
                     if (organizationId) {
+                      const now = new Date()
+                      let toUpsert = {
+                        id: upsertJobId,
+                        organization_id: organizationId,
+                        schedule: upsertJobSchedule,
+                        slack_to: upsertJobSlackTo,
+                        updated_at: now,
+                      } as any
+                      if (upsertJobIsNew) {
+                        toUpsert = {
+                          ...toUpsert,
+                          created_at: now,
+                        }
+                      }
                       try {
                         let { data, error, status } = await supabase
                           .from('refresh_jobs')
-                          .insert([
-                            {
-                              organization_id: organizationId,
-                              schedule: newJobSchedule,
-                              slack_to: newJobSlackTo,
-                            },
-                          ])
+                          .upsert([toUpsert])
                           .select()
 
                         if (error) {
@@ -211,7 +239,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                             id: data[0].id,
                           })
                           populateRefreshJobs()
-                          setShowNewJobPopup(false)
+                          setShowUpsertJobPopup(false)
                           clearFields()
                         }
                       } catch (error: any) {
@@ -226,7 +254,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                   className="p-button-outlined"
                   label="Cancel"
                   onClick={() => {
-                    setShowNewJobPopup(false)
+                    setShowUpsertJobPopup(false)
                     clearFields()
                   }}
                 />
@@ -257,7 +285,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                 header="Created At"
                 style={columnStyle}
               />
-              <Column body={deleteCellBodyTemplate} align="center" />
+              <Column body={editCellBodyTemplate} align="center" />
             </DataTable>
           </div>
         </div>
