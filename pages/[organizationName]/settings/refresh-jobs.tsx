@@ -3,12 +3,11 @@ import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
-import { OverlayPanel } from 'primereact/overlaypanel'
+import { Dialog } from 'primereact/dialog'
 import React, {
   FunctionComponent,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from 'react'
 
@@ -22,7 +21,7 @@ type RefreshJobsProps = {}
 const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
   const { organizationId } = useAuth()
 
-  const overlayPanel = useRef<OverlayPanel>(null)
+  const [showNewJobPopup, setShowNewJobPopup] = useState(false)
   const [newJobSchedule, setNewJobSchedule] = useState<string>('')
   const [newJobSlackTo, setNewJobSlackTo] = useState<string>('')
 
@@ -160,11 +159,19 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
             <Button
               id="new-refresh-job-button"
               icon="pi pi-plus"
-              onClick={(event) => {
-                overlayPanel.current?.toggle(event)
+              onClick={() => {
+                setShowNewJobPopup(true)
               }}
             />
-            <OverlayPanel id="new-refresh-job-overlay" ref={overlayPanel}>
+            <Dialog
+              id="new-refresh-job-dialog"
+              header="New Refresh Job"
+              visible={showNewJobPopup}
+              resizable={false}
+              draggable={false}
+              closable={false} // use cancel button instead
+              onHide={() => {}} // handled by buttons, but required
+            >
               <NewRefreshJobField
                 label="Schedule"
                 value={newJobSchedule}
@@ -204,7 +211,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                             id: data[0].id,
                           })
                           populateRefreshJobs()
-                          overlayPanel.current?.hide()
+                          setShowNewJobPopup(false)
                           clearFields()
                         }
                       } catch (error: any) {
@@ -219,12 +226,12 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                   className="p-button-outlined"
                   label="Cancel"
                   onClick={() => {
-                    overlayPanel.current?.hide()
+                    setShowNewJobPopup(false)
                     clearFields()
                   }}
                 />
               </div>
-            </OverlayPanel>
+            </Dialog>
           </div>
           <div className={styles.refresh_jobs_table_container}>
             <DataTable
