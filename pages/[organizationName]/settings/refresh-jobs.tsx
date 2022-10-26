@@ -26,12 +26,14 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
   const [upsertJobId, setUpsertJobId] = useState<string>('')
   const [upsertJobSchedule, setUpsertJobSchedule] = useState<string>('')
   const [upsertJobSlackTo, setUpsertJobSlackTo] = useState<string>('')
+  const [upsertJobComment, setUpsertJobComment] = useState<string>('')
   const [upsertJobIsNew, setUpsertJobIsNew] = useState(true)
 
   const clearFields = useCallback(() => {
     setUpsertJobId('')
     setUpsertJobSchedule('')
     setUpsertJobSlackTo('')
+    setUpsertJobComment('')
     setUpsertJobIsNew(true)
   }, [])
 
@@ -81,7 +83,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
       try {
         let { data, error, status } = await supabase
           .from('refresh_jobs')
-          .select('id, schedule, slack_to, created_at')
+          .select('id, schedule, slack_to, comment, created_at')
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true })
@@ -125,6 +127,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
               setUpsertJobId(rowData.id)
               setUpsertJobSchedule(rowData.schedule)
               setUpsertJobSlackTo(rowData.slack_to)
+              setUpsertJobComment(rowData.comment)
               setUpsertJobIsNew(false)
               setShowUpsertJobPopup(true)
             }}
@@ -160,7 +163,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
   )
 
   const columnStyle = {
-    width: '25%',
+    width: '20%',
     'word-wrap': 'break-word',
     'word-break': 'break-all',
     'white-space': 'normal',
@@ -204,6 +207,12 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                 setValue={setUpsertJobSlackTo}
                 tooltip="Slack webhook urls to be notified upon refresh job completion, comma separated"
               />
+              <NewRefreshJobField
+                label="Comment"
+                value={upsertJobComment}
+                setValue={setUpsertJobComment}
+                tooltip="Include a comment to help you remember what this refresh job is for"
+              />
               <div className={styles.save_cancel_button_container}>
                 <Button
                   id="save-refresh-job-button"
@@ -216,6 +225,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                         organization_id: organizationId,
                         schedule: upsertJobSchedule,
                         slack_to: upsertJobSlackTo,
+                        comment: upsertJobComment,
                         updated_at: now,
                       } as any
                       if (upsertJobIsNew) {
@@ -280,6 +290,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
             >
               <Column field="schedule" header="Schedule" style={columnStyle} />
               <Column field="slack_to" header="Slack To" style={columnStyle} />
+              <Column field="comment" header="Comment" style={columnStyle} />
               <Column
                 field="created_at"
                 header="Created At"
