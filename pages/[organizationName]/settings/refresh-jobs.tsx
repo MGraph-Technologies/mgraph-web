@@ -1,4 +1,3 @@
-import { EditText } from 'react-edit-text'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
@@ -12,6 +11,7 @@ import React, {
 } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
+import SettingsInputText from '../../../components/SettingsInputText'
 import Workspace from '../../../components/Workspace'
 import { useAuth } from '../../../contexts/auth'
 import styles from '../../../styles/RefreshJobs.module.css'
@@ -21,59 +21,6 @@ import { supabase } from '../../../utils/supabaseClient'
 type RefreshJobsProps = {}
 const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
   const { organizationId } = useAuth()
-
-  const [showUpsertJobPopup, setShowUpsertJobPopup] = useState(false)
-  const [upsertJobId, setUpsertJobId] = useState<string>('')
-  const [upsertJobSchedule, setUpsertJobSchedule] = useState<string>('')
-  const [upsertJobSlackTo, setUpsertJobSlackTo] = useState<string>('')
-  const [upsertJobComment, setUpsertJobComment] = useState<string>('')
-  const [upsertJobIsNew, setUpsertJobIsNew] = useState(true)
-
-  const clearFields = useCallback(() => {
-    setUpsertJobId('')
-    setUpsertJobSchedule('')
-    setUpsertJobSlackTo('')
-    setUpsertJobComment('')
-    setUpsertJobIsNew(true)
-  }, [])
-
-  type NewRefreshJobFieldProps = {
-    label: string
-    value: string
-    setValue: (value: string) => void
-    tooltip?: string
-  }
-  const NewRefreshJobField: FunctionComponent<NewRefreshJobFieldProps> =
-    useCallback(({ label, value, setValue, tooltip }) => {
-      const id =
-        'new-job-' + label.toLowerCase().replaceAll(' ', '-') + '-field'
-      return (
-        <div className={styles.new_refresh_job_field_container}>
-          <div>
-            <b>
-              <label htmlFor={id}>{label}</label>
-            </b>
-            <EditText
-              id={id}
-              value={value}
-              onChange={(e) => {
-                setValue(e.target.value)
-              }}
-              style={{ width: '200px', border: '1px solid #ccc' }}
-            />
-          </div>
-          <Button
-            className="p-button-text p-button-sm"
-            icon="pi pi-info-circle"
-            tooltip={tooltip}
-            tooltipOptions={{
-              position: 'left',
-              style: { width: '500px' },
-            }}
-          />
-        </div>
-      )
-    }, [])
 
   const [refreshJobsTableLoading, setRefreshJobsTableLoading] = useState(true)
   const [refreshJobs, setRefreshJobs] = useState<any[]>([])
@@ -169,6 +116,21 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
     'white-space': 'normal',
   }
 
+  const [showUpsertJobPopup, setShowUpsertJobPopup] = useState(false)
+  const [upsertJobId, setUpsertJobId] = useState<string>('')
+  const [upsertJobSchedule, setUpsertJobSchedule] = useState<string>('')
+  const [upsertJobSlackTo, setUpsertJobSlackTo] = useState<string>('')
+  const [upsertJobComment, setUpsertJobComment] = useState<string>('')
+  const [upsertJobIsNew, setUpsertJobIsNew] = useState(true)
+
+  const clearFields = useCallback(() => {
+    setUpsertJobId('')
+    setUpsertJobSchedule('')
+    setUpsertJobSlackTo('')
+    setUpsertJobComment('')
+    setUpsertJobIsNew(true)
+  }, [])
+
   return (
     <>
       <Head>
@@ -195,19 +157,19 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
               closable={false} // use cancel button instead
               onHide={() => {}} // handled by buttons, but required
             >
-              <NewRefreshJobField
+              <SettingsInputText
                 label="Schedule"
                 value={upsertJobSchedule}
                 setValue={setUpsertJobSchedule}
                 tooltip="A cron expression in UTC time; max every-minute frequency"
               />
-              <NewRefreshJobField
+              <SettingsInputText
                 label="Slack To"
                 value={upsertJobSlackTo}
                 setValue={setUpsertJobSlackTo}
                 tooltip="Slack webhook urls to be notified upon refresh job completion, comma separated"
               />
-              <NewRefreshJobField
+              <SettingsInputText
                 label="Comment"
                 value={upsertJobComment}
                 setValue={setUpsertJobComment}
