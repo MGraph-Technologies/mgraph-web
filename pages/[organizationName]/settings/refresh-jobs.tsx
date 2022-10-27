@@ -245,9 +245,14 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                         }
 
                         if (data) {
-                          analytics.track('create_refresh_job', {
-                            id: data[0].id,
-                          })
+                          analytics.track(
+                            upsertJobIsNew
+                              ? 'create_refresh_job'
+                              : 'update_refresh_job',
+                            {
+                              id: data[0].id,
+                            }
+                          )
                           populateRefreshJobs()
                           setShowUpsertJobPopup(false)
                           clearFields()
