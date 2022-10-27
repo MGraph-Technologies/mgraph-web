@@ -5,17 +5,19 @@ import jwt from 'jsonwebtoken'
 const databaseConnectionsCredentialsKey =
   process.env.DATABASE_CONNECTIONS_CREDENTIALS_KEY
 
-export const decryptCredentials = (
-  encryptedCredentials: string,
-  organizationId: string,
-  organizationCreatedAt: Date
-): {
+export type SnowflakeCredentials = {
   region: string
   account: string
   username: string
   privateKeyString: string
   privateKeyPassphrase: string
-} => {
+}
+
+export const decryptCredentials = (
+  encryptedCredentials: string,
+  organizationId: string,
+  organizationCreatedAt: Date
+): SnowflakeCredentials => {
   const decryptedCredentials = CryptoJS.AES.decrypt(
     encryptedCredentials,
     organizationId + organizationCreatedAt + databaseConnectionsCredentialsKey
@@ -28,6 +30,17 @@ export const decryptCredentials = (
     privateKeyString: decryptedCredentialsJson.privateKeyString,
     privateKeyPassphrase: decryptedCredentialsJson.privateKeyPassphrase,
   }
+}
+
+export const encryptCredentials = (
+  credentials: SnowflakeCredentials,
+  organizationId: string,
+  organizationCreatedAt: Date
+): string => {
+  return CryptoJS.AES.encrypt(
+    JSON.stringify(credentials),
+    organizationId + organizationCreatedAt + databaseConnectionsCredentialsKey
+  ).toString()
 }
 
 export const makeToken = (

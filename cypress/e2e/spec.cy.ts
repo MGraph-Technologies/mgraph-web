@@ -583,9 +583,33 @@ describe('Admin settings', () => {
     cy.get('body').contains('Email')
   })
 
-  it('Visits database connections page and sees expected content', () => {
+  it('Visits database connections page, then adds and deletes a connection', () => {
+    // visit page
     cy.visit('/mgraph/settings/database-connections')
-    cy.get('body').contains('please contact an MGraph team member')
+
+    // add connection
+    const randomString = Math.random().toString(36)
+    cy.get('[id=new-database-connection-button]').click()
+    cy.get('[id=name-field]').type(randomString)
+    cy.get('[id=region-field]').type(randomString)
+    cy.get('[id=account-field]').type(randomString)
+    cy.get('[id=username-field]').type(randomString)
+    cy.get('[id=private-key-field]').type(randomString)
+    cy.get('[id=private-key-passphrase-field]').type(randomString)
+    cy.get('[id=save-database-connection-button]').click()
+    cy.get('[id=database-connections-table]').contains(randomString)
+
+    // TODO: test that connection works
+
+    // delete connection
+    cy.get('[id=database-connections-table]')
+      .contains(randomString)
+      .parent('tr')
+      .find('[id=delete-database-connection-button]')
+      .click()
+    cy.get('[id=database-connections-table]')
+      .contains(randomString)
+      .should('not.exist')
   })
 
   it('Visits refresh jobs page, then adds and deletes a job', () => {
@@ -596,8 +620,8 @@ describe('Admin settings', () => {
     const randomString = Math.random().toString(36)
     const newJobSlackTo = '#' + randomString
     cy.get('[id=new-refresh-job-button]').click()
-    cy.get('[id=new-job-schedule-field]').type('0 13 * * *')
-    cy.get('[id=new-job-slack-to-field]').type(newJobSlackTo)
+    cy.get('[id=schedule-field]').type('0 13 * * *')
+    cy.get('[id=slack-to-field]').type(newJobSlackTo)
     cy.get('[id=save-refresh-job-button]').click()
     cy.get('[id=refresh-jobs-table]')
       .contains(newJobSlackTo)
