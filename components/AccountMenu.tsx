@@ -89,6 +89,12 @@ const AccountMenu: FunctionComponent<Props> = () => {
               push('/' + organizationName + '/settings/database-connections'),
           },
           {
+            label: 'Graph Syncs',
+            icon: 'pi pi-sync',
+            command: () =>
+              push('/' + organizationName + '/settings/graph-syncs'),
+          },
+          {
             label: 'Refresh Jobs',
             icon: 'pi pi-clock',
             command: () =>
