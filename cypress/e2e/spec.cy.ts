@@ -113,6 +113,13 @@ describe('Graphviewer viewing as admin', () => {
     cy.url().should('include', '/database-connections')
   })
 
+  it('Clicks through to database connections page', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=account-menu]').click()
+    cy.get('[class=p-menuitem]').contains('Graph Syncs').click()
+    cy.url().should('include', '/graph-syncs')
+  })
+
   it('Clicks through to refresh jobs page', () => {
     cy.visit('/mgraph')
     cy.get('[id=account-menu]').click()
@@ -610,6 +617,22 @@ describe('Admin settings', () => {
     cy.get('[id=database-connections-table]')
       .contains(randomString)
       .should('not.exist')
+  })
+
+  it('Visits graph syncs page and sees expected content', () => {
+    // TODO: test full installation flow
+
+    // visit page
+    cy.visit('/mgraph/settings/graph-syncs')
+
+    // see expected content
+    cy.get('body').contains('Graph Syncs')
+    cy.get('[id=new-graph-sync-button]').click()
+    cy.get('body').contains('New Graph Sync')
+    cy.get('[id=name-field]').should('exist')
+    cy.get('[id=github-repo-url-field]').should('exist')
+    cy.get('[id=github-app-button').click()
+    cy.url().should('include', 'mgraph-dbt-sync')
   })
 
   it('Visits refresh jobs page, then adds and deletes a job', () => {
