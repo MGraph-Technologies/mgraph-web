@@ -19,7 +19,7 @@
 .metric_detail .body {
   padding-left: calc((100% - 50em) / 2);
   padding-right: calc((100% - 50em) / 2);
-  padding-bottom: 6em; /* ensure final module can be seen under editor dock */
+  padding-bottom: 8em; /* ensure final module can be seen under editor dock */
   overflow: auto;
   -ms-overflow-style: none; /* Internet Explorer 10+ */
   scrollbar-width: none; /* Firefox */

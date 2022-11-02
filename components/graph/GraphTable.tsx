@@ -58,6 +58,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
       status:
         !rowData ||
         !rowData.data.sourceCode ||
+        !rowData.data.sourceCodeLanguage ||
         !rowData.data.sourceDatabaseConnectionId
           ? 'empty'
           : 'processing',

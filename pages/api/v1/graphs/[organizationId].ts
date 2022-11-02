@@ -75,6 +75,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               description: properties.description,
               owner: properties.owner,
               sourceCode: properties.sourceCode,
+              sourceCodeLanguage: properties.sourceCodeLanguage,
               sourceDatabaseConnectionId: properties.sourceDatabaseConnectionId,
               color: properties.color,
               initialProperties: properties,

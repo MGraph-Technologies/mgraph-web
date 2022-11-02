@@ -489,6 +489,7 @@ export function GraphProvider({ children }: GraphProps) {
       description: '',
       owner: '',
       sourceCode: '',
+      sourceCodeLanguage: 'sql',
       sourceDatabaseConnectionId: '',
       color: '#FFFFFF',
       initialProperties: {},

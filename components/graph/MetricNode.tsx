@@ -20,6 +20,7 @@ import QueryRunner, { QueryResult } from '../QueryRunner'
 import NodeInfoButton from './NodeInfoButton'
 import NodeMenu from './NodeMenu'
 
+export type SourceCodeLanguage = 'sql' | 'yaml'
 export type MetricNodeProperties = {
   id: string
   organizationId: string
@@ -28,6 +29,7 @@ export type MetricNodeProperties = {
   description: string
   owner: string
   sourceCode: string
+  sourceCodeLanguage: SourceCodeLanguage
   sourceDatabaseConnectionId: string
   color: string
   // below not in postgres
@@ -80,7 +82,9 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
 
   const [queryResult, setQueryResult] = useState<QueryResult>({
     status:
-      !data.sourceCode || !data.sourceDatabaseConnectionId
+      !data.sourceCode ||
+      !data.sourceCodeLanguage ||
+      !data.sourceDatabaseConnectionId
         ? 'empty'
         : 'processing',
     data: null,

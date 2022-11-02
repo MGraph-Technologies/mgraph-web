@@ -1,5 +1,7 @@
 import hljs from 'highlight.js/lib/core'
+import plaintext from 'highlight.js/lib/languages/plaintext'
 import sql from 'highlight.js/lib/languages/sql'
+import yaml from 'highlight.js/lib/languages/yaml'
 import 'highlight.js/styles/docco.css'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
@@ -22,8 +24,11 @@ import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import { getFunctionSymbol } from './FunctionNode'
+import { SourceCodeLanguage } from './MetricNode'
 
+hljs.registerLanguage('plaintext', plaintext)
 hljs.registerLanguage('sql', sql)
+hljs.registerLanguage('yaml', yaml)
 
 type MetricDetailProps = {
   metricId: string | string[] | undefined
@@ -42,6 +47,11 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [outputs, setOutputs] = useState('')
   const [owner, setOwner] = useState('')
   const [sourceCode, setSourceCode] = useState('')
+  const [sourceCodeLanguage, setSourceCodeLanguage] = useState('')
+  const sourceCodeLanguages = [
+    { label: 'SQL', value: 'sql' as SourceCodeLanguage },
+    { label: 'YAML (dbt Metrics)', value: 'yaml' as SourceCodeLanguage },
+  ]
   const [sourceDatabaseConnectionId, setSourceDatabaseConnectionId] =
     useState('')
   const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] =
@@ -73,6 +83,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       if (
         initialDetailPopulationComplete &&
         (metricNode.data.sourceCode !== sourceCode ||
+          metricNode.data.sourceCodeLanguage !== sourceCodeLanguage ||
           metricNode.data.sourceDatabaseConnectionId !==
             sourceDatabaseConnectionId)
       ) {
@@ -83,10 +94,16 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       setOwner(metricNode.data.owner || '')
       const _sourceCode = metricNode.data.sourceCode || ''
       setSourceCode(_sourceCode)
+      const _sourceCodeLanguage = metricNode.data.sourceCodeLanguage || ''
+      setSourceCodeLanguage(_sourceCodeLanguage)
       const _sourceDatabaseConnectionId =
         metricNode.data.sourceDatabaseConnectionId || ''
       setSourceDatabaseConnectionId(_sourceDatabaseConnectionId)
-      if (!_sourceCode || !_sourceDatabaseConnectionId) {
+      if (
+        !_sourceCode ||
+        !_sourceCodeLanguage ||
+        !_sourceDatabaseConnectionId
+      ) {
         setQueryResult({
           status: 'empty',
           data: null,
@@ -425,6 +442,25 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             />
           )}
         </h3>
+        <label
+          htmlFor="source-code-language-dropdown"
+          style={{ marginRight: '1em' }}
+        >
+          Language:
+        </label>
+        <Dropdown
+          id="source-code-language-dropdown"
+          value={sourceCodeLanguage}
+          options={sourceCodeLanguages}
+          onChange={(e) => {
+            const newSCL = e.value as SourceCodeLanguage
+            setSourceCodeLanguage(newSCL)
+            saveDetail('sourceCodeLanguage', newSCL)
+            setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+          }}
+          style={{ marginBottom: '1em' }}
+          disabled={!editingEnabled}
+        />
         {editingEnabled ? (
           <Editor
             id="source-code-field"
@@ -434,14 +470,15 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
               saveDetail('sourceCode', sourceCode)
               setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
             }}
-            highlight={(code) => highlight(code, 'sql')}
+            highlight={(code) =>
+              highlight(code, sourceCodeLanguage || 'plaintext')
+            }
             textareaClassName="react-simple-code-editor-textarea"
           />
         ) : (
-          <pre>{highlight(sourceCode, 'sql')}</pre>
+          <pre>{highlight(sourceCode, sourceCodeLanguage || 'plaintext')}</pre>
         )}
       </div>
-      {/* ensure final module can be seen underneath editor dock */}
       {editingEnabled ? (
         <div className={styles.editor_dock}>
           <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
