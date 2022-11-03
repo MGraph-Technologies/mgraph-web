@@ -63,8 +63,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [sourceSyncPathFile, setSourceSyncPathFile] = useState('')
   const [sourceSyncPathMetric, setSourceSyncPathMetric] = useState('')
   const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
-  const [initialDetailPopulationComplete, setInitialDetailPopulationComplete] =
-    useState(false)
 
   const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
   const [graphSyncs, setGraphSyncs] = useState<any[]>([])
@@ -85,19 +83,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   const populateDetails = useCallback(() => {
     if (metricNode) {
-      // execute source code on canceled change
-      // (we also execute on EditTextarea-saved change below)
-      if (
-        initialDetailPopulationComplete &&
-        (metricNode.data.sourceCode !== sourceCode ||
-          metricNode.data.sourceCodeLanguage !== sourceCodeLanguage ||
-          metricNode.data.sourceDatabaseConnectionId !==
-            sourceDatabaseConnectionId ||
-          metricNode.data.sourceSyncId !== sourceSyncId ||
-          metricNode.data.sourceSyncPath !== sourceSyncPath)
-      ) {
-        setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-      }
       setName(metricNode.data.name || '')
       setDescription(metricNode.data.description || '')
       setOwner(metricNode.data.owner || '')
@@ -118,7 +103,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         setSourceSyncPathFile('')
         setSourceSyncPathMetric('')
       }
-      setInitialDetailPopulationComplete(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metricNode])
@@ -481,7 +465,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                 'sourceDatabaseConnectionId',
                 newSourceDatabaseConnection.id
               )
-              setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
               // name updating handled by useEffect above
             }
           }}
@@ -515,7 +498,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             const newSCL = e.value as SourceCodeLanguage
             setSourceCodeLanguage(newSCL)
             saveDetail('sourceCodeLanguage', newSCL)
-            setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
           }}
           style={{ marginBottom: '1em' }}
           disabled={!editingEnabled}
@@ -540,7 +522,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                   if (newSourceSync) {
                     setSourceSyncId(newSourceSync.id)
                     saveDetail('sourceSyncId', newSourceSync.id)
-                    setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
                     // name updating handled by useEffect above
                   }
                 }}
@@ -595,7 +576,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             onValueChange={(code) => setSourceCode(code)}
             onBlur={() => {
               saveDetail('sourceCode', sourceCode)
-              setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
             }}
             highlight={(code) =>
               highlight(code, sourceCodeLanguage || 'plaintext')

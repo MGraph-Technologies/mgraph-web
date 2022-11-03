@@ -300,6 +300,21 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globalQueryRefreshes])
 
+  useEffect(
+    () => {
+      if (getQueryResultComplete) {
+        executeQuery()
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      parentMetricNodeData?.sourceCode,
+      parentMetricNodeData?.sourceCodeLanguage,
+      parentMetricNodeData?.sourceDatabaseConnectionId,
+      parentMetricNodeData?.sourceSyncId,
+      parentMetricNodeData?.sourceSyncPath,
+    ]
+  )
   return <></>
 }
 
