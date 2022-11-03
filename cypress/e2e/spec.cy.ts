@@ -336,7 +336,7 @@ describe('Metric detail editing', () => {
     cy.contains(newValue).should('exist')
   })
 
-  it('Visits a metric detail page, enters a working query, then sees results', () => {
+  it('Visits a metric detail page, enters a working SQL query, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
 
@@ -346,6 +346,10 @@ describe('Metric detail editing', () => {
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // select SQL as language
+    cy.get('[id=source-code-language-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('SQL').first().click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -362,7 +366,7 @@ describe('Metric detail editing', () => {
     // TODO: test chartjs canvas (this is just the number overlay)
   })
 
-  it('Visits a metric detail page, enters a working query, saves it, then sees results', () => {
+  it('Visits a metric detail page, enters a working SQL query, saves it, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
 
@@ -372,6 +376,10 @@ describe('Metric detail editing', () => {
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // select SQL as language
+    cy.get('[id=source-code-language-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('SQL').first().click()
 
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -394,7 +402,7 @@ describe('Metric detail editing', () => {
       .should('exist')
   })
 
-  it('Visits a metric detail page, enters a failing query, then sees error', () => {
+  it('Visits a metric detail page, enters a failing SQL query, then sees error', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
 
@@ -404,6 +412,10 @@ describe('Metric detail editing', () => {
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // select SQL as language
+    cy.get('[id=source-code-language-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('SQL').first().click()
 
     // edit query
     const newQuery = 'SELECT x'
@@ -417,7 +429,7 @@ describe('Metric detail editing', () => {
       .should('exist')
   })
 
-  it('Visits a metric detail page, enters a working but wrong-format query, then sees error', () => {
+  it('Visits a metric detail page, enters a working but wrong-format SQL query, then sees error', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
 
@@ -427,6 +439,10 @@ describe('Metric detail editing', () => {
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // select SQL as language
+    cy.get('[id=source-code-language-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('SQL').first().click()
 
     // edit query
     const newQuery = "SELECT TRUE, 'all', 1"
@@ -506,7 +522,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=group_by-set-default-button]').should('not.exist')
   })
 
-  it('Visits a metric detail page, sets parameters, enters a query that uses them, then sees results', () => {
+  it('Visits a metric detail page, sets parameters, enters a SQL query that uses them, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
     /* wait for page to load
@@ -544,6 +560,10 @@ describe('Metric detail editing', () => {
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // select SQL as language
+    cy.get('[id=source-code-language-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('SQL').first().click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
