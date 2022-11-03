@@ -31,6 +31,8 @@ export type MetricNodeProperties = {
   sourceCode: string
   sourceCodeLanguage: SourceCodeLanguage
   sourceDatabaseConnectionId: string
+  sourceSyncId: string | null
+  sourceSyncPath: string | null
   color: string
   // below not in postgres
   initialProperties: object
@@ -84,7 +86,9 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     status:
       !data.sourceCode ||
       !data.sourceCodeLanguage ||
-      !data.sourceDatabaseConnectionId
+      !data.sourceDatabaseConnectionId ||
+      (data.sourceCodeLanguage === 'yaml' &&
+        (!data.sourceSyncId || !data.sourceSyncPath))
         ? 'empty'
         : 'processing',
     data: null,

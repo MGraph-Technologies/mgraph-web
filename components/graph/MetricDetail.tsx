@@ -56,6 +56,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     useState('')
   const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] =
     useState('')
+  const [sourceSyncId, setSourceSyncId] = useState('')
+  const [sourceSyncPath, setSourceSyncPath] = useState('')
   const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
   const [initialDetailPopulationComplete, setInitialDetailPopulationComplete] =
     useState(false)
@@ -85,7 +87,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         (metricNode.data.sourceCode !== sourceCode ||
           metricNode.data.sourceCodeLanguage !== sourceCodeLanguage ||
           metricNode.data.sourceDatabaseConnectionId !==
-            sourceDatabaseConnectionId)
+            sourceDatabaseConnectionId ||
+          metricNode.data.sourceSyncId !== sourceSyncId ||
+          metricNode.data.sourceSyncPath !== sourceSyncPath)
       ) {
         setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
       }
@@ -99,10 +103,15 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       const _sourceDatabaseConnectionId =
         metricNode.data.sourceDatabaseConnectionId || ''
       setSourceDatabaseConnectionId(_sourceDatabaseConnectionId)
+      const _sourceSyncId = metricNode.data.sourceSyncId || ''
+      setSourceSyncId(_sourceSyncId)
+      const _sourceSyncPath = metricNode.data.sourceSyncPath || ''
+      setSourceSyncPath(_sourceSyncPath)
       if (
         !_sourceCode ||
         !_sourceCodeLanguage ||
-        !_sourceDatabaseConnectionId
+        !_sourceDatabaseConnectionId ||
+        (_sourceCodeLanguage === 'yaml' && (!_sourceSyncId || !_sourceSyncPath))
       ) {
         setQueryResult({
           status: 'empty',
@@ -461,6 +470,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           style={{ marginBottom: '1em' }}
           disabled={!editingEnabled}
         />
+        {sourceCodeLanguage === 'yaml' && <p>Sync fields TBA</p>}
         {editingEnabled ? (
           <Editor
             id="source-code-field"

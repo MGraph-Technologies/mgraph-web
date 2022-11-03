@@ -77,6 +77,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               sourceCode: properties.sourceCode,
               sourceCodeLanguage: properties.sourceCodeLanguage,
               sourceDatabaseConnectionId: properties.sourceDatabaseConnectionId,
+              sourceSyncId: properties.sourceSyncId,
+              sourceSyncPath: properties.sourceSyncPath,
               color: properties.color,
               initialProperties: properties,
               setNodeDataToChange: () => {},

@@ -491,6 +491,8 @@ export function GraphProvider({ children }: GraphProps) {
       sourceCode: '',
       sourceCodeLanguage: 'sql',
       sourceDatabaseConnectionId: '',
+      sourceSyncId: null,
+      sourceSyncPath: null,
       color: '#FFFFFF',
       initialProperties: {},
       setNodeDataToChange: setNodeDataToChange,

@@ -59,7 +59,9 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         !rowData ||
         !rowData.data.sourceCode ||
         !rowData.data.sourceCodeLanguage ||
-        !rowData.data.sourceDatabaseConnectionId
+        !rowData.data.sourceDatabaseConnectionId ||
+        (rowData.data.sourceCodeLanguage === 'yaml' &&
+          (!rowData.data.sourceSyncId || !rowData.data.sourceSyncPath))
           ? 'empty'
           : 'processing',
       data: null,
