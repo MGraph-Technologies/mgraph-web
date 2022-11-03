@@ -21,7 +21,7 @@ import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/MetricDetail.module.css'
 import { supabase } from '../../utils/supabaseClient'
 import LineChart from '../LineChart'
-import QueryRunner, { QueryResult, initializeQueryResult } from '../QueryRunner'
+import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import { getFunctionSymbol } from './FunctionNode'
@@ -69,9 +69,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
   const [graphSyncs, setGraphSyncs] = useState<any[]>([])
 
-  const [queryResult, setQueryResult] = useState<QueryResult>(
-    initializeQueryResult(metricNode?.data)
-  )
+  const [queryResult, setQueryResult] = useState<QueryResult>({
+    status: 'processing',
+    data: null,
+  })
 
   const populateMetricNode = useCallback(() => {
     if (metricId) {
@@ -117,7 +118,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         setSourceSyncPathFile('')
         setSourceSyncPathMetric('')
       }
-      setQueryResult(initializeQueryResult(metricNode.data))
       setInitialDetailPopulationComplete(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -410,9 +410,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       <div className={styles.body}>
         <div className={styles.chart_container}>
           <QueryRunner
-            statement={sourceCode}
-            databaseConnectionId={sourceDatabaseConnectionId}
-            parentNodeId={metricNode ? metricNode.id : ''}
+            parentMetricNodeData={metricNode?.data}
             refreshes={queryRunnerRefreshes}
             queryResult={queryResult}
             setQueryResult={setQueryResult}

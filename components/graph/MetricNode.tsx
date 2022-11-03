@@ -16,7 +16,7 @@ import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
 import LineChart from '../LineChart'
-import QueryRunner, { QueryResult, initializeQueryResult } from '../QueryRunner'
+import QueryRunner, { QueryResult } from '../QueryRunner'
 import NodeInfoButton from './NodeInfoButton'
 import NodeMenu from './NodeMenu'
 
@@ -82,9 +82,10 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     [data]
   )
 
-  const [queryResult, setQueryResult] = useState<QueryResult>(
-    initializeQueryResult(data)
-  )
+  const [queryResult, setQueryResult] = useState<QueryResult>({
+    status: 'processing',
+    data: null,
+  })
 
   const [renderChart, setRenderChart] = useState(false)
   useEffect(() => {
@@ -157,9 +158,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
       </div>
       <div className={styles.chart_container}>
         <QueryRunner
-          statement={data.sourceCode}
-          databaseConnectionId={data.sourceDatabaseConnectionId}
-          parentNodeId={data.id}
+          parentMetricNodeData={data}
           refreshes={0}
           queryResult={queryResult}
           setQueryResult={setQueryResult}

@@ -20,25 +20,8 @@ export type QueryResult = {
   data: any | null
 }
 
-export const initializeQueryResult = (metricNodeData: MetricNodeProperties) => {
-  return {
-    status:
-      metricNodeData &&
-      (!metricNodeData.sourceCode ||
-        !metricNodeData.sourceCodeLanguage ||
-        !metricNodeData.sourceDatabaseConnectionId ||
-        (metricNodeData.sourceCodeLanguage === 'yaml' &&
-          (!metricNodeData.sourceSyncId || !metricNodeData.sourceSyncPath)))
-        ? 'empty'
-        : 'processing',
-    data: null,
-  } as QueryResult
-}
-
 type QueryRunnerProps = {
-  statement: string
-  databaseConnectionId: string
-  parentNodeId: string
+  parentMetricNodeData: MetricNodeProperties
   refreshes: number // increment this number to force a refresh
   queryResult: QueryResult
   setQueryResult: (queryResult: QueryResult) => void
@@ -47,9 +30,7 @@ type QueryRunnerProps = {
     entirely in background / on state and doesn't render anything. Should
     either build confidence or refactor :) */
 const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
-  statement,
-  databaseConnectionId,
-  parentNodeId,
+  parentMetricNodeData,
   refreshes,
   queryResult,
   setQueryResult,
@@ -67,7 +48,19 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
   const [getQueryResultComplete, setGetQueryResultComplete] = useState(false)
 
+  const shouldRunQuery = useCallback(() => {
+    return (
+      parentMetricNodeData?.sourceCode &&
+      parentMetricNodeData?.sourceCodeLanguage &&
+      parentMetricNodeData?.sourceDatabaseConnectionId &&
+      ((parentMetricNodeData?.sourceSyncId &&
+        parentMetricNodeData?.sourceSyncPath) ||
+        parentMetricNodeData?.sourceCodeLanguage !== 'yaml')
+    )
+  }, [parentMetricNodeData])
+
   useEffect(() => {
+    const parentNodeId = parentMetricNodeData?.id
     if (parentNodeId) {
       setQueriesLoading!((prev) => {
         return queryResult.status === 'processing'
@@ -78,32 +71,34 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     return () => {
       setQueriesLoading!((prev) => prev.filter((id) => id !== parentNodeId))
     }
-  }, [setQueriesLoading, queryResult, parentNodeId])
+  }, [parentMetricNodeData?.id, setQueriesLoading, queryResult])
 
   const getQueryId = useCallback(async () => {
     if (getQueryIdComplete) {
       return
     }
     const accessToken = session?.access_token
-    if (accessToken && parentNodeId && databaseConnectionId && statement) {
+    if (accessToken && shouldRunQuery()) {
       try {
         let queryId = await getLatestQueryId(
-          parameterizeStatement(statement, queryParameters),
-          databaseConnectionId,
-          parentNodeId,
+          parameterizeStatement(
+            parentMetricNodeData?.sourceCode,
+            queryParameters
+          ),
+          parentMetricNodeData?.sourceDatabaseConnectionId,
+          parentMetricNodeData?.id,
           supabase
         )
         if (queryId) {
           setQueryId(queryId)
-          setGetQueryIdComplete(true)
         } else {
           setQueryResult({
             status: 'unexecuted',
             data: null,
           })
           setGetQueryResultComplete(true)
-          setGetQueryIdComplete(true)
         }
+        setGetQueryIdComplete(true)
       } catch (error: any) {
         console.error(error.message)
       }
@@ -111,9 +106,10 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   }, [
     getQueryIdComplete,
     session?.access_token,
-    parentNodeId,
-    databaseConnectionId,
-    statement,
+    shouldRunQuery,
+    parentMetricNodeData?.sourceCode,
+    parentMetricNodeData?.sourceDatabaseConnectionId,
+    parentMetricNodeData?.id,
     queryParameters,
     setQueryResult,
   ])
@@ -136,68 +132,103 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
   }, [getQueryResultComplete, session?.access_token, queryId])
   useEffect(() => {
+    const parentNodeId = parentMetricNodeData?.id
     if (queriesToCancel?.includes(parentNodeId)) {
       cancelQuery()
       setQueriesToCancel!(queriesToCancel.filter((id) => id !== parentNodeId))
     }
-  }, [queriesToCancel, setQueriesToCancel, parentNodeId, cancelQuery])
+  }, [
+    parentMetricNodeData?.id,
+    queriesToCancel,
+    setQueriesToCancel,
+    cancelQuery,
+  ])
 
   const getQueryResult = useCallback(async () => {
     if (getQueryResultComplete) {
       return
     }
-    const accessToken = session?.access_token
-    if (accessToken && queryId) {
-      fetch('/api/v1/database-queries/' + queryId + '/results', {
-        method: 'GET',
-        headers: {
-          'supabase-access-token': accessToken,
-        },
+    if (!parentMetricNodeData) {
+      setQueryResult({
+        status: 'processing',
+        data: null,
       })
-        .then((response) => {
-          if (response.status === 200) {
-            response.json().then((data) => {
-              setQueryResult({
-                status: 'success',
-                data: {
-                  columns: data.columns,
-                  rows: data.rows,
-                  executedAt: data.executedAt,
-                },
-              })
-              setGetQueryResultComplete(true)
-            })
-          } else if (response.status === 202) {
+      return
+    }
+
+    if (!shouldRunQuery()) {
+      setQueryResult({
+        status: 'empty',
+        data: null,
+      })
+      return
+    }
+
+    const accessToken = session?.access_token
+    if (!accessToken || !queryId) {
+      setQueryResult({
+        status: 'processing',
+        data: null,
+      })
+      return
+    }
+
+    fetch('/api/v1/database-queries/' + queryId + '/results', {
+      method: 'GET',
+      headers: {
+        'supabase-access-token': accessToken,
+      },
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          response.json().then((data) => {
             setQueryResult({
-              status: 'processing',
-              data: null,
-            })
-            setTimeout(() => {
-              getQueryResult()
-            }, 1000)
-          } else if (response.status === 410) {
-            setQueryResult({
-              status: 'expired',
-              data: null,
+              status: 'success',
+              data: {
+                columns: data.columns,
+                rows: data.rows,
+                executedAt: data.executedAt,
+              },
             })
             setGetQueryResultComplete(true)
-          } else {
-            response.json().then((data) => {
-              setQueryResult({
-                status: 'error',
-                data: {
-                  error: data.error,
-                },
-              })
-              setGetQueryResultComplete(true)
+          })
+        } else if (response.status === 202) {
+          setQueryResult({
+            status: 'processing',
+            data: null,
+          })
+          setTimeout(() => {
+            getQueryResult()
+          }, 1000)
+        } else if (response.status === 410) {
+          setQueryResult({
+            status: 'expired',
+            data: null,
+          })
+          setGetQueryResultComplete(true)
+        } else {
+          response.json().then((data) => {
+            setQueryResult({
+              status: 'error',
+              data: {
+                error: data.error,
+              },
             })
-          }
-        })
-        .catch((error) => {
-          console.error(error.message)
-        })
-    }
-  }, [getQueryResultComplete, session?.access_token, queryId, setQueryResult])
+            setGetQueryResultComplete(true)
+          })
+        }
+      })
+      .catch((error) => {
+        console.error(error.message)
+      })
+  }, [
+    getQueryResultComplete,
+    parentMetricNodeData,
+    shouldRunQuery,
+    session?.access_token,
+    queryId,
+    setQueryResult,
+  ])
 
   useEffect(() => {
     getQueryResult()
@@ -205,15 +236,18 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
 
   const executeQuery = useCallback(async () => {
     const accessToken = session?.access_token
-    if (accessToken && parentNodeId && databaseConnectionId && statement) {
+    if (accessToken && shouldRunQuery()) {
       setQueryResult({
         status: 'processing',
         data: null,
       })
       const queryBody = {
-        databaseConnectionId: databaseConnectionId,
-        parentNodeId: parentNodeId,
-        statement: parameterizeStatement(statement, queryParameters),
+        databaseConnectionId: parentMetricNodeData?.sourceDatabaseConnectionId,
+        parentNodeId: parentMetricNodeData?.id,
+        statement: parameterizeStatement(
+          parentMetricNodeData?.sourceCode,
+          queryParameters
+        ),
       }
       fetch('/api/v1/database-queries', {
         method: 'POST',
@@ -243,9 +277,10 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
   }, [
     session?.access_token,
-    parentNodeId,
-    databaseConnectionId,
-    statement,
+    shouldRunQuery,
+    parentMetricNodeData?.sourceDatabaseConnectionId,
+    parentMetricNodeData?.id,
+    parentMetricNodeData?.sourceCode,
     queryParameters,
     setQueryResult,
   ])
