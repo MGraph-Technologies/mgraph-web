@@ -44,6 +44,17 @@
   background-color: #f8f8f8;
 }
 
+.metric_detail .body .yaml_configs {
+  background-color: #f8f8fe;
+  padding: 1em;
+  display: flex;
+  flex-direction: row;
+}
+
+.metric_detail .body .yaml_configs .yaml_config {
+  padding-right: 1em;
+}
+
 .metric_detail .editor_dock {
   position: fixed;
   bottom: 10px;

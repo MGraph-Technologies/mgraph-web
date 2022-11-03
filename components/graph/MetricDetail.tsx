@@ -6,6 +6,7 @@ import 'highlight.js/styles/docco.css'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Dropdown } from 'primereact/dropdown'
+import { InputText } from 'primereact/inputtext'
 import { Toolbar } from 'primereact/toolbar'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { EditText, EditTextarea } from 'react-edit-text'
@@ -56,13 +57,17 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     useState('')
   const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] =
     useState('')
-  const [sourceSyncId, setSourceSyncId] = useState('')
-  const [sourceSyncPath, setSourceSyncPath] = useState('')
+  const [sourceSyncId, setSourceSyncId] = useState<string | null>(null)
+  const [sourceSyncName, setSourceSyncName] = useState('')
+  const [sourceSyncPath, setSourceSyncPath] = useState<string | null>(null)
+  const [sourceSyncPathFile, setSourceSyncPathFile] = useState('')
+  const [sourceSyncPathMetric, setSourceSyncPathMetric] = useState('')
   const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
   const [initialDetailPopulationComplete, setInitialDetailPopulationComplete] =
     useState(false)
 
   const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
+  const [graphSyncs, setGraphSyncs] = useState<any[]>([])
 
   const [queryResult, setQueryResult] = useState<QueryResult>(
     initializeQueryResult(metricNode?.data)
@@ -100,8 +105,18 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       setSourceDatabaseConnectionId(
         metricNode.data.sourceDatabaseConnectionId || ''
       )
-      setSourceSyncId(metricNode.data.sourceSyncId || '')
-      setSourceSyncPath(metricNode.data.sourceSyncPath || '')
+      setSourceSyncId(metricNode.data.sourceSyncId)
+      const _sourceSyncPath = metricNode.data.sourceSyncPath
+      setSourceSyncPath(_sourceSyncPath)
+      if (_sourceSyncPath) {
+        const [_sourceSyncPathFile, _sourceSyncPathMetric] =
+          _sourceSyncPath.split(':')
+        setSourceSyncPathFile(_sourceSyncPathFile)
+        setSourceSyncPathMetric(_sourceSyncPathMetric)
+      } else {
+        setSourceSyncPathFile('')
+        setSourceSyncPathMetric('')
+      }
       setQueryResult(initializeQueryResult(metricNode.data))
       setInitialDetailPopulationComplete(true)
     }
@@ -237,7 +252,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   }, [outputs, replaceFunctionTypeIdWithSymbol])
 
   const saveDetail = useCallback(
-    (name: string, value: string) => {
+    (name: string, value: string | null) => {
       if (metricNode) {
         const newData = {
           ...metricNode.data,
@@ -297,6 +312,58 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     databaseConnections,
     setSourceDatabaseConnectionName,
   ])
+
+  const populateGraphSyncs = useCallback(async () => {
+    if (organizationId) {
+      try {
+        let { data, error, status } = await supabase
+          .from('graph_syncs')
+          .select('id, name, graph_sync_types!inner ( name )')
+          .match({
+            organization_id: organizationId,
+            'graph_sync_types.name': 'dbt', // ignore other types
+          })
+          .is('deleted_at', null)
+
+        if (error && status !== 406) {
+          throw error
+        }
+
+        if (data) {
+          data.sort((a, b) => {
+            if (a.name < b.name) {
+              return -1
+            }
+            if (a.name > b.name) {
+              return 1
+            }
+            return 0
+          })
+          setGraphSyncs(data)
+        }
+      } catch (error: any) {
+        console.error(error.message)
+      }
+    }
+  }, [organizationId])
+  useEffect(() => {
+    populateGraphSyncs()
+  }, [populateGraphSyncs])
+  useEffect(() => {
+    const sourceSync = graphSyncs.find(
+      (graphSync) => graphSync.id === sourceSyncId
+    )
+    if (sourceSync) {
+      setSourceSyncName(sourceSync.name)
+    } else {
+      setSourceSyncName('')
+    }
+  }, [sourceSyncId, graphSyncs, setSourceSyncName])
+
+  useEffect(() => {
+    const _sourceSyncPath = `${sourceSyncPathFile}:${sourceSyncPathMetric}`
+    setSourceSyncPath(_sourceSyncPath)
+  }, [sourceSyncPathFile, sourceSyncPathMetric])
 
   // https://github.com/highlightjs/highlight.js/issues/925
   const highlight = (code: string, language: string) => {
@@ -455,7 +522,74 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           style={{ marginBottom: '1em' }}
           disabled={!editingEnabled}
         />
-        {sourceCodeLanguage === 'yaml' && <p>Sync fields TBA</p>}
+        {sourceCodeLanguage === 'yaml' && (
+          <div className={styles.yaml_configs}>
+            <div className={styles.yaml_config}>
+              <label
+                htmlFor="source-sync-dropdown"
+                style={{ display: 'block' }}
+              >
+                dbt Sync
+              </label>
+              <Dropdown
+                id="source-sync-dropdown"
+                value={sourceSyncName}
+                options={graphSyncs.map((gc) => gc.name)}
+                onChange={(e) => {
+                  const newSourceSync = graphSyncs.find(
+                    (gs) => gs.name === e.value
+                  )
+                  if (newSourceSync) {
+                    setSourceSyncId(newSourceSync.id)
+                    saveDetail('sourceSyncId', newSourceSync.id)
+                    setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+                    // name updating handled by useEffect above
+                  }
+                }}
+                disabled={!editingEnabled}
+                emptyMessage="No dbt syncs configured"
+              />
+            </div>
+            <div className={styles.yaml_config}>
+              <label
+                htmlFor="source-sync-path-file-field"
+                style={{ display: 'block' }}
+              >
+                dbt Metric YAML Path
+              </label>
+              <InputText
+                id="source-sync-path-file-field"
+                value={sourceSyncPathFile || ''}
+                onChange={(e) => {
+                  setSourceSyncPathFile(e.target.value)
+                }}
+                onBlur={() => {
+                  saveDetail('sourceSyncPath', sourceSyncPath)
+                }}
+                disabled={!editingEnabled}
+              />
+            </div>
+            <div className={styles.yaml_config}>
+              <label
+                htmlFor="source-sync-path-metric-field"
+                style={{ display: 'block' }}
+              >
+                dbt Metric Name
+              </label>
+              <InputText
+                id="source-sync-path-metric-field"
+                value={sourceSyncPathMetric || ''}
+                onChange={(e) => {
+                  setSourceSyncPathMetric(e.target.value)
+                }}
+                onBlur={() => {
+                  saveDetail('sourceSyncPath', sourceSyncPath)
+                }}
+                disabled={!editingEnabled}
+              />
+            </div>
+          </div>
+        )}
         {editingEnabled ? (
           <Editor
             id="source-code-field"
