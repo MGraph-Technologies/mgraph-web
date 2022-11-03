@@ -7,6 +7,7 @@ import {
   parameterizeStatement,
 } from '../utils/queryParameters'
 import { supabase } from '../utils/supabaseClient'
+import { MetricNodeProperties } from './graph/MetricNode'
 
 export type QueryResult = {
   status:
@@ -17,6 +18,21 @@ export type QueryResult = {
     | 'error'
     | 'empty'
   data: any | null
+}
+
+export const initializeQueryResult = (metricNodeData: MetricNodeProperties) => {
+  return {
+    status:
+      metricNodeData &&
+      (!metricNodeData.sourceCode ||
+        !metricNodeData.sourceCodeLanguage ||
+        !metricNodeData.sourceDatabaseConnectionId ||
+        (metricNodeData.sourceCodeLanguage === 'yaml' &&
+          (!metricNodeData.sourceSyncId || !metricNodeData.sourceSyncPath)))
+        ? 'empty'
+        : 'processing',
+    data: null,
+  } as QueryResult
 }
 
 type QueryRunnerProps = {

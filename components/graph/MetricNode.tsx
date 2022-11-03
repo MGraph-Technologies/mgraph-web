@@ -16,7 +16,7 @@ import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
 import LineChart from '../LineChart'
-import QueryRunner, { QueryResult } from '../QueryRunner'
+import QueryRunner, { QueryResult, initializeQueryResult } from '../QueryRunner'
 import NodeInfoButton from './NodeInfoButton'
 import NodeMenu from './NodeMenu'
 
@@ -82,17 +82,9 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     [data]
   )
 
-  const [queryResult, setQueryResult] = useState<QueryResult>({
-    status:
-      !data.sourceCode ||
-      !data.sourceCodeLanguage ||
-      !data.sourceDatabaseConnectionId ||
-      (data.sourceCodeLanguage === 'yaml' &&
-        (!data.sourceSyncId || !data.sourceSyncPath))
-        ? 'empty'
-        : 'processing',
-    data: null,
-  })
+  const [queryResult, setQueryResult] = useState<QueryResult>(
+    initializeQueryResult(data)
+  )
 
   const [renderChart, setRenderChart] = useState(false)
   useEffect(() => {

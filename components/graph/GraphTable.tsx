@@ -15,7 +15,7 @@ import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/GraphTable.module.css'
 import { analytics } from '../../utils/segmentClient'
 import LineChart from '../LineChart'
-import QueryRunner, { QueryResult } from '../QueryRunner'
+import QueryRunner, { initializeQueryResult, QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import NodeInfoButton from './NodeInfoButton'
 
@@ -54,18 +54,9 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
   const TrendCellBodyTemplateFC: FunctionComponent<
     TrendCellBodyTemplateProps
   > = ({ rowData }) => {
-    const [queryResult, setQueryResult] = useState<QueryResult>({
-      status:
-        !rowData ||
-        !rowData.data.sourceCode ||
-        !rowData.data.sourceCodeLanguage ||
-        !rowData.data.sourceDatabaseConnectionId ||
-        (rowData.data.sourceCodeLanguage === 'yaml' &&
-          (!rowData.data.sourceSyncId || !rowData.data.sourceSyncPath))
-          ? 'empty'
-          : 'processing',
-      data: null,
-    })
+    const [queryResult, setQueryResult] = useState<QueryResult>(
+      initializeQueryResult(rowData)
+    )
     return (
       <div className={styles.chart_container}>
         <QueryRunner

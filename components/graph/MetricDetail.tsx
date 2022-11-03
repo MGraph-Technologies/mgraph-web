@@ -20,7 +20,7 @@ import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/MetricDetail.module.css'
 import { supabase } from '../../utils/supabaseClient'
 import LineChart from '../LineChart'
-import QueryRunner, { QueryResult } from '../QueryRunner'
+import QueryRunner, { QueryResult, initializeQueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import { getFunctionSymbol } from './FunctionNode'
@@ -64,10 +64,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
 
-  const [queryResult, setQueryResult] = useState<QueryResult>({
-    status: 'processing',
-    data: null,
-  })
+  const [queryResult, setQueryResult] = useState<QueryResult>(
+    initializeQueryResult(metricNode?.data)
+  )
 
   const populateMetricNode = useCallback(() => {
     if (metricId) {
@@ -96,28 +95,14 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       setName(metricNode.data.name || '')
       setDescription(metricNode.data.description || '')
       setOwner(metricNode.data.owner || '')
-      const _sourceCode = metricNode.data.sourceCode || ''
-      setSourceCode(_sourceCode)
-      const _sourceCodeLanguage = metricNode.data.sourceCodeLanguage || ''
-      setSourceCodeLanguage(_sourceCodeLanguage)
-      const _sourceDatabaseConnectionId =
+      setSourceCode(metricNode.data.sourceCode || '')
+      setSourceCodeLanguage(metricNode.data.sourceCodeLanguage || '')
+      setSourceDatabaseConnectionId(
         metricNode.data.sourceDatabaseConnectionId || ''
-      setSourceDatabaseConnectionId(_sourceDatabaseConnectionId)
-      const _sourceSyncId = metricNode.data.sourceSyncId || ''
-      setSourceSyncId(_sourceSyncId)
-      const _sourceSyncPath = metricNode.data.sourceSyncPath || ''
-      setSourceSyncPath(_sourceSyncPath)
-      if (
-        !_sourceCode ||
-        !_sourceCodeLanguage ||
-        !_sourceDatabaseConnectionId ||
-        (_sourceCodeLanguage === 'yaml' && (!_sourceSyncId || !_sourceSyncPath))
-      ) {
-        setQueryResult({
-          status: 'empty',
-          data: null,
-        })
-      }
+      )
+      setSourceSyncId(metricNode.data.sourceSyncId || '')
+      setSourceSyncPath(metricNode.data.sourceSyncPath || '')
+      setQueryResult(initializeQueryResult(metricNode.data))
       setInitialDetailPopulationComplete(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
