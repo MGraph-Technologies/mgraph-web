@@ -25,7 +25,7 @@ import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import { getFunctionSymbol } from './FunctionNode'
-import { SourceCodeLanguage } from './MetricNode'
+import { MetricNodeProperties, SourceCodeLanguage } from './MetricNode'
 
 hljs.registerLanguage('plaintext', plaintext)
 hljs.registerLanguage('sql', sql)
@@ -252,7 +252,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   }, [outputs, replaceFunctionTypeIdWithSymbol])
 
   const saveDetail = useCallback(
-    (name: string, value: string | null) => {
+    (name: keyof MetricNodeProperties, value: string | null) => {
       if (metricNode) {
         const newData = {
           ...metricNode.data,
