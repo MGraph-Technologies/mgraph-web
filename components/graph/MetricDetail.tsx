@@ -3,6 +3,7 @@ import plaintext from 'highlight.js/lib/languages/plaintext'
 import sql from 'highlight.js/lib/languages/sql'
 import yaml from 'highlight.js/lib/languages/yaml'
 import 'highlight.js/styles/docco.css'
+import jsYaml from 'js-yaml'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Dropdown } from 'primereact/dropdown'
@@ -35,7 +36,7 @@ type MetricDetailProps = {
   metricId: string | string[] | undefined
 }
 const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
-  const { organizationId, organizationName } = useAuth()
+  const { session, organizationId, organizationName } = useAuth()
   const { editingEnabled } = useEditability()
   const { push } = useBrowser()
 
@@ -58,7 +59,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] =
     useState('')
   const [sourceSyncId, setSourceSyncId] = useState<string | null>(null)
-  const [sourceSyncName, setSourceSyncName] = useState('')
+  const [sourceSync, setSourceSync] = useState<any>(null)
   const [sourceSyncPath, setSourceSyncPath] = useState<string | null>(null)
   const [sourceSyncPathFile, setSourceSyncPathFile] = useState('')
   const [sourceSyncPathMetric, setSourceSyncPathMetric] = useState('')
@@ -302,7 +303,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       try {
         let { data, error, status } = await supabase
           .from('graph_syncs')
-          .select('id, name, graph_sync_types!inner ( name )')
+          .select('id, name, properties, graph_sync_types!inner ( name )')
           .match({
             organization_id: organizationId,
             'graph_sync_types.name': 'dbt', // ignore other types
@@ -334,20 +335,103 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     populateGraphSyncs()
   }, [populateGraphSyncs])
   useEffect(() => {
-    const sourceSync = graphSyncs.find(
-      (graphSync) => graphSync.id === sourceSyncId
-    )
-    if (sourceSync) {
-      setSourceSyncName(sourceSync.name)
-    } else {
-      setSourceSyncName('')
-    }
-  }, [sourceSyncId, graphSyncs, setSourceSyncName])
+    setSourceSync(graphSyncs.find((graphSync) => graphSync.id === sourceSyncId))
+  }, [sourceSyncId, graphSyncs])
 
   useEffect(() => {
     const _sourceSyncPath = `${sourceSyncPathFile}:${sourceSyncPathMetric}`
     setSourceSyncPath(_sourceSyncPath)
   }, [sourceSyncPathFile, sourceSyncPathMetric])
+
+  const getDbtYaml = useCallback(async () => {
+    if (
+      sourceSyncId &&
+      sourceSync &&
+      sourceSyncPathFile &&
+      sourceSyncPathMetric
+    ) {
+      // get dbt graph sync client token
+      const accessToken = session?.access_token
+      if (!accessToken) {
+        return
+      }
+      const clientTokenResp = await fetch(
+        `/api/v1/graph-syncs/${sourceSyncId}/client-tokens`,
+        {
+          method: 'GET',
+          headers: {
+            'supabase-access-token': accessToken,
+          },
+        }
+      )
+      if (clientTokenResp.status !== 200) {
+        console.error('Error getting dbt sync client token')
+        return
+      }
+      const clientTokenBody = await clientTokenResp.json()
+      const clientToken = clientTokenBody?.token
+      if (!clientToken) {
+        console.error('Error materializing dbt sync client token')
+        return
+      }
+
+      // parse sourceSyncRepoUrl
+      const sourceSyncRepoUrl = sourceSync.properties.repoUrl || ''
+      const owner = sourceSyncRepoUrl.split('/')[3]
+      const repo = sourceSyncRepoUrl.split('/')[4]
+      if (!owner || !repo) {
+        console.error('Error parsing owner and repo from source sync repo url')
+        return
+      }
+
+      // load and decode corresponding content from github
+      const contentResp = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/contents/${sourceSyncPathFile}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${clientToken}`,
+          },
+        }
+      )
+      if (contentResp.status !== 200) {
+        console.error('Error getting dbt sync file content')
+        return
+      }
+      const contentRespBody = await contentResp.json()
+      const encodedContent = contentRespBody.content
+      const decodedContent = Buffer.from(encodedContent, 'base64').toString(
+        'utf-8'
+      )
+
+      // parse yaml
+      const jsonifiedContent = jsYaml.load(decodedContent) as any
+      if (!jsonifiedContent) {
+        console.error('Error jsonifying dbt sync file content')
+        return
+      }
+
+      // get metric definition
+      const metric = jsonifiedContent?.metrics?.find(
+        (metric: any) => metric.name === sourceSyncPathMetric
+      )
+      if (!metric) {
+        console.error('Error getting metric definition')
+        return
+      }
+
+      return jsYaml.dump(metric)
+    }
+  }, [
+    sourceSyncId,
+    sourceSync,
+    sourceSyncPathFile,
+    sourceSyncPathMetric,
+    session,
+  ])
+  useEffect(() => {
+    getDbtYaml()
+  }, [getDbtYaml])
 
   // https://github.com/highlightjs/highlight.js/issues/925
   const highlight = (code: string, language: string) => {
@@ -513,7 +597,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
               </label>
               <Dropdown
                 id="source-sync-dropdown"
-                value={sourceSyncName}
+                value={sourceSync?.name || ''}
                 options={graphSyncs.map((gc) => gc.name)}
                 onChange={(e) => {
                   const newSourceSync = graphSyncs.find(
