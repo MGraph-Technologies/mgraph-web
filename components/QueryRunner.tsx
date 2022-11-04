@@ -50,12 +50,12 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
 
   const shouldRunQuery = useCallback(() => {
     return (
-      parentMetricNodeData?.sourceDatabaseConnectionId &&
-      parentMetricNodeData?.sourceQuery &&
-      parentMetricNodeData?.sourceQueryType &&
-      ((parentMetricNodeData?.sourceDbtProjectGraphSyncId &&
-        parentMetricNodeData?.sourceDbtProjectMetricPath) ||
-        parentMetricNodeData?.sourceQueryType === 'manual')
+      parentMetricNodeData?.source?.databaseConnectionId &&
+      parentMetricNodeData?.source?.query &&
+      parentMetricNodeData?.source?.queryType &&
+      ((parentMetricNodeData?.source?.dbtProjectGraphSyncId &&
+        parentMetricNodeData?.source?.dbtProjectMetricPath) ||
+        parentMetricNodeData?.source?.queryType === 'manual')
     )
   }, [parentMetricNodeData])
 
@@ -82,10 +82,10 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       try {
         let queryId = await getLatestQueryId(
           parameterizeStatement(
-            parentMetricNodeData?.sourceQuery,
+            parentMetricNodeData?.source?.query,
             queryParameters
           ),
-          parentMetricNodeData?.sourceDatabaseConnectionId,
+          parentMetricNodeData?.source?.databaseConnectionId,
           parentMetricNodeData?.id,
           supabase
         )
@@ -107,8 +107,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     getQueryIdComplete,
     session?.access_token,
     shouldRunQuery,
-    parentMetricNodeData?.sourceQuery,
-    parentMetricNodeData?.sourceDatabaseConnectionId,
+    parentMetricNodeData?.source?.query,
+    parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,
     queryParameters,
     setQueryResult,
@@ -242,10 +242,11 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         data: null,
       })
       const queryBody = {
-        databaseConnectionId: parentMetricNodeData?.sourceDatabaseConnectionId,
+        databaseConnectionId:
+          parentMetricNodeData?.source?.databaseConnectionId,
         parentNodeId: parentMetricNodeData?.id,
         statement: parameterizeStatement(
-          parentMetricNodeData?.sourceQuery,
+          parentMetricNodeData?.source?.query,
           queryParameters
         ),
       }
@@ -278,9 +279,9 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   }, [
     session?.access_token,
     shouldRunQuery,
-    parentMetricNodeData?.sourceDatabaseConnectionId,
+    parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,
-    parentMetricNodeData?.sourceQuery,
+    parentMetricNodeData?.source?.query,
     queryParameters,
     setQueryResult,
   ])
@@ -308,11 +309,11 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      parentMetricNodeData?.sourceQuery,
-      parentMetricNodeData?.sourceQueryType,
-      parentMetricNodeData?.sourceDatabaseConnectionId,
-      parentMetricNodeData?.sourceDbtProjectGraphSyncId,
-      parentMetricNodeData?.sourceDbtProjectMetricPath,
+      parentMetricNodeData?.source?.query,
+      parentMetricNodeData?.source?.queryType,
+      parentMetricNodeData?.source?.databaseConnectionId,
+      parentMetricNodeData?.source?.dbtProjectGraphSyncId,
+      parentMetricNodeData?.source?.dbtProjectMetricPath,
     ]
   )
   return <></>

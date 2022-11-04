@@ -28,11 +28,13 @@ export type MetricNodeProperties = {
   name: string
   description: string
   owner: string
-  sourceDatabaseConnectionId: string
-  sourceQuery: string
-  sourceQueryType: SourceQueryType
-  sourceDbtProjectGraphSyncId: string | null
-  sourceDbtProjectMetricPath: string | null
+  source: {
+    databaseConnectionId: string
+    query: string
+    queryType: SourceQueryType
+    dbtProjectGraphSyncId: string | null
+    dbtProjectMetricPath: string | null
+  }
   color: string
   // below not in postgres
   initialProperties: object

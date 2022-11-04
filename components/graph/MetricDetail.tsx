@@ -98,17 +98,17 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       setDescription(metricNode.data.description || '')
       setOwner(metricNode.data.owner || '')
       setSourceDatabaseConnectionId(
-        metricNode.data.sourceDatabaseConnectionId || ''
+        metricNode.data.source.databaseConnectionId || ''
       )
-      setSourceQuery(metricNode.data.sourceQuery || '')
+      setSourceQuery(metricNode.data.source.query || '')
       setSourceQueryType(
-        (metricNode.data.sourceQueryType as SourceQueryType) || 'manual'
+        (metricNode.data.source.queryType as SourceQueryType) || 'manual'
       )
       setSourceDbtProjectGraphSyncId(
-        metricNode.data.sourceDbtProjectGraphSyncId
+        metricNode.data.source.dbtProjectGraphSyncId
       )
       const _sourceDbtProjectMetricPath =
-        metricNode.data.sourceDbtProjectMetricPath
+        metricNode.data.source.dbtProjectMetricPath
       setSourceDbtProjectMetricPath(_sourceDbtProjectMetricPath)
       if (_sourceDbtProjectMetricPath) {
         const [
@@ -254,7 +254,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   }, [outputs, replaceFunctionTypeIdWithSymbol])
 
   const saveDetail = useCallback(
-    (name: keyof MetricNodeProperties, value: string | null) => {
+    (name: keyof MetricNodeProperties, value: any) => {
       if (metricNode) {
         const newData = {
           ...metricNode.data,
@@ -568,10 +568,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             )
             if (newSourceDatabaseConnection) {
               setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
-              saveDetail(
-                'sourceDatabaseConnectionId',
-                newSourceDatabaseConnection.id
-              )
+              saveDetail('source', {
+                ...metricNode?.data?.source,
+                databaseConnectionId: newSourceDatabaseConnection.id,
+              })
               // name updating handled by useEffect above
             }
           }}
@@ -604,7 +604,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onChange={(e) => {
             const newSQT = e.value as SourceQueryType
             setSourceQueryType(newSQT)
-            saveDetail('sourceQueryType', newSQT)
+            saveDetail('source', {
+              ...metricNode?.data?.source,
+              queryType: newSQT,
+            })
           }}
           style={{ marginBottom: '1em' }}
           disabled={!editingEnabled}
@@ -630,10 +633,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                     setSourceDbtProjectGraphSyncId(
                       newSourceDbtProjectGraphSync.id
                     )
-                    saveDetail(
-                      'sourceDbtProjectGraphSyncId',
-                      newSourceDbtProjectGraphSync.id
-                    )
+                    saveDetail('source', {
+                      ...metricNode?.data?.source,
+                      dbtProjectGraphSyncId: newSourceDbtProjectGraphSync.id,
+                    })
                     // name updating handled by useEffect above
                   }
                 }}
@@ -655,10 +658,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                   setSourceDbtProjectMetricPathFile(e.target.value)
                 }}
                 onBlur={() => {
-                  saveDetail(
-                    'sourceDbtProjectMetricPath',
-                    sourceDbtProjectMetricPath
-                  )
+                  saveDetail('source', {
+                    ...metricNode?.data?.source,
+                    dbtProjectMetricPath: sourceDbtProjectMetricPath,
+                  })
                 }}
                 disabled={!editingEnabled}
               />
@@ -677,10 +680,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                   setSourceDbtProjectMetricPathName(e.target.value)
                 }}
                 onBlur={() => {
-                  saveDetail(
-                    'sourceDbtProjectMetricPath',
-                    sourceDbtProjectMetricPath
-                  )
+                  saveDetail('source', {
+                    ...metricNode?.data?.source,
+                    dbtProjectMetricPath: sourceDbtProjectMetricPath,
+                  })
                 }}
                 disabled={!editingEnabled}
               />
@@ -693,7 +696,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             value={sourceQuery}
             onValueChange={(query) => setSourceQuery(query)}
             onBlur={() => {
-              saveDetail('sourceQuery', sourceQuery)
+              saveDetail('source', {
+                ...metricNode?.data?.source,
+                query: sourceQuery,
+              })
             }}
             highlight={(query) => highlight(query, 'sql')}
             textareaClassName="react-simple-code-editor-textarea"
