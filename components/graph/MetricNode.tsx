@@ -20,7 +20,7 @@ import QueryRunner, { QueryResult } from '../QueryRunner'
 import NodeInfoButton from './NodeInfoButton'
 import NodeMenu from './NodeMenu'
 
-export type SourceCodeLanguage = 'sql' | 'yaml'
+export type SourceQueryType = 'generated' | 'manual'
 export type MetricNodeProperties = {
   id: string
   organizationId: string
@@ -28,9 +28,9 @@ export type MetricNodeProperties = {
   name: string
   description: string
   owner: string
-  sourceCode: string
-  sourceCodeLanguage: SourceCodeLanguage
   sourceDatabaseConnectionId: string
+  sourceQuery: string
+  sourceQueryType: SourceQueryType
   sourceSyncId: string | null
   sourceSyncPath: string | null
   color: string

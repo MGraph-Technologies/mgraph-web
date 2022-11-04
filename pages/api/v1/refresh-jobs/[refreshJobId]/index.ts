@@ -52,7 +52,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const graphData = await graphResp.json()
       const graph = graphData.graph
       const metricNodes = graph.nodes.filter(
-        (node: any) => node.data.sourceCode
+        (node: any) => node.data.sourceQuery
       )
 
       // get organization's query parameters
@@ -63,7 +63,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       // for each metric node, parameterize its query and send to query runner
       metricNodes.forEach(async (node: any) => {
-        const statement = node.data.sourceCode as string
+        const statement = node.data.sourceQuery as string
         const databaseConnectionId = node.data
           .sourceDatabaseConnectionId as string
         if (statement && databaseConnectionId) {

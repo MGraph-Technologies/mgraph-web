@@ -26,7 +26,7 @@ import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import { getFunctionSymbol } from './FunctionNode'
-import { MetricNodeProperties, SourceCodeLanguage } from './MetricNode'
+import { MetricNodeProperties, SourceQueryType } from './MetricNode'
 
 hljs.registerLanguage('plaintext', plaintext)
 hljs.registerLanguage('sql', sql)
@@ -48,16 +48,20 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [inputs, setInputs] = useState('')
   const [outputs, setOutputs] = useState('')
   const [owner, setOwner] = useState('')
-  const [sourceCode, setSourceCode] = useState('')
-  const [sourceCodeLanguage, setSourceCodeLanguage] = useState('')
-  const sourceCodeLanguages = [
-    { label: 'SQL', value: 'sql' as SourceCodeLanguage },
-    { label: 'YAML (dbt Metrics)', value: 'yaml' as SourceCodeLanguage },
-  ]
   const [sourceDatabaseConnectionId, setSourceDatabaseConnectionId] =
     useState('')
   const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] =
     useState('')
+  const [sourceQuery, setSourceQuery] = useState('')
+  const [sourceQueryType, setSourceQueryType] =
+    useState<SourceQueryType>('manual')
+  const sourceQueryTypes = [
+    {
+      label: 'generated' as SourceQueryType,
+      value: 'generated' as SourceQueryType,
+    },
+    { label: 'manual' as SourceQueryType, value: 'manual' as SourceQueryType },
+  ]
   const [sourceSyncId, setSourceSyncId] = useState<string | null>(null)
   const [sourceSync, setSourceSync] = useState<any>(null)
   const [sourceSyncPath, setSourceSyncPath] = useState<string | null>(null)
@@ -87,10 +91,12 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       setName(metricNode.data.name || '')
       setDescription(metricNode.data.description || '')
       setOwner(metricNode.data.owner || '')
-      setSourceCode(metricNode.data.sourceCode || '')
-      setSourceCodeLanguage(metricNode.data.sourceCodeLanguage || '')
       setSourceDatabaseConnectionId(
         metricNode.data.sourceDatabaseConnectionId || ''
+      )
+      setSourceQuery(metricNode.data.sourceQuery || '')
+      setSourceQueryType(
+        (metricNode.data.sourceQueryType as SourceQueryType) || 'manual'
       )
       setSourceSyncId(metricNode.data.sourceSyncId)
       const _sourceSyncPath = metricNode.data.sourceSyncPath
@@ -555,7 +561,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           disabled={!editingEnabled}
         />
         <h3>
-          Code
+          Query
           {editingEnabled && (
             <Button
               id="refresh-query-button"
@@ -569,24 +575,24 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           )}
         </h3>
         <label
-          htmlFor="source-code-language-dropdown"
+          htmlFor="source-query-type-dropdown"
           style={{ marginRight: '1em' }}
         >
-          Language:
+          Type:
         </label>
         <Dropdown
-          id="source-code-language-dropdown"
-          value={sourceCodeLanguage}
-          options={sourceCodeLanguages}
+          id="source-query-type-dropdown"
+          value={sourceQueryType}
+          options={sourceQueryTypes}
           onChange={(e) => {
-            const newSCL = e.value as SourceCodeLanguage
-            setSourceCodeLanguage(newSCL)
-            saveDetail('sourceCodeLanguage', newSCL)
+            const newSQT = e.value as SourceQueryType
+            setSourceQueryType(newSQT)
+            saveDetail('sourceQueryType', newSQT)
           }}
           style={{ marginBottom: '1em' }}
           disabled={!editingEnabled}
         />
-        {sourceCodeLanguage === 'yaml' && (
+        {sourceQueryType === 'generated' && (
           <div className={styles.yaml_configs}>
             <div className={styles.yaml_config}>
               <label
@@ -655,19 +661,17 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         )}
         {editingEnabled ? (
           <Editor
-            id="source-code-field"
-            value={sourceCode}
-            onValueChange={(code) => setSourceCode(code)}
+            id="source-query-field"
+            value={sourceQuery}
+            onValueChange={(query) => setSourceQuery(query)}
             onBlur={() => {
-              saveDetail('sourceCode', sourceCode)
+              saveDetail('sourceQuery', sourceQuery)
             }}
-            highlight={(code) =>
-              highlight(code, sourceCodeLanguage || 'plaintext')
-            }
+            highlight={(query) => highlight(query, 'sql')}
             textareaClassName="react-simple-code-editor-textarea"
           />
         ) : (
-          <pre>{highlight(sourceCode, sourceCodeLanguage || 'plaintext')}</pre>
+          <pre>{highlight(sourceQuery, 'sql')}</pre>
         )}
       </div>
       {editingEnabled ? (

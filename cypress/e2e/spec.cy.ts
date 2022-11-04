@@ -347,15 +347,15 @@ describe('Metric detail editing', () => {
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
 
-    // select SQL as language
-    cy.get('[id=source-code-language-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('SQL').first().click()
+    // select manual query
+    cy.get('[id=source-query-type-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('manual').first().click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
-    cy.get('[id=source-code-field').click()
-    cy.get('[id=source-code-field').clear().type(newQuery)
+    cy.get('[id=source-query-field').click()
+    cy.get('[id=source-query-field').clear().type(newQuery)
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
@@ -377,15 +377,15 @@ describe('Metric detail editing', () => {
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
 
-    // select SQL as language
-    cy.get('[id=source-code-language-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('SQL').first().click()
+    // select manual query
+    cy.get('[id=source-query-type-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('manual').first().click()
 
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
-    cy.get('[id=source-code-field').click()
-    cy.get('[id=source-code-field').clear().type(newQuery)
+    cy.get('[id=source-query-field').click()
+    cy.get('[id=source-query-field').clear().type(newQuery)
     cy.get('[class*=Header]').first().click()
     cy.get('[id=save-button]').click()
 
@@ -413,14 +413,14 @@ describe('Metric detail editing', () => {
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
 
-    // select SQL as language
-    cy.get('[id=source-code-language-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('SQL').first().click()
+    // select manual query
+    cy.get('[id=source-query-type-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('manual').first().click()
 
     // edit query
     const newQuery = 'SELECT x'
-    cy.get('[id=source-code-field').click()
-    cy.get('[id=source-code-field').clear().type(newQuery)
+    cy.get('[id=source-query-field').click()
+    cy.get('[id=source-query-field').clear().type(newQuery)
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
@@ -440,14 +440,14 @@ describe('Metric detail editing', () => {
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
 
-    // select SQL as language
-    cy.get('[id=source-code-language-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('SQL').first().click()
+    // select manual query
+    cy.get('[id=source-query-type-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('manual').first().click()
 
     // edit query
     const newQuery = "SELECT TRUE, 'all', 1"
-    cy.get('[id=source-code-field').click()
-    cy.get('[id=source-code-field').clear().type(newQuery)
+    cy.get('[id=source-query-field').click()
+    cy.get('[id=source-query-field').clear().type(newQuery)
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
@@ -561,9 +561,9 @@ describe('Metric detail editing', () => {
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
 
-    // select SQL as language
-    cy.get('[id=source-code-language-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('SQL').first().click()
+    // select manual query
+    cy.get('[id=source-query-type-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('manual').first().click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -579,8 +579,8 @@ describe('Metric detail editing', () => {
         {{group_by}},
         ${randomInt}
     `
-    cy.get('[id=source-code-field').click()
-    cy.get('[id=source-code-field')
+    cy.get('[id=source-query-field').click()
+    cy.get('[id=source-query-field')
       .clear()
       .type(newQuery, { parseSpecialCharSequences: false })
     cy.get('[id=refresh-query-button]').first().click()

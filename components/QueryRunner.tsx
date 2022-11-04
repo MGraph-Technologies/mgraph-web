@@ -50,12 +50,12 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
 
   const shouldRunQuery = useCallback(() => {
     return (
-      parentMetricNodeData?.sourceCode &&
-      parentMetricNodeData?.sourceCodeLanguage &&
       parentMetricNodeData?.sourceDatabaseConnectionId &&
+      parentMetricNodeData?.sourceQuery &&
+      parentMetricNodeData?.sourceQueryType &&
       ((parentMetricNodeData?.sourceSyncId &&
         parentMetricNodeData?.sourceSyncPath) ||
-        parentMetricNodeData?.sourceCodeLanguage !== 'yaml')
+        parentMetricNodeData?.sourceQueryType === 'manual')
     )
   }, [parentMetricNodeData])
 
@@ -82,7 +82,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       try {
         let queryId = await getLatestQueryId(
           parameterizeStatement(
-            parentMetricNodeData?.sourceCode,
+            parentMetricNodeData?.sourceQuery,
             queryParameters
           ),
           parentMetricNodeData?.sourceDatabaseConnectionId,
@@ -107,7 +107,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     getQueryIdComplete,
     session?.access_token,
     shouldRunQuery,
-    parentMetricNodeData?.sourceCode,
+    parentMetricNodeData?.sourceQuery,
     parentMetricNodeData?.sourceDatabaseConnectionId,
     parentMetricNodeData?.id,
     queryParameters,
@@ -245,7 +245,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         databaseConnectionId: parentMetricNodeData?.sourceDatabaseConnectionId,
         parentNodeId: parentMetricNodeData?.id,
         statement: parameterizeStatement(
-          parentMetricNodeData?.sourceCode,
+          parentMetricNodeData?.sourceQuery,
           queryParameters
         ),
       }
@@ -280,7 +280,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     shouldRunQuery,
     parentMetricNodeData?.sourceDatabaseConnectionId,
     parentMetricNodeData?.id,
-    parentMetricNodeData?.sourceCode,
+    parentMetricNodeData?.sourceQuery,
     queryParameters,
     setQueryResult,
   ])
@@ -308,8 +308,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      parentMetricNodeData?.sourceCode,
-      parentMetricNodeData?.sourceCodeLanguage,
+      parentMetricNodeData?.sourceQuery,
+      parentMetricNodeData?.sourceQueryType,
       parentMetricNodeData?.sourceDatabaseConnectionId,
       parentMetricNodeData?.sourceSyncId,
       parentMetricNodeData?.sourceSyncPath,
