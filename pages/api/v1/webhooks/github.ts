@@ -61,7 +61,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         } = await supabase
           .from('graph_sync_types')
           .select('id')
-          .eq('name', 'dbt')
+          .eq('name', 'dbt Project')
           .single()
 
         if (graphSyncTypeError && graphSyncTypeStatus !== 406) {
@@ -75,7 +75,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             since state isn't available in the webhook payload */
           organization_id: null,
           type_id: graphSyncTypeId,
-          name: 'dbt', // placeholder
+          name: 'dbt Project', // placeholder
           properties: {
             installationId: installationId,
           },

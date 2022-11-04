@@ -30,7 +30,7 @@ const MGraphDbtSync: FunctionComponent<MGraphDbtSyncProps> = () => {
           } = await supabase
             .from('graph_sync_types')
             .select('id')
-            .eq('name', 'dbt')
+            .eq('name', 'dbt Project')
             .single()
 
           if (graphSyncTypeError && graphSyncTypeStatus !== 406) {
@@ -40,7 +40,7 @@ const MGraphDbtSync: FunctionComponent<MGraphDbtSyncProps> = () => {
           let { data, error, status } = await supabase
             .from('graph_syncs')
             .update({
-              name: savedState.name || 'dbt',
+              name: savedState.name || 'dbt Project',
               organization_id: organizationId,
               properties: {
                 installationId: installationIdNum,

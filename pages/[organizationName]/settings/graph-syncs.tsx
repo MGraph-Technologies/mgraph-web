@@ -21,7 +21,7 @@ import styles from '../../../styles/GraphSyncs.module.css'
 import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
 
-type DbtGraphSyncFormProps = {
+type DbtProjectGraphSyncFormProps = {
   upsertGraphSyncId: string
   upsertGraphSyncName: string
   setUpsertGraphSyncName: Dispatch<SetStateAction<string>>
@@ -31,7 +31,9 @@ type DbtGraphSyncFormProps = {
   populateGraphSyncs: () => void
   clearFields: () => void
 }
-const DbtGraphSyncForm: FunctionComponent<DbtGraphSyncFormProps> = ({
+const DbtProjectGraphSyncForm: FunctionComponent<
+  DbtProjectGraphSyncFormProps
+> = ({
   upsertGraphSyncId,
   upsertGraphSyncName,
   setUpsertGraphSyncName,
@@ -124,7 +126,7 @@ const DbtGraphSyncForm: FunctionComponent<DbtGraphSyncFormProps> = ({
         <Button
           className="p-button-text"
           icon="pi pi-info-circle"
-          tooltip="MGraph's GitHub app must have access to the above repo to sync metrics."
+          tooltip="The MGraph dbt Sync GitHub app must have access to the above repo to sync metrics."
         />
       </div>
       <br />
@@ -272,7 +274,7 @@ const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
     'white-space': 'normal',
   }
 
-  const upsertGraphSyncTypeName = 'dbt'
+  const upsertGraphSyncTypeName = 'dbt Project' // in the future, below dropdown will vary this
   const [showUpsertGraphSyncPopup, setShowUpsertGraphSyncPopup] =
     useState(false)
   const [upsertGraphSyncId, setUpsertGraphSyncId] = useState<string>('')
@@ -328,8 +330,8 @@ const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
                 ]}
                 disabled // will enable when more types are supported
               />
-              {upsertGraphSyncTypeName === 'dbt' && (
-                <DbtGraphSyncForm
+              {upsertGraphSyncTypeName === 'dbt Project' && (
+                <DbtProjectGraphSyncForm
                   upsertGraphSyncId={upsertGraphSyncId}
                   upsertGraphSyncName={upsertGraphSyncName}
                   setUpsertGraphSyncName={setUpsertGraphSyncName}

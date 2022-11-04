@@ -70,8 +70,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       console.log('\ngraphSyncData: ', graphSyncData)
       const graphSyncType = graphSyncData.graph_sync_types.name
 
-      if (graphSyncType === 'dbt') {
-        console.log('\ngraphSyncType is dbt')
+      if (graphSyncType === 'dbt Project') {
+        console.log('\ngraphSyncType is dbt Project')
         console.log('Making GitHub app token...')
         const installationId = graphSyncData.properties.installationId
         const appToken = await getGitHubAppToken(

@@ -326,7 +326,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           .select('id, name, properties, graph_sync_types!inner ( name )')
           .match({
             organization_id: organizationId,
-            'graph_sync_types.name': 'dbt', // ignore other types
+            'graph_sync_types.name': 'dbt Project', // ignore other types
           })
           .is('deleted_at', null)
 
