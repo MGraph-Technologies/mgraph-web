@@ -31,8 +31,8 @@ export type MetricNodeProperties = {
   sourceDatabaseConnectionId: string
   sourceQuery: string
   sourceQueryType: SourceQueryType
-  sourceSyncId: string | null
-  sourceSyncPath: string | null
+  sourceDbtProjectGraphSyncId: string | null
+  sourceDbtProjectMetricPath: string | null
   color: string
   // below not in postgres
   initialProperties: object

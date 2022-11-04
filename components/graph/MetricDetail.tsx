@@ -62,11 +62,17 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     },
     { label: 'manual' as SourceQueryType, value: 'manual' as SourceQueryType },
   ]
-  const [sourceSyncId, setSourceSyncId] = useState<string | null>(null)
-  const [sourceSync, setSourceSync] = useState<any>(null)
-  const [sourceSyncPath, setSourceSyncPath] = useState<string | null>(null)
-  const [sourceSyncPathFile, setSourceSyncPathFile] = useState('')
-  const [sourceSyncPathMetric, setSourceSyncPathMetric] = useState('')
+  const [sourceDbtProjectGraphSyncId, setSourceDbtProjectGraphSyncId] =
+    useState<string | null>(null)
+  const [sourceDbtProjectGraphSync, setSourceDbtProjectGraphSync] =
+    useState<any>(null)
+  const [sourceDbtProjectMetricPath, setSourceDbtProjectMetricPath] = useState<
+    string | null
+  >(null)
+  const [sourceDbtProjectMetricPathFile, setSourceDbtProjectMetricPathFile] =
+    useState('')
+  const [sourceDbtProjectMetricPathName, setSourceDbtProjectMetricPathName] =
+    useState('')
   const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
 
   const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
@@ -98,17 +104,22 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       setSourceQueryType(
         (metricNode.data.sourceQueryType as SourceQueryType) || 'manual'
       )
-      setSourceSyncId(metricNode.data.sourceSyncId)
-      const _sourceSyncPath = metricNode.data.sourceSyncPath
-      setSourceSyncPath(_sourceSyncPath)
-      if (_sourceSyncPath) {
-        const [_sourceSyncPathFile, _sourceSyncPathMetric] =
-          _sourceSyncPath.split(':')
-        setSourceSyncPathFile(_sourceSyncPathFile)
-        setSourceSyncPathMetric(_sourceSyncPathMetric)
+      setSourceDbtProjectGraphSyncId(
+        metricNode.data.sourceDbtProjectGraphSyncId
+      )
+      const _sourceDbtProjectMetricPath =
+        metricNode.data.sourceDbtProjectMetricPath
+      setSourceDbtProjectMetricPath(_sourceDbtProjectMetricPath)
+      if (_sourceDbtProjectMetricPath) {
+        const [
+          _sourceDbtProjectMetricPathFile,
+          _sourceDbtProjectMetricPathName,
+        ] = _sourceDbtProjectMetricPath.split(':')
+        setSourceDbtProjectMetricPathFile(_sourceDbtProjectMetricPathFile)
+        setSourceDbtProjectMetricPathName(_sourceDbtProjectMetricPathName)
       } else {
-        setSourceSyncPathFile('')
-        setSourceSyncPathMetric('')
+        setSourceDbtProjectMetricPathFile('')
+        setSourceDbtProjectMetricPathName('')
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -341,28 +352,32 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     populateGraphSyncs()
   }, [populateGraphSyncs])
   useEffect(() => {
-    setSourceSync(graphSyncs.find((graphSync) => graphSync.id === sourceSyncId))
-  }, [sourceSyncId, graphSyncs])
+    setSourceDbtProjectGraphSync(
+      graphSyncs.find(
+        (graphSync) => graphSync.id === sourceDbtProjectGraphSyncId
+      )
+    )
+  }, [sourceDbtProjectGraphSyncId, graphSyncs])
 
   useEffect(() => {
-    const _sourceSyncPath = `${sourceSyncPathFile}:${sourceSyncPathMetric}`
-    setSourceSyncPath(_sourceSyncPath)
-  }, [sourceSyncPathFile, sourceSyncPathMetric])
+    const _sourceDbtProjectMetricPath = `${sourceDbtProjectMetricPathFile}:${sourceDbtProjectMetricPathName}`
+    setSourceDbtProjectMetricPath(_sourceDbtProjectMetricPath)
+  }, [sourceDbtProjectMetricPathFile, sourceDbtProjectMetricPathName])
 
   const getDbtYaml = useCallback(async () => {
     if (
-      sourceSyncId &&
-      sourceSync &&
-      sourceSyncPathFile &&
-      sourceSyncPathMetric
+      sourceDbtProjectGraphSyncId &&
+      sourceDbtProjectGraphSync &&
+      sourceDbtProjectMetricPathFile &&
+      sourceDbtProjectMetricPathName
     ) {
-      // get dbt graph sync client token
+      // get dbt project graph sync client token
       const accessToken = session?.access_token
       if (!accessToken) {
         return
       }
       const clientTokenResp = await fetch(
-        `/api/v1/graph-syncs/${sourceSyncId}/client-tokens`,
+        `/api/v1/graph-syncs/${sourceDbtProjectGraphSyncId}/client-tokens`,
         {
           method: 'GET',
           headers: {
@@ -371,28 +386,30 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         }
       )
       if (clientTokenResp.status !== 200) {
-        console.error('Error getting dbt sync client token')
+        console.error('Error getting dbt project graph sync client token')
         return
       }
       const clientTokenBody = await clientTokenResp.json()
       const clientToken = clientTokenBody?.token
       if (!clientToken) {
-        console.error('Error materializing dbt sync client token')
+        console.error('Error materializing dbt project graph sync client token')
         return
       }
 
-      // parse sourceSyncRepoUrl
-      const sourceSyncRepoUrl = sourceSync.properties.repoUrl || ''
-      const owner = sourceSyncRepoUrl.split('/')[3]
-      const repo = sourceSyncRepoUrl.split('/')[4]
+      // parse repoUrl
+      const repoUrl = sourceDbtProjectGraphSync.properties.repoUrl || ''
+      const owner = repoUrl.split('/')[3]
+      const repo = repoUrl.split('/')[4]
       if (!owner || !repo) {
-        console.error('Error parsing owner and repo from source sync repo url')
+        console.error(
+          'Error parsing owner and repo from dbt project graph sync repo url'
+        )
         return
       }
 
       // load and decode corresponding content from github
       const contentResp = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/contents/${sourceSyncPathFile}`,
+        `https://api.github.com/repos/${owner}/${repo}/contents/${sourceDbtProjectMetricPathFile}`,
         {
           method: 'GET',
           headers: {
@@ -401,7 +418,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         }
       )
       if (contentResp.status !== 200) {
-        console.error('Error getting dbt sync file content')
+        console.error('Error getting dbt metric file content')
         return
       }
       const contentRespBody = await contentResp.json()
@@ -413,13 +430,13 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       // parse yaml
       const jsonifiedContent = jsYaml.load(decodedContent) as any
       if (!jsonifiedContent) {
-        console.error('Error jsonifying dbt sync file content')
+        console.error('Error jsonifying dbt metric file content')
         return
       }
 
       // get metric definition
       const metric = jsonifiedContent?.metrics?.find(
-        (metric: any) => metric.name === sourceSyncPathMetric
+        (metric: any) => metric.name === sourceDbtProjectMetricPathName
       )
       if (!metric) {
         console.error('Error getting metric definition')
@@ -429,10 +446,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       return jsYaml.dump(metric)
     }
   }, [
-    sourceSyncId,
-    sourceSync,
-    sourceSyncPathFile,
-    sourceSyncPathMetric,
+    sourceDbtProjectGraphSyncId,
+    sourceDbtProjectGraphSync,
+    sourceDbtProjectMetricPathFile,
+    sourceDbtProjectMetricPathName,
     session,
   ])
   useEffect(() => {
@@ -596,63 +613,74 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           <div className={styles.yaml_configs}>
             <div className={styles.yaml_config}>
               <label
-                htmlFor="source-sync-dropdown"
+                htmlFor="source-dbt-project-graph-sync-dropdown"
                 style={{ display: 'block' }}
               >
                 dbt Sync
               </label>
               <Dropdown
-                id="source-sync-dropdown"
-                value={sourceSync?.name || ''}
+                id="source-dbt-project-graph-sync-dropdown"
+                value={sourceDbtProjectGraphSync?.name || ''}
                 options={graphSyncs.map((gc) => gc.name)}
                 onChange={(e) => {
-                  const newSourceSync = graphSyncs.find(
+                  const newSourceDbtProjectGraphSync = graphSyncs.find(
                     (gs) => gs.name === e.value
                   )
-                  if (newSourceSync) {
-                    setSourceSyncId(newSourceSync.id)
-                    saveDetail('sourceSyncId', newSourceSync.id)
+                  if (newSourceDbtProjectGraphSync) {
+                    setSourceDbtProjectGraphSyncId(
+                      newSourceDbtProjectGraphSync.id
+                    )
+                    saveDetail(
+                      'sourceDbtProjectGraphSyncId',
+                      newSourceDbtProjectGraphSync.id
+                    )
                     // name updating handled by useEffect above
                   }
                 }}
                 disabled={!editingEnabled}
-                emptyMessage="No dbt syncs configured"
+                emptyMessage="No dbt project graph syncs configured"
               />
             </div>
             <div className={styles.yaml_config}>
               <label
-                htmlFor="source-sync-path-file-field"
+                htmlFor="source-dbt-project-path-file-field"
                 style={{ display: 'block' }}
               >
                 dbt Metric YAML Path
               </label>
               <InputText
-                id="source-sync-path-file-field"
-                value={sourceSyncPathFile || ''}
+                id="source-dbt-project-path-file-field"
+                value={sourceDbtProjectMetricPathFile || ''}
                 onChange={(e) => {
-                  setSourceSyncPathFile(e.target.value)
+                  setSourceDbtProjectMetricPathFile(e.target.value)
                 }}
                 onBlur={() => {
-                  saveDetail('sourceSyncPath', sourceSyncPath)
+                  saveDetail(
+                    'sourceDbtProjectMetricPath',
+                    sourceDbtProjectMetricPath
+                  )
                 }}
                 disabled={!editingEnabled}
               />
             </div>
             <div className={styles.yaml_config}>
               <label
-                htmlFor="source-sync-path-metric-field"
+                htmlFor="source-dbt-project-path-name-field"
                 style={{ display: 'block' }}
               >
                 dbt Metric Name
               </label>
               <InputText
-                id="source-sync-path-metric-field"
-                value={sourceSyncPathMetric || ''}
+                id="source-dbt-project-path-name-field"
+                value={sourceDbtProjectMetricPathName || ''}
                 onChange={(e) => {
-                  setSourceSyncPathMetric(e.target.value)
+                  setSourceDbtProjectMetricPathName(e.target.value)
                 }}
                 onBlur={() => {
-                  saveDetail('sourceSyncPath', sourceSyncPath)
+                  saveDetail(
+                    'sourceDbtProjectMetricPath',
+                    sourceDbtProjectMetricPath
+                  )
                 }}
                 disabled={!editingEnabled}
               />

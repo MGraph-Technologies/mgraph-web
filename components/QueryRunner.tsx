@@ -53,8 +53,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       parentMetricNodeData?.sourceDatabaseConnectionId &&
       parentMetricNodeData?.sourceQuery &&
       parentMetricNodeData?.sourceQueryType &&
-      ((parentMetricNodeData?.sourceSyncId &&
-        parentMetricNodeData?.sourceSyncPath) ||
+      ((parentMetricNodeData?.sourceDbtProjectGraphSyncId &&
+        parentMetricNodeData?.sourceDbtProjectMetricPath) ||
         parentMetricNodeData?.sourceQueryType === 'manual')
     )
   }, [parentMetricNodeData])
@@ -311,8 +311,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       parentMetricNodeData?.sourceQuery,
       parentMetricNodeData?.sourceQueryType,
       parentMetricNodeData?.sourceDatabaseConnectionId,
-      parentMetricNodeData?.sourceSyncId,
-      parentMetricNodeData?.sourceSyncPath,
+      parentMetricNodeData?.sourceDbtProjectGraphSyncId,
+      parentMetricNodeData?.sourceDbtProjectMetricPath,
     ]
   )
   return <></>

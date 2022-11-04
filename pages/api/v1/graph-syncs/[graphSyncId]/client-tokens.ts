@@ -88,7 +88,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         res.status(200).json({ token: appInstallToken })
       } else {
         // dunno how this would happen, but just in case
-        const error = 'We only support dbt graph syncs at this time.'
+        const error = 'We only support dbt project graph syncs at this time.'
         console.error(error)
         throw new Error(error)
       }
