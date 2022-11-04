@@ -72,10 +72,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [sourceDbtProjectMetricPath, setSourceDbtProjectMetricPath] = useState<
     string | null
   >(null)
-  const [sourceDbtProjectMetricPathFile, setSourceDbtProjectMetricPathFile] =
-    useState('')
-  const [sourceDbtProjectMetricPathName, setSourceDbtProjectMetricPathName] =
-    useState('')
+  const [sourceDbtMetricYaml, setSourceDbtMetricYaml] = useState('')
   const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
 
   const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
@@ -113,17 +110,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       const _sourceDbtProjectMetricPath =
         metricNode.data.source.dbtProjectMetricPath
       setSourceDbtProjectMetricPath(_sourceDbtProjectMetricPath)
-      if (_sourceDbtProjectMetricPath) {
-        const [
-          _sourceDbtProjectMetricPathFile,
-          _sourceDbtProjectMetricPathName,
-        ] = _sourceDbtProjectMetricPath.split(':')
-        setSourceDbtProjectMetricPathFile(_sourceDbtProjectMetricPathFile)
-        setSourceDbtProjectMetricPathName(_sourceDbtProjectMetricPathName)
-      } else {
-        setSourceDbtProjectMetricPathFile('')
-        setSourceDbtProjectMetricPathName('')
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metricNode])
@@ -362,23 +348,20 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     )
   }, [sourceDbtProjectGraphSyncId, graphSyncs])
 
-  useEffect(() => {
-    const _sourceDbtProjectMetricPath = `${sourceDbtProjectMetricPathFile}:${sourceDbtProjectMetricPathName}`
-    setSourceDbtProjectMetricPath(_sourceDbtProjectMetricPath)
-  }, [sourceDbtProjectMetricPathFile, sourceDbtProjectMetricPathName])
-
-  const getDbtYaml = useCallback(async () => {
+  const getDbtMetricYaml = useCallback(async () => {
     if (
       sourceDbtProjectGraphSyncId &&
       sourceDbtProjectGraphSync &&
-      sourceDbtProjectMetricPathFile &&
-      sourceDbtProjectMetricPathName
+      metricNode?.data?.source?.dbtProjectMetricPath
+      /* ^use this, rather than sourceDbtProjectMetricPath, so we don't 
+      hit github on every keystroke */
     ) {
-      // get dbt project graph sync client token
       const accessToken = session?.access_token
       if (!accessToken) {
-        return
+        return ''
       }
+
+      // get dbt project graph sync client token
       const clientTokenResp = await fetch(
         `/api/v1/graph-syncs/${sourceDbtProjectGraphSyncId}/client-tokens`,
         {
@@ -390,13 +373,13 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       )
       if (clientTokenResp.status !== 200) {
         console.error('Error getting dbt project graph sync client token')
-        return
+        return ''
       }
       const clientTokenBody = await clientTokenResp.json()
       const clientToken = clientTokenBody?.token
       if (!clientToken) {
         console.error('Error materializing dbt project graph sync client token')
-        return
+        return ''
       }
 
       // parse repoUrl
@@ -407,12 +390,16 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         console.error(
           'Error parsing owner and repo from dbt project graph sync repo url'
         )
-        return
+        return ''
       }
+
+      // parse file path and metric name
+      const [filePath, metricName] =
+        metricNode?.data?.source?.dbtProjectMetricPath.split(':')
 
       // load and decode corresponding content from github
       const contentResp = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/contents/${sourceDbtProjectMetricPathFile}`,
+        `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
         {
           method: 'GET',
           headers: {
@@ -422,7 +409,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       )
       if (contentResp.status !== 200) {
         console.error('Error getting dbt metric file content')
-        return
+        return ''
       }
       const contentRespBody = await contentResp.json()
       const encodedContent = contentRespBody.content
@@ -434,16 +421,16 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       const jsonifiedContent = jsYaml.load(decodedContent) as any
       if (!jsonifiedContent) {
         console.error('Error jsonifying dbt metric file content')
-        return
+        return ''
       }
 
       // get metric definition
       const metric = jsonifiedContent?.metrics?.find(
-        (metric: any) => metric.name === sourceDbtProjectMetricPathName
+        (metric: any) => metric.name === metricName
       )
       if (!metric) {
         console.error('Error getting metric definition')
-        return
+        return ''
       }
 
       return jsYaml.dump(metric)
@@ -451,13 +438,16 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   }, [
     sourceDbtProjectGraphSyncId,
     sourceDbtProjectGraphSync,
-    sourceDbtProjectMetricPathFile,
-    sourceDbtProjectMetricPathName,
+    metricNode?.data?.source?.dbtProjectMetricPath,
     session,
   ])
   useEffect(() => {
-    getDbtYaml()
-  }, [getDbtYaml])
+    const f = async () => {
+      const _sourceDbtMetricYaml = await getDbtMetricYaml()
+      setSourceDbtMetricYaml(_sourceDbtMetricYaml || '')
+    }
+    f()
+  }, [getDbtMetricYaml])
 
   // https://github.com/highlightjs/highlight.js/issues/925
   const highlight = (code: string, language: string) => {
@@ -467,6 +457,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         dangerouslySetInnerHTML={{
           __html: hljs.highlight(code, { language }).value,
         }}
+        style={{ borderRadius: '5px' }}
       />
     )
   }
@@ -487,9 +478,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         />
         <EditText
           id="name-field"
-          className={
-            editingEnabled ? styles.detail_field_editable : styles.detail_field
-          }
+          className={styles.detail_field}
           value={'Metric: ' + name}
           readonly={!editingEnabled}
           style={{
@@ -514,9 +503,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         <h2>Owner</h2>
         <EditText
           id="owner-field"
-          className={
-            editingEnabled ? styles.detail_field_editable : styles.detail_field
-          }
+          className={styles.detail_field}
           value={owner}
           readonly={!editingEnabled}
           placeholder={editingEnabled ? 'Add...' : '-'}
@@ -526,9 +513,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         <h2>Description</h2>
         <EditTextarea
           id="description-field"
-          className={
-            editingEnabled ? styles.detail_field_editable : styles.detail_field
-          }
+          className={styles.detail_field}
           value={description}
           readonly={!editingEnabled}
           placeholder={editingEnabled ? 'Add...' : '-'}
@@ -541,9 +526,14 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           <code>
             <EditTextarea
               className={styles.detail_field}
-              value={inputs.match(functionTypeIdRegex) ? '' : inputs}
+              value={inputs.match(functionTypeIdRegex) ? '' : inputs.trim()}
               readonly={true}
               placeholder={'-'}
+              rows={
+                inputs.match(functionTypeIdRegex)
+                  ? 1
+                  : Math.max(inputs.split('\n').filter((n) => n).length, 1)
+              }
             />
           </code>
         </pre>
@@ -553,79 +543,59 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           <code>
             <EditTextarea
               className={styles.detail_field}
-              value={outputs.match(functionTypeIdRegex) ? '' : outputs}
+              value={outputs.match(functionTypeIdRegex) ? '' : outputs.trim()}
               readonly={true}
               placeholder={'-'}
+              rows={
+                outputs.match(functionTypeIdRegex)
+                  ? 1
+                  : Math.max(outputs.split('\n').filter((n) => n).length, 1)
+              }
             />
           </code>
         </pre>
         <h2>Source</h2>
         <h3>Database</h3>
-        <Dropdown
-          id="source-database-connection-dropdown"
-          value={sourceDatabaseConnectionName}
-          options={databaseConnections.map((dc) => dc.name)}
-          onChange={(e) => {
-            const newSourceDatabaseConnection = databaseConnections.find(
-              (dc) => dc.name === e.value
-            )
-            if (newSourceDatabaseConnection) {
-              setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
-              saveDetail('source', {
-                ...metricNode?.data?.source,
-                databaseConnectionId: newSourceDatabaseConnection.id,
-              })
-              // name updating handled by useEffect above
-            }
-          }}
-          disabled={!editingEnabled}
-        />
-        <h3>
-          Query
-          {editingEnabled && (
-            <Button
-              id="refresh-query-button"
-              className="p-button-text p-button-sm"
-              icon="pi pi-refresh"
-              onClick={() => {
-                setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+        <div className={styles.connection_config_block}>
+          <div className={styles.connection_config}>
+            <label
+              htmlFor="source-database-connection-dropdown"
+              className={styles.connection_config_label}
+            >
+              Connection
+            </label>
+            <Dropdown
+              id="source-database-connection-dropdown"
+              className={styles.connection_config_value}
+              value={sourceDatabaseConnectionName}
+              options={databaseConnections.map((dc) => dc.name)}
+              onChange={(e) => {
+                const newSourceDatabaseConnection = databaseConnections.find(
+                  (dc) => dc.name === e.value
+                )
+                if (newSourceDatabaseConnection) {
+                  setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
+                  saveDetail('source', {
+                    ...metricNode?.data?.source,
+                    databaseConnectionId: newSourceDatabaseConnection.id,
+                  })
+                  // name updating handled by useEffect above
+                }
               }}
-              style={{ marginLeft: '1em' }}
+              disabled={!editingEnabled}
             />
-          )}
-        </h3>
-        <label
-          htmlFor="source-query-type-dropdown"
-          style={{ marginRight: '1em' }}
-        >
-          Type:
-        </label>
-        <Dropdown
-          id="source-query-type-dropdown"
-          value={sourceQueryType}
-          options={sourceQueryTypes}
-          onChange={(e) => {
-            const newSQT = e.value as SourceQueryType
-            setSourceQueryType(newSQT)
-            saveDetail('source', {
-              ...metricNode?.data?.source,
-              queryType: newSQT,
-            })
-          }}
-          style={{ marginBottom: '1em' }}
-          disabled={!editingEnabled}
-        />
-        {sourceQueryType === 'generated' && (
-          <div className={styles.yaml_configs}>
-            <div className={styles.yaml_config}>
+          </div>
+          {(editingEnabled || sourceDbtProjectGraphSyncId) && (
+            <div className={styles.connection_config}>
               <label
                 htmlFor="source-dbt-project-graph-sync-dropdown"
-                style={{ display: 'block' }}
+                className={styles.connection_config_label}
               >
-                dbt Sync
+                dbt Project
               </label>
               <Dropdown
                 id="source-dbt-project-graph-sync-dropdown"
+                className={styles.connection_config_value}
                 value={sourceDbtProjectGraphSync?.name || ''}
                 options={graphSyncs.map((gc) => gc.name)}
                 onChange={(e) => {
@@ -647,51 +617,90 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                 emptyMessage="No dbt project graph syncs configured"
               />
             </div>
-            <div className={styles.yaml_config}>
-              <label
-                htmlFor="source-dbt-project-path-file-field"
-                style={{ display: 'block' }}
-              >
-                dbt Metric YAML Path
-              </label>
-              <InputText
-                id="source-dbt-project-path-file-field"
-                value={sourceDbtProjectMetricPathFile || ''}
-                onChange={(e) => {
-                  setSourceDbtProjectMetricPathFile(e.target.value)
-                }}
-                onBlur={() => {
-                  saveDetail('source', {
-                    ...metricNode?.data?.source,
-                    dbtProjectMetricPath: sourceDbtProjectMetricPath,
-                  })
-                }}
-                disabled={!editingEnabled}
-              />
+          )}
+        </div>
+        <h3>
+          Query
+          {editingEnabled && (
+            <Button
+              id="refresh-query-button"
+              className="p-button-text p-button-sm"
+              icon="pi pi-refresh"
+              onClick={() => {
+                setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+              }}
+              style={{ marginLeft: '1em' }}
+            />
+          )}
+        </h3>
+        {sourceDbtProjectGraphSyncId && (
+          <>
+            <div className={styles.connection_config_block}>
+              <div className={styles.connection_config}>
+                <label
+                  htmlFor="source-query-type-dropdown"
+                  className={styles.connection_config_label}
+                >
+                  Type
+                </label>
+                <Dropdown
+                  id="source-query-type-dropdown"
+                  className={styles.connection_config_value}
+                  value={sourceQueryType}
+                  options={sourceQueryTypes}
+                  onChange={(e) => {
+                    const newSQT = e.value as SourceQueryType
+                    setSourceQueryType(newSQT)
+                    saveDetail('source', {
+                      ...metricNode?.data?.source,
+                      queryType: newSQT,
+                    })
+                  }}
+                  style={{ marginBottom: '1em' }}
+                  disabled={!editingEnabled}
+                />
+              </div>
+              {sourceQueryType === 'generated' && (
+                <>
+                  <div className={styles.connection_config}>
+                    <label
+                      htmlFor="source-dbt-project-path-field"
+                      className={styles.connection_config_label}
+                    >
+                      dbt Project Metric Path
+                    </label>
+                    <InputText
+                      id="source-dbt-project-path-field"
+                      className={styles.connection_config_value}
+                      value={sourceDbtProjectMetricPath || ''}
+                      onChange={(e) => {
+                        setSourceDbtProjectMetricPath(e.target.value)
+                      }}
+                      onBlur={() => {
+                        saveDetail('source', {
+                          ...metricNode?.data?.source,
+                          dbtProjectMetricPath: sourceDbtProjectMetricPath,
+                        })
+                      }}
+                      disabled={!editingEnabled}
+                    />
+                  </div>
+                </>
+              )}
             </div>
-            <div className={styles.yaml_config}>
-              <label
-                htmlFor="source-dbt-project-path-name-field"
-                style={{ display: 'block' }}
-              >
-                dbt Metric Name
-              </label>
-              <InputText
-                id="source-dbt-project-path-name-field"
-                value={sourceDbtProjectMetricPathName || ''}
-                onChange={(e) => {
-                  setSourceDbtProjectMetricPathName(e.target.value)
-                }}
-                onBlur={() => {
-                  saveDetail('source', {
-                    ...metricNode?.data?.source,
-                    dbtProjectMetricPath: sourceDbtProjectMetricPath,
-                  })
-                }}
-                disabled={!editingEnabled}
-              />
-            </div>
-          </div>
+            {sourceQueryType === 'generated' && (
+              <>
+                <div>dbt Metric Definition</div>
+                <pre>
+                  {highlight(
+                    sourceDbtMetricYaml || '(metric not found)',
+                    'yaml'
+                  )}
+                </pre>
+                <div>Generated SQL</div>
+              </>
+            )}
+          </>
         )}
         {editingEnabled ? (
           <Editor

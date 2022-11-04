@@ -37,22 +37,26 @@
 }
 
 .metric_detail .body .detail_field {
-  background-color: #ffffff;
-}
-
-.metric_detail .body .detail_field_editable {
-  background-color: #f8f8f8;
-}
-
-.metric_detail .body .yaml_configs {
   background-color: #f8f8fe;
-  padding: 1em;
+  border-radius: 5px;
+}
+
+.metric_detail .body .connection_config_block {
   display: flex;
   flex-direction: row;
 }
 
-.metric_detail .body .yaml_configs .yaml_config {
-  padding-right: 1em;
+.metric_detail .body .connection_config_block .connection_config {
+  padding-right: 20px;
+}
+
+.metric_detail .body .connection_config_block .connection_config_label {
+  display: block;
+  padding-bottom: 10px;
+}
+
+.metric_detail .body .connection_config_block .connection_config_value {
+  background-color: #f8f8fe;
 }
 
 .metric_detail .editor_dock {
