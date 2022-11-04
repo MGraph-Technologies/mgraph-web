@@ -349,7 +349,7 @@ describe('Metric detail editing', () => {
 
     // select manual query
     cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('manual').first().click()
+    cy.get('[class*=p-dropdown-item]').contains('freeform').first().click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -379,7 +379,7 @@ describe('Metric detail editing', () => {
 
     // select manual query
     cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('manual').first().click()
+    cy.get('[class*=p-dropdown-item]').contains('freeform').first().click()
 
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -415,7 +415,7 @@ describe('Metric detail editing', () => {
 
     // select manual query
     cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('manual').first().click()
+    cy.get('[class*=p-dropdown-item]').contains('freeform').first().click()
 
     // edit query
     const newQuery = 'SELECT x'
@@ -442,7 +442,7 @@ describe('Metric detail editing', () => {
 
     // select manual query
     cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('manual').first().click()
+    cy.get('[class*=p-dropdown-item]').contains('freeform').first().click()
 
     // edit query
     const newQuery = "SELECT TRUE, 'all', 1"
@@ -563,7 +563,7 @@ describe('Metric detail editing', () => {
 
     // select manual query
     cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('manual').first().click()
+    cy.get('[class*=p-dropdown-item]').contains('freeform').first().click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)

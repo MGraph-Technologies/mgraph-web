@@ -20,7 +20,7 @@ import QueryRunner, { QueryResult } from '../QueryRunner'
 import NodeInfoButton from './NodeInfoButton'
 import NodeMenu from './NodeMenu'
 
-export type SourceQueryType = 'generated' | 'manual'
+export type SourceQueryType = 'freeform' | 'generated'
 export type MetricNodeProperties = {
   id: string
   organizationId: string

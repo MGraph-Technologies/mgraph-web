@@ -491,7 +491,7 @@ export function GraphProvider({ children }: GraphProps) {
       source: {
         databaseConnectionId: '',
         query: '',
-        queryType: 'manual',
+        queryType: 'freeform',
         dbtProjectGraphSyncId: null,
         dbtProjectMetricPath: null,
       },

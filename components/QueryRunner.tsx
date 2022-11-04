@@ -55,7 +55,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       parentMetricNodeData?.source?.queryType &&
       ((parentMetricNodeData?.source?.dbtProjectGraphSyncId &&
         parentMetricNodeData?.source?.dbtProjectMetricPath) ||
-        parentMetricNodeData?.source?.queryType === 'manual')
+        parentMetricNodeData?.source?.queryType === 'freeform')
     )
   }, [parentMetricNodeData])
 

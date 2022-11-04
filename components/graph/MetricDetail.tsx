@@ -54,13 +54,16 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     useState('')
   const [sourceQuery, setSourceQuery] = useState('')
   const [sourceQueryType, setSourceQueryType] =
-    useState<SourceQueryType>('manual')
+    useState<SourceQueryType>('freeform')
   const sourceQueryTypes = [
+    {
+      label: 'freeform' as SourceQueryType,
+      value: 'freeform' as SourceQueryType,
+    },
     {
       label: 'generated' as SourceQueryType,
       value: 'generated' as SourceQueryType,
     },
-    { label: 'manual' as SourceQueryType, value: 'manual' as SourceQueryType },
   ]
   const [sourceDbtProjectGraphSyncId, setSourceDbtProjectGraphSyncId] =
     useState<string | null>(null)
@@ -102,7 +105,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       )
       setSourceQuery(metricNode.data.source.query || '')
       setSourceQueryType(
-        (metricNode.data.source.queryType as SourceQueryType) || 'manual'
+        (metricNode.data.source.queryType as SourceQueryType) || 'freeform'
       )
       setSourceDbtProjectGraphSyncId(
         metricNode.data.source.dbtProjectGraphSyncId
