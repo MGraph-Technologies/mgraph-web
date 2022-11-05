@@ -39,6 +39,7 @@
 .metric_detail .body .detail_field {
   background-color: #f8f8fe;
   border-radius: 5px;
+  font-size: 0.95rem; /* prevents scrollbar from appearing on inputs/outputs */
 }
 
 .metric_detail .body .connection_config_block {

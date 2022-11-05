@@ -522,38 +522,30 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         />
         <h2>Inputs</h2>
         {/* inputs set via function editor */}
-        <pre>
-          <code>
-            <EditTextarea
-              className={styles.detail_field}
-              value={inputs.match(functionTypeIdRegex) ? '' : inputs.trim()}
-              readonly={true}
-              placeholder={'-'}
-              rows={
-                inputs.match(functionTypeIdRegex)
-                  ? 1
-                  : Math.max(inputs.split('\n').filter((n) => n).length, 1)
-              }
-            />
-          </code>
-        </pre>
+        <EditTextarea
+          className={styles.detail_field}
+          value={inputs.match(functionTypeIdRegex) ? '' : inputs.trim()}
+          readonly={true}
+          placeholder={'-'}
+          rows={
+            inputs.match(functionTypeIdRegex)
+              ? 1
+              : Math.max(inputs.split('\n').filter((n) => n).length, 1)
+          }
+        />
         <h2>Outputs</h2>
         {/* outputs set via function editor */}
-        <pre>
-          <code>
-            <EditTextarea
-              className={styles.detail_field}
-              value={outputs.match(functionTypeIdRegex) ? '' : outputs.trim()}
-              readonly={true}
-              placeholder={'-'}
-              rows={
-                outputs.match(functionTypeIdRegex)
-                  ? 1
-                  : Math.max(outputs.split('\n').filter((n) => n).length, 1)
-              }
-            />
-          </code>
-        </pre>
+        <EditTextarea
+          className={styles.detail_field}
+          value={outputs.match(functionTypeIdRegex) ? '' : outputs.trim()}
+          readonly={true}
+          placeholder={'-'}
+          rows={
+            outputs.match(functionTypeIdRegex)
+              ? 1
+              : Math.max(outputs.split('\n').filter((n) => n).length, 1)
+          }
+        />
         <h2>Source</h2>
         <h3>Database</h3>
         <div className={styles.connection_config_block}>
