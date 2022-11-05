@@ -575,6 +575,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                 }
               }}
               disabled={!editingEnabled}
+              tooltip="The database on which query will be run"
             />
           </div>
           {(editingEnabled || sourceDbtProjectGraphSyncId) && (
@@ -607,6 +608,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                 }}
                 disabled={!editingEnabled}
                 emptyMessage="No dbt project graph syncs configured"
+                tooltip="The project from which macros and metric definitions will be populated"
               />
             </div>
           )}
@@ -650,6 +652,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                   }}
                   style={{ marginBottom: '1em' }}
                   disabled={!editingEnabled}
+                  tooltip="Whether query will be user-inputted or auto-generated from a dbt metric"
                 />
               </div>
               {sourceQueryType === 'generated' && (
@@ -675,6 +678,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                         })
                       }}
                       disabled={!editingEnabled}
+                      tooltip="Path to dbt metric definition within project; e.g., models/marts/schema.yml:new_users"
                     />
                   </div>
                 </>
