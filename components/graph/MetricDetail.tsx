@@ -477,7 +477,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         />
         <EditText
           id="name-field"
-          className={styles.detail_field}
+          className={
+            editingEnabled ? styles.detail_field_editable : styles.detail_field
+          }
           value={'Metric: ' + name}
           readonly={!editingEnabled}
           style={{
@@ -502,7 +504,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         <h2>Owner</h2>
         <EditText
           id="owner-field"
-          className={styles.detail_field}
+          className={
+            editingEnabled ? styles.detail_field_editable : styles.detail_field
+          }
           value={owner}
           readonly={!editingEnabled}
           placeholder={editingEnabled ? 'Add...' : '-'}
@@ -512,7 +516,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         <h2>Description</h2>
         <EditTextarea
           id="description-field"
-          className={styles.detail_field}
+          className={
+            editingEnabled ? styles.detail_field_editable : styles.detail_field
+          }
           value={description}
           readonly={!editingEnabled}
           placeholder={editingEnabled ? 'Add...' : '-'}
