@@ -61,7 +61,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
     return (
       <div className={styles.chart_container}>
         <QueryRunner
-          parentMetricNodeData={rowData}
+          parentMetricNodeData={rowData.data}
           refreshes={0}
           queryResult={queryResult}
           setQueryResult={setQueryResult}
