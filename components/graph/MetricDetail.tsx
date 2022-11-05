@@ -25,7 +25,6 @@ import LineChart from '../LineChart'
 import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
-import { getFunctionSymbol } from './FunctionNode'
 import { MetricNodeProperties, SourceQueryType } from './MetricNode'
 
 hljs.registerLanguage('plaintext', plaintext)
@@ -40,7 +39,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const { editingEnabled } = useEditability()
   const { push } = useBrowser()
 
-  const { graph, getConnectedObjects } = useGraph()
+  const { graph, getFunctionSymbol, getConnectedObjects } = useGraph()
   const [metricNode, setMetricNode] = useState<Node | undefined>(undefined)
 
   const [name, setName] = useState('')
@@ -222,14 +221,14 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const replaceFunctionTypeIdWithSymbol = useCallback(
     async (str: string) => {
       const matches = str.match(functionTypeIdRegex)
-      if (matches) {
-        let symbol = await getFunctionSymbol(matches[1])
+      if (matches && getFunctionSymbol) {
+        let symbol = getFunctionSymbol(matches[1])
         return str.replace(matches[0], symbol)
       } else {
         return str
       }
     },
-    [functionTypeIdRegex]
+    [functionTypeIdRegex, getFunctionSymbol]
   )
   useEffect(() => {
     if (inputs) {
