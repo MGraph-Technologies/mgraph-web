@@ -120,10 +120,10 @@ type GraphContextType = {
   getConnectedObjects:
     | ((
         reference: Node | Edge,
-        calledFrom?: string
+        maxSeparationDegrees?: number,
+        direction?: 'inputs' | 'outputs'
       ) => (Node<any> | Edge<any>)[])
     | undefined
-  getInputNodes: ((node: Node) => Node[]) | undefined
   globalQueryRefreshes: number
   setGlobalQueryRefreshes: Dispatch<SetStateAction<number>> | undefined
   queriesLoading: Array<string>
@@ -174,7 +174,6 @@ const graphContextDefaultValues: GraphContextType = {
   getFunctionSymbol: undefined,
   formInputEdge: undefined,
   getConnectedObjects: undefined,
-  getInputNodes: undefined,
   globalQueryRefreshes: 0,
   setGlobalQueryRefreshes: undefined,
   queriesLoading: [] as string[],
@@ -750,76 +749,67 @@ export function GraphProvider({ children }: GraphProps) {
   )
 
   const getConnectedObjects = useCallback(
-    (reference: Node | Edge, calledFrom: string = '') => {
+    (
+      reference: Node | Edge,
+      maxSeparationDegrees?: number,
+      direction?: 'inputs' | 'outputs'
+    ) => {
       let connectedObjects: (Node | Edge)[] = []
-      if (
-        reference.type === 'function' ||
-        // only traverse from metric/mission nodes on first call
-        ((reference.type === 'metric' || reference.type === 'mission') &&
-          calledFrom === '')
-      ) {
-        // select connected edges
-        graph.edges.forEach((edge) => {
+      let _maxSeparationDegrees =
+        maxSeparationDegrees === undefined ? -1 : maxSeparationDegrees
+      if (_maxSeparationDegrees === 0) {
+        return connectedObjects
+      }
+      if (direction === undefined) {
+        connectedObjects = connectedObjects.concat(
+          getConnectedObjects(reference, maxSeparationDegrees, 'inputs')
+        )
+        connectedObjects = connectedObjects.concat(
+          getConnectedObjects(reference, maxSeparationDegrees, 'outputs')
+        )
+        return connectedObjects
+      }
+      if (reference.data.sourceId && reference.data.targetId) {
+        // reference is edge
+        // select connected nodes
+        graph.nodes.forEach((node) => {
           if (
-            (edge.data.sourceId === reference.id ||
-              edge.data.targetId === reference.id) &&
-            edge.type === 'input' &&
-            edge.id !== calledFrom
+            ((node.id === reference.data.sourceId && direction === 'inputs') ||
+              (node.id === reference.data.targetId &&
+                direction === 'outputs')) &&
+            !connectedObjects.includes(node)
           ) {
+            if (node.type === 'metric') {
+              _maxSeparationDegrees -= 1
+            }
             connectedObjects = connectedObjects.concat(
-              [edge],
-              getConnectedObjects(edge, reference.id)
+              [node],
+              getConnectedObjects(node, _maxSeparationDegrees, direction)
             )
           }
         })
-      } else if (reference.type === 'input') {
-        // select connected function nodes
-        graph.nodes.forEach((node) => {
+      } else {
+        // reference is node
+        // select connected edges
+        graph.edges.forEach((edge) => {
           if (
-            (node.id === reference.data.sourceId ||
-              node.id === reference.data.targetId) &&
-            ['function', 'metric', 'mission'].includes(node.type || '') &&
-            node.id !== calledFrom
+            ((edge.data.sourceId === reference.id && direction === 'outputs') ||
+              (edge.data.targetId === reference.id &&
+                direction === 'inputs')) &&
+            !connectedObjects.includes(edge)
           ) {
             connectedObjects = connectedObjects.concat(
-              [node],
-              getConnectedObjects(node, reference.id)
+              [edge],
+              getConnectedObjects(edge, maxSeparationDegrees, direction)
             )
           }
         })
       }
+      // dedupe
+      connectedObjects = connectedObjects.filter(
+        (item, index) => connectedObjects.indexOf(item) === index
+      )
       return connectedObjects
-    },
-    [graph]
-  )
-
-  const getInputNodes = useCallback(
-    (reference: Node, traversedNodes: Node[] = []) => {
-      let inputNodes: Node[] = []
-      // select immediate input nodes
-      graph.edges.forEach((edge) => {
-        if (
-          edge.data.targetId === reference.id &&
-          edge.type === 'input' &&
-          edge.data.sourceId
-        ) {
-          const inputNode = graph.nodes.find(
-            (node) => node.id === edge.data.sourceId
-          )
-          if (
-            inputNode &&
-            // prevent infinite recursion from cycles
-            traversedNodes.findIndex((node) => node.id === inputNode.id) === -1
-          ) {
-            inputNodes = inputNodes.concat(
-              [inputNode],
-              // recursively select input nodes of input nodes
-              getInputNodes(inputNode, traversedNodes.concat(inputNode))
-            )
-          }
-        }
-      })
-      return inputNodes
     },
     [graph]
   )
@@ -991,7 +981,6 @@ export function GraphProvider({ children }: GraphProps) {
     getFunctionSymbol: getFunctionSymbol,
     formInputEdge: formInputEdge,
     getConnectedObjects: getConnectedObjects,
-    getInputNodes: getInputNodes,
     globalQueryRefreshes: globalQueryRefreshes,
     setGlobalQueryRefreshes: setGlobalQueryRefreshes,
     queriesLoading: queriesLoading,

@@ -122,7 +122,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     let newInputs = ''
     let newOutputs = ''
     if (metricNode && getConnectedObjects) {
-      const metricConnectedObjects = getConnectedObjects(metricNode)
+      const metricConnectedObjects = getConnectedObjects(metricNode, 1)
       const metricConnectedIdentities = metricConnectedObjects.filter(
         (metricConnectedObject) =>
           metricConnectedObject.type === 'function' &&
@@ -132,7 +132,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       )
       metricConnectedIdentities.forEach((metricConnectedIdentity) => {
         const formulaObjects = [metricConnectedIdentity].concat(
-          getConnectedObjects(metricConnectedIdentity)
+          getConnectedObjects(metricConnectedIdentity, 1)
         )
         let formulaObjectsSorted: (Node<any> | Edge<any>)[] = []
         // add output

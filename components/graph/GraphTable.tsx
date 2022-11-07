@@ -21,7 +21,7 @@ import NodeInfoButton from './NodeInfoButton'
 
 type GraphTableProps = {}
 const GraphTable: FunctionComponent<GraphTableProps> = () => {
-  const { graph, getInputNodes } = useGraph()
+  const { graph, getConnectedObjects } = useGraph()
   const { organizationId, organizationName } = useAuth()
   const { push } = useBrowser()
 
@@ -35,15 +35,17 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
         (node) =>
           (node.data = {
             ...node.data,
-            numInputMetrics: getInputNodes!(node).filter(
-              (inputNode) => inputNode.type === 'metric'
-            ).length,
+            numInputMetrics: getConnectedObjects!(
+              node,
+              undefined,
+              'inputs'
+            ).filter((inputNode) => inputNode.type === 'metric').length,
           })
       )
       setMetrics(_nodes)
       setMetricsTableLoading(false)
     }
-  }, [organizationId, graph, getInputNodes])
+  }, [organizationId, graph, getConnectedObjects])
   useEffect(() => {
     populateMetrics()
   }, [populateMetrics])
