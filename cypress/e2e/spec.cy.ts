@@ -96,6 +96,9 @@ describe('Graphviewer viewing as admin', () => {
     cy.get('td').find('[class*=pi-angle-right]').should('be.visible')
     cy.get('td').find('[class*=pi-angle-right]').first().click({ force: true })
     cy.url().should('include', '/metrics/')
+    // reset to graphviewer, since toggle choice is sticky
+    cy.visit('/mgraph')
+    cy.get('[class*=pi-sitemap]').click()
   })
 
   it('Clicks through to access management page', () => {

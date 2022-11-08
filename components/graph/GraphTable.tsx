@@ -69,17 +69,37 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
     [inputMetrics, expansionLevel]
   )
   const [expandedRows, setExpandedRows] = useState<any>(null)
-  // initially expand top-level metrics
+  // initially expand previously-expanded rows, or top-level
   const [initialExpansionComplete, setInitialExpansionComplete] =
     useState(false)
   useEffect(() => {
     if (metrics.length > 0 && !initialExpansionComplete) {
-      if (expansionLevel === 0) {
+      const prevGraphTableExpandedRowIds = localStorage.getItem(
+        `graphTableExpandedRowIds${expansionLevel}`
+      )
+      if (prevGraphTableExpandedRowIds !== null) {
+        setExpandedRows(
+          metrics.filter((metric) =>
+            JSON.parse(prevGraphTableExpandedRowIds).includes(metric.id)
+          )
+        )
+      } else if (expansionLevel === 0) {
         setExpandedRows(metrics)
       }
       setInitialExpansionComplete(true)
     }
   }, [metrics, initialExpansionComplete, expansionLevel])
+  useEffect(() => {
+    if (!initialExpansionComplete) return
+    const newGraphTableExpandedRowIds = JSON.stringify(
+      expandedRows ? expandedRows.map((rowData: any) => rowData.id) : []
+    )
+    localStorage.setItem(
+      `graphTableExpandedRowIds${expansionLevel}`,
+      newGraphTableExpandedRowIds
+    )
+  }, [initialExpansionComplete, expandedRows, expansionLevel])
+
   const expandOrCollapseRow = useCallback(
     (rowData: any) => {
       if (

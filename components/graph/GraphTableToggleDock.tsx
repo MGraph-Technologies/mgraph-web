@@ -14,7 +14,7 @@ const _GraphTableToggleDock: FunctionComponent<GraphTableToggleDockProps> = ({
   setShowGraphTable,
 }) => {
   const { editingEnabled } = useEditability()
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(showGraphTable ? 1 : 0)
 
   useEffect(() => {
     const _showGraphTable = activeIndex === 1
