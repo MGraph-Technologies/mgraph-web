@@ -1,13 +1,8 @@
-import { FilterMatchMode } from 'primereact/api'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
-import {
-  DataTable,
-  DataTableFilterMeta,
-  DataTablePFSEvent,
-  DataTableSortOrderType,
-} from 'primereact/datatable'
+import { DataTable } from 'primereact/datatable'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
+import { Node } from 'react-flow-renderer'
 
 import { useAuth } from '../../contexts/auth'
 import { useGraph } from '../../contexts/graph'
@@ -19,36 +14,130 @@ import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import NodeInfoButton from './NodeInfoButton'
 
-type GraphTableProps = {}
-const GraphTable: FunctionComponent<GraphTableProps> = () => {
-  const { graph, getConnectedObjects } = useGraph()
-  const { organizationId, organizationName } = useAuth()
+type GraphTableProps = {
+  metricNodes: Node[]
+  expansionLevel?: number
+}
+const GraphTable: FunctionComponent<GraphTableProps> = ({
+  metricNodes,
+  expansionLevel = 0,
+}) => {
+  const { getConnectedObjects } = useGraph()
+  const { organizationName } = useAuth()
   const { push } = useBrowser()
 
-  const [metricsTableLoading, setMetricsTableLoading] = useState(true)
-  const [metrics, setMetrics] = useState<any[]>([])
-  const populateMetrics = useCallback(() => {
-    if (organizationId) {
-      setMetricsTableLoading(true)
-      let _nodes = graph.nodes.filter((node) => node.type === 'metric')
-      _nodes.forEach(
-        (node) =>
-          (node.data = {
-            ...node.data,
-            numInputMetrics: getConnectedObjects!(
-              node,
-              undefined,
-              'inputs'
-            ).filter((inputNode) => inputNode.type === 'metric').length,
-          })
-      )
-      setMetrics(_nodes)
-      setMetricsTableLoading(false)
-    }
-  }, [organizationId, graph, getConnectedObjects])
+  const [metrics, setMetrics] = useState<Node[]>([])
   useEffect(() => {
-    populateMetrics()
-  }, [populateMetrics])
+    const _metrics = metricNodes.map((node) => {
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          numInputMetrics: getConnectedObjects!(
+            node,
+            undefined,
+            'inputs'
+          ).filter((inputNode) => inputNode.type === 'metric').length,
+        },
+      }
+    })
+    setMetrics(_metrics)
+  }, [metricNodes, getConnectedObjects])
+
+  const [inputMetrics, setInputMetrics] = useState<{ [key: string]: Node[] }>(
+    {}
+  )
+  useEffect(() => {
+    const _inputMetrics: { [key: string]: Node[] } = {}
+    metricNodes.forEach((node) => {
+      _inputMetrics[node.id] = getConnectedObjects!(node, 1, 'inputs')
+        .filter((inputObject) => inputObject.type === 'metric')
+        .map((inputNode) => inputNode as Node)
+    })
+    setInputMetrics(_inputMetrics)
+  }, [metricNodes, getConnectedObjects])
+
+  const rowExpansionTemplate = useCallback(
+    (rowData: any) => {
+      return (
+        <GraphTable
+          metricNodes={inputMetrics[rowData.id]}
+          expansionLevel={expansionLevel + 1}
+        />
+      )
+    },
+    [inputMetrics, expansionLevel]
+  )
+  const [expandedRows, setExpandedRows] = useState<any>(null)
+  // initially expand top-level metrics
+  const [initialExpansionComplete, setInitialExpansionComplete] =
+    useState(false)
+  useEffect(() => {
+    if (metrics.length > 0 && !initialExpansionComplete) {
+      if (expansionLevel === 0) {
+        setExpandedRows(metrics)
+      }
+      setInitialExpansionComplete(true)
+    }
+  }, [metrics, initialExpansionComplete, expansionLevel])
+  const expandOrCollapseRow = useCallback(
+    (rowData: any) => {
+      if (
+        expandedRows &&
+        expandedRows.some((row: any) => row.id === rowData.id)
+      ) {
+        analytics.track('collapse_graph_table_row', {
+          id: rowData.id,
+        })
+        setExpandedRows(
+          expandedRows.filter((row: any) => row.id !== rowData.id)
+        )
+      } else {
+        analytics.track('expand_graph_table_row', {
+          id: rowData.id,
+        })
+        const _expandedRows = expandedRows
+          ? expandedRows.concat(rowData)
+          : [rowData]
+        setExpandedRows(_expandedRows)
+      }
+    },
+    [expandedRows, setExpandedRows]
+  )
+  const onRowClick = useCallback(
+    (e: any) => {
+      if (e.data.data.numInputMetrics > 0) {
+        expandOrCollapseRow(e.data)
+      }
+    },
+    [expandOrCollapseRow]
+  )
+  // DIY since primereact's expander column prop isn't accepting a conditional display function
+  const expandCollapseCellBodyTemplate = useCallback(
+    (rowData: any) => {
+      const showButton = rowData.data.numInputMetrics > 0
+      // do it this way to maintain consistent column alignment
+      return (
+        <Button
+          id="expand-collapse-button"
+          className="p-button-text p-button-lg"
+          icon={
+            showButton
+              ? expandedRows &&
+                expandedRows.some((row: any) => row.id === rowData.id)
+                ? 'pi pi-angle-down'
+                : 'pi pi-angle-right'
+              : ''
+          }
+          onClick={() => {
+            expandOrCollapseRow(rowData)
+          }}
+          disabled={!showButton}
+        />
+      )
+    },
+    [expandedRows, expandOrCollapseRow]
+  )
 
   type TrendCellBodyTemplateProps = {
     rowData: any
@@ -96,115 +185,63 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
     [push, organizationName]
   )
 
-  const [first, setFirst] = useState(0)
-  const onPage = (e: DataTablePFSEvent) => {
-    analytics.track('change_table_page', {
-      table: 'graph',
-      page: e.page,
-      first: e.first,
-    })
-    setFirst(e.first)
-  }
-
-  const [filters, setFilters] = useState<DataTableFilterMeta>({
-    'data.name': {
-      value: null,
-      matchMode: FilterMatchMode.CONTAINS,
-    },
-  })
-  const onFilter = (e: DataTablePFSEvent) => {
-    for (let key in e.filters) {
-      const newFilter: any = e.filters[key]
-      const oldFilter: any = filters[key]
-      if (
-        !oldFilter ||
-        oldFilter.value !== newFilter.value ||
-        oldFilter.matchMode !== newFilter.matchMode
-      ) {
-        analytics.track('filter_table', {
-          table: 'graph',
-          key: key,
-          value: newFilter.value,
-          matchMode: newFilter.matchMode,
-        })
-      }
-    }
-    setFilters({
-      ...filters,
-      ...e.filters,
-    })
-  }
-
-  const [sortField, setSortField] = useState('data.numInputMetrics')
-  const [sortOrder, setSortOrder] = useState<DataTableSortOrderType>(-1)
-  const onSort = (e: DataTablePFSEvent) => {
-    analytics.track('sort_table', {
-      table: 'graph',
-      sortField: e.sortField,
-      sortOrder: e.sortOrder,
-    })
-    setSortField(e.sortField)
-    setSortOrder(e.sortOrder)
-  }
-
   return (
-    <div className={styles.graph_table_container}>
-      <div className={styles.control_panel_container}>
-        <ControlPanel />
-      </div>
+    <div
+      className={styles.graph_table_container}
+      style={{
+        borderLeft: expansionLevel > 0 ? `1px solid #e0e0e0` : 'none',
+        marginLeft: `${expansionLevel * 10}px`,
+      }}
+    >
+      {expansionLevel === 0 && (
+        <div className={styles.control_panel_container}>
+          <ControlPanel />
+        </div>
+      )}
       <DataTable
-        paginator
-        scrollable
-        scrollHeight="flex"
-        scrollDirection="vertical"
         value={metrics}
-        loading={metricsTableLoading}
-        rows={10}
-        onRowClick={(e) => {
-          push(`/${organizationName}/metrics/${e.data.id}`)
-        }}
-        paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
-        currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
-        paginatorPosition="bottom"
-        first={first}
-        onPage={onPage}
-        filterDisplay="row"
-        filters={filters}
-        onFilter={onFilter}
-        sortField={sortField}
-        sortOrder={sortOrder}
-        onSort={onSort}
-        emptyMessage="No metrics found"
+        rowExpansionTemplate={rowExpansionTemplate}
+        expandedRows={expandedRows}
+        onRowClick={onRowClick}
+        headerColumnGroup={<></>}
+        footerColumnGroup={<></>}
+        emptyMessage={
+          expansionLevel === 0
+            ? 'No output metrics defined'
+            : 'This metric has no inputs'
+        }
       >
-        <Column
-          field="data.name"
-          header="Metric"
-          style={{ maxWidth: '25%' }}
-          sortable
-          filter
-          filterPlaceholder="Search"
-          showFilterMenu={false}
-        />
-        <Column
-          field="data.numInputMetrics"
-          header="# of Inputs"
-          style={{ maxWidth: '5%' }}
-          sortable
-        />
-        <Column body={trendCellBodyTemplate} style={{ minWidth: '50%' }} />
-        <Column
-          body={infoCellBodyTemplate}
-          align="center"
-          style={{ maxWidth: '5%' }}
-        />
-        <Column
-          body={linkCellBodyTemplate}
-          align="center"
-          style={{ maxWidth: '5%' }}
-        />
+        <Column body={expandCollapseCellBodyTemplate} align="center" />
+        <Column field="data.name" header="Metric" />
+        <Column body={trendCellBodyTemplate} style={{ width: '50%' }} />
+        <Column body={infoCellBodyTemplate} align="center" />
+        <Column body={linkCellBodyTemplate} align="center" />
       </DataTable>
     </div>
   )
 }
 
-export default GraphTable
+type GraphTableViewerProps = {}
+const GraphTableViewer: FunctionComponent<GraphTableViewerProps> = () => {
+  const { graph, getConnectedObjects } = useGraph()
+
+  const [outputMetricNodes, setOutputMetricNodes] = useState<Node[]>([])
+  useEffect(() => {
+    if (graph && getConnectedObjects) {
+      setOutputMetricNodes(
+        graph.nodes.filter((node) => {
+          return (
+            node.type === 'metric' &&
+            getConnectedObjects(node, 1, 'outputs').filter(
+              (outputObject) => outputObject.type === 'metric'
+            ).length === 0
+          )
+        })
+      )
+    }
+  }, [graph, getConnectedObjects])
+
+  return <GraphTable metricNodes={outputMetricNodes} expansionLevel={0} />
+}
+
+export default GraphTableViewer
