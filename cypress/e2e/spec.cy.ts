@@ -347,10 +347,6 @@ describe('Metric detail editing', () => {
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
 
-    // select manual query
-    cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('freeform').first().click()
-
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
@@ -376,10 +372,6 @@ describe('Metric detail editing', () => {
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
-
-    // select manual query
-    cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('freeform').first().click()
 
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -413,10 +405,6 @@ describe('Metric detail editing', () => {
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
 
-    // select manual query
-    cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('freeform').first().click()
-
     // edit query
     const newQuery = 'SELECT x'
     cy.get('[id=source-query-field').click()
@@ -439,10 +427,6 @@ describe('Metric detail editing', () => {
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
-
-    // select manual query
-    cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('freeform').first().click()
 
     // edit query
     const newQuery = "SELECT TRUE, 'all', 1"
@@ -560,10 +544,6 @@ describe('Metric detail editing', () => {
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
-
-    // select manual query
-    cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('freeform').first().click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
