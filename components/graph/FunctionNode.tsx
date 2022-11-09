@@ -10,37 +10,7 @@ import { Handle, Position } from 'react-flow-renderer'
 
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/FunctionNode.module.css'
-import { supabase } from '../../utils/supabaseClient'
 import NodeMenu from './NodeMenu'
-
-export async function getFunctionSymbol(
-  functionTypeId: string
-): Promise<string> {
-  let _symbol = '?'
-  try {
-    let {
-      data: queryData,
-      error,
-      status,
-    } = await supabase
-      .from('function_types')
-      .select('symbol')
-      .eq('id', functionTypeId)
-      .is('deleted_at', null)
-
-    if (error && status !== 406) {
-      throw error
-    }
-
-    if (queryData) {
-      _symbol = queryData[0].symbol
-    }
-  } catch (error: any) {
-    console.error(error.message)
-  } finally {
-    return _symbol
-  }
-}
 
 export type FunctionNodeProperties = {
   id: string
@@ -60,17 +30,13 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
   data,
   selected,
 }) => {
-  const { formNodeHandleStyle } = useGraph()
+  const { formNodeHandleStyle, getFunctionSymbol } = useGraph()
 
   const [symbol, setSymbol] = useState('')
   useEffect(() => {
-    const populateSymbol = async () => {
-      let _symbol = await getFunctionSymbol(data.functionTypeId)
-      setSymbol(_symbol)
-    }
-    populateSymbol()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (!getFunctionSymbol) return
+    setSymbol(getFunctionSymbol(data.functionTypeId))
+  }, [getFunctionSymbol, setSymbol, data.functionTypeId])
 
   const [color, setColor] = useState('#FFFFFF')
   useEffect(() => {

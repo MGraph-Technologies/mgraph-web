@@ -58,7 +58,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const graphData = await graphResp.json()
       const graph = graphData.graph as Graph
       const metricNodes = graph.nodes.filter(
-        (node: any) => node.data.sourceCode
+        (node: any) => node.data.source?.query
       )
 
       // get organization's query parameters
@@ -71,9 +71,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // TODO: think up an implementation that doesn't check every query every time
       let queryStillRunning = false
       metricNodes.forEach(async (node: any) => {
-        const statement = node.data.sourceCode as string
-        const databaseConnectionId = node.data
-          .sourceDatabaseConnectionId as string
+        const statement = node.data.source.query as string
+        const databaseConnectionId = node.data.source
+          .databaseConnectionId as string
         if (statement && databaseConnectionId) {
           console.log(`\nGetting latest query id for node ${node.id}...`)
           const parameterizedStatement = parameterizeStatement(

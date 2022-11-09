@@ -20,6 +20,7 @@ import QueryRunner, { QueryResult } from '../QueryRunner'
 import NodeInfoButton from './NodeInfoButton'
 import NodeMenu from './NodeMenu'
 
+export type SourceQueryType = 'freeform' | 'generated'
 export type MetricNodeProperties = {
   id: string
   organizationId: string
@@ -27,8 +28,13 @@ export type MetricNodeProperties = {
   name: string
   description: string
   owner: string
-  sourceCode: string
-  sourceDatabaseConnectionId: string
+  source: {
+    databaseConnectionId: string
+    query: string
+    queryType: SourceQueryType
+    dbtProjectGraphSyncId: string | null
+    dbtProjectMetricPath: string | null
+  }
   color: string
   // below not in postgres
   initialProperties: object
@@ -79,10 +85,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   )
 
   const [queryResult, setQueryResult] = useState<QueryResult>({
-    status:
-      !data.sourceCode || !data.sourceDatabaseConnectionId
-        ? 'empty'
-        : 'processing',
+    status: 'processing',
     data: null,
   })
 
@@ -157,9 +160,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
       </div>
       <div className={styles.chart_container}>
         <QueryRunner
-          statement={data.sourceCode}
-          databaseConnectionId={data.sourceDatabaseConnectionId}
-          parentNodeId={data.id}
+          parentMetricNodeData={data}
           refreshes={0}
           queryResult={queryResult}
           setQueryResult={setQueryResult}

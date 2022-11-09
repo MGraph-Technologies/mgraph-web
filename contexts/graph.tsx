@@ -108,6 +108,7 @@ type GraphContextType = {
         outputNode: Node
       ) => Node<any>)
     | undefined
+  getFunctionSymbol: ((functionTypeId: string) => string) | undefined
   formInputEdge:
     | ((
         source: Node,
@@ -170,6 +171,7 @@ const graphContextDefaultValues: GraphContextType = {
   formMissionNode: undefined,
   formMetricNode: undefined,
   formFunctionNode: undefined,
+  getFunctionSymbol: undefined,
   formInputEdge: undefined,
   getConnectedObjects: undefined,
   getInputNodes: undefined,
@@ -488,8 +490,13 @@ export function GraphProvider({ children }: GraphProps) {
       name: 'New Metric',
       description: '',
       owner: '',
-      sourceCode: '',
-      sourceDatabaseConnectionId: '',
+      source: {
+        databaseConnectionId: '',
+        query: '',
+        queryType: 'freeform',
+        dbtProjectGraphSyncId: null,
+        dbtProjectMetricPath: null,
+      },
       color: '#FFFFFF',
       initialProperties: {},
       setNodeDataToChange: setNodeDataToChange,
@@ -571,6 +578,44 @@ export function GraphProvider({ children }: GraphProps) {
       return newNode
     },
     [nodeTypeIds, organizationId, setNodeDataToChange]
+  )
+
+  const [functionTypeIdsAndSymbols, setFunctionTypeIdsAndSymbols] = useState<{
+    [functionId: string]: string
+  }>({})
+  useEffect(() => {
+    const fetchFunctionTypeIdsAndSymbols = async () => {
+      try {
+        let { data, error, status } = await supabase
+          .from('function_types')
+          .select('id, symbol')
+          .is('deleted_at', null)
+
+        if (error && status !== 406) {
+          throw error
+        }
+
+        if (!data) {
+          throw new Error('No function types returned')
+        }
+
+        let _functionTypeIdsAndSymbols: { [key: string]: string } = {}
+        data.forEach((functionType: any) => {
+          _functionTypeIdsAndSymbols[functionType.id] = functionType.symbol
+        })
+        setFunctionTypeIdsAndSymbols(_functionTypeIdsAndSymbols)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    fetchFunctionTypeIdsAndSymbols()
+  }, [])
+
+  const getFunctionSymbol = useCallback(
+    (functionTypeId: string): string => {
+      return functionTypeIdsAndSymbols[functionTypeId] || '?'
+    },
+    [functionTypeIdsAndSymbols]
   )
 
   const getNearestHandlePair = (source: Node, target: Node) => {
@@ -943,6 +988,7 @@ export function GraphProvider({ children }: GraphProps) {
     formMissionNode: formMissionNode,
     formMetricNode: formMetricNode,
     formFunctionNode: formFunctionNode,
+    getFunctionSymbol: getFunctionSymbol,
     formInputEdge: formInputEdge,
     getConnectedObjects: getConnectedObjects,
     getInputNodes: getInputNodes,

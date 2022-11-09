@@ -19,7 +19,7 @@
 .metric_detail .body {
   padding-left: calc((100% - 50em) / 2);
   padding-right: calc((100% - 50em) / 2);
-  padding-bottom: 6em; /* ensure final module can be seen under editor dock */
+  padding-bottom: 8em; /* ensure final module can be seen under editor dock */
   overflow: auto;
   -ms-overflow-style: none; /* Internet Explorer 10+ */
   scrollbar-width: none; /* Firefox */
@@ -38,10 +38,32 @@
 
 .metric_detail .body .detail_field {
   background-color: #ffffff;
+  border-radius: 5px;
+  font-size: 0.95rem; /* prevents scrollbar from appearing on inputs/outputs */
 }
 
 .metric_detail .body .detail_field_editable {
-  background-color: #f8f8f8;
+  background-color: #f8f8fe;
+  border-radius: 5px;
+  font-size: 0.95rem; /* prevents scrollbar from appearing on inputs/outputs */
+}
+
+.metric_detail .body .connection_config_block {
+  display: flex;
+  flex-direction: row;
+}
+
+.metric_detail .body .connection_config_block .connection_config {
+  padding-right: 20px;
+}
+
+.metric_detail .body .connection_config_block .connection_config_label {
+  display: block;
+  padding-bottom: 10px;
+}
+
+.metric_detail .body .connection_config_block .connection_config_value {
+  background-color: #f8f8fe;
 }
 
 .metric_detail .editor_dock {

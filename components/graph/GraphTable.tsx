@@ -55,20 +55,13 @@ const GraphTable: FunctionComponent<GraphTableProps> = () => {
     TrendCellBodyTemplateProps
   > = ({ rowData }) => {
     const [queryResult, setQueryResult] = useState<QueryResult>({
-      status:
-        !rowData ||
-        !rowData.data.sourceCode ||
-        !rowData.data.sourceDatabaseConnectionId
-          ? 'empty'
-          : 'processing',
+      status: 'processing',
       data: null,
     })
     return (
       <div className={styles.chart_container}>
         <QueryRunner
-          statement={rowData?.data.sourceCode}
-          databaseConnectionId={rowData?.data.sourceDatabaseConnectionId}
-          parentNodeId={rowData?.data.id}
+          parentMetricNodeData={rowData.data}
           refreshes={0}
           queryResult={queryResult}
           setQueryResult={setQueryResult}

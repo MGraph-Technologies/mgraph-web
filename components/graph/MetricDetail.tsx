@@ -1,9 +1,14 @@
+import endent from 'endent'
 import hljs from 'highlight.js/lib/core'
+import plaintext from 'highlight.js/lib/languages/plaintext'
 import sql from 'highlight.js/lib/languages/sql'
+import yaml from 'highlight.js/lib/languages/yaml'
 import 'highlight.js/styles/docco.css'
+import jsYaml from 'js-yaml'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Dropdown } from 'primereact/dropdown'
+import { InputText } from 'primereact/inputtext'
 import { Toolbar } from 'primereact/toolbar'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { EditText, EditTextarea } from 'react-edit-text'
@@ -21,19 +26,21 @@ import LineChart from '../LineChart'
 import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
-import { getFunctionSymbol } from './FunctionNode'
+import { MetricNodeProperties, SourceQueryType } from './MetricNode'
 
+hljs.registerLanguage('plaintext', plaintext)
 hljs.registerLanguage('sql', sql)
+hljs.registerLanguage('yaml', yaml)
 
 type MetricDetailProps = {
   metricId: string | string[] | undefined
 }
 const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
-  const { organizationId, organizationName } = useAuth()
+  const { session, organizationId, organizationName } = useAuth()
   const { editingEnabled } = useEditability()
   const { push } = useBrowser()
 
-  const { graph, getConnectedObjects } = useGraph()
+  const { graph, getFunctionSymbol, getConnectedObjects } = useGraph()
   const [metricNode, setMetricNode] = useState<Node | undefined>(undefined)
 
   const [name, setName] = useState('')
@@ -41,16 +48,35 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [inputs, setInputs] = useState('')
   const [outputs, setOutputs] = useState('')
   const [owner, setOwner] = useState('')
-  const [sourceCode, setSourceCode] = useState('')
   const [sourceDatabaseConnectionId, setSourceDatabaseConnectionId] =
     useState('')
   const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] =
     useState('')
+  const [sourceQuery, setSourceQuery] = useState('')
+  const [sourceQueryType, setSourceQueryType] =
+    useState<SourceQueryType>('freeform')
+  const sourceQueryTypes = [
+    {
+      label: 'freeform' as SourceQueryType,
+      value: 'freeform' as SourceQueryType,
+    },
+    {
+      label: 'generated' as SourceQueryType,
+      value: 'generated' as SourceQueryType,
+    },
+  ]
+  const [sourceDbtProjectGraphSyncId, setSourceDbtProjectGraphSyncId] =
+    useState<string | null>(null)
+  const [sourceDbtProjectGraphSync, setSourceDbtProjectGraphSync] =
+    useState<any>(null)
+  const [sourceDbtProjectMetricPath, setSourceDbtProjectMetricPath] = useState<
+    string | null
+  >(null)
+  const [sourceDbtMetricYaml, setSourceDbtMetricYaml] = useState('')
   const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
-  const [initialDetailPopulationComplete, setInitialDetailPopulationComplete] =
-    useState(false)
 
   const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
+  const [graphSyncs, setGraphSyncs] = useState<any[]>([])
 
   const [queryResult, setQueryResult] = useState<QueryResult>({
     status: 'processing',
@@ -68,31 +94,22 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   const populateDetails = useCallback(() => {
     if (metricNode) {
-      // execute source code on canceled change
-      // (we also execute on EditTextarea-saved change below)
-      if (
-        initialDetailPopulationComplete &&
-        (metricNode.data.sourceCode !== sourceCode ||
-          metricNode.data.sourceDatabaseConnectionId !==
-            sourceDatabaseConnectionId)
-      ) {
-        setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-      }
       setName(metricNode.data.name || '')
       setDescription(metricNode.data.description || '')
       setOwner(metricNode.data.owner || '')
-      const _sourceCode = metricNode.data.sourceCode || ''
-      setSourceCode(_sourceCode)
-      const _sourceDatabaseConnectionId =
-        metricNode.data.sourceDatabaseConnectionId || ''
-      setSourceDatabaseConnectionId(_sourceDatabaseConnectionId)
-      if (!_sourceCode || !_sourceDatabaseConnectionId) {
-        setQueryResult({
-          status: 'empty',
-          data: null,
-        })
-      }
-      setInitialDetailPopulationComplete(true)
+      setSourceDatabaseConnectionId(
+        metricNode.data.source.databaseConnectionId || ''
+      )
+      setSourceQuery(metricNode.data.source.query || '')
+      setSourceQueryType(
+        (metricNode.data.source.queryType as SourceQueryType) || 'freeform'
+      )
+      setSourceDbtProjectGraphSyncId(
+        metricNode.data.source.dbtProjectGraphSyncId
+      )
+      const _sourceDbtProjectMetricPath =
+        metricNode.data.source.dbtProjectMetricPath
+      setSourceDbtProjectMetricPath(_sourceDbtProjectMetricPath)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metricNode])
@@ -205,14 +222,14 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const replaceFunctionTypeIdWithSymbol = useCallback(
     async (str: string) => {
       const matches = str.match(functionTypeIdRegex)
-      if (matches) {
-        let symbol = await getFunctionSymbol(matches[1])
+      if (matches && getFunctionSymbol) {
+        let symbol = getFunctionSymbol(matches[1])
         return str.replace(matches[0], symbol)
       } else {
         return str
       }
     },
-    [functionTypeIdRegex]
+    [functionTypeIdRegex, getFunctionSymbol]
   )
   useEffect(() => {
     if (inputs) {
@@ -226,7 +243,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   }, [outputs, replaceFunctionTypeIdWithSymbol])
 
   const saveDetail = useCallback(
-    (name: string, value: string) => {
+    (name: keyof MetricNodeProperties, value: any) => {
       if (metricNode) {
         const newData = {
           ...metricNode.data,
@@ -287,6 +304,189 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     setSourceDatabaseConnectionName,
   ])
 
+  const populateGraphSyncs = useCallback(async () => {
+    if (organizationId) {
+      try {
+        let { data, error, status } = await supabase
+          .from('graph_syncs')
+          .select('id, name, properties, graph_sync_types!inner ( name )')
+          .match({
+            organization_id: organizationId,
+            'graph_sync_types.name': 'dbt Project', // ignore other types
+          })
+          .is('deleted_at', null)
+
+        if (error && status !== 406) {
+          throw error
+        }
+
+        if (data) {
+          data.sort((a, b) => {
+            if (a.name < b.name) {
+              return -1
+            }
+            if (a.name > b.name) {
+              return 1
+            }
+            return 0
+          })
+          setGraphSyncs(data)
+        }
+      } catch (error: any) {
+        console.error(error.message)
+      }
+    }
+  }, [organizationId])
+  useEffect(() => {
+    populateGraphSyncs()
+  }, [populateGraphSyncs])
+  useEffect(() => {
+    setSourceDbtProjectGraphSync(
+      graphSyncs.find(
+        (graphSync) => graphSync.id === sourceDbtProjectGraphSyncId
+      )
+    )
+  }, [sourceDbtProjectGraphSyncId, graphSyncs])
+
+  const getDbtMetricYaml = useCallback(async () => {
+    if (
+      sourceDbtProjectGraphSyncId &&
+      sourceDbtProjectGraphSync &&
+      metricNode?.data?.source?.dbtProjectMetricPath
+      /* ^use this, rather than sourceDbtProjectMetricPath, so we don't 
+      hit github on every keystroke */
+    ) {
+      const accessToken = session?.access_token
+      if (!accessToken) {
+        return ''
+      }
+
+      // get dbt project graph sync client token
+      const clientTokenResp = await fetch(
+        `/api/v1/graph-syncs/${sourceDbtProjectGraphSyncId}/client-tokens`,
+        {
+          method: 'GET',
+          headers: {
+            'supabase-access-token': accessToken,
+          },
+        }
+      )
+      if (clientTokenResp.status !== 200) {
+        console.error('Error getting dbt project graph sync client token')
+        return ''
+      }
+      const clientTokenBody = await clientTokenResp.json()
+      const clientToken = clientTokenBody?.token
+      if (!clientToken) {
+        console.error('Error materializing dbt project graph sync client token')
+        return ''
+      }
+
+      // parse repoUrl
+      const repoUrl = sourceDbtProjectGraphSync.properties.repoUrl || ''
+      const owner = repoUrl.split('/')[3]
+      const repo = repoUrl.split('/')[4]
+      if (!owner || !repo) {
+        console.error(
+          'Error parsing owner and repo from dbt project graph sync repo url'
+        )
+        return ''
+      }
+
+      // parse file path and metric name
+      const [filePath, metricName] =
+        metricNode?.data?.source?.dbtProjectMetricPath.split(':')
+
+      // load and decode corresponding content from github
+      const contentResp = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${clientToken}`,
+          },
+        }
+      )
+      if (contentResp.status !== 200) {
+        console.error('Error getting dbt metric file content')
+        return ''
+      }
+      const contentRespBody = await contentResp.json()
+      const encodedContent = contentRespBody.content
+      const decodedContent = Buffer.from(encodedContent, 'base64').toString(
+        'utf-8'
+      )
+
+      // parse yaml
+      const jsonifiedContent = jsYaml.load(decodedContent) as any
+      if (!jsonifiedContent) {
+        console.error('Error jsonifying dbt metric file content')
+        return ''
+      }
+
+      // get metric definition
+      const metric = jsonifiedContent?.metrics?.find(
+        (metric: any) => metric.name === metricName
+      )
+      if (!metric) {
+        console.error('Error getting metric definition')
+        return ''
+      }
+
+      return jsYaml.dump(metric)
+    }
+  }, [
+    sourceDbtProjectGraphSyncId,
+    sourceDbtProjectGraphSync,
+    metricNode?.data?.source?.dbtProjectMetricPath,
+    session,
+  ])
+  useEffect(() => {
+    const f = async () => {
+      const _sourceDbtMetricYaml = await getDbtMetricYaml()
+      setSourceDbtMetricYaml(_sourceDbtMetricYaml || '')
+    }
+    f()
+  }, [getDbtMetricYaml])
+
+  const generateDbtMetricSql = useCallback(() => {
+    let dbtMetricSql = ''
+    const metric = jsYaml.load(sourceDbtMetricYaml) as any
+    if (metric) {
+      dbtMetricSql = endent`
+        SELECT *
+        FROM {{ metrics.calculate(
+          metric('${metric.name}'),
+          grain={{frequency}},
+          dimensions=[{{group_by}}],
+          start_date={{beginning_date}},
+          end_date={{ending_date}}
+          where={{conditions}}
+        ) }}
+      `
+    }
+    return dbtMetricSql
+  }, [sourceDbtMetricYaml])
+  useEffect(() => {
+    if (editingEnabled && sourceQueryType === 'generated') {
+      const dbtMetricSql = generateDbtMetricSql()
+      setSourceQuery(dbtMetricSql)
+      if (dbtMetricSql !== metricNode?.data?.source?.query) {
+        // avoid infinite loop
+        saveDetail('source', {
+          ...metricNode?.data?.source,
+          query: dbtMetricSql,
+        })
+      }
+    }
+  }, [
+    editingEnabled,
+    sourceQueryType,
+    generateDbtMetricSql,
+    metricNode?.data?.source,
+    saveDetail,
+  ])
+
   // https://github.com/highlightjs/highlight.js/issues/925
   const highlight = (code: string, language: string) => {
     return (
@@ -295,6 +495,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         dangerouslySetInnerHTML={{
           __html: hljs.highlight(code, { language }).value,
         }}
+        style={{ borderRadius: '5px' }}
       />
     )
   }
@@ -332,9 +533,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       <div className={styles.body}>
         <div className={styles.chart_container}>
           <QueryRunner
-            statement={sourceCode}
-            databaseConnectionId={sourceDatabaseConnectionId}
-            parentNodeId={metricNode ? metricNode.id : ''}
+            parentMetricNodeData={metricNode?.data}
             refreshes={queryRunnerRefreshes}
             queryResult={queryResult}
             setQueryResult={setQueryResult}
@@ -367,52 +566,99 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         />
         <h2>Inputs</h2>
         {/* inputs set via function editor */}
-        <pre>
-          <code>
-            <EditTextarea
-              className={styles.detail_field}
-              value={inputs.match(functionTypeIdRegex) ? '' : inputs}
-              readonly={true}
-              placeholder={'-'}
-            />
-          </code>
-        </pre>
+        <EditTextarea
+          className={styles.detail_field}
+          value={inputs.match(functionTypeIdRegex) ? '' : inputs.trim()}
+          readonly={true}
+          placeholder={'-'}
+          rows={
+            inputs.match(functionTypeIdRegex)
+              ? 1
+              : Math.max(inputs.split('\n').filter((n) => n).length, 1)
+          }
+        />
         <h2>Outputs</h2>
         {/* outputs set via function editor */}
-        <pre>
-          <code>
-            <EditTextarea
-              className={styles.detail_field}
-              value={outputs.match(functionTypeIdRegex) ? '' : outputs}
-              readonly={true}
-              placeholder={'-'}
-            />
-          </code>
-        </pre>
+        <EditTextarea
+          className={styles.detail_field}
+          value={outputs.match(functionTypeIdRegex) ? '' : outputs.trim()}
+          readonly={true}
+          placeholder={'-'}
+          rows={
+            outputs.match(functionTypeIdRegex)
+              ? 1
+              : Math.max(outputs.split('\n').filter((n) => n).length, 1)
+          }
+        />
         <h2>Source</h2>
         <h3>Database</h3>
-        <Dropdown
-          id="source-database-connection-dropdown"
-          value={sourceDatabaseConnectionName}
-          options={databaseConnections.map((dc) => dc.name)}
-          onChange={(e) => {
-            const newSourceDatabaseConnection = databaseConnections.find(
-              (dc) => dc.name === e.value
-            )
-            if (newSourceDatabaseConnection) {
-              setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
-              saveDetail(
-                'sourceDatabaseConnectionId',
-                newSourceDatabaseConnection.id
-              )
-              setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-              // name updating handled by useEffect above
-            }
-          }}
-          disabled={!editingEnabled}
-        />
+        <div className={styles.connection_config_block}>
+          <div className={styles.connection_config}>
+            <label
+              htmlFor="source-database-connection-dropdown"
+              className={styles.connection_config_label}
+            >
+              Connection
+            </label>
+            <Dropdown
+              id="source-database-connection-dropdown"
+              className={styles.connection_config_value}
+              value={sourceDatabaseConnectionName}
+              options={databaseConnections.map((dc) => dc.name)}
+              onChange={(e) => {
+                const newSourceDatabaseConnection = databaseConnections.find(
+                  (dc) => dc.name === e.value
+                )
+                if (newSourceDatabaseConnection) {
+                  setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
+                  saveDetail('source', {
+                    ...metricNode?.data?.source,
+                    databaseConnectionId: newSourceDatabaseConnection.id,
+                  })
+                  // name updating handled by useEffect above
+                }
+              }}
+              disabled={!editingEnabled}
+              tooltip="The database on which query will be run"
+            />
+          </div>
+          {(editingEnabled || sourceDbtProjectGraphSyncId) && (
+            <div className={styles.connection_config}>
+              <label
+                htmlFor="source-dbt-project-graph-sync-dropdown"
+                className={styles.connection_config_label}
+              >
+                dbt Project
+              </label>
+              <Dropdown
+                id="source-dbt-project-graph-sync-dropdown"
+                className={styles.connection_config_value}
+                value={sourceDbtProjectGraphSync?.name || ''}
+                options={graphSyncs.map((gc) => gc.name)}
+                onChange={(e) => {
+                  const newSourceDbtProjectGraphSync = graphSyncs.find(
+                    (gs) => gs.name === e.value
+                  )
+                  if (newSourceDbtProjectGraphSync) {
+                    setSourceDbtProjectGraphSyncId(
+                      newSourceDbtProjectGraphSync.id
+                    )
+                    saveDetail('source', {
+                      ...metricNode?.data?.source,
+                      dbtProjectGraphSyncId: newSourceDbtProjectGraphSync.id,
+                    })
+                    // name updating handled by useEffect above
+                  }
+                }}
+                disabled={!editingEnabled}
+                emptyMessage="No dbt project graph syncs configured"
+                tooltip="The project from which macros and metric definitions will be populated"
+              />
+            </div>
+          )}
+        </div>
         <h3>
-          Code
+          Query
           {editingEnabled && (
             <Button
               id="refresh-query-button"
@@ -425,23 +671,95 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             />
           )}
         </h3>
-        {editingEnabled ? (
+        {sourceDbtProjectGraphSyncId && (
+          <>
+            <div className={styles.connection_config_block}>
+              <div className={styles.connection_config}>
+                <label
+                  htmlFor="source-query-type-dropdown"
+                  className={styles.connection_config_label}
+                >
+                  Type
+                </label>
+                <Dropdown
+                  id="source-query-type-dropdown"
+                  className={styles.connection_config_value}
+                  value={sourceQueryType}
+                  options={sourceQueryTypes}
+                  onChange={(e) => {
+                    const newSQT = e.value as SourceQueryType
+                    setSourceQueryType(newSQT)
+                    saveDetail('source', {
+                      ...metricNode?.data?.source,
+                      queryType: newSQT,
+                    })
+                  }}
+                  style={{ marginBottom: '1em' }}
+                  disabled={!editingEnabled}
+                  tooltip="Whether query will be user-inputted or auto-generated from a dbt metric"
+                />
+              </div>
+              {sourceQueryType === 'generated' && (
+                <>
+                  <div className={styles.connection_config}>
+                    <label
+                      htmlFor="source-dbt-project-path-field"
+                      className={styles.connection_config_label}
+                    >
+                      dbt Project Metric Path
+                    </label>
+                    <InputText
+                      id="source-dbt-project-path-field"
+                      className={styles.connection_config_value}
+                      value={sourceDbtProjectMetricPath || ''}
+                      onChange={(e) => {
+                        setSourceDbtProjectMetricPath(e.target.value)
+                      }}
+                      onBlur={() => {
+                        saveDetail('source', {
+                          ...metricNode?.data?.source,
+                          dbtProjectMetricPath: sourceDbtProjectMetricPath,
+                        })
+                      }}
+                      disabled={!editingEnabled}
+                      tooltip="Path to dbt metric definition within project; e.g., models/marts/schema.yml:new_users"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+            {sourceQueryType === 'generated' && (
+              <>
+                <div>dbt Metric Definition</div>
+                <pre>
+                  {highlight(
+                    sourceDbtMetricYaml || '(metric not found)',
+                    'yaml'
+                  )}
+                </pre>
+                <div>Generated SQL</div>
+              </>
+            )}
+          </>
+        )}
+        {editingEnabled && sourceQueryType === 'freeform' ? (
           <Editor
-            id="source-code-field"
-            value={sourceCode}
-            onValueChange={(code) => setSourceCode(code)}
+            id="source-query-field"
+            value={sourceQuery}
+            onValueChange={(query) => setSourceQuery(query)}
             onBlur={() => {
-              saveDetail('sourceCode', sourceCode)
-              setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+              saveDetail('source', {
+                ...metricNode?.data?.source,
+                query: sourceQuery,
+              })
             }}
-            highlight={(code) => highlight(code, 'sql')}
+            highlight={(query) => highlight(query, 'sql')}
             textareaClassName="react-simple-code-editor-textarea"
           />
         ) : (
-          <pre>{highlight(sourceCode, 'sql')}</pre>
+          <pre>{highlight(sourceQuery, 'sql')}</pre>
         )}
       </div>
-      {/* ensure final module can be seen underneath editor dock */}
       {editingEnabled ? (
         <div className={styles.editor_dock}>
           <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />

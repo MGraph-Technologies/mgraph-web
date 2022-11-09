@@ -241,7 +241,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       return (
         <Message
           severity="info"
-          text="Define source code and database to view chart."
+          text="Define source to view chart."
           style={centerStyle}
         />
       )

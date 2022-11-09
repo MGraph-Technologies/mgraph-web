@@ -113,6 +113,13 @@ describe('Graphviewer viewing as admin', () => {
     cy.url().should('include', '/database-connections')
   })
 
+  it('Clicks through to database connections page', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=account-menu]').click()
+    cy.get('[class=p-menuitem]').contains('Graph Syncs').click()
+    cy.url().should('include', '/graph-syncs')
+  })
+
   it('Clicks through to refresh jobs page', () => {
     cy.visit('/mgraph')
     cy.get('[id=account-menu]').click()
@@ -329,7 +336,7 @@ describe('Metric detail editing', () => {
     cy.contains(newValue).should('exist')
   })
 
-  it('Visits a metric detail page, enters a working query, then sees results', () => {
+  it('Visits a metric detail page, enters a working SQL query, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
 
@@ -343,8 +350,8 @@ describe('Metric detail editing', () => {
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
-    cy.get('[id=source-code-field').click()
-    cy.get('[id=source-code-field').clear().type(newQuery)
+    cy.get('[id=source-query-field').click()
+    cy.get('[id=source-query-field').clear().type(newQuery)
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
@@ -355,7 +362,7 @@ describe('Metric detail editing', () => {
     // TODO: test chartjs canvas (this is just the number overlay)
   })
 
-  it('Visits a metric detail page, enters a working query, saves it, then sees results', () => {
+  it('Visits a metric detail page, enters a working SQL query, saves it, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
 
@@ -369,8 +376,8 @@ describe('Metric detail editing', () => {
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
-    cy.get('[id=source-code-field').click()
-    cy.get('[id=source-code-field').clear().type(newQuery)
+    cy.get('[id=source-query-field').click()
+    cy.get('[id=source-query-field').clear().type(newQuery)
     cy.get('[class*=Header]').first().click()
     cy.get('[id=save-button]').click()
 
@@ -387,7 +394,7 @@ describe('Metric detail editing', () => {
       .should('exist')
   })
 
-  it('Visits a metric detail page, enters a failing query, then sees error', () => {
+  it('Visits a metric detail page, enters a failing SQL query, then sees error', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
 
@@ -400,8 +407,8 @@ describe('Metric detail editing', () => {
 
     // edit query
     const newQuery = 'SELECT x'
-    cy.get('[id=source-code-field').click()
-    cy.get('[id=source-code-field').clear().type(newQuery)
+    cy.get('[id=source-query-field').click()
+    cy.get('[id=source-query-field').clear().type(newQuery)
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
@@ -410,7 +417,7 @@ describe('Metric detail editing', () => {
       .should('exist')
   })
 
-  it('Visits a metric detail page, enters a working but wrong-format query, then sees error', () => {
+  it('Visits a metric detail page, enters a working but wrong-format SQL query, then sees error', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
 
@@ -423,8 +430,8 @@ describe('Metric detail editing', () => {
 
     // edit query
     const newQuery = "SELECT TRUE, 'all', 1"
-    cy.get('[id=source-code-field').click()
-    cy.get('[id=source-code-field').clear().type(newQuery)
+    cy.get('[id=source-query-field').click()
+    cy.get('[id=source-query-field').clear().type(newQuery)
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
@@ -499,7 +506,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=group_by-set-default-button]').should('not.exist')
   })
 
-  it('Visits a metric detail page, sets parameters, enters a query that uses them, then sees results', () => {
+  it('Visits a metric detail page, sets parameters, enters a SQL query that uses them, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
     /* wait for page to load
@@ -552,8 +559,8 @@ describe('Metric detail editing', () => {
         {{group_by}},
         ${randomInt}
     `
-    cy.get('[id=source-code-field').click()
-    cy.get('[id=source-code-field')
+    cy.get('[id=source-query-field').click()
+    cy.get('[id=source-query-field')
       .clear()
       .type(newQuery, { parseSpecialCharSequences: false })
     cy.get('[id=refresh-query-button]').first().click()
@@ -610,6 +617,22 @@ describe('Admin settings', () => {
     cy.get('[id=database-connections-table]')
       .contains(randomString)
       .should('not.exist')
+  })
+
+  it('Visits graph syncs page and sees expected content', () => {
+    // TODO: test full installation flow
+
+    // visit page
+    cy.visit('/mgraph/settings/graph-syncs')
+
+    // see expected content
+    cy.get('body').contains('Graph Syncs')
+    cy.get('[id=new-graph-sync-button]').click()
+    cy.get('body').contains('New Graph Sync')
+    cy.get('[id=name-field]').should('exist')
+    cy.get('[id=github-repo-url-field]').should('exist')
+    cy.get('[id=github-app-button').click()
+    cy.url().should('include', 'mgraph-dbt-sync')
   })
 
   it('Visits refresh jobs page, then adds and deletes a job', () => {
