@@ -260,7 +260,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         if (!updateGraph) {
           throw new Error('updateGraph not defined')
         }
-        const connectedObjects = getConnectedObjects(nodeOrEdge).concat([
+        const connectedObjects = getConnectedObjects(nodeOrEdge, 1).concat([
           nodeOrEdge,
         ])
         updateGraph(
