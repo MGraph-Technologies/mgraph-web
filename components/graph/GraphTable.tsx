@@ -69,7 +69,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
     [inputMetrics, expansionLevel]
   )
   const [expandedRows, setExpandedRows] = useState<any>(null)
-  // initially expand previously-expanded rows, or top-level
+  // initially expand previously-expanded rows, or top-level with children
   const [initialExpansionComplete, setInitialExpansionComplete] =
     useState(false)
   useEffect(() => {
@@ -84,7 +84,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
           )
         )
       } else if (expansionLevel === 0) {
-        setExpandedRows(metrics)
+        setExpandedRows(metrics.filter((metric) => metric.data.numInputMetrics))
       }
       setInitialExpansionComplete(true)
     }
