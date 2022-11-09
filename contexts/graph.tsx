@@ -752,58 +752,79 @@ export function GraphProvider({ children }: GraphProps) {
     (
       reference: Node | Edge,
       maxSeparationDegrees?: number,
-      direction?: 'inputs' | 'outputs'
+      direction?: 'inputs' | 'outputs',
+      connectedObjects: (Node | Edge)[] = []
     ) => {
-      let connectedObjects: (Node | Edge)[] = []
-      let _maxSeparationDegrees =
-        maxSeparationDegrees === undefined ? -1 : maxSeparationDegrees
-      if (_maxSeparationDegrees === 0) {
-        return connectedObjects
-      }
       if (direction === undefined) {
         connectedObjects = connectedObjects.concat(
-          getConnectedObjects(reference, maxSeparationDegrees, 'inputs')
+          getConnectedObjects(
+            reference,
+            maxSeparationDegrees,
+            'inputs',
+            connectedObjects
+          )
         )
         connectedObjects = connectedObjects.concat(
-          getConnectedObjects(reference, maxSeparationDegrees, 'outputs')
+          getConnectedObjects(
+            reference,
+            maxSeparationDegrees,
+            'outputs',
+            connectedObjects
+          )
         )
-        return connectedObjects
-      }
-      if (reference.data.sourceId && reference.data.targetId) {
-        // reference is edge
-        // select connected nodes
-        graph.nodes.forEach((node) => {
-          if (
-            ((node.id === reference.data.sourceId && direction === 'inputs') ||
-              (node.id === reference.data.targetId &&
-                direction === 'outputs')) &&
-            !connectedObjects.includes(node)
-          ) {
-            if (node.type === 'metric') {
-              _maxSeparationDegrees -= 1
-            }
-            connectedObjects = connectedObjects.concat(
-              [node],
-              getConnectedObjects(node, _maxSeparationDegrees, direction)
-            )
-          }
-        })
       } else {
-        // reference is node
-        // select connected edges
-        graph.edges.forEach((edge) => {
-          if (
-            ((edge.data.sourceId === reference.id && direction === 'outputs') ||
-              (edge.data.targetId === reference.id &&
-                direction === 'inputs')) &&
-            !connectedObjects.includes(edge)
-          ) {
-            connectedObjects = connectedObjects.concat(
-              [edge],
-              getConnectedObjects(edge, maxSeparationDegrees, direction)
-            )
-          }
-        })
+        if (reference.data.sourceId && reference.data.targetId) {
+          // reference is edge
+          // select connected nodes
+          graph.nodes.forEach((node) => {
+            if (
+              ((node.id === reference.data.sourceId &&
+                direction === 'inputs') ||
+                (node.id === reference.data.targetId &&
+                  direction === 'outputs')) &&
+              !connectedObjects.includes(node)
+            ) {
+              connectedObjects.push(node)
+              if (
+                maxSeparationDegrees !== undefined &&
+                node.type === 'metric'
+              ) {
+                maxSeparationDegrees -= 1
+              }
+              if (
+                maxSeparationDegrees === undefined ||
+                maxSeparationDegrees > 0
+              ) {
+                connectedObjects = getConnectedObjects(
+                  node,
+                  maxSeparationDegrees,
+                  direction,
+                  connectedObjects
+                )
+              }
+            }
+          })
+        } else {
+          // reference is node
+          // select connected edges
+          graph.edges.forEach((edge) => {
+            if (
+              ((edge.data.sourceId === reference.id &&
+                direction === 'outputs') ||
+                (edge.data.targetId === reference.id &&
+                  direction === 'inputs')) &&
+              !connectedObjects.includes(edge)
+            ) {
+              connectedObjects.push(edge)
+              connectedObjects = getConnectedObjects(
+                edge,
+                maxSeparationDegrees,
+                direction,
+                connectedObjects
+              )
+            }
+          })
+        }
       }
       // dedupe
       connectedObjects = connectedObjects.filter(
