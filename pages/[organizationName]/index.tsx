@@ -12,17 +12,17 @@ import styles from '../../styles/OrganizationHome.module.css'
 type OrganizationHomeProps = {}
 const OrganizationHome: FunctionComponent<OrganizationHomeProps> = () => {
   const { userCanView } = useAuth()
-  const [showGraphTable, setShowGraphTable] = useState(false)
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  const [showGraphTable, setShowGraphTable] = useState<boolean | undefined>(
+    undefined
+  )
   useEffect(() => {
     setShowGraphTable(localStorage.getItem('showGraphTable') === 'true')
-    setInitialLoadComplete(true)
   }, [])
   useEffect(() => {
-    if (initialLoadComplete) {
+    if (showGraphTable !== undefined) {
       localStorage.setItem('showGraphTable', showGraphTable.toString())
     }
-  }, [initialLoadComplete, showGraphTable])
+  }, [showGraphTable])
 
   return (
     <>
@@ -32,19 +32,23 @@ const OrganizationHome: FunctionComponent<OrganizationHomeProps> = () => {
       <Workspace>
         {userCanView ? (
           <>
-            <div className={styles.graph_viewer_container}>
-              {showGraphTable ? (
-                <GraphTableViewer />
-              ) : (
-                <ReactFlowProvider>
-                  <GraphViewer />
-                </ReactFlowProvider>
-              )}
-            </div>
-            <GraphTableToggleDock
-              showGraphTable={showGraphTable}
-              setShowGraphTable={setShowGraphTable}
-            />
+            {showGraphTable !== undefined && (
+              <>
+                <div className={styles.graph_viewer_container}>
+                  {showGraphTable ? (
+                    <GraphTableViewer />
+                  ) : (
+                    <ReactFlowProvider>
+                      <GraphViewer />
+                    </ReactFlowProvider>
+                  )}
+                </div>
+                <GraphTableToggleDock
+                  showGraphTable={showGraphTable}
+                  setShowGraphTable={setShowGraphTable}
+                />
+              </>
+            )}
           </>
         ) : (
           <div>Please contact your administrator for access.</div>
