@@ -1,3 +1,4 @@
+import endent from 'endent'
 import hljs from 'highlight.js/lib/core'
 import plaintext from 'highlight.js/lib/languages/plaintext'
 import sql from 'highlight.js/lib/languages/sql'
@@ -448,6 +449,44 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     f()
   }, [getDbtMetricYaml])
 
+  const generateDbtMetricSql = useCallback(() => {
+    let dbtMetricSql = ''
+    const metric = jsYaml.load(sourceDbtMetricYaml) as any
+    if (metric) {
+      dbtMetricSql = endent`
+        SELECT *
+        FROM {{ metrics.calculate(
+          metric('${metric.name}'),
+          grain={{frequency}},
+          dimensions=[{{group_by}}],
+          start_date={{beginning_date}},
+          end_date={{ending_date}}
+          where={{conditions}}
+        ) }}
+      `
+    }
+    return dbtMetricSql
+  }, [sourceDbtMetricYaml])
+  useEffect(() => {
+    if (editingEnabled && sourceQueryType === 'generated') {
+      const dbtMetricSql = generateDbtMetricSql()
+      setSourceQuery(dbtMetricSql)
+      if (dbtMetricSql !== metricNode?.data?.source?.query) {
+        // avoid infinite loop
+        saveDetail('source', {
+          ...metricNode?.data?.source,
+          query: dbtMetricSql,
+        })
+      }
+    }
+  }, [
+    editingEnabled,
+    sourceQueryType,
+    generateDbtMetricSql,
+    metricNode?.data?.source,
+    saveDetail,
+  ])
+
   // https://github.com/highlightjs/highlight.js/issues/925
   const highlight = (code: string, language: string) => {
     return (
@@ -703,7 +742,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             )}
           </>
         )}
-        {editingEnabled ? (
+        {editingEnabled && sourceQueryType === 'freeform' ? (
           <Editor
             id="source-query-field"
             value={sourceQuery}
