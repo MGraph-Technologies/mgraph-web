@@ -519,8 +519,11 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           className={
             editingEnabled ? styles.detail_field_editable : styles.detail_field
           }
-          value={'Metric: ' + name}
+          value={name}
           readonly={!editingEnabled}
+          formatDisplayText={(value) => {
+            return editingEnabled ? value : `Metric: ${value}`
+          }}
           style={{
             fontSize: '2em',
             fontWeight: 'bold',
