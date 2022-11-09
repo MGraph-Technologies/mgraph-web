@@ -44,7 +44,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
   clearFields,
 }) => {
   const appUrl = `https://github.com/apps/mgraph-dbt-sync${
-    process.env.NEX_PUBLIC_ENV === 'prod' ? '' : '-dev'
+    process.env.NEXT_PUBLIC_ENV === 'production' ? '' : '-dev'
   }`
   const { organizationId } = useAuth()
   const [upsertGraphSyncInstalled, _setUpsertGraphSyncInstalled] = useState(
