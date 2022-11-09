@@ -231,11 +231,32 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
             : 'This metric has no inputs'
         }
       >
-        <Column body={expandCollapseCellBodyTemplate} align="center" />
-        <Column field="data.name" header="Metric" />
-        <Column body={trendCellBodyTemplate} style={{ width: '50%' }} />
-        <Column body={infoCellBodyTemplate} align="center" />
-        <Column body={linkCellBodyTemplate} align="center" />
+        <Column
+          body={expandCollapseCellBodyTemplate}
+          align="center"
+          style={{ width: '5%' }}
+        />
+        <Column
+          field="data.name"
+          header="Metric"
+          align="left"
+          style={{ width: '20%' }}
+        />
+        <Column
+          body={trendCellBodyTemplate}
+          align="center"
+          style={{ width: '50%' }}
+        />
+        <Column
+          body={infoCellBodyTemplate}
+          align="center"
+          style={{ width: '5%' }}
+        />
+        <Column
+          body={linkCellBodyTemplate}
+          align="center"
+          style={{ width: '5%' }}
+        />
       </DataTable>
     </div>
   )
