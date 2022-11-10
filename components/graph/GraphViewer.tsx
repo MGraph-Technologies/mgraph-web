@@ -296,10 +296,7 @@ const GraphViewer: FunctionComponent = () => {
             nodes: graph.nodes.map((node) => {
               if (
                 connectedObjects.find(
-                  (c) =>
-                    c.id === node.id &&
-                    c.type === node.type &&
-                    c.type !== 'metric'
+                  (c) => c.id === node.id && c.type === node.type
                 )
               ) {
                 return {

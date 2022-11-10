@@ -133,7 +133,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
       className={styles.metric_node}
       style={{
         backgroundColor: color,
-        border: selected ? '2px solid' : '1px solid',
+        border: selected ? '5px solid' : '1px solid',
       }}
     >
       <div className={styles.header}>

@@ -56,7 +56,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
       className={styles.function_node}
       style={{
         backgroundColor: color,
-        border: selected ? '3px solid' : '1px solid',
+        border: selected ? '5px solid' : '1px solid',
       }}
     >
       <div className={styles.header}>
