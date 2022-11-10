@@ -294,8 +294,8 @@ const AccessManagement: FunctionComponent = () => {
           </div>
           <h2>Add Users</h2>
           <p>
-            No need for invitations; anyone under your organization&apos;s
-            domain can access MGraph via Google SSO - just share a link!
+            Anyone under your organization&apos;s domain can access MGraph via
+            Google OAuth - just share a link!
           </p>
           <h3>Default role for new users:</h3>
           <Dropdown
