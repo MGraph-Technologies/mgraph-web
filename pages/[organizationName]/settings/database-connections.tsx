@@ -28,6 +28,7 @@ const DatabaseConnections: FunctionComponent = () => {
   type DatabaseConnection = {
     id: string
     name: string
+    type_name: string
     created_at: string
   }
   const [databaseConnections, setDatabaseConnections] = useState<
@@ -39,7 +40,7 @@ const DatabaseConnections: FunctionComponent = () => {
       try {
         const { data, error, status } = await supabase
           .from('database_connections')
-          .select('id, name, created_at')
+          .select('id, name, created_at, database_connection_types(name)')
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true })
@@ -49,7 +50,15 @@ const DatabaseConnections: FunctionComponent = () => {
         }
 
         if (data) {
-          setDatabaseConnections(data as DatabaseConnection[])
+          const _databaseConnections = data.map((databaseConnection) => {
+            return {
+              id: databaseConnection.id,
+              name: databaseConnection.name,
+              type_name: databaseConnection.database_connection_types.name,
+              created_at: databaseConnection.created_at,
+            } as DatabaseConnection
+          })
+          setDatabaseConnections(_databaseConnections)
           setDatabaseConnectionsTableLoading(false)
         }
       } catch (error: unknown) {
@@ -404,6 +413,7 @@ const DatabaseConnections: FunctionComponent = () => {
               emptyMessage="No database connections found"
             >
               <Column field="name" header="Name" style={columnStyle} />
+              <Column field="type_name" header="Type" style={columnStyle} />
               <Column
                 field="created_at"
                 header="Created At"

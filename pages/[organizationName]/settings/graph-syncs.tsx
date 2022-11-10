@@ -196,6 +196,7 @@ const GraphSyncs: FunctionComponent = () => {
   type GraphSync = {
     id: string
     name: string
+    type_name: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     properties: any
     created_at: string
@@ -207,7 +208,7 @@ const GraphSyncs: FunctionComponent = () => {
       try {
         const { data, error, status } = await supabase
           .from('graph_syncs')
-          .select('id, name, properties, created_at')
+          .select('id, name, properties, created_at, graph_sync_types(name)')
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true })
@@ -217,7 +218,16 @@ const GraphSyncs: FunctionComponent = () => {
         }
 
         if (data) {
-          setGraphSyncs(data as GraphSync[])
+          const _graphSyncs = data.map((graphSync) => {
+            return {
+              id: graphSync.id,
+              name: graphSync.name,
+              type_name: graphSync.graph_sync_types.name,
+              properties: graphSync.properties,
+              created_at: graphSync.created_at,
+            } as GraphSync
+          })
+          setGraphSyncs(_graphSyncs)
           setGraphSyncsTableLoading(false)
         }
       } catch (error: unknown) {
@@ -377,6 +387,7 @@ const GraphSyncs: FunctionComponent = () => {
               emptyMessage="No graph syncs found"
             >
               <Column field="name" header="Name" style={columnStyle} />
+              <Column field="type_name" header="Type" style={columnStyle} />
               <Column
                 field="properties"
                 header="Properties"
