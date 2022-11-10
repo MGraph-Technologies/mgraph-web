@@ -366,13 +366,10 @@ export function GraphProvider({ children }: GraphProps) {
       // function instead of the state directly.
       setGraph(
         (graph) => {
-          if (update.nodes) {
-            graph.nodes = update.nodes
-          }
-          if (update.edges) {
-            graph.edges = update.edges
-          }
-          return graph
+          return {
+            nodes: update.nodes || graph.nodes,
+            edges: update.edges || graph.edges,
+          } as Graph
         },
         undefined,
         !undoable

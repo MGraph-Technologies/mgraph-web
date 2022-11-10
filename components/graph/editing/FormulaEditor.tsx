@@ -290,13 +290,10 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
 
     if (newFunctionNodes.length > 0 && newInputEdges.length > 0) {
       updateGraph(
-        'all',
-        [
-          {
-            nodes: graph.nodes.concat(newFunctionNodes),
-            edges: graph.edges.concat(newInputEdges),
-          },
-        ],
+        {
+          nodes: graph.nodes.concat(newFunctionNodes),
+          edges: graph.edges.concat(newInputEdges),
+        },
         true
       )
       analytics.track('save_formula')
