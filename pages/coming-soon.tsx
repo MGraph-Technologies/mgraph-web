@@ -3,9 +3,7 @@ import React, { FunctionComponent } from 'react'
 
 import Header from '../components/Header'
 
-type Props = {}
-
-const ComingSoon: FunctionComponent<Props> = () => {
+const ComingSoon: FunctionComponent = () => {
   return (
     <div>
       <Head>

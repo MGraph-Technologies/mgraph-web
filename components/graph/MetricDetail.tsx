@@ -26,7 +26,11 @@ import LineChart from '../LineChart'
 import QueryRunner, { QueryResult } from '../QueryRunner'
 import ControlPanel from './ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
-import { MetricNodeProperties, SourceQueryType } from './MetricNode'
+import {
+  MetricNodeProperties,
+  MetricNodeSource,
+  SourceQueryType,
+} from './MetricNode'
 
 hljs.registerLanguage('plaintext', plaintext)
 hljs.registerLanguage('sql', sql)
@@ -67,16 +71,31 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   ]
   const [sourceDbtProjectGraphSyncId, setSourceDbtProjectGraphSyncId] =
     useState<string | null>(null)
+  type GraphSync = {
+    id: string
+    name: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    properties: any
+    graph_sync_types: {
+      name: string
+    }
+  }
   const [sourceDbtProjectGraphSync, setSourceDbtProjectGraphSync] =
-    useState<any>(null)
+    useState<GraphSync | null>(null)
   const [sourceDbtProjectMetricPath, setSourceDbtProjectMetricPath] = useState<
     string | null
   >(null)
   const [sourceDbtMetricYaml, setSourceDbtMetricYaml] = useState('')
   const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
 
-  const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
-  const [graphSyncs, setGraphSyncs] = useState<any[]>([])
+  type DatabaseConnection = {
+    id: string
+    name: string
+  }
+  const [databaseConnections, setDatabaseConnections] = useState<
+    DatabaseConnection[]
+  >([])
+  const [graphSyncs, setGraphSyncs] = useState<GraphSync[]>([])
 
   const [queryResult, setQueryResult] = useState<QueryResult>({
     status: 'processing',
@@ -134,7 +153,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         const formulaObjects = [metricConnectedIdentity].concat(
           getConnectedObjects(metricConnectedIdentity, 1)
         )
-        let formulaObjectsSorted: (Node<any> | Edge<any>)[] = []
+        let formulaObjectsSorted: (Node | Edge)[] = []
         // add output
         const output = formulaObjects.find(
           (formulaObject) =>
@@ -155,7 +174,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           formulaObjectsSorted.length < formulaObjects.length
         ) {
           const lastObject =
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             formulaObjectsSorted[formulaObjectsSorted.length - 1]!
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           if (['function', 'metric', 'mission'].includes(lastObject.type!)) {
             const nextObject = formulaObjects.find(
               (formulaObject) =>
@@ -163,6 +184,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                 'target' in formulaObject &&
                 formulaObject.target === lastObject.id
             )
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             formulaObjectsSorted.push(nextObject!)
           } else {
             // lastObject.type === 'input'
@@ -170,6 +192,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
               (formulaObject) =>
                 'source' in lastObject && formulaObject.id === lastObject.source
             )
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             formulaObjectsSorted.push(nextObject!)
           }
         }
@@ -223,7 +246,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     async (str: string) => {
       const matches = str.match(functionTypeIdRegex)
       if (matches && getFunctionSymbol) {
-        let symbol = getFunctionSymbol(matches[1])
+        const symbol = getFunctionSymbol(matches[1])
         return str.replace(matches[0], symbol)
       } else {
         return str
@@ -243,7 +266,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   }, [outputs, replaceFunctionTypeIdWithSymbol])
 
   const saveDetail = useCallback(
-    (name: keyof MetricNodeProperties, value: any) => {
+    (name: keyof MetricNodeProperties, value: string | MetricNodeSource) => {
       if (metricNode) {
         const newData = {
           ...metricNode.data,
@@ -258,7 +281,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const populateDatabaseConnections = useCallback(async () => {
     if (organizationId) {
       try {
-        let { data, error, status } = await supabase
+        const { data, error, status } = await supabase
           .from('database_connections')
           .select('id, name')
           .eq('organization_id', organizationId)
@@ -280,8 +303,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           })
           setDatabaseConnections(data)
         }
-      } catch (error: any) {
-        console.error(error.message)
+      } catch (error: unknown) {
+        console.error(error)
       }
     }
   }, [organizationId])
@@ -307,7 +330,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const populateGraphSyncs = useCallback(async () => {
     if (organizationId) {
       try {
-        let { data, error, status } = await supabase
+        const { data, error, status } = await supabase
           .from('graph_syncs')
           .select('id, name, properties, graph_sync_types!inner ( name )')
           .match({
@@ -332,8 +355,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           })
           setGraphSyncs(data)
         }
-      } catch (error: any) {
-        console.error(error.message)
+      } catch (error: unknown) {
+        console.error(error)
       }
     }
   }, [organizationId])
@@ -344,7 +367,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     setSourceDbtProjectGraphSync(
       graphSyncs.find(
         (graphSync) => graphSync.id === sourceDbtProjectGraphSyncId
-      )
+      ) || null
     )
   }, [sourceDbtProjectGraphSyncId, graphSyncs])
 
@@ -395,6 +418,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
       // parse file path and metric name
       const [filePath, metricName] =
+        // eslint-disable-next-line no-unsafe-optional-chaining
         metricNode?.data?.source?.dbtProjectMetricPath.split(':')
 
       // load and decode corresponding content from github
@@ -418,6 +442,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       )
 
       // parse yaml
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const jsonifiedContent = jsYaml.load(decodedContent) as any
       if (!jsonifiedContent) {
         console.error('Error jsonifying dbt metric file content')
@@ -425,7 +450,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       }
 
       // get metric definition
-      const metric = jsonifiedContent?.metrics?.find(
+      const metrics = jsonifiedContent.metrics || []
+      const metric = metrics.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (metric: any) => metric.name === metricName
       )
       if (!metric) {
@@ -451,6 +478,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   const generateDbtMetricSql = useCallback(() => {
     let dbtMetricSql = ''
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const metric = jsYaml.load(sourceDbtMetricYaml) as any
     if (metric) {
       dbtMetricSql = endent`

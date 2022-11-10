@@ -15,8 +15,7 @@ import { analytics } from '../../../utils/segmentClient'
 import FormulaEditor from './FormulaEditor'
 import UndoRedoSaveAndCancelGraphEditingButtons from './UndoRedoSaveAndCancelGraphEditingButtons'
 
-type EditorDockProps = {}
-const _EditorDock: FunctionComponent<EditorDockProps> = () => {
+const _EditorDock: FunctionComponent = () => {
   const { editingEnabled } = useEditability()
   const { graph, updateGraph, formMetricNode, formMissionNode } = useGraph()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
@@ -36,7 +35,10 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
     const newNode = formMetricNode()
     if (newNode) {
       analytics.track('add_metric_node')
-      updateGraph('nodes', graph.nodes.concat(newNode), true)
+      updateGraph(
+        { nodes: graph.nodes.concat(newNode), edges: undefined },
+        true
+      )
     }
   }, [formMetricNode, updateGraph, graph.nodes])
 
@@ -54,7 +56,10 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
     const newNode = formMissionNode()
     if (newNode) {
       analytics.track('add_mission_node')
-      updateGraph('nodes', graph.nodes.concat(newNode), true)
+      updateGraph(
+        { nodes: graph.nodes.concat(newNode), edges: undefined },
+        true
+      )
     }
   }, [formMissionNode, updateGraph, graph.nodes])
   const deleteMissionNode = useCallback(() => {
@@ -63,7 +68,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = () => {
     }
     const newNodes = graph.nodes.filter((node) => node.type !== 'mission')
     analytics.track('delete_mission_node')
-    updateGraph('nodes', newNodes, true)
+    updateGraph({ nodes: newNodes, edges: undefined }, true)
   }, [updateGraph, graph.nodes])
 
   if (editingEnabled) {

@@ -69,7 +69,7 @@ export function AuthProvider({ children }: AuthProps) {
   const populateAuthState = useCallback(async () => {
     if (session?.user) {
       try {
-        let { data, error, status } = await supabase
+        const { data, error, status } = await supabase
           .from('organization_members')
           .select(
             'organizations ( id, name, logo_storage_path, enabled ), roles ( name )'
@@ -105,8 +105,8 @@ export function AuthProvider({ children }: AuthProps) {
           })
           analytics.track('login')
         }
-      } catch (error: any) {
-        console.error(error.message)
+      } catch (error: unknown) {
+        console.error(error)
       }
     }
   }, [session?.user])

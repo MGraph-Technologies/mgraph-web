@@ -7,8 +7,7 @@ import styles from '../styles/Header.module.css'
 import { storagePathToSignedUrl } from '../utils/supabaseClient'
 import AccountMenu from './AccountMenu'
 
-type HeaderProps = {}
-const Header: FunctionComponent<HeaderProps> = () => {
+const Header: FunctionComponent = () => {
   const { organizationLogoStoragePath } = useAuth()
   const { push } = useBrowser()
   const [logoUrl, setLogoUrl] = useState('')
@@ -24,8 +23,8 @@ const Header: FunctionComponent<HeaderProps> = () => {
           setLogoUrl(signedUrl)
           setLogoAlt('Organization logo')
         }
-      } catch (error: any) {
-        console.error(error.message)
+      } catch (error: unknown) {
+        console.error(error)
       }
     } else {
       setLogoUrl('/logo.svg')

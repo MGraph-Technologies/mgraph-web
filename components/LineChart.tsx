@@ -14,7 +14,13 @@ import { ProgressSpinner } from 'primereact/progressspinner'
 import { FunctionComponent, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 
-import { QueryResult } from './QueryRunner'
+import {
+  QueryColumn,
+  QueryData,
+  QueryError,
+  QueryResult,
+  QueryRow,
+} from './QueryRunner'
 import styles from '../styles/LineChart.module.css'
 import { useAuth } from '../contexts/auth'
 
@@ -39,7 +45,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   const { userOnMobile } = useAuth()
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
-  const checkColumnsStructure = (columns: any) => {
+  const checkColumnsStructure = (queryData: QueryData) => {
     const snowflakeDateTypes = [
       'DATE',
       'TIMESTAMP',
@@ -67,6 +73,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       'NUMERIC',
       'REAL',
     ]
+    const columns = queryData.columns
     return (
       columns &&
       columns.length === 3 &&
@@ -76,10 +83,10 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     )
   }
 
-  const makeChartJsDatasets = (columns: any[], rows: any[]) => {
-    let datasets: {
-      label: any
-      data: { x: Date; y: any }[]
+  const makeChartJsDatasets = (columns: QueryColumn[], rows: QueryRow[]) => {
+    const datasets: {
+      label: string
+      data: { x: Date; y: number }[]
       backgroundColor: string
       borderColor: string
       borderWidth: number
@@ -92,15 +99,15 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       '#E84855', // red
       '#787878', // grey
     ]
-    const dimensions = Array.from(new Set(rows.map((row: any) => row[1])))
+    const dimensions = Array.from(new Set(rows.map((row: QueryRow) => row[1])))
     dimensions.forEach((dimension, index) => {
-      const data = rows.filter((row: any) => row[1] === dimension)
-      data.sort((a: any, b: any) => a[0] - b[0]) // sort by date
+      const data = rows.filter((row: QueryRow) => row[1] === dimension)
+      data.sort((a: QueryRow, b: QueryRow) => parseInt(a[0]) - parseInt(b[0])) // sort by date
       datasets.push({
         label: dimension,
-        data: data.map((row: any) => ({
+        data: data.map((row: QueryRow) => ({
           x: snowflakeDateToJsDate(row[0], columns[0].type),
-          y: row[2],
+          y: parseFloat(row[2]),
         })),
         backgroundColor: SERIESCOLORS[index % SERIESCOLORS.length],
         borderColor: SERIESCOLORS[index % SERIESCOLORS.length],
@@ -138,11 +145,13 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         />
       )
     case 'success':
+      // eslint-disable-next-line no-case-declarations
+      const queryData = queryResult.data as QueryData
       if (
-        !queryResult.data ||
-        !queryResult.data.columns ||
-        !queryResult.data.rows ||
-        !checkColumnsStructure(queryResult.data.columns)
+        !queryData ||
+        !queryData.columns ||
+        !queryData.rows ||
+        !checkColumnsStructure(queryData)
       ) {
         return (
           <Message
@@ -152,10 +161,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
           />
         )
       } else {
-        const datasets = makeChartJsDatasets(
-          queryResult.data.columns,
-          queryResult.data.rows
-        )
+        const datasets = makeChartJsDatasets(queryData.columns, queryData.rows)
         const numberToOverlay =
           datasets.length === 1
             ? // last non-null value
@@ -195,7 +201,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
                     plugins: {
                       subtitle: {
                         display: true,
-                        text: 'Last updated: ' + queryResult.data.executedAt,
+                        text: 'Last updated: ' + queryData.executedAt,
                         position: 'bottom',
                         align: 'end',
                       },
@@ -230,10 +236,12 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         />
       )
     case 'error':
+      // eslint-disable-next-line no-case-declarations
+      const queryError = queryResult.data as QueryError
       return (
         <Message
           severity="error"
-          text={queryResult.data.error || 'An error occurred.'}
+          text={queryError.error || 'An error occurred.'}
           style={centerStyle}
         />
       )

@@ -33,6 +33,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
         ...node,
         data: {
           ...node.data,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           numInputMetrics: getConnectedObjects!(
             node,
             undefined,
@@ -50,6 +51,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   useEffect(() => {
     const _inputMetrics: { [key: string]: Node[] } = {}
     metricNodes.forEach((node) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       _inputMetrics[node.id] = getConnectedObjects!(node, 1, 'inputs')
         .filter((inputObject) => inputObject.type === 'metric')
         .map((inputNode) => inputNode as Node)
@@ -58,6 +60,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   }, [metricNodes, getConnectedObjects])
 
   const rowExpansionTemplate = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
       return (
         <GraphTable
@@ -68,6 +71,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
     },
     [inputMetrics, expansionLevel]
   )
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [expandedRows, setExpandedRows] = useState<any>(null)
   // initially expand previously-expanded rows, or top-level with children
   const [initialExpansionComplete, setInitialExpansionComplete] =
@@ -92,6 +96,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   useEffect(() => {
     if (!initialExpansionComplete) return
     const newGraphTableExpandedRowIds = JSON.stringify(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expandedRows ? expandedRows.map((rowData: any) => rowData.id) : []
     )
     localStorage.setItem(
@@ -101,15 +106,18 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   }, [initialExpansionComplete, expandedRows, expansionLevel])
 
   const expandOrCollapseRow = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
       if (
         expandedRows &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expandedRows.some((row: any) => row.id === rowData.id)
       ) {
         analytics.track('collapse_graph_table_row', {
           id: rowData.id,
         })
         setExpandedRows(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           expandedRows.filter((row: any) => row.id !== rowData.id)
         )
       } else {
@@ -125,6 +133,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
     [expandedRows, setExpandedRows]
   )
   const onRowClick = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
       if (e.data.data.numInputMetrics > 0) {
         expandOrCollapseRow(e.data)
@@ -134,6 +143,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   )
   // DIY since primereact's expander column prop isn't accepting a conditional display function
   const expandCollapseCellBodyTemplate = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
       const showButton = rowData.data.numInputMetrics > 0
       // do it this way to maintain consistent column alignment
@@ -144,6 +154,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
           icon={
             showButton
               ? expandedRows &&
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 expandedRows.some((row: any) => row.id === rowData.id)
                 ? 'pi pi-angle-down'
                 : 'pi pi-angle-right'
@@ -160,6 +171,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   )
 
   type TrendCellBodyTemplateProps = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rowData: any
   }
   const TrendCellBodyTemplateFC: FunctionComponent<
@@ -181,15 +193,18 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
       </div>
     )
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const trendCellBodyTemplate = useCallback((rowData: any) => {
     return <TrendCellBodyTemplateFC rowData={rowData} />
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const infoCellBodyTemplate = useCallback((rowData: any) => {
     return <NodeInfoButton nodeData={rowData.data} />
   }, [])
 
   const linkCellBodyTemplate = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
       return (
         <Button
@@ -262,8 +277,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   )
 }
 
-type GraphTableViewerProps = {}
-const GraphTableViewer: FunctionComponent<GraphTableViewerProps> = () => {
+const GraphTableViewer: FunctionComponent = () => {
   const { graph, getConnectedObjects } = useGraph()
 
   const [outputMetricNodes, setOutputMetricNodes] = useState<Node[]>([])

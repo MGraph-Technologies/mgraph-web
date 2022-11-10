@@ -1,8 +1,9 @@
 import { defineConfig } from 'cypress'
+import { config } from 'dotenv'
 
 import getSession from './cypress/support/supabaseLogin'
 
-require('dotenv').config()
+config()
 
 export default defineConfig({
   e2e: {
@@ -18,7 +19,7 @@ export default defineConfig({
     viewportWidth: 1280,
     screenshotOnRunFailure: false,
     video: false,
-    setupNodeEvents(on, config) {
+    setupNodeEvents(on) {
       on('task', {
         getSupabaseSession({ email, password, supabaseUrl, supabaseAnonKey }) {
           return getSession({ email, password, supabaseUrl, supabaseAnonKey })

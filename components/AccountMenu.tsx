@@ -11,9 +11,7 @@ import styles from '../styles/AccountMenu.module.css'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 
-type Props = {}
-
-const AccountMenu: FunctionComponent<Props> = () => {
+const AccountMenu: FunctionComponent = () => {
   const {
     session,
     organizationEnabled,

@@ -15,6 +15,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const method = req.method
   if (method === 'POST') {
     // Verify the signature
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const hmac = crypto.createHmac('sha256', githubWebhookSecret!)
     const digest = Buffer.from(
       'sha256=' + hmac.update(JSON.stringify(req.body)).digest('hex'),
@@ -45,11 +46,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // Create graph_syncs supabase record
     try {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const supabase = createClient(supabaseUrl, supabaseServiceRoleKey!)
 
       const installationId = req.body.installation.id
       let toUpsert = {
         id: getUuid(appSlug + installationId), // idempotent
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
 
       const bodyAction = req.body.action as 'created' | 'deleted'
@@ -124,9 +127,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log('No data returned from graph_syncs upsert')
         return res.status(500).json({ error: 'Unknown error' })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.error(error)
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
   } else {

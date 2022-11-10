@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { Button } from 'primereact/button'
-import { Column } from 'primereact/column'
+import { Column, ColumnBodyType } from 'primereact/column'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
@@ -25,7 +25,9 @@ type DbtProjectGraphSyncFormProps = {
   upsertGraphSyncId: string
   upsertGraphSyncName: string
   setUpsertGraphSyncName: Dispatch<SetStateAction<string>>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   upsertGraphSyncProperties: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setUpsertGraphSyncProperties: Dispatch<SetStateAction<any>>
   setShowUpsertGraphSyncPopup: Dispatch<SetStateAction<boolean>>
   populateGraphSyncs: () => void
@@ -47,7 +49,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
     process.env.NEXT_PUBLIC_ENV === 'production' ? '' : '-dev'
   }`
   const { organizationId } = useAuth()
-  const [upsertGraphSyncInstalled, _setUpsertGraphSyncInstalled] = useState(
+  const [upsertGraphSyncInstalled] = useState(
     upsertGraphSyncProperties.installationId ? true : false
   )
   const [upsertGraphSyncRepoUrl, setUpsertGraphSyncRepoUrl] = useState(
@@ -55,6 +57,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
   )
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setUpsertGraphSyncProperties((prev: any) => {
       return { ...prev, repoUrl: upsertGraphSyncRepoUrl }
     })
@@ -139,7 +142,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
             onClick={async () => {
               if (organizationId) {
                 try {
-                  let { data, error, status } = await supabase
+                  const { data, error } = await supabase
                     .from('graph_syncs')
                     .update({
                       name: upsertGraphSyncName,
@@ -163,8 +166,8 @@ const DbtProjectGraphSyncForm: FunctionComponent<
                     setShowUpsertGraphSyncPopup(false)
                     clearFields()
                   }
-                } catch (error: any) {
-                  console.error(error.message)
+                } catch (error: unknown) {
+                  console.error(error)
                 }
               }
             }}
@@ -186,19 +189,26 @@ const DbtProjectGraphSyncForm: FunctionComponent<
 }
 
 // TODO: better componentize this + database-connections + refresh-jobs
-type GraphSyncsProps = {}
-const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
+const GraphSyncs: FunctionComponent = () => {
   const { organizationId } = useAuth()
 
   const [graphSyncsTableLoading, setGraphSyncsTableLoading] = useState(true)
-  const [graphSyncs, setGraphSyncs] = useState<any[]>([])
+  type GraphSync = {
+    id: string
+    name: string
+    type_name: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    properties: any
+    created_at: string
+  }
+  const [graphSyncs, setGraphSyncs] = useState<GraphSync[]>([])
   const populateGraphSyncs = useCallback(async () => {
     if (organizationId) {
       setGraphSyncsTableLoading(true)
       try {
-        let { data, error, status } = await supabase
+        const { data, error, status } = await supabase
           .from('graph_syncs')
-          .select('id, name, properties, created_at')
+          .select('id, name, properties, created_at, graph_sync_types(name)')
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true })
@@ -208,11 +218,20 @@ const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
         }
 
         if (data) {
-          setGraphSyncs(data)
+          const _graphSyncs = data.map((graphSync) => {
+            return {
+              id: graphSync.id,
+              name: graphSync.name,
+              type_name: graphSync.graph_sync_types.name,
+              properties: graphSync.properties,
+              created_at: graphSync.created_at,
+            } as GraphSync
+          })
+          setGraphSyncs(_graphSyncs)
           setGraphSyncsTableLoading(false)
         }
-      } catch (error: any) {
-        console.error(error.message)
+      } catch (error: unknown) {
+        console.error(error)
       }
     }
   }, [organizationId])
@@ -230,7 +249,8 @@ const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
     setGraphSyncsTableFirst(e.first)
   }
 
-  const propertiesCellBodyTemplate = (rowData: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const propertiesCellBodyTemplate: ColumnBodyType = (rowData: any) => {
     const properties = rowData.properties
     const propertyList = Object.keys(properties).map((key) => {
       return (
@@ -242,7 +262,8 @@ const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
     return <ul>{propertyList}</ul>
   }
 
-  const editCellBodyTemplate = (rowData: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const editCellBodyTemplate: ColumnBodyType = (rowData: any) => {
     return (
       <>
         <Button
@@ -268,10 +289,10 @@ const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
   }
 
   const columnStyle = {
-    width: '25%',
-    'word-wrap': 'break-word',
-    'word-break': 'break-all',
-    'white-space': 'normal',
+    width: '20%',
+    wordWrap: 'break-word',
+    wordBreak: 'break-all',
+    wordSpace: 'normal',
   }
 
   const upsertGraphSyncTypeName = 'dbt Project' // in the future, below dropdown will vary this
@@ -280,6 +301,7 @@ const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
   const [upsertGraphSyncId, setUpsertGraphSyncId] = useState<string>('')
   const [upsertGraphSyncName, setUpsertGraphSyncName] = useState<string>('')
   const [upsertGraphSyncProperties, setUpsertGraphSyncProperties] =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useState<any>({})
   const [upsertGraphSyncIsNew, setUpsertGraphSyncIsNew] = useState(true)
 
@@ -314,7 +336,9 @@ const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
               resizable={false}
               draggable={false}
               closable={false} // use cancel button instead
-              onHide={() => {}} // handled by buttons, but required
+              onHide={() => {
+                return
+              }} // handled by buttons, but required
             >
               <b>
                 <label htmlFor="graph-sync-type-dropdown">Type: </label>
@@ -363,6 +387,7 @@ const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
               emptyMessage="No graph syncs found"
             >
               <Column field="name" header="Name" style={columnStyle} />
+              <Column field="type_name" header="Type" style={columnStyle} />
               <Column
                 field="properties"
                 header="Properties"

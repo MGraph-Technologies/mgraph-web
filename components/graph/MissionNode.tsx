@@ -44,7 +44,7 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
   const saveMission = useCallback(
     ({ value }: onSaveProps) => {
       setResizeInProgress(true)
-      let newData = { ...data }
+      const newData = { ...data }
       newData.mission = value
       data.setNodeDataToChange(newData)
     },
@@ -69,7 +69,7 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
   }, [data.color])
   const saveColor = useCallback(
     (color: ColorResult) => {
-      let newData = { ...data }
+      const newData = { ...data }
       newData.color = color.hex
       data.setNodeDataToChange(newData)
     },
@@ -116,48 +116,56 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
         type="source"
         id="top_source"
         position={Position.Top}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'source', Position.Top)}
       />
       <Handle
         type="source"
         id="right_source"
         position={Position.Right}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'source', Position.Right)}
       />
       <Handle
         type="source"
         id="bottom_source"
         position={Position.Bottom}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'source', Position.Bottom)}
       />
       <Handle
         type="source"
         id="left_source"
         position={Position.Left}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'source', Position.Left)}
       />
       <Handle
         type="target"
         id="top_target"
         position={Position.Top}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'target', Position.Top)}
       />
       <Handle
         type="target"
         id="right_target"
         position={Position.Right}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'target', Position.Right)}
       />
       <Handle
         type="target"
         id="bottom_target"
         position={Position.Bottom}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'target', Position.Bottom)}
       />
       <Handle
         type="target"
         id="left_target"
         position={Position.Left}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'target', Position.Left)}
       />
     </div>

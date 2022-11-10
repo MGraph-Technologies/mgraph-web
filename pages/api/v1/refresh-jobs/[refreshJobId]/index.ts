@@ -1,6 +1,7 @@
 import { withSentry } from '@sentry/nextjs'
 import { SupabaseClient, createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
+import { Node } from 'react-flow-renderer'
 import {
   getQueryParameters,
   parameterizeStatement,
@@ -52,7 +53,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const graphData = await graphResp.json()
       const graph = graphData.graph
       const metricNodes = graph.nodes.filter(
-        (node: any) => node.data.source?.query
+        (node: Node) => node.data.source?.query
       )
 
       // get organization's query parameters
@@ -62,7 +63,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       )
 
       // for each metric node, parameterize its query and send to query runner
-      metricNodes.forEach(async (node: any) => {
+      metricNodes.forEach(async (node: Node) => {
         const statement = node.data.source.query as string
         const databaseConnectionId = node.data.source
           .databaseConnectionId as string
@@ -100,11 +101,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           : 'success'
       )
       return res.status(200).json({})
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       await logRefreshJobRun(refreshJobId as string, supabase, 'error')
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
   } else {
@@ -120,11 +121,7 @@ const logRefreshJobRun = async (
   supabase: SupabaseClient,
   status: string
 ) => {
-  let {
-    data: refreshJobRunData,
-    error: refreshJobRunError,
-    status: refreshJobRunStatus,
-  } = await supabase
+  const { data: refreshJobRunData, error: refreshJobRunError } = await supabase
     .from('refresh_job_runs')
     .insert([
       {

@@ -9,6 +9,19 @@ import {
 import { supabase } from '../utils/supabaseClient'
 import { MetricNodeProperties } from './graph/MetricNode'
 
+export type QueryColumn = {
+  name: string
+  type: string
+}
+export type QueryRow = string[]
+export type QueryData = {
+  columns: QueryColumn[]
+  rows: QueryRow[]
+  executedAt: Date
+}
+export type QueryError = {
+  error: string
+}
 export type QueryResult = {
   status:
     | 'unexecuted'
@@ -17,7 +30,7 @@ export type QueryResult = {
     | 'expired'
     | 'error'
     | 'empty'
-  data: any | null
+  data: QueryData | QueryError | null
 }
 
 type QueryRunnerProps = {
@@ -62,6 +75,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   useEffect(() => {
     const parentNodeId = parentMetricNodeData?.id
     if (parentNodeId) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       setQueriesLoading!((prev) => {
         return queryResult.status === 'processing'
           ? [...prev, parentNodeId]
@@ -69,6 +83,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       })
     }
     return () => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       setQueriesLoading!((prev) => prev.filter((id) => id !== parentNodeId))
     }
   }, [parentMetricNodeData?.id, setQueriesLoading, queryResult])
@@ -80,7 +95,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     const accessToken = session?.access_token
     if (accessToken && shouldRunQuery()) {
       try {
-        let queryId = await getLatestQueryId(
+        const queryId = await getLatestQueryId(
           parameterizeStatement(
             parentMetricNodeData?.source?.query,
             queryParameters
@@ -99,8 +114,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           setGetQueryResultComplete(true)
         }
         setGetQueryIdComplete(true)
-      } catch (error: any) {
-        console.error(error.message)
+      } catch (error: unknown) {
+        console.error(error)
       }
     }
   }, [
@@ -135,6 +150,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     const parentNodeId = parentMetricNodeData?.id
     if (queriesToCancel?.includes(parentNodeId)) {
       cancelQuery()
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       setQueriesToCancel!(queriesToCancel.filter((id) => id !== parentNodeId))
     }
   }, [
@@ -218,8 +234,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           })
         }
       })
-      .catch((error) => {
-        console.error(error.message)
+      .catch((error: unknown) => {
+        console.error(error)
       })
   }, [
     getQueryResultComplete,
@@ -271,7 +287,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           setQueryResult({
             status: 'error',
             data: {
-              error: error.message,
+              error: error,
             },
           })
         })

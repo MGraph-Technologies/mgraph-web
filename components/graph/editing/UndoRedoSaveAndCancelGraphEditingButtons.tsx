@@ -5,10 +5,7 @@ import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
 import { analytics } from '../../../utils/segmentClient'
 
-type UndoRedoSaveAndCancelGraphEditingButtonsProps = {}
-const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent<
-  UndoRedoSaveAndCancelGraphEditingButtonsProps
-> = () => {
+const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent = () => {
   const { disableEditing } = useEditability()
   const { undo, redo, canUndo, canRedo, loadGraph, saveGraph } = useGraph()
 

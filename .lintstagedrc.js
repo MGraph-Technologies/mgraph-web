@@ -1,12 +1,12 @@
 const path = require('path')
 
 const buildEslintCommand = (filenames) =>
-  `next lint --fix --file ${filenames
+  `next lint --file ${filenames
     .map((f) => path.relative(process.cwd(), f))
     .join(' --file ')}`
 
 const buildPrettierCommand = (filenames) =>
-  `yarn prettier --ignore-path .gitignore --write ${filenames
+  `yarn prettier --ignore-path .gitignore --check ${filenames
     .map((f) => path.relative(process.cwd(), f))
     .join(' ')}`
 

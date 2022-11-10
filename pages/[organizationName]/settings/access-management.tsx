@@ -1,9 +1,10 @@
 import Head from 'next/head'
 import { FilterMatchMode } from 'primereact/api'
-import { Column } from 'primereact/column'
+import { Column, ColumnBodyType } from 'primereact/column'
 import {
   DataTable,
   DataTableFilterMeta,
+  DataTableFilterMetaData,
   DataTablePFSEvent,
   DataTableSortOrderType,
 } from 'primereact/datatable'
@@ -16,14 +17,17 @@ import styles from '../../../styles/AccessManagement.module.css'
 import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
 
-type AccessManagementProps = {}
-const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
+const AccessManagement: FunctionComponent = () => {
   const { organizationId } = useAuth()
 
-  const [roles, setRoles] = useState<any[]>([])
+  type Role = {
+    id: string
+    name: string
+  }
+  const [roles, setRoles] = useState<Role[]>([])
   const populateRoles = useCallback(async () => {
     try {
-      let { data, error, status } = await supabase
+      const { data, error, status } = await supabase
         .from('roles')
         .select('id, name')
         .is('deleted_at', null)
@@ -34,10 +38,10 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
       }
 
       if (data) {
-        setRoles(data)
+        setRoles(data as Role[])
       }
-    } catch (error: any) {
-      console.error(error.message)
+    } catch (error: unknown) {
+      console.error(error)
     }
   }, [])
   useEffect(() => {
@@ -45,14 +49,19 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
   }, [populateRoles])
 
   const [usersTableLoading, setUsersTableLoading] = useState(true)
-  const [users, setUsers] = useState<any[]>([])
+  type User = {
+    id: string
+    email: string
+    role_name: string
+  }
+  const [users, setUsers] = useState<User[]>([])
   const populateUsers = useCallback(async () => {
     if (organizationId) {
       setUsersTableLoading(true)
       try {
-        let { data, error, status } = await supabase
+        const { data, error, status } = await supabase
           .from('organization_members')
-          .select('organization_id, user_id, users ( email ), roles ( name )')
+          .select('user_id, users ( email ), roles ( name )')
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
 
@@ -61,20 +70,28 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         }
 
         if (data) {
-          data.sort((a, b) => {
-            if (a.users.email < b.users.email) {
+          const _users = data.map(
+            (d) =>
+              ({
+                id: d.user_id,
+                email: d.users.email,
+                role_name: d.roles.name,
+              } as User)
+          )
+          _users.sort((a, b) => {
+            if (a.email < b.email) {
               return -1
             }
-            if (a.users.email > b.users.email) {
+            if (a.email > b.email) {
               return 1
             }
             return 0
           })
-          setUsers(data)
+          setUsers(_users)
           setUsersTableLoading(false)
         }
-      } catch (error: any) {
-        console.error(error.message)
+      } catch (error: unknown) {
+        console.error(error)
       }
     }
   }, [organizationId])
@@ -86,7 +103,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     async (userId: string, roleId: string) => {
       try {
         setUsersTableLoading(true)
-        let { error, status } = await supabase
+        const { error, status } = await supabase
           .from('organization_members')
           .update({
             role_id: roleId,
@@ -102,11 +119,11 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         if (status !== 200) {
           throw new Error('Update failed')
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         analytics.track('update_user_role_error', {
-          message: error.message,
+          message: error,
         })
-        console.error(error.message)
+        console.error(error)
       } finally {
         analytics.track('update_user_role', {
           user_id: userId,
@@ -118,18 +135,19 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     [organizationId]
   )
 
-  const roleBodyTemplate = useCallback(
-    (rowData: any) => {
+  const roleBodyTemplate: ColumnBodyType = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (rowData: User) => {
       return (
         <Dropdown
-          value={rowData.roles.name}
+          value={rowData.role_name}
           options={roles.map((r) => r.name)}
           onChange={(e) => {
-            const roleId = roles.find((r) => r.name === e.value).id
-            updateUserRole(rowData.user_id, roleId)
-            let newRoles = users.map((user) => {
-              if (user.user_id === rowData.user_id) {
-                user.roles.name = e.value
+            const roleId = roles.find((r) => r.name === e.value)?.id
+            updateUserRole(rowData.id, roleId || '')
+            const newRoles = users.map((user) => {
+              if (user.id === rowData.id) {
+                user.role_name = roleId ? e.value : 'error'
               }
               return user
             })
@@ -146,7 +164,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
   const populateOrgDefaultRoleName = useCallback(async () => {
     if (organizationId && roles) {
       try {
-        let { data, error, status } = await supabase
+        const { data, error, status } = await supabase
           .from('organizations')
           .select('default_role_id')
           .is('deleted_at', null)
@@ -163,8 +181,8 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
               'error'
           )
         }
-      } catch (error: any) {
-        console.error(error.message)
+      } catch (error: unknown) {
+        console.error(error)
       }
     }
   }, [organizationId, roles])
@@ -175,7 +193,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
   const updateOrgDefaultRole = useCallback(
     async (roleId: string) => {
       try {
-        let { error, status } = await supabase
+        const { error, status } = await supabase
           .from('organizations')
           .update({
             default_role_id: roleId,
@@ -190,11 +208,11 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
         if (status !== 200) {
           throw new Error('Update failed')
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         analytics.track('update_org_default_role_error', {
-          message: error.message,
+          message: error,
         })
-        console.error(error.message)
+        console.error(error)
       } finally {
         analytics.track('update_org_default_role', {
           role_id: roleId,
@@ -219,19 +237,19 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
 
   const [usersTableFilters, setUsersTableFilters] =
     useState<DataTableFilterMeta>({
-      'users.email': {
+      email: {
         value: null,
         matchMode: FilterMatchMode.CONTAINS,
       },
-      'roles.name': {
+      role_name: {
         value: null,
         matchMode: FilterMatchMode.CONTAINS,
       },
     })
   const usersTableOnFilter = (e: DataTablePFSEvent) => {
-    for (let key in e.filters) {
-      const newFilter: any = e.filters[key]
-      const oldFilter: any = usersTableFilters[key]
+    for (const key in e.filters) {
+      const newFilter = e.filters[key] as DataTableFilterMetaData
+      const oldFilter = usersTableFilters[key] as DataTableFilterMetaData
       if (
         !oldFilter ||
         oldFilter.value !== newFilter.value ||
@@ -251,7 +269,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
     })
   }
 
-  const [usersTableSortField, setUsersTableSortField] = useState('users.email')
+  const [usersTableSortField, setUsersTableSortField] = useState('email')
   const [usersTableSortOrder, setUsersTableSortOrder] =
     useState<DataTableSortOrderType>(1)
   const usersTableOnSort = (e: DataTablePFSEvent) => {
@@ -276,16 +294,16 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
           </div>
           <h2>Add Users</h2>
           <p>
-            No need for invitations; anyone under your organization&apos;s
-            domain can access MGraph via Google SSO - just share a link!
+            Anyone under your organization&apos;s domain can access MGraph via
+            Google OAuth - just share a link!
           </p>
           <h3>Default role for new users:</h3>
           <Dropdown
             value={orgDefaultRoleName}
             options={roles.map((r) => r.name)}
             onChange={(e) => {
-              const roleId = roles.find((r) => r.name === e.value).id
-              updateOrgDefaultRole(roleId)
+              const roleId = roles.find((r) => r.name === e.value)?.id
+              updateOrgDefaultRole(roleId || '')
             }}
             style={{ width: '25%' }}
           />
@@ -313,7 +331,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
               emptyMessage="No users found"
             >
               <Column
-                field="users.email"
+                field="email"
                 header="Email"
                 sortable
                 filter
@@ -321,7 +339,7 @@ const AccessManagement: FunctionComponent<AccessManagementProps> = () => {
                 showFilterMenu={false}
               />
               <Column
-                field="roles.name"
+                field="role_name"
                 header="Role"
                 body={roleBodyTemplate}
                 sortable
