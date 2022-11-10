@@ -25,7 +25,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log(`\nrunId: ${runId}`)
     try {
       // get refresh job record
-      const {
+      let {
         data: refreshJobData,
         error: refreshJobError,
         status: refreshJobStatus,
@@ -182,7 +182,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       console.log(`\nSuccess. Updating refresh_job_runs record ${runId}...`)
-      const {
+      let {
         data: refreshJobRunData,
         error: refreshJobRunError,
         status: refreshJobRunStatus,

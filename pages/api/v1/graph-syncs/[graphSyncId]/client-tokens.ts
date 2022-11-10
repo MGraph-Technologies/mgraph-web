@@ -52,7 +52,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const accessToken = (req.headers['supabase-access-token'] as string) || ''
       supabase.auth.setAuth(accessToken)
 
-      const {
+      let {
         data: graphSyncData,
         error: graphSyncError,
         status: graphSyncStatus,

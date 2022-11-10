@@ -54,7 +54,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       const bodyAction = req.body.action as 'created' | 'deleted'
       if (bodyAction === 'created') {
-        const {
+        let {
           data: graphSyncTypeData,
           error: graphSyncTypeError,
           status: graphSyncTypeStatus,
@@ -84,7 +84,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           updated_at: new Date(),
         }
       } else if (bodyAction === 'deleted') {
-        const {
+        let {
           data: prexistingGraphSyncData,
           error: prexistingGraphSyncError,
           status: prexistingGraphSyncStatus,
@@ -108,7 +108,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       console.log('Upserting graph_syncs record: ', toUpsert)
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('graph_syncs')
         .upsert(toUpsert)
         .single()

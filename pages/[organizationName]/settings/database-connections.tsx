@@ -272,7 +272,7 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
                     const accessToken = session?.access_token
                     if (organizationId && accessToken) {
                       try {
-                        const {
+                        let {
                           data: databaseConnectionTypeData,
                           error: databaseConnectionTypeError,
                           status: databaseConnectionTypeStatus,

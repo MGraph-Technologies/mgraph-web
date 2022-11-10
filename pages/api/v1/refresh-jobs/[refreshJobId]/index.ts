@@ -19,7 +19,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log(`\nrefreshJobId: ${refreshJobId}`)
     try {
       // get refresh job record
-      const {
+      let {
         data: refreshJobData,
         error: refreshJobError,
         status: refreshJobStatus,

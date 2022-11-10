@@ -28,7 +28,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (credentials) {
         const organizationId = toUpsert.organization_id
-        const {
+        let {
           data: organization,
           error: organizationError,
           status: organizationStatus,
@@ -54,7 +54,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
       }
 
-      const { data, error, status } = await supabase
+      let { data, error, status } = await supabase
         .from('database_connections')
         .upsert(_toUpsert, {
           returning: 'minimal',
