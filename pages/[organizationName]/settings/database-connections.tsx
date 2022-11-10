@@ -114,9 +114,9 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
 
   const columnStyle = {
     width: '20%',
-    'word-wrap': 'break-word',
-    'word-break': 'break-all',
-    'white-space': 'normal',
+    wordWrap: 'break-word',
+    wordBreak: 'break-all',
+    wordSpace: 'normal',
   }
 
   const upsertDatabaseConnectionTypeName = 'snowflake'

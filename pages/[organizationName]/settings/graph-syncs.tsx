@@ -268,10 +268,10 @@ const GraphSyncs: FunctionComponent<GraphSyncsProps> = () => {
   }
 
   const columnStyle = {
-    width: '25%',
-    'word-wrap': 'break-word',
-    'word-break': 'break-all',
-    'white-space': 'normal',
+    width: '20%',
+    wordWrap: 'break-word',
+    wordBreak: 'break-all',
+    wordSpace: 'normal',
   }
 
   const upsertGraphSyncTypeName = 'dbt Project' // in the future, below dropdown will vary this
