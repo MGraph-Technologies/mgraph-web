@@ -86,7 +86,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   const makeChartJsDatasets = (columns: QueryColumn[], rows: QueryRow[]) => {
     const datasets: {
       label: string
-      data: { x: Date; y: number }[]
+      data: { x: Date; y: number | null }[]
       backgroundColor: string
       borderColor: string
       borderWidth: number
@@ -107,7 +107,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         label: dimension,
         data: data.map((row: QueryRow) => ({
           x: snowflakeDateToJsDate(row[0], columns[0].type),
-          y: parseFloat(row[2]),
+          y: row[2] !== null ? parseFloat(row[2]) : null,
         })),
         backgroundColor: SERIESCOLORS[index % SERIESCOLORS.length],
         borderColor: SERIESCOLORS[index % SERIESCOLORS.length],
