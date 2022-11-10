@@ -1,10 +1,9 @@
 /* sourced from here: 
 https://github.com/supabase/supabase/discussions/6177 */
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClient, Session, SupabaseClient } from '@supabase/supabase-js'
 
 let supabase: SupabaseClient
-const sessions: { [key: string]: any } = {}
-const profiles: { [key: string]: any } = {}
+const sessions: { [key: string]: Session | null } = {}
 
 export default async function getSession({
   email,
@@ -25,7 +24,7 @@ export default async function getSession({
   // Create a session for the user if it doesn't exist already.
   // You can then log in as any number of test users from your tests.
   if (!sessions[email]) {
-    let res = await supabase.auth.signIn({
+    const res = await supabase.auth.signIn({
       email,
       password,
     })

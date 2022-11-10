@@ -28,7 +28,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (credentials) {
         const organizationId = toUpsert.organization_id
-        let {
+        const {
           data: organization,
           error: organizationError,
           status: organizationStatus,
@@ -54,7 +54,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
       }
 
-      let { data, error, status } = await supabase
+      const { error, status } = await supabase
         .from('database_connections')
         .upsert(_toUpsert, {
           returning: 'minimal',
@@ -66,10 +66,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       return res.status(200).json({})
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
   } else {

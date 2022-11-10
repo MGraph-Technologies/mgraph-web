@@ -3,6 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import {
+  QueryColumn,
+  QueryData,
+  QueryError,
+  QueryRow,
+} from '../../../../../components/QueryRunner'
+import {
   decryptCredentials,
   makeToken,
 } from '../../../../../utils/snowflakeCrypto'
@@ -23,7 +29,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
     supabase.auth.setAuth(accessToken)
     try {
-      let { data, error, status } = await supabase
+      const { data, error, status } = await supabase
         .from('database_queries')
         .select(
           `
@@ -71,15 +77,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const queryStatus = await queryStatusResp.json()
         if (queryStatusResp.status === 200) {
           console.log('\nQuery successful, relaying results...')
-          const columns = queryStatus.resultSetMetaData.rowType
-          const rows = queryStatus.data
+          const columns = queryStatus.resultSetMetaData.rowType.map(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (col: any) => {
+              return {
+                name: col.name,
+                type: col.type,
+              } as QueryColumn
+            }
+          )
+          const rows = queryStatus.data as QueryRow[]
           const executedAt = new Date(queryStatus.createdOn)
           res.setHeader('Cache-Control', 'max-age=31536000')
           return res.status(200).json({
             columns: columns,
             rows: rows,
             executedAt: executedAt,
-          })
+          } as QueryData)
         } else if (queryStatusResp.status === 202) {
           console.log('\nQuery still processing')
           return res.status(202).json({})
@@ -88,12 +102,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             console.log('\nQuery expired')
             return res.status(410).json({
               error: 'Results expired',
-            })
+            } as QueryError)
           } else {
             console.log('\nQuery failed')
             return res.status(422).json({
               error: queryStatus.message,
-            })
+            } as QueryError)
           }
         } else {
           console.error('\nError')
@@ -104,19 +118,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.error('\nError: ', errorMessage)
         return res.status(404).json({
           error: errorMessage,
-        })
+        } as QueryError)
       }
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       return res.status(500).json({
-        error: error.message,
-      })
+        error: error,
+      } as QueryError)
     }
   } else {
     console.error('\nUnsupported method: ', method)
     return res.status(405).json({
       error: 'Method not allowed',
-    })
+    } as QueryError)
   }
 }
 

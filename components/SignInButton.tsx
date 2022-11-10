@@ -1,12 +1,9 @@
 import Image from 'next/image'
-import { Button } from 'primereact/button'
 import React, { FunctionComponent, useState } from 'react'
 
 import { supabase } from '../utils/supabaseClient'
 
-type Props = {}
-
-const SignInButton: FunctionComponent<Props> = () => {
+const SignInButton: FunctionComponent = () => {
   const GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT =
     '/btn_google_signin_dark_normal_web@2x.png'
   const GOOGLE_SIGN_IN_BTN_IMG_SRC_HOVER =
@@ -20,12 +17,12 @@ const SignInButton: FunctionComponent<Props> = () => {
   const handleSignIn = async () => {
     try {
       setButtonImgSrc(GOOGLE_SIGN_IN_BTN_IMG_SRC_CLICK)
-      let { error } = await supabase.auth.signIn({
+      const { error } = await supabase.auth.signIn({
         provider: 'google',
       })
       if (error) throw error
-    } catch (error: any) {
-      console.error(error.error_description || error.message)
+    } catch (error: unknown) {
+      console.error(error)
     } finally {
       setButtonImgSrc(GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT)
     }
@@ -38,10 +35,10 @@ const SignInButton: FunctionComponent<Props> = () => {
         width={200}
         height={50}
         onClick={handleSignIn}
-        onMouseEnter={(e) => {
+        onMouseEnter={() => {
           setButtonImgSrc(GOOGLE_SIGN_IN_BTN_IMG_SRC_HOVER)
         }}
-        onMouseLeave={(e) => {
+        onMouseLeave={() => {
           setButtonImgSrc(GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT)
         }}
         loading="eager"

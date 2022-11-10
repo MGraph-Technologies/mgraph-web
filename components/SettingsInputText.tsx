@@ -20,7 +20,9 @@ const SettingsInputText: FunctionComponent<SettingsInputTextProps> = ({
   tooltip,
   type = 'text',
   placeholder = '',
-  onClick = () => {},
+  onClick = () => {
+    return
+  },
 }) => {
   const id = label.toLowerCase().replaceAll(' ', '-') + '-field'
   return (

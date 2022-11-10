@@ -15,7 +15,7 @@ import '../styles/globals.css'
 import { analytics } from '../utils/segmentClient'
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const [sessionId, _setSessionId] = useState<string>(uuidv4())
+  const [sessionId] = useState<string>(uuidv4())
 
   // Report page views to segment
   const router = useRouter()

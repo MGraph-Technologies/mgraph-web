@@ -20,7 +20,7 @@ export const getLatestQueryId = async (
 ) => {
   let queryId: string | null = null
   try {
-    let { data, error, status } = await supabase
+    const { data, error, status } = await supabase
       .from('database_queries')
       .select('id')
       .is('deleted_at', null)
@@ -39,8 +39,8 @@ export const getLatestQueryId = async (
     if (data && data.length > 0) {
       queryId = data[0].id
     }
-  } catch (error: any) {
-    console.error(error.message)
+  } catch (error: unknown) {
+    console.error(error)
   }
 
   return queryId
@@ -53,7 +53,7 @@ export const getQueryParameters = async (
 ) => {
   let queryParameters: QueryParameters = {}
   try {
-    let { data, error, status } = await supabase
+    const { data, error, status } = await supabase
       .from('database_query_parameters')
       .select('id, user_id, name, value, deleted_at')
       /* in frontend use, rls also limits to records from user's org where
@@ -101,8 +101,8 @@ export const getQueryParameters = async (
         }
       })
     }
-  } catch (error: any) {
-    console.error(error.message)
+  } catch (error: unknown) {
+    console.error(error)
   }
   return queryParameters
 }

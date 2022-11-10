@@ -1,5 +1,4 @@
 import router from 'next/router'
-import { Button } from 'primereact/button'
 import React, {
   FunctionComponent,
   useCallback,
@@ -21,6 +20,13 @@ import NodeInfoButton from './NodeInfoButton'
 import NodeMenu from './NodeMenu'
 
 export type SourceQueryType = 'freeform' | 'generated'
+export type MetricNodeSource = {
+  databaseConnectionId: string
+  query: string
+  queryType: SourceQueryType
+  dbtProjectGraphSyncId: string | null
+  dbtProjectMetricPath: string | null
+}
 export type MetricNodeProperties = {
   id: string
   organizationId: string
@@ -28,13 +34,7 @@ export type MetricNodeProperties = {
   name: string
   description: string
   owner: string
-  source: {
-    databaseConnectionId: string
-    query: string
-    queryType: SourceQueryType
-    dbtProjectGraphSyncId: string | null
-    dbtProjectMetricPath: string | null
-  }
+  source: MetricNodeSource
   color: string
   // below not in postgres
   initialProperties: object
@@ -64,7 +64,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   }, [data.name])
   const saveName = useCallback(
     ({ value }: onSaveProps) => {
-      let newData = { ...data }
+      const newData = { ...data }
       newData.name = value
       data.setNodeDataToChange(newData)
     },
@@ -77,7 +77,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   }, [data.color])
   const saveColor = useCallback(
     (color: ColorResult) => {
-      let newData = { ...data }
+      const newData = { ...data }
       newData.color = color.hex
       data.setNodeDataToChange(newData)
     },
@@ -103,8 +103,10 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     const rendererYLower = -reactFlowViewport.y * scale
     const rendererYUpper = rendererYLower + clientHeightScaled
     const nodeXLower = xPos
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const nodeXUpper = xPos + thisNode.width!
     const nodeYLower = yPos
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const nodeYUpper = yPos + thisNode.height!
     const xBuffer = userOnMobile ? 0 : clientWidth
     const yBuffer = userOnMobile ? 0 : clientHeight
@@ -171,48 +173,56 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
         type="source"
         id="top_source"
         position={Position.Top}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'source', Position.Top)}
       />
       <Handle
         type="source"
         id="right_source"
         position={Position.Right}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'source', Position.Right)}
       />
       <Handle
         type="source"
         id="bottom_source"
         position={Position.Bottom}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'source', Position.Bottom)}
       />
       <Handle
         type="source"
         id="left_source"
         position={Position.Left}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'source', Position.Left)}
       />
       <Handle
         type="target"
         id="top_target"
         position={Position.Top}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'target', Position.Top)}
       />
       <Handle
         type="target"
         id="right_target"
         position={Position.Right}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'target', Position.Right)}
       />
       <Handle
         type="target"
         id="bottom_target"
         position={Position.Bottom}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'target', Position.Bottom)}
       />
       <Handle
         type="target"
         id="left_target"
         position={Position.Left}
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'target', Position.Left)}
       />
     </div>

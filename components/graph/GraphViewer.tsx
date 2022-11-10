@@ -16,7 +16,7 @@ import ReactFlow, {
   MiniMap,
   Node,
   NodeChange,
-  Viewport,
+  OnMove,
   applyEdgeChanges,
   applyNodeChanges,
   useReactFlow,
@@ -31,8 +31,7 @@ import { analytics } from '../../utils/segmentClient'
 import ControlPanel from './ControlPanel'
 import EditorDock from './editing/EditorDock'
 
-type GraphViewerProps = {}
-const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
+const GraphViewer: FunctionComponent = () => {
   const { organizationName } = useAuth()
   const { editingEnabled } = useEditability()
   const {
@@ -76,8 +75,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         // zoom with action + arrow up / down, to match scroll pad behavior
         if (actionKeyPressed) {
           if (e.key === 'ArrowUp') {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             reactFlowInstance!.zoomIn()
           } else if (e.key === 'ArrowDown') {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             reactFlowInstance!.zoomOut()
           }
         } else {
@@ -85,22 +86,30 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
           const nudgeAmount = shiftKeyPressed ? 100 : 10
           if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
             reactFlowInstance.setViewport({
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               ...reactFlowInstance.getViewport()!,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               y: reactFlowInstance.getViewport()!.y + nudgeAmount,
             })
           } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
             reactFlowInstance.setViewport({
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               ...reactFlowInstance.getViewport()!,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               y: reactFlowInstance.getViewport()!.y - nudgeAmount,
             })
           } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
             reactFlowInstance.setViewport({
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               ...reactFlowInstance.getViewport()!,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               x: reactFlowInstance.getViewport()!.x + nudgeAmount,
             })
           } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
             reactFlowInstance.setViewport({
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               ...reactFlowInstance.getViewport()!,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               x: reactFlowInstance.getViewport()!.x - nudgeAmount,
             })
             // zoom with +/-  and i/o keys
@@ -110,6 +119,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
             e.key === 'o' ||
             e.key === 'O'
           ) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             reactFlowInstance!.zoomOut()
           } else if (
             e.key === '=' ||
@@ -117,9 +127,11 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
             e.key === 'i' ||
             e.key === 'I'
           ) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             reactFlowInstance!.zoomIn()
             // fit with 0 or f key
           } else if (e.key === '0' || e.key === 'f' || e.key === 'F') {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             reactFlowInstance!.fitView()
           }
         }
@@ -142,7 +154,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   ])
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     setReactFlowInstance!(reactFlowInstance)
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     setReactFlowRenderer!(document.querySelector('.react-flow__renderer')!)
   }, [reactFlowInstance, setReactFlowInstance, setReactFlowRenderer])
   useEffect(() => {
@@ -160,7 +174,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
       if (!updateGraph) {
         throw new Error('updateGraph not defined')
       }
-      updateGraph('nodes', applyNodeChanges(changes, graph.nodes), false)
+      updateGraph(
+        { nodes: applyNodeChanges(changes, graph.nodes), edges: undefined },
+        false
+      )
     },
     [updateGraph, graph.nodes]
   )
@@ -171,12 +188,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         throw new Error('updateGraph not defined')
       }
       updateGraph(
-        'nodes',
-        graph.nodes.map((n) =>
-          n.id === node.id
-            ? { ...node, selected: true }
-            : { ...n, selected: actionKeyPressed ? n.selected : false }
-        ),
+        {
+          nodes: graph.nodes.map((n) =>
+            n.id === node.id
+              ? { ...node, selected: true }
+              : { ...n, selected: actionKeyPressed ? n.selected : false }
+          ),
+          edges: undefined,
+        },
         true
       )
     },
@@ -188,7 +207,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
       if (!updateGraph) {
         throw new Error('updateGraph not defined')
       }
-      updateGraph('edges', applyEdgeChanges(changes, graph.edges), true)
+      updateGraph(
+        { nodes: undefined, edges: applyEdgeChanges(changes, graph.edges) },
+        true
+      )
     },
     [updateGraph, graph.edges]
   )
@@ -196,12 +218,14 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   const [edgeUpdateInProgress, setEdgeUpdateInProgress] = useState(false)
   const onEdgeUpdateStart = useCallback(
     (_event: React.MouseEvent, edge: Edge, handleType: HandleType) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       setEdgeBeingUpdated!({ edge: edge, handleType: handleType })
       setEdgeUpdateInProgress(true)
     },
     [setEdgeBeingUpdated, setEdgeUpdateInProgress]
   )
   const onEdgeUpdateEnd = useCallback(() => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     setEdgeBeingUpdated!(null)
     setEdgeUpdateInProgress(false)
   }, [setEdgeBeingUpdated, setEdgeUpdateInProgress])
@@ -224,8 +248,10 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
         targetHandle: newConnection.targetHandle,
       }
       updateGraph(
-        'edges',
-        graph.edges.map((e) => (e.id === oldEdge.id ? newEdge : e)),
+        {
+          nodes: undefined,
+          edges: graph.edges.map((e) => (e.id === oldEdge.id ? newEdge : e)),
+        },
         true
       )
     },
@@ -241,7 +267,9 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
           reactFlowInstance.fitBounds({
             x: metricNode.position.x,
             y: metricNode.position.y,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             width: metricNode.width!,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             height: metricNode.height!,
           })
           analytics.track('snap_to_metric_node', {
@@ -264,42 +292,39 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
           nodeOrEdge,
         ])
         updateGraph(
-          'all',
-          [
-            {
-              nodes: graph.nodes.map((node) => {
-                if (
-                  connectedObjects.find(
-                    (c) =>
-                      c.id === node.id &&
-                      c.type === node.type &&
-                      c.type !== 'metric'
-                  )
-                ) {
-                  return {
-                    ...node,
-                    selected: true,
-                  }
-                } else {
-                  return node
+          {
+            nodes: graph.nodes.map((node) => {
+              if (
+                connectedObjects.find(
+                  (c) =>
+                    c.id === node.id &&
+                    c.type === node.type &&
+                    c.type !== 'metric'
+                )
+              ) {
+                return {
+                  ...node,
+                  selected: true,
                 }
-              }),
-              edges: graph.edges.map((edge) => {
-                if (
-                  connectedObjects.find(
-                    (c) => c.id === edge.id && c.type === edge.type
-                  )
-                ) {
-                  return {
-                    ...edge,
-                    selected: true,
-                  }
-                } else {
-                  return edge
+              } else {
+                return node
+              }
+            }),
+            edges: graph.edges.map((edge) => {
+              if (
+                connectedObjects.find(
+                  (c) => c.id === edge.id && c.type === edge.type
+                )
+              ) {
+                return {
+                  ...edge,
+                  selected: true,
                 }
-              }),
-            },
-          ],
+              } else {
+                return edge
+              }
+            }),
+          },
           false
         )
       }
@@ -317,7 +342,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
   )
 
   let lastMoveEndAt = 0
-  const onMoveEnd = (event: any, viewport: Viewport) => {
+  const onMoveEnd: OnMove = (event, viewport) => {
     /* 
       Since onMoveEnd fires continuously while scrolling,
       below logic preserves performance by:
@@ -347,6 +372,7 @@ const GraphViewer: FunctionComponent<GraphViewerProps> = () => {
     setTimeout(
       (onMoveEndAt) => {
         if (onMoveEndAt === lastMoveEndAt) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           setReactFlowViewport!(viewport)
         }
       },

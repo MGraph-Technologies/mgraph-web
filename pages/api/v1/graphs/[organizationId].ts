@@ -29,7 +29,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const method = req.method
   if (method === 'GET') {
     try {
-      let { data: nodesData, error: nodesError } = await supabase
+      const { data: nodesData, error: nodesError } = await supabase
         .from('nodes')
         .select('properties, react_flow_meta')
         .eq('organization_id', organizationId)
@@ -39,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw nodesError
       }
 
-      let { data: edgesData, error: edgesError } = await supabase
+      const { data: edgesData, error: edgesError } = await supabase
         .from('edges')
         .select('properties, react_flow_meta')
         .eq('organization_id', organizationId)
@@ -51,7 +51,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (nodesData && edgesData) {
         const nodes = nodesData.map((n) => {
-          let node = n.react_flow_meta
+          const node = n.react_flow_meta
           const properties = n.properties
           if (node.type === 'mission') {
             node.data = {
@@ -62,7 +62,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               color: properties.color,
               mission: properties.mission,
               initialProperties: properties,
-              setNodeDataToChange: () => {},
+              setNodeDataToChange: () => {
+                return
+              },
             } as MissionNodeProperties
           }
           if (node.type === 'metric') {
@@ -83,7 +85,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               },
               color: properties.color,
               initialProperties: properties,
-              setNodeDataToChange: () => {},
+              setNodeDataToChange: () => {
+                return
+              },
             } as MetricNodeProperties
           }
           if (node.type === 'function') {
@@ -94,13 +98,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               functionTypeId: properties.functionTypeId,
               color: properties.color,
               initialProperties: properties,
-              setNodeDataToChange: () => {},
+              setNodeDataToChange: () => {
+                return
+              },
             } as FunctionNodeProperties
           }
           return node
         })
         const edges = edgesData.map((e) => {
-          let edge = e.react_flow_meta
+          const edge = e.react_flow_meta
           const properties = e.properties
           edge.data = {
             id: properties.id,
@@ -120,10 +126,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           graph: graph,
         })
       }
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
   } else if (method === 'PUT') {
@@ -131,7 +137,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log('\nBody: ', body)
     const { initialGraph, updatedGraph } = body
 
-    let upsertErrors: PostgrestError[] = []
+    const upsertErrors: PostgrestError[] = []
 
     // upsert nodes
     const initialNodes: Node[] = initialGraph.nodes
@@ -142,7 +148,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         !initialNodes.find((initialNode) => initialNode.id === updatedNode.id)
     )
     if (addedNodes.length > 0) {
-      let { error: addedNodesError } = await upsert(
+      const { error: addedNodesError } = await upsert(
         addedNodes,
         'create',
         supabase,
@@ -160,7 +166,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return initialNode && !_.isEqual(initialNode, updatedNode)
     })
     if (modifiedNodes.length > 0) {
-      let { error: modifiedNodesError } = await upsert(
+      const { error: modifiedNodesError } = await upsert(
         modifiedNodes,
         'update',
         supabase,
@@ -176,7 +182,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         !updatedNodes.find((updatedNode) => updatedNode.id === initialNode.id)
     )
     if (deletedNodes.length > 0) {
-      let { error: deletedNodesError } = await upsert(
+      const { error: deletedNodesError } = await upsert(
         deletedNodes,
         'delete',
         supabase,
@@ -196,7 +202,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         !initialEdges.find((initialEdge) => initialEdge.id === updatedEdge.id)
     )
     if (addedEdges.length > 0) {
-      let { error: addedEdgesError } = await upsert(
+      const { error: addedEdgesError } = await upsert(
         addedEdges,
         'create',
         supabase,
@@ -214,7 +220,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return initialEdge && !_.isEqual(initialEdge, updatedEdge)
     })
     if (modifiedEdges.length > 0) {
-      let { error: modifiedEdgesError } = await upsert(
+      const { error: modifiedEdgesError } = await upsert(
         modifiedEdges,
         'update',
         supabase,
@@ -238,7 +244,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         )
     )
     if (deletedEdges.length > 0) {
-      let { error: deletedEdgesError } = await upsert(
+      const { error: deletedEdgesError } = await upsert(
         deletedEdges,
         'delete',
         supabase,
@@ -269,8 +275,9 @@ async function upsert(
   op: 'create' | 'delete' | 'update',
   supabase: SupabaseClient,
   accessToken: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<PostgrestResponse<any>> {
-  let { user, error } = await supabase.auth.api.getUser(accessToken)
+  const { user, error } = await supabase.auth.api.getUser(accessToken)
   if (error) {
     throw error
   } else if (!user) {
@@ -315,9 +322,7 @@ async function upsert(
     if (recordType === 'edge') {
       record = {
         ...record,
-        // @ts-ignore object is definitely an edge
         source_id: updatedProperties.sourceId,
-        // @ts-ignore
         target_id: updatedProperties.targetId,
       }
     }

@@ -5,8 +5,7 @@ import MetricDetail from '../../../components/graph/MetricDetail'
 import Workspace from '../../../components/Workspace'
 import styles from '../../../styles/MetricDetailPage.module.css'
 
-type MetricDetailPageProps = {}
-const MetricDetailPage: FunctionComponent<MetricDetailPageProps> = () => {
+const MetricDetailPage: FunctionComponent = () => {
   const router = useRouter()
   const { metricId } = router.query
   return (

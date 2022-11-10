@@ -23,7 +23,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
     supabase.auth.setAuth(accessToken)
     try {
-      let { data, error, status } = await supabase
+      const { data, error, status } = await supabase
         .from('database_queries')
         .select(
           `
@@ -79,10 +79,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           error: errorMessage,
         })
       }
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
   } else {

@@ -9,8 +9,7 @@ import GraphTableToggleDock from '../../components/graph/GraphTableToggleDock'
 import Workspace from '../../components/Workspace'
 import styles from '../../styles/OrganizationHome.module.css'
 
-type OrganizationHomeProps = {}
-const OrganizationHome: FunctionComponent<OrganizationHomeProps> = () => {
+const OrganizationHome: FunctionComponent = () => {
   const { userCanView } = useAuth()
   const [showGraphTable, setShowGraphTable] = useState<boolean | undefined>(
     undefined

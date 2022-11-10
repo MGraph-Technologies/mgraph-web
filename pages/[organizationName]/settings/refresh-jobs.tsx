@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { Button } from 'primereact/button'
-import { Column } from 'primereact/column'
+import { Column, ColumnBodyType } from 'primereact/column'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import React, {
@@ -18,17 +18,23 @@ import styles from '../../../styles/RefreshJobs.module.css'
 import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
 
-type RefreshJobsProps = {}
-const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
+const RefreshJobs: FunctionComponent = () => {
   const { organizationId } = useAuth()
 
   const [refreshJobsTableLoading, setRefreshJobsTableLoading] = useState(true)
-  const [refreshJobs, setRefreshJobs] = useState<any[]>([])
+  type RefreshJob = {
+    id: string
+    schedule: string
+    slack_to: string
+    comment: string
+    created_at: string
+  }
+  const [refreshJobs, setRefreshJobs] = useState<RefreshJob[]>([])
   const populateRefreshJobs = useCallback(async () => {
     if (organizationId) {
       setRefreshJobsTableLoading(true)
       try {
-        let { data, error, status } = await supabase
+        const { data, error, status } = await supabase
           .from('refresh_jobs')
           .select('id, schedule, slack_to, comment, created_at')
           .is('deleted_at', null)
@@ -40,11 +46,11 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
         }
 
         if (data) {
-          setRefreshJobs(data)
+          setRefreshJobs(data as RefreshJob[])
           setRefreshJobsTableLoading(false)
         }
-      } catch (error: any) {
-        console.error(error.message)
+      } catch (error: unknown) {
+        console.error(error)
       }
     }
   }, [organizationId])
@@ -62,7 +68,8 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
     setRefreshJobsTableFirst(e.first)
   }
 
-  const editCellBodyTemplate = useCallback(
+  const editCellBodyTemplate: ColumnBodyType = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
       return (
         <>
@@ -85,7 +92,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
             icon="pi pi-trash"
             onClick={async () => {
               try {
-                let { data, error, status } = await supabase
+                const { data, error } = await supabase
                   .from('refresh_jobs')
                   .update({ deleted_at: new Date() })
                   .eq('id', rowData.id)
@@ -98,8 +105,8 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                   })
                   populateRefreshJobs()
                 }
-              } catch (error: any) {
-                console.error(error.message)
+              } catch (error: unknown) {
+                console.error(error)
               }
             }}
           />
@@ -155,7 +162,9 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
               resizable={false}
               draggable={false}
               closable={false} // use cancel button instead
-              onHide={() => {}} // handled by buttons, but required
+              onHide={() => {
+                return
+              }} // handled by buttons, but required
             >
               <SettingsInputText
                 label="Schedule"
@@ -189,6 +198,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                         slack_to: upsertJobSlackTo,
                         comment: upsertJobComment,
                         updated_at: now,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       } as any
                       if (upsertJobIsNew) {
                         toUpsert = {
@@ -197,7 +207,7 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                         }
                       }
                       try {
-                        let { data, error, status } = await supabase
+                        const { data, error } = await supabase
                           .from('refresh_jobs')
                           .upsert([toUpsert])
                           .select()
@@ -219,8 +229,8 @@ const RefreshJobs: FunctionComponent<RefreshJobsProps> = () => {
                           setShowUpsertJobPopup(false)
                           clearFields()
                         }
-                      } catch (error: any) {
-                        console.error(error.message)
+                      } catch (error: unknown) {
+                        console.error(error)
                       }
                     }
                   }}

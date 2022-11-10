@@ -23,7 +23,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       Date.now() - REFRESH_JOB_RUN_TIMEOUT_SECONDS * 1000
     ).toUTCString()
     try {
-      let { data, error, status } = await supabase
+      const { data, error, status } = await supabase
         .from('refresh_job_runs')
         .update({
           status: 'notification_timed_out',
@@ -45,17 +45,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (data) {
         console.log(`Cleaned up ${data.length} timed out refresh job runs.`)
       }
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
 
     // send other pending_notification refresh job runs to finisher
     console.log('\nProgressing other pending_notification refresh job runs...')
     try {
-      let { data, error, status } = await supabase
+      const { data, error, status } = await supabase
         .from('refresh_job_runs')
         .select(`id, refresh_job_id`)
         .eq('status', 'pending_notification')
@@ -87,17 +87,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           )
         })
       }
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
 
     // send this-minuted-scheduled refresh job runs to initiator
     console.log('\nInitiating this-minute-scheduled refresh job runs...')
     try {
-      let { data, error, status } = await supabase
+      type RefreshJob = {
+        id: string
+        schedule: string
+      }
+      const { data, error, status } = await supabase
         .from('refresh_jobs')
         .select(`id, schedule`)
         .is('deleted_at', null)
@@ -107,12 +111,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       if (data) {
-        data.forEach(async (refreshJob: any) => {
+        data.forEach(async (refreshJob: RefreshJob) => {
           console.log(
             `\nRefresh job ${refreshJob.id} has schedule ${refreshJob.schedule}. Checking if it should run now...`
           )
           if (refreshJob.schedule && isValidCron(refreshJob.schedule)) {
-            let now = new Date()
+            const now = new Date()
             const minuteStart = new Date(
               now.getFullYear(),
               now.getMonth(),
@@ -160,10 +164,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       return res.status(200).json({})
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
   } else {

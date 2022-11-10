@@ -3,9 +3,7 @@ import { FunctionComponent, useCallback, useEffect } from 'react'
 
 import { useAuth } from '../contexts/auth'
 
-type Props = {}
-
-const AuthedUserRouter: FunctionComponent<Props> = () => {
+const AuthedUserRouter: FunctionComponent = () => {
   const router = useRouter()
   const { organizationName, organizationEnabled } = useAuth()
 

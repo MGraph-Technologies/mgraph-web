@@ -4,6 +4,7 @@ import { FunctionComponent } from 'react'
 import { analytics } from '../../utils/segmentClient'
 
 type NodeInfoButtonProps = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nodeData: any
 }
 const NodeInfoButton: FunctionComponent<NodeInfoButtonProps> = ({
@@ -20,7 +21,7 @@ const NodeInfoButton: FunctionComponent<NodeInfoButtonProps> = ({
           position: 'left',
           style: { width: '500px' },
         }}
-        onMouseEnter={(e) => {
+        onMouseEnter={() => {
           analytics.track('view_tooltip', {
             nodeId: nodeData.id,
           })

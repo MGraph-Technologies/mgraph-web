@@ -15,6 +15,7 @@ import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/ControlPanel.module.css'
 import { analytics } from '../../utils/segmentClient'
+import { QueryParameters } from '../../utils/queryParameters'
 
 type ControlPanelProps = {
   hideEditButton?: boolean
@@ -63,6 +64,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
         setUserValue(queryParameters[snakeCaseName].userValue)
         setOrgDefaultValue(queryParameters[snakeCaseName].orgDefaultValue)
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         initializeQueryParameter!(snakeCaseName)
       }
     }, [snakeCaseName])
@@ -87,6 +89,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                 parameter: snakeCaseName,
                 value: value,
               })
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               setQueryParameterUserValue!(snakeCaseName, value)
             }}
             style={{ width: '200px', border: '1px solid #ccc' }}
@@ -102,6 +105,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                 analytics.track('reset_query_parameter', {
                   parameter: snakeCaseName,
                 })
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 resetQueryParameterUserValue!(snakeCaseName)
               }}
             />
@@ -115,6 +119,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                     parameter: snakeCaseName,
                     value: userValue,
                   })
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   setQueryParameterOrgDefaultValue!(snakeCaseName, userValue)
                 }}
               />
@@ -139,7 +144,8 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
 
   const overlayPanel = useRef<OverlayPanel>(null)
   const [overlayPanelVisible, setOverlayPanelVisible] = useState(false)
-  const [initialQueryParameters, setInitialQueryParameters] = useState<any>({})
+  const [initialQueryParameters, setInitialQueryParameters] =
+    useState<QueryParameters>({})
   const refreshQueryIfParametersChanged = useCallback(() => {
     const parameterChanged = Object.keys(queryParameters).some((key) => {
       return (
@@ -149,6 +155,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
       )
     })
     if (parameterChanged) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       setGlobalQueryRefreshes!((prev) => prev + 1)
       setInitialQueryParameters(queryParameters)
     }
@@ -176,6 +183,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                 icon="pi pi-times-circle"
                 onClick={() => {
                   if (queriesLoading) {
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     setQueriesToCancel!(
                       [...queriesLoading]
                     )

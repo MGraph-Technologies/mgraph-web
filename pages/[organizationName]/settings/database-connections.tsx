@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { Button } from 'primereact/button'
-import { Column } from 'primereact/column'
+import { Column, ColumnBodyType } from 'primereact/column'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
@@ -20,18 +20,24 @@ import { analytics } from '../../../utils/segmentClient'
 import { SnowflakeCredentials } from '../../../utils/snowflakeCrypto'
 import { supabase } from '../../../utils/supabaseClient'
 
-type DatabaseConnectionsProps = {}
-const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
+const DatabaseConnections: FunctionComponent = () => {
   const { organizationId, session } = useAuth()
 
   const [databaseConnectionsTableLoading, setDatabaseConnectionsTableLoading] =
     useState(true)
-  const [databaseConnections, setDatabaseConnections] = useState<any[]>([])
+  type DatabaseConnection = {
+    id: string
+    name: string
+    created_at: string
+  }
+  const [databaseConnections, setDatabaseConnections] = useState<
+    DatabaseConnection[]
+  >([])
   const populateDatabaseConnections = useCallback(async () => {
     if (organizationId) {
       setDatabaseConnectionsTableLoading(true)
       try {
-        let { data, error, status } = await supabase
+        const { data, error, status } = await supabase
           .from('database_connections')
           .select('id, name, created_at')
           .is('deleted_at', null)
@@ -43,11 +49,11 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
         }
 
         if (data) {
-          setDatabaseConnections(data)
+          setDatabaseConnections(data as DatabaseConnection[])
           setDatabaseConnectionsTableLoading(false)
         }
-      } catch (error: any) {
-        console.error(error.message)
+      } catch (error: unknown) {
+        console.error(error)
       }
     }
   }, [organizationId])
@@ -66,7 +72,8 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
     setDatabaseConnectionsTableFirst(e.first)
   }
 
-  const editCellBodyTemplate = useCallback(
+  const editCellBodyTemplate: ColumnBodyType = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
       return (
         <>
@@ -88,7 +95,7 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
             icon="pi pi-trash"
             onClick={async () => {
               try {
-                let { data, error, status } = await supabase
+                const { data, error } = await supabase
                   .from('database_connections')
                   .update({ deleted_at: new Date() })
                   .eq('id', rowData.id)
@@ -101,8 +108,8 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
                   })
                   populateDatabaseConnections()
                 }
-              } catch (error: any) {
-                console.error(error.message)
+              } catch (error: unknown) {
+                console.error(error)
               }
             }}
           />
@@ -192,7 +199,9 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
               resizable={false}
               draggable={false}
               closable={false} // use cancel button instead
-              onHide={() => {}} // handled by buttons, but required
+              onHide={() => {
+                return
+              }} // handled by buttons, but required
             >
               <b>
                 <label htmlFor="database-connection-type-dropdown">
@@ -272,7 +281,7 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
                     const accessToken = session?.access_token
                     if (organizationId && accessToken) {
                       try {
-                        let {
+                        const {
                           data: databaseConnectionTypeData,
                           error: databaseConnectionTypeError,
                           status: databaseConnectionTypeStatus,
@@ -299,6 +308,7 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
                           name: upsertDatabaseConnectionName,
                           // encrypted credential to be inserted by backend
                           updated_at: now,
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         } as any
                         if (upsertDatabaseConnectionIsNew) {
                           toUpsert = {
@@ -357,8 +367,8 @@ const DatabaseConnections: FunctionComponent<DatabaseConnectionsProps> = () => {
                             'Error creating/updating database connection'
                           )
                         }
-                      } catch (error: any) {
-                        console.error(error.message)
+                      } catch (error: unknown) {
+                        console.error(error)
                       }
                     }
                   }}

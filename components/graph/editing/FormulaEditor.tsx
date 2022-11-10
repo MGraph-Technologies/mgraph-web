@@ -38,7 +38,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
   const [operators, setOperators] = useState<NodeSymbol[]>([])
   async function populateFunctions() {
     try {
-      let { data, error, status } = await supabase
+      const { data, error, status } = await supabase
         .from('function_types')
         .select('id, name, symbol')
         .is('deleted_at', null)
@@ -79,8 +79,8 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
             })
         )
       }
-    } catch (error: any) {
-      console.error(error.message)
+    } catch (error: unknown) {
+      console.error(error)
     }
   }
   useEffect(() => {
@@ -133,7 +133,9 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
       setSuggestions(filterSuggestions(operators, 'operator', event.query))
     }
   }
-  const initializeSuggestions = (event: any): void => {
+  const initializeSuggestions = (
+    event: React.SyntheticEvent<Element, Event>
+  ): void => {
     // used to show suggestions before user starts typing
     ref.current?.search(event, '', 'dropdown')
   }
@@ -197,8 +199,8 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
       return
     }
 
-    let newFunctionNodes: Node[] = []
-    let newInputEdges: Edge[] = []
+    const newFunctionNodes: Node[] = []
+    const newInputEdges: Edge[] = []
 
     const outputSymbols = formula.slice(0, 2)
     const inputSymbols = formula.slice(2)
@@ -247,20 +249,20 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
       }
     }
 
-    let outputVariableSymbol = outputSymbols[0]
-    let outputVariable = graph.nodes.find(
+    const outputVariableSymbol = outputSymbols[0]
+    const outputVariable = graph.nodes.find(
       (node) => node.data.id === outputVariableSymbol.id
     )
     if (!outputVariable) {
       throw new Error('output variable not found')
     }
-    let identitySymbol = outputSymbols[1]
+    const identitySymbol = outputSymbols[1]
     if (!identitySymbol.functionTypeId) {
       throw new Error('identity symbol is not a function')
     }
 
-    let lastInputVariableSymbol = inputSymbols[inputSymbols.length - 1]
-    let lastInputVariable = graph.nodes.find(
+    const lastInputVariableSymbol = inputSymbols[inputSymbols.length - 1]
+    const lastInputVariable = graph.nodes.find(
       (node) => node.data.id === lastInputVariableSymbol.id
     )
     if (!lastInputVariable) {
@@ -324,7 +326,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
       <Button
         id="cancel-formula-button"
         icon="pi pi-times"
-        onClick={(e) => {
+        onClick={() => {
           analytics.track('cancel_formula')
           setShowFormulaEditor(false)
         }}

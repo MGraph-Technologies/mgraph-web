@@ -13,6 +13,7 @@ import {
   HandleType,
   Node,
   Position,
+  ReactFlowInstance,
   Viewport,
   XYPosition,
 } from 'react-flow-renderer'
@@ -59,8 +60,10 @@ type GraphContextType = {
   /* reactFlowInstance is produced by useReactFlow(), which must be called
     in a component that is wrapped in a ReactFlowProvider. Thus, we can't
     instantiate it directly here but instead pass it back from GraphViewer. */
-  reactFlowInstance: any
-  setReactFlowInstance: Dispatch<SetStateAction<any>> | undefined
+  reactFlowInstance: ReactFlowInstance | undefined
+  setReactFlowInstance:
+    | Dispatch<SetStateAction<ReactFlowInstance | undefined>>
+    | undefined
   reactFlowRenderer: Element | undefined
   setReactFlowRenderer:
     | Dispatch<SetStateAction<Element | undefined>>
@@ -76,7 +79,10 @@ type GraphContextType = {
   loadGraph: (() => Promise<void>) | undefined
   saveGraph: (() => Promise<Response | undefined>) | undefined
   updateGraph:
-    | ((t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => void)
+    | ((
+        update: { nodes: Node[] | undefined; edges: Edge[] | undefined },
+        undoable: boolean
+      ) => void)
     | undefined
   setNodeDataToChange:
     | Dispatch<
@@ -98,15 +104,15 @@ type GraphContextType = {
         handlePosition: Position
       ) => React.CSSProperties)
     | undefined
-  formMissionNode: (() => Node<any>) | undefined
-  formMetricNode: (() => Node<any>) | undefined
+  formMissionNode: (() => Node) | undefined
+  formMetricNode: (() => Node) | undefined
   formFunctionNode:
     | ((
         newNodeId: string,
         functionTypeId: string,
         inputNodes: Node[],
         outputNode: Node
-      ) => Node<any>)
+      ) => Node)
     | undefined
   getFunctionSymbol: ((functionTypeId: string) => string) | undefined
   formInputEdge:
@@ -115,14 +121,14 @@ type GraphContextType = {
         target: Node,
         displaySource?: Node | undefined,
         displayTarget?: Node | undefined
-      ) => Edge<any>)
+      ) => Edge)
     | undefined
   getConnectedObjects:
     | ((
         reference: Node | Edge,
         maxSeparationDegrees?: number,
         direction?: 'inputs' | 'outputs'
-      ) => (Node<any> | Edge<any>)[])
+      ) => (Node | Edge)[])
     | undefined
   globalQueryRefreshes: number
   setGlobalQueryRefreshes: Dispatch<SetStateAction<number>> | undefined
@@ -211,7 +217,9 @@ export function GraphProvider({ children }: GraphProps) {
       ignoreIdenticalMutations: false,
     })
 
-  const [reactFlowInstance, setReactFlowInstance] = useState<any>()
+  const [reactFlowInstance, setReactFlowInstance] = useState<
+    ReactFlowInstance | undefined
+  >()
   const [reactFlowRenderer, setReactFlowRenderer] = useState<Element>()
   const [reactFlowViewport, setReactFlowViewport] = useState<Viewport>()
 
@@ -220,7 +228,7 @@ export function GraphProvider({ children }: GraphProps) {
   )
   async function getNodeTypeIds() {
     try {
-      let { data, error, status } = await supabase
+      const { data, error, status } = await supabase
         .from('node_types')
         .select('name, id')
         .is('deleted_at', null)
@@ -241,8 +249,8 @@ export function GraphProvider({ children }: GraphProps) {
           setNodeTypeIds(_nodeTypeIds)
         }
       }
-    } catch (error: any) {
-      console.error(error.message)
+    } catch (error: unknown) {
+      console.error(error)
     }
   }
   useEffect(() => {
@@ -255,7 +263,7 @@ export function GraphProvider({ children }: GraphProps) {
   )
   async function getEdgeTypeIds() {
     try {
-      let { data, error, status } = await supabase
+      const { data, error, status } = await supabase
         .from('edge_types')
         .select('name, id')
         .is('deleted_at', null)
@@ -276,8 +284,8 @@ export function GraphProvider({ children }: GraphProps) {
           setEdgeTypeIds(_edgeTypeIds)
         }
       }
-    } catch (error: any) {
-      console.error(error.message)
+    } catch (error: unknown) {
+      console.error(error)
     }
   }
   useEffect(() => {
@@ -317,8 +325,8 @@ export function GraphProvider({ children }: GraphProps) {
             reset(_graph)
           }
         })
-    } catch (error: any) {
-      console.error(error.message)
+    } catch (error: unknown) {
+      console.error(error)
     }
   }, [session?.access_token, organizationId, reset])
   useEffect(() => {
@@ -349,17 +357,23 @@ export function GraphProvider({ children }: GraphProps) {
   }, [session?.access_token, organizationId, graph, initialGraph])
 
   const updateGraph = useCallback(
-    (t: 'all' | 'nodes' | 'edges', v: Array<any>, undoable: boolean) => {
+    (
+      update: { nodes: Node[] | undefined; edges: Edge[] | undefined },
+      undoable: boolean
+    ) => {
       // To prevent a mismatch of state updates,
       // we'll use the value passed into this
       // function instead of the state directly.
       setGraph(
-        t === 'all' // pretty hacky but it's good enough for now
-          ? v[0]
-          : (e) => ({
-              nodes: t === 'nodes' ? v : e.nodes,
-              edges: t === 'edges' ? v : e.edges,
-            }),
+        (graph) => {
+          if (update.nodes) {
+            graph.nodes = update.nodes
+          }
+          if (update.edges) {
+            graph.edges = update.edges
+          }
+          return graph
+        },
         undefined,
         !undoable
       )
@@ -378,9 +392,12 @@ export function GraphProvider({ children }: GraphProps) {
       const nodeToChange = graph.nodes.find((n) => n.id === nodeToChangeId)
       const otherNodes = graph.nodes.filter((n) => n.id !== nodeToChangeId)
       if (nodeToChange) {
-        let nodeToChangeClone = JSON.parse(JSON.stringify(nodeToChange)) // so updateGraph detects a change
+        const nodeToChangeClone = JSON.parse(JSON.stringify(nodeToChange)) // so updateGraph detects a change
         nodeToChangeClone.data = nodeDataToChange
-        updateGraph('nodes', otherNodes.concat(nodeToChangeClone), true)
+        updateGraph(
+          { nodes: otherNodes.concat(nodeToChangeClone), edges: undefined },
+          true
+        )
       }
       setNodeDataToChange(undefined) // avoid infinite loop
     }
@@ -435,7 +452,9 @@ export function GraphProvider({ children }: GraphProps) {
     const { x, y } =
       reactFlowInstance && reactFlowInstance.project
         ? reactFlowInstance.project({
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             x: reactFlowRenderer!.clientWidth / 2,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             y: reactFlowRenderer!.clientHeight / 2,
           })
         : { x: 0, y: 0 }
@@ -477,7 +496,9 @@ export function GraphProvider({ children }: GraphProps) {
     const { x, y } =
       reactFlowInstance && reactFlowInstance.project
         ? reactFlowInstance.project({
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             x: reactFlowRenderer!.clientWidth / 2,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             y: reactFlowRenderer!.clientHeight / 2,
           })
         : { x: 0, y: 0 }
@@ -547,7 +568,9 @@ export function GraphProvider({ children }: GraphProps) {
       x /= centerBetween.length
       y /= centerBetween.length
 
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const outputWidth = outputNode.width! // width exists because we checked for it above
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const outputHeight = outputNode.height!
       const width = (outputWidth / 16) * 4 // perhaps there's a better way to link this to stylesheet?
       const height = (outputHeight / 9) * 4
@@ -585,7 +608,7 @@ export function GraphProvider({ children }: GraphProps) {
   useEffect(() => {
     const fetchFunctionTypeIdsAndSymbols = async () => {
       try {
-        let { data, error, status } = await supabase
+        const { data, error, status } = await supabase
           .from('function_types')
           .select('id, symbol')
           .is('deleted_at', null)
@@ -598,8 +621,8 @@ export function GraphProvider({ children }: GraphProps) {
           throw new Error('No function types returned')
         }
 
-        let _functionTypeIdsAndSymbols: { [key: string]: string } = {}
-        data.forEach((functionType: any) => {
+        const _functionTypeIdsAndSymbols: { [key: string]: string } = {}
+        data.forEach((functionType: { id: string; symbol: string }) => {
           _functionTypeIdsAndSymbols[functionType.id] = functionType.symbol
         })
         setFunctionTypeIdsAndSymbols(_functionTypeIdsAndSymbols)
@@ -885,8 +908,8 @@ export function GraphProvider({ children }: GraphProps) {
                 [name]: qp,
               }))
             })
-        } catch (error: any) {
-          console.error(error.message)
+        } catch (error: unknown) {
+          console.error(error)
         }
       }
     },
@@ -922,8 +945,8 @@ export function GraphProvider({ children }: GraphProps) {
                   [name]: qp,
                 }))
               })
-          } catch (error: any) {
-            console.error(error.message)
+          } catch (error: unknown) {
+            console.error(error)
           }
         }
       }
@@ -969,8 +992,8 @@ export function GraphProvider({ children }: GraphProps) {
                 [name]: qp,
               }))
             })
-        } catch (error: any) {
-          console.error(error.message)
+        } catch (error: unknown) {
+          console.error(error)
         }
       }
     },

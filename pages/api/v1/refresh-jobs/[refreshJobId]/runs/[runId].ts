@@ -1,6 +1,7 @@
 import { withSentry } from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
+import { Node } from 'react-flow-renderer'
 import { Graph } from '../../../../../../contexts/graph'
 
 import {
@@ -25,7 +26,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log(`\nrunId: ${runId}`)
     try {
       // get refresh job record
-      let {
+      const {
         data: refreshJobData,
         error: refreshJobError,
         status: refreshJobStatus,
@@ -58,7 +59,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const graphData = await graphResp.json()
       const graph = graphData.graph as Graph
       const metricNodes = graph.nodes.filter(
-        (node: any) => node.data.source?.query
+        (node: Node) => node.data.source?.query
       )
 
       // get organization's query parameters
@@ -70,7 +71,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // for each metric node, parameterize its query and check whether it's still running
       // TODO: think up an implementation that doesn't check every query every time
       let queryStillRunning = false
-      metricNodes.forEach(async (node: any) => {
+      metricNodes.forEach(async (node: Node) => {
         const statement = node.data.source.query as string
         const databaseConnectionId = node.data.source
           .databaseConnectionId as string
@@ -182,18 +183,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       console.log(`\nSuccess. Updating refresh_job_runs record ${runId}...`)
-      let {
-        data: refreshJobRunData,
-        error: refreshJobRunError,
-        status: refreshJobRunStatus,
-      } = await supabase
-        .from('refresh_job_runs')
-        .update({
-          status: 'success',
-          updated_at: new Date(),
-        })
-        .eq('id', runId)
-        .single()
+      const { data: refreshJobRunData, error: refreshJobRunError } =
+        await supabase
+          .from('refresh_job_runs')
+          .update({
+            status: 'success',
+            updated_at: new Date(),
+          })
+          .eq('id', runId)
+          .single()
 
       if (refreshJobRunError) {
         throw refreshJobRunError
@@ -204,10 +202,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       return res.status(200).json({})
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
   } else {

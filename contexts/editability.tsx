@@ -8,8 +8,12 @@ type EditabilityContextType = {
 
 const editabilityContextDefaultValues: EditabilityContextType = {
   editingEnabled: false,
-  enableEditing: () => {},
-  disableEditing: () => {},
+  enableEditing: () => {
+    return
+  },
+  disableEditing: () => {
+    return
+  },
 }
 
 const EditabilityContext = createContext<EditabilityContextType>(

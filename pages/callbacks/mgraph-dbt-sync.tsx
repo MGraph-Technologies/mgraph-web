@@ -5,8 +5,7 @@ import { useAuth } from '../../contexts/auth'
 import { analytics } from '../../utils/segmentClient'
 import { supabase } from '../../utils/supabaseClient'
 
-type MGraphDbtSyncProps = {}
-const MGraphDbtSync: FunctionComponent<MGraphDbtSyncProps> = () => {
+const MGraphDbtSync: FunctionComponent = () => {
   const { organizationId, organizationName } = useAuth()
   const router = useRouter()
   const { installation_id: installationId, state: stateId } = router.query
@@ -23,7 +22,7 @@ const MGraphDbtSync: FunctionComponent<MGraphDbtSyncProps> = () => {
           /* have to set organization_id and properties here because
             state isn't accessible to our webhook handler;
             see webhooks/github.ts */
-          let {
+          const {
             data: graphSyncTypeData,
             error: graphSyncTypeError,
             status: graphSyncTypeStatus,
@@ -37,7 +36,7 @@ const MGraphDbtSync: FunctionComponent<MGraphDbtSyncProps> = () => {
             throw graphSyncTypeError
           }
 
-          let { data, error, status } = await supabase
+          const { data, error, status } = await supabase
             .from('graph_syncs')
             .update({
               name: savedState.name || 'dbt Project',
@@ -66,8 +65,8 @@ const MGraphDbtSync: FunctionComponent<MGraphDbtSyncProps> = () => {
           })
           localStorage.removeItem(savedStateKey)
           router.push(`/${organizationName}/settings/graph-syncs`)
-        } catch (error: any) {
-          console.error(error.message)
+        } catch (error: unknown) {
+          console.error(error)
         }
       }
     }

@@ -52,7 +52,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const accessToken = (req.headers['supabase-access-token'] as string) || ''
       supabase.auth.setAuth(accessToken)
 
-      let {
+      const {
         data: graphSyncData,
         error: graphSyncError,
         status: graphSyncStatus,
@@ -75,7 +75,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log('Making GitHub app token...')
         const installationId = graphSyncData.properties.installationId
         const appToken = await getGitHubAppToken(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           mgraphDbtSyncGithubAppId!,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           mgraphDbtSyncGithubAppPrivateKey!
         )
         console.log('\nMade appToken')
@@ -92,10 +94,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.error(error)
         throw new Error(error)
       }
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
   } else {

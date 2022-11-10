@@ -23,7 +23,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
     supabase.auth.setAuth(accessToken)
     try {
-      let { data, error, status } = await supabase
+      const { data, error, status } = await supabase
         .from('database_connections')
         .select(
           'encrypted_credentials, organizations (id, created_at), database_connection_types (name)'
@@ -60,7 +60,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           privateKeyPassphrase
         )
 
-        let resp = await fetch(
+        const resp = await fetch(
           'https://' +
             account +
             '.' +
@@ -80,10 +80,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             }),
           }
         )
-        let respBody = await resp.json()
+        const respBody = await resp.json()
 
         const queryId = uuidv4()
-        let { error } = await supabase.from('database_queries').insert({
+        const { error } = await supabase.from('database_queries').insert({
           id: queryId,
           database_connection_id: databaseConnectionId,
           parent_node_id: parentNodeId,
@@ -110,10 +110,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           error: errorMessage,
         })
       }
-    } catch (error: any) {
-      console.error('\nError: ', error.message)
+    } catch (error: unknown) {
+      console.error('\nError: ', error)
       return res.status(500).json({
-        error: error.message,
+        error: error,
       })
     }
   } else {
