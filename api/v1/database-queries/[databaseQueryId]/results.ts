@@ -1,6 +1,7 @@
 import { withSentry } from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
+import fetch from 'node-fetch'
 
 import {
   QueryColumn,
@@ -74,7 +75,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
         console.log('\nQuery status resp: ', queryStatusResp)
 
-        const queryStatus = await queryStatusResp.json()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const queryStatus = (await queryStatusResp.json()) as any
         if (queryStatusResp.status === 200) {
           console.log('\nQuery successful, relaying results...')
           const columns = queryStatus.resultSetMetaData.rowType.map(

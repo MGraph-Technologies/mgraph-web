@@ -1,6 +1,7 @@
 import { withSentry } from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
+import fetch from 'node-fetch'
 import { v4 as uuidv4 } from 'uuid'
 
 import { decryptCredentials, makeToken } from '../../../utils/snowflakeCrypto'
@@ -77,7 +78,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             }),
           }
         )
-        const respBody = await resp.json()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const respBody = (await resp.json()) as any
 
         const queryId = uuidv4()
         const { error } = await supabase.from('database_queries').insert({

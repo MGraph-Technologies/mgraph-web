@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { parseExpression } from 'cron-parser'
 import { isValidCron } from 'cron-validator'
 import { NextApiRequest, NextApiResponse } from 'next'
+import fetch from 'node-fetch'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const REFRESH_JOB_RUN_TIMEOUT_SECONDS = 3600

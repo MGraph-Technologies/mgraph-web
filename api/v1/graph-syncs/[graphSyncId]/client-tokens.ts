@@ -1,6 +1,7 @@
 import { withSentry } from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
+import fetch from 'node-fetch'
 import jwt from 'jsonwebtoken'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -34,7 +35,8 @@ const getGitHubAppInstallToken = async (
       },
     }
   )
-  const respBody = await resp.json()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const respBody = (await resp.json()) as any
   const installToken = respBody.token
   return installToken
 }

@@ -1,6 +1,7 @@
 import { withSentry } from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
+import fetch from 'node-fetch'
 
 import {
   decryptCredentials,

@@ -1,6 +1,7 @@
 import { withSentry } from '@sentry/nextjs'
 import { SupabaseClient, createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
+import fetch from 'node-fetch'
 import { Node } from 'react-flow-renderer'
 import {
   getQueryParameters,
@@ -50,7 +51,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           },
         }
       )
-      const graphData = await graphResp.json()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const graphData = (await graphResp.json()) as any
       const graph = graphData.graph
       const metricNodes = graph.nodes.filter(
         (node: Node) => node.data.source?.query
