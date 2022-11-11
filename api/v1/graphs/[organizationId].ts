@@ -9,10 +9,10 @@ import _ from 'lodash'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Edge, Node } from 'react-flow-renderer'
 
-import { FunctionNodeProperties } from '../../../../components/graph/FunctionNode'
-import { InputEdgeProperties } from '../../../../components/graph/InputEdge'
-import { MetricNodeProperties } from '../../../../components/graph/MetricNode'
-import { MissionNodeProperties } from '../../../../components/graph/MissionNode'
+import { FunctionNodeProperties } from '../../../components/graph/FunctionNode'
+import { InputEdgeProperties } from '../../../components/graph/InputEdge'
+import { MetricNodeProperties } from '../../../components/graph/MetricNode'
+import { MissionNodeProperties } from '../../../components/graph/MissionNode'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

@@ -5,7 +5,7 @@ import { Node } from 'react-flow-renderer'
 import {
   getQueryParameters,
   parameterizeStatement,
-} from '../../../../../utils/queryParameters'
+} from '../../../../utils/queryParameters'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 

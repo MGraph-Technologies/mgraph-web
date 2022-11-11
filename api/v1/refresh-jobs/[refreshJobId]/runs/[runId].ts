@@ -2,13 +2,13 @@ import { withSentry } from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Node } from 'react-flow-renderer'
-import { Graph } from '../../../../../../contexts/graph'
+import { Graph } from '../../../../../contexts/graph'
 
 import {
   getLatestQueryId,
   getQueryParameters,
   parameterizeStatement,
-} from '../../../../../../utils/queryParameters'
+} from '../../../../../utils/queryParameters'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
