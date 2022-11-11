@@ -50,7 +50,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { graphSyncId } = req.query
     console.log('\ngraphSyncId: ', graphSyncId)
     try {
-      const supabase = createClient(supabaseUrl, supabaseAnonKey)
+      const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
       const accessToken = (req.headers['supabase-access-token'] as string) || ''
       supabase.auth.setAuth(accessToken)
 

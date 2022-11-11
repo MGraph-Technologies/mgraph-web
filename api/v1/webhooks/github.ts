@@ -47,7 +47,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // Create graph_syncs supabase record
     try {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const supabase = createClient(supabaseUrl, supabaseServiceRoleKey!)
+      const supabase = createClient(
+        supabaseUrl || '',
+        supabaseServiceRoleKey || ''
+      )
 
       const installationId = req.body.installation.id
       let toUpsert = {

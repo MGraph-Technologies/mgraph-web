@@ -16,7 +16,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (method === 'POST') {
     const supabaseServiceRoleKey =
       (req.headers['supabase-service-role-key'] as string) || ''
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
+    const supabase = createClient(
+      supabaseUrl || '',
+      supabaseServiceRoleKey || ''
+    )
     const { refreshJobId } = req.query
     console.log(`\nrefreshJobId: ${refreshJobId}`)
     try {
