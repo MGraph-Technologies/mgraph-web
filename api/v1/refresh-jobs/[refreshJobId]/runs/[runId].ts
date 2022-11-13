@@ -5,6 +5,7 @@ import fetch from 'node-fetch'
 import { Node } from 'react-flow-renderer'
 
 import { Graph } from '../../../../../contexts/graph'
+import { getBaseUrl } from '../../../../../utils/appBaseUrl'
 import {
   getLatestQueryId,
   getQueryParameters,
@@ -50,8 +51,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       // get organization's metric nodes
       const graphResp = await fetch(
-        process.env.APP_BASE_URL +
-          `/api/v1/graphs/${refreshJobData.organization_id}`,
+        getBaseUrl() + `/api/v1/graphs/${refreshJobData.organization_id}`,
         {
           method: 'GET',
           headers: {
@@ -98,7 +98,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               `\nGetting query status for query id ${latestQueryId}...`
             )
             const queryResultResp = await fetch(
-              process.env.APP_BASE_URL +
+              getBaseUrl() +
                 `/api/v1/database-queries/${latestQueryId}/results`,
               {
                 method: 'GET',
@@ -166,7 +166,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 fields: [
                   {
                     type: 'mrkdwn',
-                    text: `See the latest metrics here: ${process.env.APP_BASE_URL}/${organizationNameEncoded}`,
+                    text: `See the latest metrics here: ${getBaseUrl()}/${organizationNameEncoded}`,
                   },
                 ],
               },

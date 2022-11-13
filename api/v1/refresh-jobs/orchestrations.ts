@@ -5,6 +5,8 @@ import { isValidCron } from 'cron-validator'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 
+import { getBaseUrl } from '../../../utils/appBaseUrl'
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const REFRESH_JOB_RUN_TIMEOUT_SECONDS = 3600
 
@@ -75,7 +77,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             `\nRefresh job run ${run.id} is pending notification. Sending to finisher...`
           )
           const finisherRespPromise = fetch(
-            process.env.APP_BASE_URL +
+            getBaseUrl() +
               `/api/v1/refresh-jobs/${run.refresh_job_id}/runs/${run.id}`,
             {
               method: 'PATCH',
@@ -148,8 +150,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 `\nRefresh job ${refreshJob.id} is scheduled to run this minute. Sending to initiator...`
               )
               const initiatorRespPromise = fetch(
-                process.env.APP_BASE_URL +
-                  `/api/v1/refresh-jobs/${refreshJob.id}`,
+                getBaseUrl() + `/api/v1/refresh-jobs/${refreshJob.id}`,
                 {
                   method: 'POST',
                   headers: {

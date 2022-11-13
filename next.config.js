@@ -3,14 +3,6 @@
 const { withSentryConfig } = require('@sentry/nextjs')
 
 const moduleExports = {
-  env: {
-    APP_BASE_URL:
-      process.env.VERCEL_ENV === 'production'
-        ? 'https://app.mgraph.us'
-        : process.env.VERCEL_ENV === 'preview'
-        ? `https://${process.env.VERCEL_URL}`
-        : 'http://localhost:3000',
-  },
   images: {
     domains: [
       'foijfafafqxtuwqjshcu.supabase.co', // dev

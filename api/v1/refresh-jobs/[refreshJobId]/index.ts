@@ -3,6 +3,8 @@ import { SupabaseClient, createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 import { Node } from 'react-flow-renderer'
+
+import { getBaseUrl } from '../../../../utils/appBaseUrl'
 import {
   getQueryParameters,
   parameterizeStatement,
@@ -44,8 +46,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       // get organization's metric nodes
       const graphResp = await fetch(
-        process.env.APP_BASE_URL +
-          `/api/v1/graphs/${refreshJobData.organization_id}`,
+        getBaseUrl() + `/api/v1/graphs/${refreshJobData.organization_id}`,
         {
           method: 'GET',
           headers: {
@@ -79,7 +80,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           )
           console.log(`\nExecuting query for node ${node.id}...`)
           const queryResp = await fetch(
-            process.env.APP_BASE_URL + '/api/v1/database-queries',
+            getBaseUrl() + '/api/v1/database-queries',
             {
               method: 'POST',
               body: JSON.stringify({
