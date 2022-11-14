@@ -3,9 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 
+import { getBaseUrl } from '../../../../utils/appBaseUrl'
 import {
   decryptCredentials,
-  makeToken,
+  formJdbcUrl,
 } from '../../../../utils/snowflakeCrypto'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -44,29 +45,28 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       if (data) {
-        const { account, username, privateKeyString, privateKeyPassphrase } =
-          decryptCredentials(
-            data.database_connections.encrypted_credentials,
-            data.database_connections.organizations.id,
-            data.database_connections.organizations.created_at
-          )
-        const token = makeToken(
-          account,
-          username,
-          privateKeyString,
-          privateKeyPassphrase
+        const decryptedCredentials = decryptCredentials(
+          data.database_connections.encrypted_credentials,
+          data.database_connections.organizations.id,
+          data.database_connections.organizations.created_at
         )
-
-        const cancelResp = await fetch(data.result_url + '/cancel', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + token,
-            Accept: 'application/json',
-            'User-Agent': 'MGraph/1.0',
-            'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT',
-          },
-        })
+        const { username, password } = decryptedCredentials
+        const snowflakeQueryId = data.result_url.split('/').pop()
+        const cancelResp = await fetch(
+          getBaseUrl() + `/api/v1/database-queries/snowflake-jdbc-proxy`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Snowflake-JDBC-URL': formJdbcUrl(decryptedCredentials),
+              'Snowflake-Username': username,
+              'Snowflake-Password': password,
+            },
+            body: JSON.stringify({
+              statement: `SELECT system$cancel_query('${snowflakeQueryId}')`,
+            }),
+          }
+        )
         console.log('\nQuery status resp: ', cancelResp)
         if (cancelResp.status === 200) {
           res.status(200).json({})

@@ -153,12 +153,12 @@ const DatabaseConnections: FunctionComponent = () => {
     setUpsertDatabaseConnectionUsername,
   ] = useState<string>('')
   const [
-    upsertDatabaseConnectionPrivateKey,
-    setUpsertDatabaseConnectionPrivateKey,
+    upsertDatabaseConnectionPassword,
+    setUpsertDatabaseConnectionPassword,
   ] = useState<string>('')
   const [
-    upsertDatabaseConnectionPrivateKeyPassphrase,
-    setUpsertDatabaseConnectionPrivateKeyPassphrase,
+    upsertDatabaseConnectionDbtProxyServerUrl,
+    setUpsertDatabaseConnectionDbtProxyServerUrl,
   ] = useState<string>('')
   const [upsertDatabaseConnectionIsNew, setUpsertDatabaseConnectionIsNew] =
     useState(true)
@@ -173,8 +173,8 @@ const DatabaseConnections: FunctionComponent = () => {
     setUpsertDatabaseConnectionRegion('')
     setUpsertDatabaseConnectionAccount('')
     setUpsertDatabaseConnectionUsername('')
-    setUpsertDatabaseConnectionPrivateKey('')
-    setUpsertDatabaseConnectionPrivateKeyPassphrase('')
+    setUpsertDatabaseConnectionPassword('')
+    setUpsertDatabaseConnectionDbtProxyServerUrl('')
     setUpsertDatabaseConnectionIsNew(true)
     setUpsertDatabaseConnectionPlaceholder('')
   }, [])
@@ -265,20 +265,20 @@ const DatabaseConnections: FunctionComponent = () => {
                 onClick={() => setUpsertDatabaseConnectionPlaceholder('')}
               />
               <SettingsInputText
-                label="Private Key"
-                value={upsertDatabaseConnectionPrivateKey}
-                setValue={setUpsertDatabaseConnectionPrivateKey}
-                tooltip="An encrypted private key configured for the username entered above, with newlines replaced by \n characters; see https://docs.snowflake.com/en/user-guide/key-pair-auth.html"
+                label="Password"
+                value={upsertDatabaseConnectionPassword}
+                setValue={setUpsertDatabaseConnectionPassword}
+                tooltip="The password associated with the username entered above"
                 type="password"
                 placeholder={upsertDatabaseConnectionPlaceholder}
                 onClick={() => setUpsertDatabaseConnectionPlaceholder('')}
               />
               <SettingsInputText
-                label="Private Key Passphrase"
-                value={upsertDatabaseConnectionPrivateKeyPassphrase}
-                setValue={setUpsertDatabaseConnectionPrivateKeyPassphrase}
-                tooltip="The passphrase for the private key entered above"
-                type="password"
+                label="dbt Proxy Server URL"
+                value={upsertDatabaseConnectionDbtProxyServerUrl}
+                setValue={setUpsertDatabaseConnectionDbtProxyServerUrl}
+                tooltip="(OPTIONAL) Through which to compile dbt jinja before queries' execution (e.g., https://eagle-hqya7.proxy.cloud.getdbt.com; see here for more info https://docs.getdbt.com/docs/use-dbt-semantic-layer/setup-dbt-semantic-layer)"
+                type="text"
                 placeholder={upsertDatabaseConnectionPlaceholder}
                 onClick={() => setUpsertDatabaseConnectionPlaceholder('')}
               />
@@ -330,19 +330,15 @@ const DatabaseConnections: FunctionComponent = () => {
                           upsertDatabaseConnectionRegion ||
                           upsertDatabaseConnectionAccount ||
                           upsertDatabaseConnectionUsername ||
-                          upsertDatabaseConnectionPrivateKey ||
-                          upsertDatabaseConnectionPrivateKeyPassphrase
+                          upsertDatabaseConnectionPassword ||
+                          upsertDatabaseConnectionDbtProxyServerUrl
                             ? ({
                                 region: upsertDatabaseConnectionRegion,
                                 account: upsertDatabaseConnectionAccount,
                                 username: upsertDatabaseConnectionUsername,
-                                privateKeyString:
-                                  upsertDatabaseConnectionPrivateKey.replaceAll(
-                                    '\\n',
-                                    '\n'
-                                  ),
-                                privateKeyPassphrase:
-                                  upsertDatabaseConnectionPrivateKeyPassphrase,
+                                password: upsertDatabaseConnectionPassword,
+                                dbtProxyServerUrl:
+                                  upsertDatabaseConnectionDbtProxyServerUrl,
                               } as SnowflakeCredentials)
                             : null
 

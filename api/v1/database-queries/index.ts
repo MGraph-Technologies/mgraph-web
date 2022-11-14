@@ -4,7 +4,8 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 import { v4 as uuidv4 } from 'uuid'
 
-import { decryptCredentials, makeToken } from '../../../utils/snowflakeCrypto'
+import { getBaseUrl } from '../../../utils/appBaseUrl'
+import { decryptCredentials, formJdbcUrl } from '../../../utils/snowflakeCrypto'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -40,38 +41,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             'We only support snowflake database connections at this time.'
           )
         }
-        const {
-          region,
-          account,
-          username,
-          privateKeyString,
-          privateKeyPassphrase,
-        } = decryptCredentials(
+        const decryptedCredentials = decryptCredentials(
           data.encrypted_credentials,
           data.organizations.id,
           data.organizations.created_at
         )
-        const token = makeToken(
-          account,
-          username,
-          privateKeyString,
-          privateKeyPassphrase
-        )
-
+        const { region, account, username, password } = decryptedCredentials
         const resp = await fetch(
-          'https://' +
-            account +
-            '.' +
-            region +
-            '.snowflakecomputing.com/api/v2/statements?async=true',
+          getBaseUrl() + `/api/v1/database-queries/snowflake-jdbc-proxy`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + token,
-              Accept: 'application/json',
-              'User-Agent': 'MGraph/1.0',
-              'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT',
+              'Snowflake-JDBC-URL': formJdbcUrl(decryptedCredentials),
+              'Snowflake-Username': username,
+              'Snowflake-Password': password,
             },
             body: JSON.stringify({
               statement: statement,
@@ -80,10 +64,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         )
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const respBody = (await resp.json()) as any
+        const snowflakeQueryId = respBody.snowflakeQueryId
 
-        const queryId = uuidv4()
+        const databaseQueryId = uuidv4()
+        console.log('\nQuery ID: ', databaseQueryId)
+
         const { error } = await supabase.from('database_queries').insert({
-          id: queryId,
+          id: databaseQueryId,
           database_connection_id: databaseConnectionId,
           parent_node_id: parentNodeId,
           statement: statement,
@@ -93,14 +80,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             '.' +
             region +
             '.snowflakecomputing.com' +
-            respBody.statementStatusUrl,
+            '/api/v2/statements/' +
+            snowflakeQueryId,
         })
         if (error) {
           throw error
         }
-        console.log('\nQuery ID: ', queryId)
         return res.status(200).json({
-          queryId: queryId,
+          queryId: databaseQueryId,
         })
       } else {
         const errorMessage = 'Database connection not found'
