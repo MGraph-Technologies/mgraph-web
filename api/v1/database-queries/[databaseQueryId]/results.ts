@@ -9,9 +9,10 @@ import {
   QueryError,
   QueryRow,
 } from '../../../../components/QueryRunner'
+import { getBaseUrl } from '../../../../utils/appBaseUrl'
 import {
   decryptCredentials,
-  makeToken,
+  formJdbcUrl,
 } from '../../../../utils/snowflakeCrypto'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -35,6 +36,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         .select(
           `
           result_url,
+          created_at,
           database_connections (
             encrypted_credentials,
             organizations (id, created_at))'
@@ -50,29 +52,26 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       if (data) {
-        const { account, username, privateKeyString, privateKeyPassphrase } =
-          decryptCredentials(
-            data.database_connections.encrypted_credentials,
-            data.database_connections.organizations.id,
-            data.database_connections.organizations.created_at
-          )
-        const token = makeToken(
-          account,
-          username,
-          privateKeyString,
-          privateKeyPassphrase
+        const decryptedCredentials = decryptCredentials(
+          data.database_connections.encrypted_credentials,
+          data.database_connections.organizations.id,
+          data.database_connections.organizations.created_at
         )
-
-        const queryStatusResp = await fetch(data.result_url, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + token,
-            Accept: 'application/json',
-            'User-Agent': 'MGraph/1.0',
-            'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT',
-          },
-        })
+        const { username, password } = decryptedCredentials
+        const snowflakeQueryId = data.result_url.split('/').pop()
+        const queryStatusResp = await fetch(
+          getBaseUrl() + `/api/v1/database-queries/snowflake-jdbc-proxy`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Snowflake-JDBC-URL': formJdbcUrl(decryptedCredentials),
+              'Snowflake-Username': username,
+              'Snowflake-Password': password,
+              'Snowflake-Query-Id': snowflakeQueryId,
+            },
+          }
+        )
         console.log('\nQuery status resp: ', queryStatusResp)
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,7 +88,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             }
           )
           const rows = queryStatus.data as QueryRow[]
-          const executedAt = new Date(queryStatus.createdOn)
+          const executedAt = new Date(data.created_at)
           res.setHeader('Cache-Control', 'max-age=31536000')
           return res.status(200).json({
             columns: columns,
