@@ -46,17 +46,37 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   const { graph, getFunctionSymbol, getConnectedObjects } = useGraph()
   const [metricNode, setMetricNode] = useState<Node | undefined>(undefined)
+  type GraphSync = {
+    id: string
+    name: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    properties: any
+    graph_sync_types: {
+      name: string
+    }
+  }
+  const [graphSyncs, setGraphSyncs] = useState<GraphSync[]>([])
+  type DatabaseConnection = {
+    id: string
+    name: string
+  }
+  const [databaseConnections, setDatabaseConnections] = useState<
+    DatabaseConnection[]
+  >([])
 
   const [name, setName] = useState('')
+  const [owner, setOwner] = useState('')
   const [description, setDescription] = useState('')
   const [inputs, setInputs] = useState('')
   const [outputs, setOutputs] = useState('')
-  const [owner, setOwner] = useState('')
-  const [sourceDatabaseConnectionId, setSourceDatabaseConnectionId] =
-    useState('')
-  const [sourceDatabaseConnectionName, setSourceDatabaseConnectionName] =
-    useState('')
-  const [sourceQuery, setSourceQuery] = useState('')
+  const [sourceDatabaseConnection, setSourceDatabaseConnection] =
+    useState<DatabaseConnection | null>(null)
+  const [sourceDbtProjectGraphSync, setSourceDbtProjectGraphSync] =
+    useState<GraphSync | null>(null)
+  const [sourceDbtProjectMetricPath, setSourceDbtProjectMetricPath] = useState<
+    string | null
+  >(null)
+  const [sourceDbtMetricYaml, setSourceDbtMetricYaml] = useState('')
   const [sourceQueryType, setSourceQueryType] =
     useState<SourceQueryType>('freeform')
   const sourceQueryTypes = [
@@ -69,34 +89,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       value: 'generated' as SourceQueryType,
     },
   ]
-  const [sourceDbtProjectGraphSyncId, setSourceDbtProjectGraphSyncId] =
-    useState<string | null>(null)
-  type GraphSync = {
-    id: string
-    name: string
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    properties: any
-    graph_sync_types: {
-      name: string
-    }
-  }
-  const [sourceDbtProjectGraphSync, setSourceDbtProjectGraphSync] =
-    useState<GraphSync | null>(null)
-  const [sourceDbtProjectMetricPath, setSourceDbtProjectMetricPath] = useState<
-    string | null
-  >(null)
-  const [sourceDbtMetricYaml, setSourceDbtMetricYaml] = useState('')
+  const [sourceQuery, setSourceQuery] = useState('')
   const [queryRunnerRefreshes, setQueryRunnerRefreshes] = useState(0)
-
-  type DatabaseConnection = {
-    id: string
-    name: string
-  }
-  const [databaseConnections, setDatabaseConnections] = useState<
-    DatabaseConnection[]
-  >([])
-  const [graphSyncs, setGraphSyncs] = useState<GraphSync[]>([])
-
   const [queryResult, setQueryResult] = useState<QueryResult>({
     status: 'processing',
     data: null,
@@ -111,27 +105,110 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     populateMetricNode()
   }, [populateMetricNode])
 
-  const populateDetails = useCallback(() => {
-    if (metricNode) {
-      setName(metricNode.data.name || '')
-      setDescription(metricNode.data.description || '')
-      setOwner(metricNode.data.owner || '')
-      setSourceDatabaseConnectionId(
-        metricNode.data.source.databaseConnectionId || ''
-      )
-      setSourceQuery(metricNode.data.source.query || '')
-      setSourceQueryType(
-        (metricNode.data.source.queryType as SourceQueryType) || 'freeform'
-      )
-      setSourceDbtProjectGraphSyncId(
-        metricNode.data.source.dbtProjectGraphSyncId
-      )
-      const _sourceDbtProjectMetricPath =
-        metricNode.data.source.dbtProjectMetricPath
-      setSourceDbtProjectMetricPath(_sourceDbtProjectMetricPath)
+  const populateDatabaseConnections = useCallback(async () => {
+    if (organizationId) {
+      try {
+        const { data, error, status } = await supabase
+          .from('database_connections')
+          .select('id, name')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+
+        if (error && status !== 406) {
+          throw error
+        }
+
+        if (data) {
+          data.sort((a, b) => {
+            if (a.name < b.name) {
+              return -1
+            }
+            if (a.name > b.name) {
+              return 1
+            }
+            return 0
+          })
+          setDatabaseConnections(data)
+        }
+      } catch (error: unknown) {
+        console.error(error)
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metricNode])
+  }, [organizationId])
+  useEffect(() => {
+    populateDatabaseConnections()
+  }, [populateDatabaseConnections])
+
+  const populateGraphSyncs = useCallback(async () => {
+    if (organizationId) {
+      try {
+        const { data, error, status } = await supabase
+          .from('graph_syncs')
+          .select('id, name, properties, graph_sync_types!inner ( name )')
+          .match({
+            organization_id: organizationId,
+            'graph_sync_types.name': 'dbt Project', // ignore other types
+          })
+          .is('deleted_at', null)
+
+        if (error && status !== 406) {
+          throw error
+        }
+
+        if (data) {
+          data.sort((a, b) => {
+            if (a.name < b.name) {
+              return -1
+            }
+            if (a.name > b.name) {
+              return 1
+            }
+            return 0
+          })
+          setGraphSyncs(
+            [
+              {
+                id: '',
+                name: '(none)',
+                properties: {},
+                graph_sync_types: {
+                  name: '',
+                },
+              },
+            ].concat(data)
+          )
+        }
+      } catch (error: unknown) {
+        console.error(error)
+      }
+    }
+  }, [organizationId])
+  useEffect(() => {
+    populateGraphSyncs()
+  }, [populateGraphSyncs])
+
+  const populateDetails = useCallback(() => {
+    setName(metricNode?.data.name || '')
+    setOwner(metricNode?.data.owner || '')
+    setDescription(metricNode?.data.description || '')
+    setSourceDatabaseConnection(
+      databaseConnections.find(
+        (databaseConnection) =>
+          databaseConnection.id === metricNode?.data.source.databaseConnectionId
+      ) || null
+    )
+    setSourceDbtProjectGraphSync(
+      graphSyncs.find(
+        (graphSync) =>
+          graphSync.id === metricNode?.data.source.dbtProjectGraphSyncId
+      ) || null
+    )
+    setSourceDbtProjectMetricPath(metricNode?.data.source.dbtProjectMetricPath)
+    setSourceQueryType(
+      (metricNode?.data.source.queryType as SourceQueryType) || 'freeform'
+    )
+    setSourceQuery(metricNode?.data.source.query || '')
+  }, [metricNode, databaseConnections, graphSyncs])
   useEffect(() => {
     populateDetails()
   }, [populateDetails])
@@ -278,103 +355,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     [metricNode]
   )
 
-  const populateDatabaseConnections = useCallback(async () => {
-    if (organizationId) {
-      try {
-        const { data, error, status } = await supabase
-          .from('database_connections')
-          .select('id, name')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null)
-
-        if (error && status !== 406) {
-          throw error
-        }
-
-        if (data) {
-          data.sort((a, b) => {
-            if (a.name < b.name) {
-              return -1
-            }
-            if (a.name > b.name) {
-              return 1
-            }
-            return 0
-          })
-          setDatabaseConnections(data)
-        }
-      } catch (error: unknown) {
-        console.error(error)
-      }
-    }
-  }, [organizationId])
-  useEffect(() => {
-    populateDatabaseConnections()
-  }, [populateDatabaseConnections])
-  useEffect(() => {
-    const sourceDatabaseConnection = databaseConnections.find(
-      (databaseConnection) =>
-        databaseConnection.id === sourceDatabaseConnectionId
-    )
-    if (sourceDatabaseConnection) {
-      setSourceDatabaseConnectionName(sourceDatabaseConnection.name)
-    } else {
-      setSourceDatabaseConnectionName('')
-    }
-  }, [
-    sourceDatabaseConnectionId,
-    databaseConnections,
-    setSourceDatabaseConnectionName,
-  ])
-
-  const populateGraphSyncs = useCallback(async () => {
-    if (organizationId) {
-      try {
-        const { data, error, status } = await supabase
-          .from('graph_syncs')
-          .select('id, name, properties, graph_sync_types!inner ( name )')
-          .match({
-            organization_id: organizationId,
-            'graph_sync_types.name': 'dbt Project', // ignore other types
-          })
-          .is('deleted_at', null)
-
-        if (error && status !== 406) {
-          throw error
-        }
-
-        if (data) {
-          data.sort((a, b) => {
-            if (a.name < b.name) {
-              return -1
-            }
-            if (a.name > b.name) {
-              return 1
-            }
-            return 0
-          })
-          setGraphSyncs(data)
-        }
-      } catch (error: unknown) {
-        console.error(error)
-      }
-    }
-  }, [organizationId])
-  useEffect(() => {
-    populateGraphSyncs()
-  }, [populateGraphSyncs])
-  useEffect(() => {
-    setSourceDbtProjectGraphSync(
-      graphSyncs.find(
-        (graphSync) => graphSync.id === sourceDbtProjectGraphSyncId
-      ) || null
-    )
-  }, [sourceDbtProjectGraphSyncId, graphSyncs])
-
   const getDbtMetricYaml = useCallback(async () => {
     if (
-      sourceDbtProjectGraphSyncId &&
-      sourceDbtProjectGraphSync &&
+      sourceDbtProjectGraphSync?.id &&
       metricNode?.data?.source?.dbtProjectMetricPath
       /* ^use this, rather than sourceDbtProjectMetricPath, so we don't 
       hit github on every keystroke */
@@ -386,7 +369,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
       // get dbt project graph sync client token
       const clientTokenResp = await fetch(
-        `/api/v1/graph-syncs/${sourceDbtProjectGraphSyncId}/client-tokens`,
+        `/api/v1/graph-syncs/${sourceDbtProjectGraphSync.id}/client-tokens`,
         {
           method: 'GET',
           headers: {
@@ -461,9 +444,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       }
 
       return jsYaml.dump(metric)
+    } else {
+      return ''
     }
   }, [
-    sourceDbtProjectGraphSyncId,
     sourceDbtProjectGraphSync,
     metricNode?.data?.source?.dbtProjectMetricPath,
     session,
@@ -477,11 +461,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   }, [getDbtMetricYaml])
 
   const generateDbtMetricSql = useCallback(() => {
-    let dbtMetricSql = ''
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const metric = jsYaml.load(sourceDbtMetricYaml) as any
     if (metric) {
-      dbtMetricSql = endent`
+      return endent`
         -- mgraph params below are replaced prior to dbt compilation
         SELECT
           -- dbt grains always lowercase
@@ -507,8 +490,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           -- allow absolute (e.g., '2022-01-01-') and relative (e.g., SYSDATE() - INTERVAL '30 DAY') params
           date_{{ "{{frequency}}".lower() }} BETWEEN {{beginning_date}} AND {{ending_date}}
       `
+    } else {
+      return ''
     }
-    return dbtMetricSql
   }, [sourceDbtMetricYaml])
   useEffect(() => {
     if (editingEnabled && sourceQueryType === 'generated') {
@@ -640,23 +624,16 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         <h3>Database</h3>
         <div className={styles.connection_config_block}>
           <div className={styles.connection_config}>
-            <label
-              htmlFor="source-database-connection-dropdown"
-              className={styles.connection_config_label}
-            >
-              Connection
-            </label>
             <Dropdown
               id="source-database-connection-dropdown"
               className={styles.connection_config_value}
-              value={sourceDatabaseConnectionName}
+              value={sourceDatabaseConnection?.name || ''}
               options={databaseConnections.map((dc) => dc.name)}
               onChange={(e) => {
                 const newSourceDatabaseConnection = databaseConnections.find(
                   (dc) => dc.name === e.value
                 )
                 if (newSourceDatabaseConnection) {
-                  setSourceDatabaseConnectionId(newSourceDatabaseConnection.id)
                   saveDetail('source', {
                     ...metricNode?.data?.source,
                     databaseConnectionId: newSourceDatabaseConnection.id,
@@ -668,41 +645,80 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
               tooltip="The database on which query will be run"
             />
           </div>
-          {(editingEnabled || sourceDbtProjectGraphSyncId) && (
-            <div className={styles.connection_config}>
-              <label
-                htmlFor="source-dbt-project-graph-sync-dropdown"
-                className={styles.connection_config_label}
-              >
-                dbt Project
-              </label>
-              <Dropdown
-                id="source-dbt-project-graph-sync-dropdown"
-                className={styles.connection_config_value}
-                value={sourceDbtProjectGraphSync?.name || ''}
-                options={graphSyncs.map((gc) => gc.name)}
-                onChange={(e) => {
-                  const newSourceDbtProjectGraphSync = graphSyncs.find(
-                    (gs) => gs.name === e.value
-                  )
-                  if (newSourceDbtProjectGraphSync) {
-                    setSourceDbtProjectGraphSyncId(
-                      newSourceDbtProjectGraphSync.id
-                    )
-                    saveDetail('source', {
-                      ...metricNode?.data?.source,
-                      dbtProjectGraphSyncId: newSourceDbtProjectGraphSync.id,
-                    })
-                    // name updating handled by useEffect above
-                  }
-                }}
-                disabled={!editingEnabled}
-                emptyMessage="No dbt project graph syncs configured"
-                tooltip="The project from which macros and metric definitions will be populated"
-              />
-            </div>
-          )}
         </div>
+        {(editingEnabled || sourceDbtProjectGraphSync?.id) && (
+          <>
+            <h3>dbt Metric</h3>
+            <div className={styles.connection_config_block}>
+              <div className={styles.connection_config}>
+                <label
+                  htmlFor="source-dbt-project-graph-sync-dropdown"
+                  className={styles.connection_config_label}
+                >
+                  Project
+                </label>
+                <Dropdown
+                  id="source-dbt-project-graph-sync-dropdown"
+                  className={styles.connection_config_value}
+                  value={sourceDbtProjectGraphSync?.name || ''}
+                  options={graphSyncs.map((gc) => gc.name)}
+                  onChange={(e) => {
+                    const newSourceDbtProjectGraphSync = graphSyncs.find(
+                      (gs) => gs.name === e.value
+                    )
+                    if (newSourceDbtProjectGraphSync) {
+                      saveDetail('source', {
+                        ...metricNode?.data?.source,
+                        dbtProjectGraphSyncId: newSourceDbtProjectGraphSync.id,
+                      })
+                    }
+                  }}
+                  disabled={!editingEnabled}
+                  emptyMessage="No dbt project graph syncs configured"
+                  tooltip="The dbt project graph sync from which to draw metric definition"
+                />
+              </div>
+              {sourceDbtProjectGraphSync?.id && (
+                <div className={styles.connection_config}>
+                  <label
+                    htmlFor="source-dbt-project-path-field"
+                    className={styles.connection_config_label}
+                  >
+                    Path
+                  </label>
+                  <InputText
+                    id="source-dbt-project-path-field"
+                    className={styles.connection_config_value}
+                    value={sourceDbtProjectMetricPath || ''}
+                    onChange={(e) => {
+                      setSourceDbtProjectMetricPath(e.target.value)
+                    }}
+                    onBlur={() => {
+                      saveDetail('source', {
+                        ...metricNode?.data?.source,
+                        dbtProjectMetricPath: sourceDbtProjectMetricPath,
+                      })
+                    }}
+                    disabled={!editingEnabled}
+                    tooltip="Path to dbt metric definition within project; e.g., models/marts/schema.yml:new_users"
+                  />
+                </div>
+              )}
+            </div>
+            {sourceDbtProjectGraphSync?.id && (
+              <>
+                <br />
+                <div>Definition</div>
+                <pre>
+                  {highlight(
+                    sourceDbtMetricYaml || '(metric not found)',
+                    'yaml'
+                  )}
+                </pre>
+              </>
+            )}
+          </>
+        )}
         <h3>
           Query
           {editingEnabled && (
@@ -717,7 +733,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             />
           )}
         </h3>
-        {sourceDbtProjectGraphSyncId && (
+        {(editingEnabled || sourceDbtProjectGraphSync?.id) && (
           <>
             <div className={styles.connection_config_block}>
               <div className={styles.connection_config}>
@@ -745,47 +761,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
                   tooltip="Whether query will be user-inputted or auto-generated from a dbt metric"
                 />
               </div>
-              {sourceQueryType === 'generated' && (
-                <>
-                  <div className={styles.connection_config}>
-                    <label
-                      htmlFor="source-dbt-project-path-field"
-                      className={styles.connection_config_label}
-                    >
-                      dbt Project Metric Path
-                    </label>
-                    <InputText
-                      id="source-dbt-project-path-field"
-                      className={styles.connection_config_value}
-                      value={sourceDbtProjectMetricPath || ''}
-                      onChange={(e) => {
-                        setSourceDbtProjectMetricPath(e.target.value)
-                      }}
-                      onBlur={() => {
-                        saveDetail('source', {
-                          ...metricNode?.data?.source,
-                          dbtProjectMetricPath: sourceDbtProjectMetricPath,
-                        })
-                      }}
-                      disabled={!editingEnabled}
-                      tooltip="Path to dbt metric definition within project; e.g., models/marts/schema.yml:new_users"
-                    />
-                  </div>
-                </>
-              )}
             </div>
-            {sourceQueryType === 'generated' && (
-              <>
-                <div>dbt Metric Definition</div>
-                <pre>
-                  {highlight(
-                    sourceDbtMetricYaml || '(metric not found)',
-                    'yaml'
-                  )}
-                </pre>
-                <div>Generated SQL</div>
-              </>
-            )}
+            {sourceQueryType === 'generated' && <div>Generated SQL</div>}
           </>
         )}
         {editingEnabled && sourceQueryType === 'freeform' ? (
