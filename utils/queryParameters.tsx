@@ -130,7 +130,7 @@ export const parameterizeStatement = (
   statement: string,
   queryParameters: QueryParameters
 ) => {
-  return statement.replace(/{{(.*?)}}/g, (_match, p1) => {
+  return statement.replace(/{{(\w+)}}/g, (_match, p1) => {
     const snakeCaseName = p1.toLowerCase().replace(/ /g, '_')
     if (queryParameters[snakeCaseName]) {
       return queryParameters[snakeCaseName].userValue
