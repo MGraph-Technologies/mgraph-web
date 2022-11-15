@@ -482,15 +482,30 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     const metric = jsYaml.load(sourceDbtMetricYaml) as any
     if (metric) {
       dbtMetricSql = endent`
-        SELECT *
-        FROM {{ metrics.calculate(
-          metric('${metric.name}'),
-          grain={{frequency}},
-          dimensions=[{{group_by}}],
-          start_date={{beginning_date}},
-          end_date={{ending_date}}
-          where={{conditions}}
-        ) }}
+        -- mgraph params below are replaced prior to dbt compilation
+        SELECT
+          -- dbt grains always lowercase
+          date_{{ "{{frequency}}".lower() }} AS date,
+          -- allow empty group_by param
+          {{ "{{group_by}}" if "{{group_by}}" else "CAST(NULL AS STRING)" }} AS dimension,
+          IFF(
+            date_{{ "{{frequency}}".lower() }} < DATE_TRUNC({{frequency}}, SYSDATE())
+              OR {{show_unfinished_values}},
+            ${metric.name},
+            NULL
+          ) as value
+        FROM
+          {{
+            metrics.calculate(
+              metric("${metric.name}"),
+              grain="{{frequency}}".lower(),
+              dimensions=["{{group_by}}"] if "{{group_by}}" else [],
+              where="{{conditions}}"
+            )
+          }}
+        WHERE
+          -- allow absolute (e.g., '2022-01-01-') and relative (e.g., SYSDATE() - INTERVAL '30 DAY') params
+          date_{{ "{{frequency}}".lower() }} BETWEEN {{beginning_date}} AND {{ending_date}}
       `
     }
     return dbtMetricSql
