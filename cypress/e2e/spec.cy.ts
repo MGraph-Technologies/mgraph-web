@@ -720,7 +720,7 @@ describe('Admin settings', () => {
     cy.get('[id=graph-syncs-table]').contains(randomString)
   })
 
-  it('Visits refresh jobs page, then adds and deletes a job', () => {
+  it('Visits refresh jobs page, then adds, edits, and deletes a job', () => {
     // visit page
     cy.visit('/mgraph/settings/refresh-jobs')
 
@@ -731,12 +731,35 @@ describe('Admin settings', () => {
     cy.get('[id=schedule-field]').type('0 13 * * *')
     cy.get('[id=slack-to-field]').type(newJobSlackTo)
     cy.get('[id=save-refresh-job-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
     cy.get('[id=refresh-jobs-table]')
       .contains(newJobSlackTo)
       .parent('tr')
       .within(() => {
         cy.get('td').contains('0 13 * * *').should('exist')
         cy.get('td').contains(newJobSlackTo).should('exist')
+      })
+
+    // edit job
+    cy.get('[id=refresh-jobs-table]')
+      .contains(newJobSlackTo)
+      .parent('tr')
+      .find('[id=edit-refresh-job-button]')
+      .click()
+    cy.get('[id=schedule-field]').clear().type('0 14 * * *')
+    cy.get('[id=save-refresh-job-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=refresh-jobs-table]')
+      .contains(newJobSlackTo)
+      .parent('tr')
+      .within(() => {
+        cy.get('td').contains('0 14 * * *').should('exist')
       })
 
     // delete job
