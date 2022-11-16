@@ -512,6 +512,11 @@ describe('Metric detail editing', () => {
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
+
+    // reset default parameter
+    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]').clear().parent().click()
+    cy.get('[id=group_by-set-default-button]').click()
   })
 
   it('Visits a metric detail page, sets parameters, enters a SQL query that uses them, then sees results', () => {
