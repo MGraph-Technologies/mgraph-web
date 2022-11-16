@@ -4,11 +4,11 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 import { Node } from 'react-flow-renderer'
 
-import { getBaseUrl } from '../../../../utils/appBaseUrl'
 import {
   getQueryParameters,
   parameterizeStatement,
-} from '../../../../utils/queryParameters'
+} from '../../../../contexts/queries'
+import { getBaseUrl } from '../../../../utils/appBaseUrl'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
