@@ -174,7 +174,7 @@ describe('Graphviewer editing', () => {
     cy.visit('/mgraph')
     /* wait for graph to load before editing
     (otherwise, added nodes are overwritten by graph load) */
-    cy.wait(1000)
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -206,13 +206,13 @@ describe('Graphviewer editing', () => {
     cy.get('[id=formula-field]')
       .click()
       .type(newMetricName)
-      .wait(1000)
+      .wait(2000)
       .type('{enter}') // wait for suggestion to load
       .type('~')
-      .wait(1000)
+      .wait(2000)
       .type('{enter}')
       .type('Active Users')
-      .wait(1000)
+      .wait(2000)
       .type('{enter}')
     cy.get('[id=save-formula-button]').click()
     // TODO: check newly-added function node is visible
@@ -229,7 +229,7 @@ describe('Graphviewer editing', () => {
     cy.visit('/mgraph')
     /* wait for graph to load before editing
     (otherwise, added nodes are overwritten by graph load) */
-    cy.wait(1000)
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -249,13 +249,13 @@ describe('Graphviewer editing', () => {
     cy.get('[id=formula-field]')
       .click()
       .type('mission')
-      .wait(1000)
+      .wait(2000)
       .type('{enter}') // wait for suggestion to load
       .type('f')
-      .wait(1000)
+      .wait(2000)
       .type('{enter}')
       .type('Active Users')
-      .wait(1000)
+      .wait(2000)
       .type('{enter}')
     cy.get('[id=save-formula-button]').click()
   })
@@ -294,6 +294,7 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, edits description, tests undo and redo, then cancels', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -321,6 +322,7 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, edits description, then saves', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -334,13 +336,14 @@ describe('Metric detail editing', () => {
 
     // save
     cy.get('[id=save-button]').click()
-    cy.reload()
+    cy.wait(2000).reload()
     cy.contains(newValue).should('exist')
   })
 
   it('Visits a metric detail page, enters a working SQL query, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -367,6 +370,7 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, enters a working SQL query, saves it, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -384,7 +388,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=save-button]').click()
 
     // see results on metric detail page
-    cy.reload()
+    cy.wait(2000).reload()
     cy.get('[class*=LineChart_chart_container]')
       .contains(randomInt.toLocaleString())
       .should('exist')
@@ -399,6 +403,7 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, enters a failing SQL query, then sees error', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -422,6 +427,7 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, enters a working but wrong-format SQL query, then sees error', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -449,7 +455,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=link-to-detail-button]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
-    cy.wait(1000)
+    cy.wait(2000)
 
     // set group_by parameter
     const randomGroupBy = Math.random().toString(36)
@@ -462,8 +468,8 @@ describe('Metric detail editing', () => {
       .click()
 
     // see that parameter persists
-    cy.reload()
-    cy.wait(1000) // wait for page to load
+    cy.wait(2000).reload()
+    cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy)
 
@@ -471,8 +477,8 @@ describe('Metric detail editing', () => {
     cy.get('[id=group_by-set-default-button]').click()
 
     // see that parameter persists as org default
-    cy.reload()
-    cy.wait(1000) // wait for page to load
+    cy.wait(2000).reload()
+    cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
@@ -487,22 +493,22 @@ describe('Metric detail editing', () => {
       .click()
 
     // see that new parameter persists
-    cy.reload()
-    cy.wait(1000) // wait for page to load
+    cy.wait(2000).reload()
+    cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy2)
 
     // reset new parameter
     cy.get('[id=group_by-reset-button]').click()
-    cy.wait(1000) // wait for reset to process
+    cy.wait(2000) // wait for reset to process
 
     // see that org default parameter appears
     cy.get('[id=group_by-field').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
 
     // see that default parameter persists
-    cy.reload()
-    cy.wait(1000) // wait for page to load
+    cy.wait(2000).reload()
+    cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
@@ -513,7 +519,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=link-to-detail-button]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
-    cy.wait(1000)
+    cy.wait(2000)
 
     // set parameters
     cy.get('[id=query-settings-button]').click().wait(100)
