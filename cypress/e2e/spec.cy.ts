@@ -687,20 +687,37 @@ describe('Admin settings', () => {
       .should('not.exist')
   })
 
-  it('Visits graph syncs page and sees expected content', () => {
-    // TODO: test full installation flow
-
+  it('Visits graph syncs page, sees expected content, tests partial installation flow, then edits a sync', () => {
     // visit page
     cy.visit('/mgraph/settings/graph-syncs')
 
     // see expected content
     cy.get('body').contains('Graph Syncs')
+
+    // test partial installation flow
+    const randomString = Math.random().toString(36)
     cy.get('[id=new-graph-sync-button]').click()
     cy.get('body').contains('New Graph Sync')
-    cy.get('[id=name-field]').should('exist')
-    cy.get('[id=github-repo-url-field]').should('exist')
+    cy.get('[id=name-field]').clear().type(randomString)
+    cy.get('[id=github-repo-url-field]').clear().type(randomString)
     cy.get('[id=github-app-button').click()
     cy.url().should('include', 'mgraph-dbt-sync')
+    // TODO: test full installation flow
+
+    // edit graph sync
+    cy.visit('/mgraph/settings/graph-syncs')
+    cy.get('[id=graph-syncs-table]')
+      .contains('dbt Project')
+      .parent('tr')
+      .find('[id=edit-graph-sync-button]')
+      .click()
+    cy.get('[id=name-field]').clear().type(randomString)
+    cy.get('[id=save-graph-sync-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=graph-syncs-table]').contains(randomString)
   })
 
   it('Visits refresh jobs page, then adds and deletes a job', () => {
