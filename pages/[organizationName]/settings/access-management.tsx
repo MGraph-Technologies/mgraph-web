@@ -313,6 +313,7 @@ const AccessManagement: FunctionComponent = () => {
             <DataTable
               paginator
               scrollable
+              id="users-table"
               className="p-datatable-users"
               value={users}
               loading={usersTableLoading}

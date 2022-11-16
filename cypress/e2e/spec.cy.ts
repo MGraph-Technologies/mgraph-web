@@ -560,7 +560,7 @@ describe('Metric detail editing', () => {
         DATE_TRUNC('{{frequency}}', {{beginning_date}}),
         {{group_by}},
         ${randomInt}
-      
+
       UNION ALL
       SELECT
         DATE_TRUNC('{{frequency}}', {{ending_date}}),
@@ -589,13 +589,52 @@ describe('Admin settings', () => {
     )
   })
 
-  it('Visits access management page and sees expected content', () => {
+  it("Visits access management page, sees expected content, then toggles a user's role", () => {
+    // visit access management page
     cy.visit('/mgraph/settings/access-management')
+
+    // see expected content
     cy.get('body').contains('Add Users')
     cy.get('body').contains('Default role')
     cy.get('body').contains('Edit Users')
     cy.get('body').contains('Role')
     cy.get('body').contains('Email')
+
+    // toggle a user's role
+    cy.get('[id=users-table]')
+      .contains('cypress-test-account+awaiting_admin_approval@mgraph.us')
+      .parent('tr')
+      .find('[class*=p-dropdown-trigger]')
+      .first()
+      .click()
+    cy.get('[class*=p-dropdown-item]').contains('viewer').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=users-table]')
+      .contains('cypress-test-account+awaiting_admin_approval@mgraph.us')
+      .parent('tr')
+      .contains('viewer')
+
+    // set it back
+    cy.get('[id=users-table]')
+      .contains('cypress-test-account+awaiting_admin_approval@mgraph.us')
+      .parent('tr')
+      .find('[class*=p-dropdown-trigger]')
+      .first()
+      .click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('awaiting_admin_approval')
+      .click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=users-table]')
+      .contains('cypress-test-account+awaiting_admin_approval@mgraph.us')
+      .parent('tr')
+      .contains('awaiting_admin_approval')
   })
 
   it('Visits database connections page, then adds and deletes a connection', () => {
