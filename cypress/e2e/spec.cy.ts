@@ -603,8 +603,7 @@ describe('Admin settings', () => {
     cy.get('[id=region-field]').type(randomString)
     cy.get('[id=account-field]').type(randomString)
     cy.get('[id=username-field]').type(randomString)
-    cy.get('[id=private-key-field]').type(randomString)
-    cy.get('[id=private-key-passphrase-field]').type(randomString)
+    cy.get('[id=password-field]').type(randomString)
     cy.get('[id=save-database-connection-button]').click()
     cy.get('[id=database-connections-table]').contains(randomString)
 
