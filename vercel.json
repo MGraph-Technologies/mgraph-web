@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/v1/database-queries/snowflake-jdbc-proxy/index.py": {
-      "excludeFiles": "{.github,.husky,.next,components,contexts,cypress,pages,public,styles,utils}/**"
+      "excludeFiles": "{.github,.husky,.next,components,contexts,cypress,pages,public,styles,utils}/**/*"
     }
   }
 }
