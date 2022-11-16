@@ -637,16 +637,17 @@ export const getQueryParameters = async (
             [row.name]: {
               userRecordId: row.id,
               userValue: row.deleted_at === null ? row.value : '',
-              orgDefaultRecordId: queryParameters[row.name].orgDefaultRecordId,
-              orgDefaultValue: queryParameters[row.name].orgDefaultValue,
             },
           }
         } else {
+          const userValueExists = data.some(
+            (r) => r.name === row.name && r.user_id && r.deleted_at === null
+          )
           queryParameters = {
             ...queryParameters,
             [row.name]: {
               userRecordId: queryParameters[row.name].userRecordId,
-              userValue: queryParameters[row.name].userValue
+              userValue: userValueExists
                 ? queryParameters[row.name].userValue
                 : row.value,
               orgDefaultRecordId: row.id,
