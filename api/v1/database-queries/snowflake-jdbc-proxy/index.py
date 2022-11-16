@@ -9,8 +9,6 @@ import jpype.types
 
 # jpype java initialization and imports
 os.environ['_JAVA_OPTIONS'] = '--add-opens=java.base/java.nio=ALL-UNNAMED'
-jpype.addClassPath('./bcpkix-jdk18on-172.jar')
-jpype.addClassPath('./bcprov-jdk18on-172.jar')
 jpype.addClassPath('./snowflake-jdbc-3.13.24.jar')
 jpype.startJVM()
 
