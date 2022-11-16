@@ -637,7 +637,7 @@ describe('Admin settings', () => {
       .contains('awaiting_admin_approval')
   })
 
-  it('Visits database connections page, then adds and deletes a connection', () => {
+  it('Visits database connections page, then adds, edits, and deletes a connection', () => {
     // visit page
     cy.visit('/mgraph/settings/database-connections')
 
@@ -650,9 +650,31 @@ describe('Admin settings', () => {
     cy.get('[id=username-field]').type(randomString)
     cy.get('[id=password-field]').type(randomString)
     cy.get('[id=save-database-connection-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
     cy.get('[id=database-connections-table]').contains(randomString)
 
     // TODO: test that connection works
+
+    // edit connection
+    const newRandomString = Math.random().toString(36)
+    cy.get('[id=database-connections-table]')
+      .contains(randomString)
+      .parent('tr')
+      .find('[id=edit-database-connection-button]')
+      .click()
+    cy.get('[id=name-field]').type(newRandomString)
+    cy.get('[id=region-field]').type(newRandomString)
+    cy.get('[id=account-field]').type(newRandomString)
+    cy.get('[id=username-field]').type(newRandomString)
+    cy.get('[id=password-field]').type(newRandomString)
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=database-connections-table]').contains(randomString)
 
     // delete connection
     cy.get('[id=database-connections-table]')
