@@ -350,7 +350,10 @@ describe('Metric detail editing', () => {
 
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake direct')
+      .first()
+      .click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -377,7 +380,10 @@ describe('Metric detail editing', () => {
 
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake direct')
+      .first()
+      .click()
 
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -410,7 +416,10 @@ describe('Metric detail editing', () => {
 
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake direct')
+      .first()
+      .click()
 
     // edit query
     const newQuery = 'SELECT x'
@@ -424,7 +433,7 @@ describe('Metric detail editing', () => {
       .should('exist')
   })
 
-  it('Visits a metric detail page, enters a working but wrong-format SQL query, then sees error', () => {
+  it('Visits a metric detail page, enters a working but wrong-format SQL query using dbt connection and syntax, then sees error', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
     cy.wait(2000)
@@ -432,14 +441,19 @@ describe('Metric detail editing', () => {
     // begin editing
     cy.get('[id=edit-button]').click()
 
-    // select snowflake as source database connection
+    // select snowflake dbt proxy as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake dbt proxy')
+      .first()
+      .click()
 
     // edit query
-    const newQuery = "SELECT TRUE, 'all', 1"
+    const newQuery = "SELECT date FROM {{ ref('dim_dates') }} LIMIT 1"
     cy.get('[id=source-query-field').click()
-    cy.get('[id=source-query-field').clear().type(newQuery)
+    cy.get('[id=source-query-field')
+      .clear()
+      .type(newQuery, { parseSpecialCharSequences: false })
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
@@ -449,6 +463,55 @@ describe('Metric detail editing', () => {
   })
 
   // TODO: test processing and expired states
+
+  it('Visits a metric detail page and tests dbt query generation', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // select snowflake dbt proxy as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake dbt proxy')
+      .first()
+      .click()
+
+    // select dbt graph sync
+    cy.get('[id=source-dbt-project-graph-sync-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').not(':contains("none")').first().click()
+
+    // enter working path
+    cy.get('[id=source-dbt-project-path-field]')
+      .click()
+      .clear()
+      .type('models/marts/schema.yml:daily_active_users')
+    cy.get('[class*=Header]').first().click()
+
+    // see populated yaml
+    cy.get('body')
+      .contains('calculation_method: count_distinct')
+      .should('exist')
+
+    // test query generation
+    cy.get('[id=source-query-type-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('generated').first().click()
+    cy.get('body').contains('metrics.calculate(').should('exist')
+
+    // enter incorrect path
+    cy.get('[id=source-dbt-project-path-field]')
+      .click()
+      .clear()
+      .type('x')
+      .parent()
+      .click()
+    cy.get('[class*=Header]').first().click() // click outside of field to save
+
+    // see error
+    cy.get('body').contains('metric not found').should('exist')
+  })
 
   it('Visits a metric detail page and tests persistence of query parameters', () => {
     cy.visit('/mgraph')
