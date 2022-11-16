@@ -20,7 +20,7 @@ import {
   QueryError,
   QueryResult,
   QueryRow,
-} from './QueryRunner'
+} from '../contexts/queries'
 import styles from '../styles/LineChart.module.css'
 import { useAuth } from '../contexts/auth'
 

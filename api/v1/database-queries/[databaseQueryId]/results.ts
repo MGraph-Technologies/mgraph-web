@@ -8,7 +8,7 @@ import {
   QueryData,
   QueryError,
   QueryRow,
-} from '../../../../components/QueryRunner'
+} from '../../../../contexts/queries'
 import { getBaseUrl } from '../../../../utils/appBaseUrl'
 import {
   decryptCredentials,
