@@ -1,9 +1,3 @@
-import endent from 'endent'
-import hljs from 'highlight.js/lib/core'
-import plaintext from 'highlight.js/lib/languages/plaintext'
-import sql from 'highlight.js/lib/languages/sql'
-import yaml from 'highlight.js/lib/languages/yaml'
-import 'highlight.js/styles/docco.css'
 import jsYaml from 'js-yaml'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
@@ -21,6 +15,7 @@ import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/MetricDetail.module.css'
+import { highlight } from '../../utils/codeHighlighter'
 import { supabase } from '../../utils/supabaseClient'
 import LineChart from '../LineChart'
 import QueryRunner, { QueryResult } from '../QueryRunner'
@@ -31,10 +26,6 @@ import {
   MetricNodeSource,
   SourceQueryType,
 } from './MetricNode'
-
-hljs.registerLanguage('plaintext', plaintext)
-hljs.registerLanguage('sql', sql)
-hljs.registerLanguage('yaml', yaml)
 
 type MetricDetailProps = {
   metricId: string | string[] | undefined
@@ -463,37 +454,17 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const generateDbtMetricSql = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const metric = jsYaml.load(sourceDbtMetricYaml) as any
-    if (metric) {
-      return endent`
-        -- mgraph params below are replaced prior to dbt compilation
-        SELECT
-          -- dbt grains always lowercase
-          date_{{ "{{frequency}}".lower() }} AS date,
-          -- allow empty group_by param
-          {{ "{{group_by}}" if "{{group_by}}" else "CAST(NULL AS STRING)" }} AS dimension,
-          IFF(
-            date_{{ "{{frequency}}".lower() }} < DATE_TRUNC({{frequency}}, SYSDATE())
-              OR {{show_unfinished_values}},
-            ${metric.name},
-            NULL
-          ) as value
-        FROM
-          {{
-            metrics.calculate(
-              metric("${metric.name}"),
-              grain="{{frequency}}".lower(),
-              dimensions=["{{group_by}}"] if "{{group_by}}" else [],
-              where="{{conditions}}"
-            )
-          }}
-        WHERE
-          -- allow absolute (e.g., '2022-01-01-') and relative (e.g., SYSDATE() - INTERVAL '30 DAY') params
-          date_{{ "{{frequency}}".lower() }} BETWEEN {{beginning_date}} AND {{ending_date}}
-      `
+    const queryTemplate =
+      sourceDbtProjectGraphSync?.properties?.generatedQueryTemplate
+    if (metric && queryTemplate) {
+      return queryTemplate.replace(/{{\s*metric_name\s*}}/g, metric.name)
     } else {
       return ''
     }
-  }, [sourceDbtMetricYaml])
+  }, [
+    sourceDbtMetricYaml,
+    sourceDbtProjectGraphSync?.properties?.generatedQueryTemplate,
+  ])
   useEffect(() => {
     if (editingEnabled && sourceQueryType === 'generated') {
       const dbtMetricSql = generateDbtMetricSql()
@@ -513,19 +484,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     metricNode?.data?.source,
     saveDetail,
   ])
-
-  // https://github.com/highlightjs/highlight.js/issues/925
-  const highlight = (code: string, language: string) => {
-    return (
-      <code
-        className="hljs"
-        dangerouslySetInnerHTML={{
-          __html: hljs.highlight(code, { language }).value,
-        }}
-        style={{ borderRadius: '5px' }}
-      />
-    )
-  }
 
   return (
     <div className={styles.metric_detail}>

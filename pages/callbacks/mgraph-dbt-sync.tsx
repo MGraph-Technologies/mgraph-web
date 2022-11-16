@@ -44,6 +44,7 @@ const MGraphDbtSync: FunctionComponent = () => {
               properties: {
                 installationId: installationIdNum,
                 repoUrl: savedState.repoUrl,
+                generatedQueryTemplate: savedState.generatedQueryTemplate,
               },
               updated_at: new Date(),
             })
