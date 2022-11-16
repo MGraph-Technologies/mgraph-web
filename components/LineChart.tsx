@@ -238,7 +238,13 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       return (
         <Message
           severity="error"
-          text={JSON.stringify(queryError.error) || 'An error occurred.'}
+          text={
+            queryError
+              ? typeof queryError === 'string'
+                ? queryError
+                : JSON.stringify(queryError)
+              : 'An error occurred.'
+          }
           style={centerStyle}
         />
       )
