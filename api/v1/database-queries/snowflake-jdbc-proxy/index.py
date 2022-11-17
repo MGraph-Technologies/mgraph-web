@@ -13,6 +13,7 @@ endpoint_path = os.path.join(cwd, 'api/v1/database-queries/snowflake-jdbc-proxy'
 snowflake_jar_path = os.path.join(endpoint_path, 'snowflake-jdbc-3.13.24.jar')
 jvm_path = os.path.join(endpoint_path, 'jre/lib/libjli.dylib')
 print('Snowflake-jdbc-proxy CWD: ', cwd)
+print('CWD contents: ', os.listdir(cwd))
 jpype.startJVM(
   jvm_path,
   '--add-opens=java.base/java.nio=ALL-UNNAMED',
