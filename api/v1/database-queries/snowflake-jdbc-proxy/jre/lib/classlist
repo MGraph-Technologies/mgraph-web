@@ -333,7 +333,6 @@ java/net/InetAddress$PlatformResolver
 java/net/InetAddressImpl
 java/net/InterfaceAddress
 java/net/NetworkInterface
-java/net/NetworkInterface$1
 java/net/URI
 java/net/URI$1
 java/net/URI$Parser
@@ -366,6 +365,7 @@ java/nio/charset/Charset
 java/nio/charset/CharsetEncoder
 java/nio/charset/CoderResult
 java/nio/charset/CodingErrorAction
+java/nio/charset/StandardCharsets
 java/nio/charset/spi/CharsetProvider
 java/nio/file/CopyOption
 java/nio/file/FileSystem
@@ -382,6 +382,8 @@ java/nio/file/Watchable
 java/nio/file/attribute/AttributeView
 java/nio/file/attribute/BasicFileAttributeView
 java/nio/file/attribute/BasicFileAttributes
+java/nio/file/attribute/DosFileAttributeView
+java/nio/file/attribute/DosFileAttributes
 java/nio/file/attribute/FileAttributeView
 java/nio/file/attribute/FileTime
 java/nio/file/attribute/PosixFileAttributes
@@ -1126,22 +1128,26 @@ sun/net/www/protocol/jar/Handler
 sun/nio/ByteBuffered
 sun/nio/ch/DirectBuffer
 sun/nio/cs/HistoricallyNamedCharset
+sun/nio/cs/ISO_8859_1
 sun/nio/cs/StandardCharsets
+sun/nio/cs/StandardCharsets$Aliases
+sun/nio/cs/StandardCharsets$Cache
 sun/nio/cs/StreamEncoder
 sun/nio/cs/Surrogate
 sun/nio/cs/Surrogate$Parser
 sun/nio/cs/US_ASCII
 sun/nio/cs/US_ASCII$Encoder
+sun/nio/cs/UTF_16
+sun/nio/cs/UTF_16BE
+sun/nio/cs/UTF_16LE
 sun/nio/cs/UTF_8
 sun/nio/cs/Unicode
 sun/nio/fs/AbstractBasicFileAttributeView
 sun/nio/fs/AbstractFileSystemProvider
-sun/nio/fs/BsdFileSystem
-sun/nio/fs/BsdFileSystemProvider
 sun/nio/fs/DefaultFileSystemProvider
 sun/nio/fs/DynamicFileAttributeView
-sun/nio/fs/MacOSXFileSystem
-sun/nio/fs/MacOSXFileSystemProvider
+sun/nio/fs/LinuxFileSystem
+sun/nio/fs/LinuxFileSystemProvider
 sun/nio/fs/NativeBuffer
 sun/nio/fs/NativeBuffer$Deallocator
 sun/nio/fs/NativeBuffers
@@ -1166,6 +1172,7 @@ sun/security/util/FilePermCompat
 sun/security/util/LazyCodeSourcePermissionCollection
 sun/security/util/SecurityProperties
 sun/text/resources/cldr/FormatData
+sun/util/PreHashedMap
 sun/util/calendar/AbstractCalendar
 sun/util/calendar/BaseCalendar
 sun/util/calendar/BaseCalendar$Date
@@ -1403,7 +1410,6 @@ sun/util/spi/CalendarProvider
 @lambda-proxy java/lang/module/ModuleFinder$2 apply ()Ljava/util/function/Function; (Ljava/lang/Object;)Ljava/lang/Object; REF_invokeStatic java/lang/module/ModuleFinder$2 lambda$findAll$2 (Ljava/lang/module/ModuleFinder;)Ljava/util/stream/Stream; (Ljava/lang/module/ModuleFinder;)Ljava/util/stream/Stream;
 @lambda-proxy java/lang/module/ModuleFinder$2 apply ()Ljava/util/function/Function; (Ljava/lang/Object;)Ljava/lang/Object; REF_invokeVirtual java/util/Optional stream ()Ljava/util/stream/Stream; (Ljava/util/Optional;)Ljava/util/stream/Stream;
 @lambda-proxy java/lang/module/ModuleFinder$2 apply (Ljava/lang/String;)Ljava/util/function/Function; (Ljava/lang/Object;)Ljava/lang/Object; REF_invokeStatic java/lang/module/ModuleFinder$2 lambda$find$0 (Ljava/lang/String;Ljava/lang/module/ModuleFinder;)Ljava/util/Optional; (Ljava/lang/module/ModuleFinder;)Ljava/util/Optional;
-@lambda-proxy java/net/DefaultInterface run (Ljava/net/NetworkInterface;)Ljava/security/PrivilegedAction; ()Ljava/lang/Object; REF_invokeVirtual java/net/NetworkInterface getInetAddresses ()Ljava/util/Enumeration; ()Ljava/util/Enumeration;
 @lambda-proxy java/text/DecimalFormatSymbols test ()Ljava/util/function/IntPredicate; (I)Z REF_invokeStatic java/text/DecimalFormatSymbols lambda$findNonFormatChar$0 (I)Z (I)Z
 @lambda-proxy java/time/format/DateTimeFormatter queryFrom ()Ljava/time/temporal/TemporalQuery; (Ljava/time/temporal/TemporalAccessor;)Ljava/lang/Object; REF_invokeStatic java/time/format/DateTimeFormatter lambda$static$0 (Ljava/time/temporal/TemporalAccessor;)Ljava/time/Period; (Ljava/time/temporal/TemporalAccessor;)Ljava/time/Period;
 @lambda-proxy java/time/format/DateTimeFormatter queryFrom ()Ljava/time/temporal/TemporalQuery; (Ljava/time/temporal/TemporalAccessor;)Ljava/lang/Object; REF_invokeStatic java/time/format/DateTimeFormatter lambda$static$1 (Ljava/time/temporal/TemporalAccessor;)Ljava/lang/Boolean; (Ljava/time/temporal/TemporalAccessor;)Ljava/lang/Boolean;

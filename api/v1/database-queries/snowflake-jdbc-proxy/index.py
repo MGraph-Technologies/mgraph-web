@@ -10,7 +10,7 @@ import jpype.types
 # jpype java initialization and imports
 endpoint_path = './api/v1/database-queries/snowflake-jdbc-proxy'
 snowflake_jar_path = os.path.join(endpoint_path, 'snowflake-jdbc-3.13.24.jar')
-jvm_path = os.path.join(endpoint_path, 'jre/lib/libjli.dylib')
+jvm_path = os.path.join(endpoint_path, 'jre/lib/libjli.so')
 jpype.startJVM(
   jvm_path,
   '--add-opens=java.base/java.nio=ALL-UNNAMED',
