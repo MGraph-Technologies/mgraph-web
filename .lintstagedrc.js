@@ -6,7 +6,7 @@ const buildEslintCommand = (filenames) =>
     .join(' --file ')}`
 
 const buildPrettierCommand = (filenames) =>
-  `yarn prettier --ignore-path .gitignore --check ${filenames
+  `yarn prettier --check ${filenames
     .map((f) => path.relative(process.cwd(), f))
     .join(' ')}`
 
