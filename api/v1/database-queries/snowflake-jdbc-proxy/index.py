@@ -15,6 +15,8 @@ jvm_path = os.path.join(endpoint_path, 'jre/lib/libjli.dylib')
 print('Snowflake-jdbc-proxy CWD: ', cwd)
 print('CWD contents: ', os.listdir(cwd))
 print('Endpoint contents: ', os.listdir(endpoint_path))
+print('JRE contents: ', os.listdir(os.path.join(endpoint_path, 'jre')))
+print('JRE/lib contents: ', os.listdir(os.path.join(endpoint_path, 'jre/lib')))
 jpype.startJVM(
   jvm_path,
   '--add-opens=java.base/java.nio=ALL-UNNAMED',
