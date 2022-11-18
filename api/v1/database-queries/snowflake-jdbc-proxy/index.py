@@ -13,21 +13,21 @@ if not jpype.isJVMStarted():
   print('Initializing JVM')
   endpoint_path = './api/v1/database-queries/snowflake-jdbc-proxy'
   jre_path = endpoint_path + '/jre'
+  jvm_path = jre_path + '/lib/server/libjvm.so'
 
   if os.environ['NEXT_PUBLIC_ENV'] == 'development':
     print('Development environment detected.')
-    zip = 'jre_macOS-arm64.zip'
+    jre_path = endpoint_path + '/jre_dev'
     jvm_path = jre_path + '/lib/libjli.dylib'
-  else:
-    print('Production/staging environment detected.')
-    zip = 'jre_linux-x64.zip'
-    jvm_path = jre_path + '/lib/server/libjvm.so'
-
     if not os.path.exists(jvm_path):
-      print('JVM not found. Unzipping JRE.')
-      with zipfile.ZipFile(zip, 'r') as zip_ref:
+      print('Building macOS jvm')
+      dev_zip = 'jre_macOS-AArch64.zip'
+      os.system(f'curl -O https://foijfafafqxtuwqjshcu.supabase.co/storage/v1/object/public/public/{dev_zip}')
+      with zipfile.ZipFile(dev_zip, 'r') as zip_ref:
         zip_ref.extractall(endpoint_path)
-  
+    else:
+      print('Mac jvm already exists.')
+
   snowflake_jar_path = endpoint_path + '/snowflake-jdbc-3.13.24.jar'
   jpype.startJVM(
     jvm_path,
