@@ -13,7 +13,6 @@ const mgraphDbtSyncGithubAppPrivateKey =
 
 const getGitHubAppToken = async (appId: string, appPrivateKey: string) => {
   console.log('appId: ', appId)
-  console.log('appPrivateKey: ', appPrivateKey)
   console.log('appPrivateKey length: ', appPrivateKey.length)
   console.log('appPrivateKey hash: ' + getUuid(appPrivateKey))
   const appTokenPayload = {
