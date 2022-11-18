@@ -20,7 +20,7 @@ import {
   QueryError,
   QueryResult,
   QueryRow,
-} from './QueryRunner'
+} from '../contexts/queries'
 import styles from '../styles/LineChart.module.css'
 import { useAuth } from '../contexts/auth'
 
@@ -49,9 +49,9 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     const snowflakeDateTypes = [
       'DATE',
       'TIMESTAMP',
-      'TIMESTAMP_NTZ',
-      'TIMESTAMP_LTZ',
-      'TIMESTAMP_TZ',
+      'TIMESTAMPNTZ',
+      'TIMESTAMPLTZ',
+      'TIMESTAMPTZ',
     ]
     const snowflakeStringTypes = [
       'CHAR',
@@ -102,12 +102,16 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     const dimensions = Array.from(new Set(rows.map((row: QueryRow) => row[1])))
     dimensions.forEach((dimension, index) => {
       const data = rows.filter((row: QueryRow) => row[1] === dimension)
-      data.sort((a: QueryRow, b: QueryRow) => parseInt(a[0]) - parseInt(b[0])) // sort by date
+      data.sort((a: QueryRow, b: QueryRow) => {
+        const aDate = snowflakeDateToJsDate(a[0])
+        const bDate = snowflakeDateToJsDate(b[0])
+        return aDate.getTime() - bDate.getTime()
+      }) // sort by date
       datasets.push({
         label: dimension,
         data: data.map((row: QueryRow) => ({
-          x: snowflakeDateToJsDate(row[0], columns[0].type),
-          y: row[2] !== null ? parseFloat(row[2]) : null,
+          x: snowflakeDateToJsDate(row[0]),
+          y: row[2] !== 'None' ? parseFloat(row[2]) : null,
         })),
         backgroundColor: SERIESCOLORS[index % SERIESCOLORS.length],
         borderColor: SERIESCOLORS[index % SERIESCOLORS.length],
@@ -117,18 +121,11 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     return datasets
   }
 
-  const snowflakeDateToJsDate = (
-    snowflakeDate: string,
-    snowflakeDateType: string
-  ) => {
-    let secondsSinceEpoch = 0
-    if (snowflakeDateType.toUpperCase() === 'DATE') {
-      const daysSinceEpoch = parseInt(snowflakeDate)
-      secondsSinceEpoch = daysSinceEpoch * 24 * 60 * 60
-    } else {
-      secondsSinceEpoch = Number(snowflakeDate)
-    }
-    return new Date(secondsSinceEpoch * 1000)
+  const snowflakeDateToJsDate = (snowflakeDate: string) => {
+    // strip tz info
+    const _snowflakeDate = snowflakeDate.replace(/(Z|[-+]\d{2}:\d{2})$/, '')
+    const date = new Date(_snowflakeDate + 'Z')
+    return date
   }
 
   const centerStyle = {
@@ -241,7 +238,13 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       return (
         <Message
           severity="error"
-          text={queryError.error || 'An error occurred.'}
+          text={
+            queryError
+              ? typeof queryError === 'string'
+                ? queryError
+                : JSON.stringify(queryError)
+              : 'An error occurred.'
+          }
           style={centerStyle}
         />
       )

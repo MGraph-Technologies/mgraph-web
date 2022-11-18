@@ -8,9 +8,10 @@ import { useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 import { AuthProvider } from '../contexts/auth'
+import { BrowserProvider } from '../contexts/browser'
 import { EditabilityProvider } from '../contexts/editability'
 import { GraphProvider } from '../contexts/graph'
-import { BrowserProvider } from '../contexts/browser'
+import { QueriesProvider } from '../contexts/queries'
 import '../styles/globals.css'
 import { analytics } from '../utils/segmentClient'
 
@@ -73,7 +74,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       <BrowserProvider>
         <EditabilityProvider>
           <GraphProvider>
-            <Component {...pageProps} />
+            <QueriesProvider>
+              <Component {...pageProps} />
+            </QueriesProvider>
           </GraphProvider>
         </EditabilityProvider>
       </BrowserProvider>

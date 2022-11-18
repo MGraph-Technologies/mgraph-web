@@ -1,3 +1,4 @@
+import endent from 'endent'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
@@ -12,12 +13,16 @@ import React, {
   useEffect,
   useState,
 } from 'react'
+import Editor from 'react-simple-code-editor'
 import { v4 as uuidv4 } from 'uuid'
 
 import SettingsInputText from '../../../components/SettingsInputText'
 import Workspace from '../../../components/Workspace'
 import { useAuth } from '../../../contexts/auth'
+import { useEditability } from '../../../contexts/editability'
+import { useGraph } from '../../../contexts/graph'
 import styles from '../../../styles/GraphSyncs.module.css'
+import { highlight } from '../../../utils/codeHighlighter'
 import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
 
@@ -49,19 +54,66 @@ const DbtProjectGraphSyncForm: FunctionComponent<
     process.env.NEXT_PUBLIC_ENV === 'production' ? '' : '-dev'
   }`
   const { organizationId } = useAuth()
+  const { editingEnabled } = useEditability()
+  const { graph, loadGraph } = useGraph()
   const [upsertGraphSyncInstalled] = useState(
     upsertGraphSyncProperties.installationId ? true : false
   )
   const [upsertGraphSyncRepoUrl, setUpsertGraphSyncRepoUrl] = useState(
     upsertGraphSyncProperties.repoUrl || ''
   )
+  const [
+    upsertGraphSyncGeneratedQueryTemplate,
+    setUpsertGraphSyncGeneratedQueryTemplate,
+  ] = useState<string>(
+    !upsertGraphSyncProperties.installationId
+      ? // if new sync, use default template
+        endent`
+          -- mgraph params below are replaced prior to dbt compilation
+          SELECT
+            -- dbt grains always lowercase
+            date_{{ "{{frequency}}".lower() }} AS date,
+            -- allow empty group_by param
+            {{ "{{group_by}}" if "{{group_by}}" else "CAST(NULL AS STRING)" }} AS dimension,
+            IFF(
+              date_{{ "{{frequency}}".lower() }} < DATE_TRUNC({{frequency}}, SYSDATE())
+                OR {{show_unfinished_values}},
+              {{metric_name}},
+              NULL
+            ) as value
+          FROM
+            {{
+              metrics.calculate(
+                metric("{{metric_name}}"),
+                grain="{{frequency}}".lower(),
+                dimensions=["{{group_by}}"] if "{{group_by}}" else [],
+                where="{{conditions}}"
+              )
+            }}
+          WHERE
+            -- allow absolute (e.g., '2022-01-01-') and relative (e.g., SYSDATE() - INTERVAL '30 DAY') params
+            date_{{ "{{frequency}}".lower() }} BETWEEN {{beginning_date}} AND {{ending_date}}
+        `
+      : // otherwise use whatever's in the db
+        upsertGraphSyncProperties.generatedQueryTemplate || ''
+  )
 
+  // keep properties in sync with form fields
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setUpsertGraphSyncProperties((prev: any) => {
       return { ...prev, repoUrl: upsertGraphSyncRepoUrl }
     })
   }, [setUpsertGraphSyncProperties, upsertGraphSyncRepoUrl])
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setUpsertGraphSyncProperties((prev: any) => {
+      return {
+        ...prev,
+        generatedQueryTemplate: upsertGraphSyncGeneratedQueryTemplate,
+      }
+    })
+  }, [setUpsertGraphSyncProperties, upsertGraphSyncGeneratedQueryTemplate])
 
   const onInstallGitHubAppClick = useCallback(() => {
     /* use localStorage and state param so that callback
@@ -74,11 +126,17 @@ const DbtProjectGraphSyncForm: FunctionComponent<
       JSON.stringify({
         name: upsertGraphSyncName,
         repoUrl: upsertGraphSyncRepoUrl,
+        generatedQueryTemplate: upsertGraphSyncGeneratedQueryTemplate,
       })
     )
     const installUrl = `${appUrl}/installations/new?state=${stateId}`
     window.open(installUrl, '_self')
-  }, [upsertGraphSyncName, upsertGraphSyncRepoUrl, appUrl])
+  }, [
+    upsertGraphSyncName,
+    upsertGraphSyncRepoUrl,
+    upsertGraphSyncGeneratedQueryTemplate,
+    appUrl,
+  ])
 
   return (
     <>
@@ -133,6 +191,29 @@ const DbtProjectGraphSyncForm: FunctionComponent<
         />
       </div>
       <br />
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <label
+          htmlFor="query-template-editor"
+          style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}
+        >
+          Generated Query Template
+        </label>
+        <Button
+          className="p-button-text"
+          icon="pi pi-info-circle"
+          tooltip="Template used for query generation for synced metrics."
+        />
+      </div>
+      <Editor
+        id="query-template-editor"
+        value={upsertGraphSyncGeneratedQueryTemplate}
+        onValueChange={(query) =>
+          setUpsertGraphSyncGeneratedQueryTemplate(query)
+        }
+        highlight={(query) => highlight(query, 'sql')}
+        textareaClassName="react-simple-code-editor-textarea"
+      />
+      <br />
       <div className={styles.save_cancel_button_container}>
         {upsertGraphSyncInstalled ? (
           // if app not yet installed, GitHub button is de facto the save button
@@ -140,28 +221,72 @@ const DbtProjectGraphSyncForm: FunctionComponent<
             id="save-graph-sync-button"
             label="Save"
             onClick={async () => {
-              if (organizationId) {
+              if (editingEnabled) {
+                alert('Cannot save graph sync while editing is enabled.')
+                // since loadGraph() below would discard pending changes
+                return
+              }
+              if (organizationId && loadGraph) {
                 try {
-                  const { data, error } = await supabase
+                  // update dependent nodes
+                  // TODO: should prob move this to backend
+                  graph.nodes.forEach(async (node) => {
+                    if (
+                      node.type === 'metric' &&
+                      node.data.source?.queryType === 'generated' &&
+                      node.data.source?.dbtProjectGraphSyncId ===
+                        upsertGraphSyncId
+                    ) {
+                      const metricPath = node.data.source.dbtProjectMetricPath
+                      const metricId = metricPath
+                        ? metricPath.split(':').pop()
+                        : ''
+                      const newQuery =
+                        upsertGraphSyncGeneratedQueryTemplate.replace(
+                          /{{\s*metric_name\s*}}/g,
+                          metricId
+                        )
+                      const newProperties = {
+                        ...node.data.initialProperties,
+                      }
+                      newProperties.source.query = newQuery
+                      const { error: updateNodeError } = await supabase
+                        .from('nodes')
+                        .update({
+                          properties: newProperties,
+                        })
+                        .eq('id', node.id)
+
+                      if (updateNodeError) {
+                        throw updateNodeError
+                      }
+                    }
+                  })
+
+                  // update graph sync record
+                  const {
+                    data: updateGraphSyncData,
+                    error: updateGraphSyncError,
+                  } = await supabase
                     .from('graph_syncs')
                     .update({
                       name: upsertGraphSyncName,
                       properties: {
                         ...upsertGraphSyncProperties,
-                        repoUrl: upsertGraphSyncRepoUrl,
                       },
                       updated_at: new Date(),
                     })
                     .eq('id', upsertGraphSyncId)
 
-                  if (error) {
-                    throw error
+                  if (updateGraphSyncError) {
+                    throw updateGraphSyncError
                   }
 
-                  if (data) {
+                  if (updateGraphSyncData) {
                     analytics.track('update_graph_sync', {
                       id: upsertGraphSyncId,
                     })
+                    loadGraph()
                     populateGraphSyncs()
                     setShowUpsertGraphSyncPopup(false)
                     clearFields()
@@ -253,9 +378,14 @@ const GraphSyncs: FunctionComponent = () => {
   const propertiesCellBodyTemplate: ColumnBodyType = (rowData: any) => {
     const properties = rowData.properties
     const propertyList = Object.keys(properties).map((key) => {
+      const value = properties[key]
+      let valueStr = typeof value === 'string' ? value : JSON.stringify(value)
+      if (valueStr.length > 50) {
+        valueStr = `${valueStr.substring(0, 50)}...`
+      }
       return (
         <li key={key}>
-          <strong>{key}:</strong> {properties[key]}
+          <strong>{key}:</strong> {valueStr}
         </li>
       )
     })

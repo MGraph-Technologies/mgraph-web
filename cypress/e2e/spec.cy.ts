@@ -174,7 +174,7 @@ describe('Graphviewer editing', () => {
     cy.visit('/mgraph')
     /* wait for graph to load before editing
     (otherwise, added nodes are overwritten by graph load) */
-    cy.wait(1000)
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -206,13 +206,13 @@ describe('Graphviewer editing', () => {
     cy.get('[id=formula-field]')
       .click()
       .type(newMetricName)
-      .wait(1000)
+      .wait(2000)
       .type('{enter}') // wait for suggestion to load
       .type('~')
-      .wait(1000)
+      .wait(2000)
       .type('{enter}')
       .type('Active Users')
-      .wait(1000)
+      .wait(2000)
       .type('{enter}')
     cy.get('[id=save-formula-button]').click()
     // TODO: check newly-added function node is visible
@@ -229,7 +229,7 @@ describe('Graphviewer editing', () => {
     cy.visit('/mgraph')
     /* wait for graph to load before editing
     (otherwise, added nodes are overwritten by graph load) */
-    cy.wait(1000)
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -249,13 +249,13 @@ describe('Graphviewer editing', () => {
     cy.get('[id=formula-field]')
       .click()
       .type('mission')
-      .wait(1000)
+      .wait(2000)
       .type('{enter}') // wait for suggestion to load
       .type('f')
-      .wait(1000)
+      .wait(2000)
       .type('{enter}')
       .type('Active Users')
-      .wait(1000)
+      .wait(2000)
       .type('{enter}')
     cy.get('[id=save-formula-button]').click()
   })
@@ -294,6 +294,7 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, edits description, tests undo and redo, then cancels', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -321,6 +322,7 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, edits description, then saves', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
@@ -334,20 +336,24 @@ describe('Metric detail editing', () => {
 
     // save
     cy.get('[id=save-button]').click()
-    cy.reload()
+    cy.wait(2000).reload()
     cy.contains(newValue).should('exist')
   })
 
   it('Visits a metric detail page, enters a working SQL query, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
 
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake direct')
+      .first()
+      .click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -367,13 +373,17 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, enters a working SQL query, saves it, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
 
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake direct')
+      .first()
+      .click()
 
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -384,7 +394,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=save-button]').click()
 
     // see results on metric detail page
-    cy.reload()
+    cy.wait(2000).reload()
     cy.get('[class*=LineChart_chart_container]')
       .contains(randomInt.toLocaleString())
       .should('exist')
@@ -399,13 +409,17 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, enters a failing SQL query, then sees error', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
 
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake direct')
+      .first()
+      .click()
 
     // edit query
     const newQuery = 'SELECT x'
@@ -419,21 +433,27 @@ describe('Metric detail editing', () => {
       .should('exist')
   })
 
-  it('Visits a metric detail page, enters a working but wrong-format SQL query, then sees error', () => {
+  it('Visits a metric detail page, enters a working but wrong-format SQL query using dbt connection and syntax, then sees error', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
 
     // begin editing
     cy.get('[id=edit-button]').click()
 
-    // select snowflake as source database connection
+    // select snowflake dbt proxy as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake dbt proxy')
+      .first()
+      .click()
 
     // edit query
-    const newQuery = "SELECT TRUE, 'all', 1"
+    const newQuery = "SELECT date FROM {{ ref('dim_dates') }} LIMIT 1"
     cy.get('[id=source-query-field').click()
-    cy.get('[id=source-query-field').clear().type(newQuery)
+    cy.get('[id=source-query-field')
+      .clear()
+      .type(newQuery, { parseSpecialCharSequences: false })
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
@@ -444,12 +464,61 @@ describe('Metric detail editing', () => {
 
   // TODO: test processing and expired states
 
+  it('Visits a metric detail page and tests dbt query generation', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // select snowflake dbt proxy as source database connection
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake dbt proxy')
+      .first()
+      .click()
+
+    // select dbt graph sync
+    cy.get('[id=source-dbt-project-graph-sync-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').not(':contains("none")').first().click()
+
+    // enter working path
+    cy.get('[id=source-dbt-project-path-field]')
+      .click()
+      .clear()
+      .type('models/marts/schema.yml:daily_active_users')
+    cy.get('[class*=Header]').first().click()
+
+    // see populated yaml
+    cy.get('body')
+      .contains('calculation_method: count_distinct')
+      .should('exist')
+
+    // test query generation
+    cy.get('[id=source-query-type-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('generated').first().click()
+    cy.get('body').contains('metrics.calculate(').should('exist')
+
+    // enter incorrect path
+    cy.get('[id=source-dbt-project-path-field]')
+      .click()
+      .clear()
+      .type('x')
+      .parent()
+      .click()
+    cy.get('[class*=Header]').first().click() // click outside of field to save
+
+    // see error
+    cy.get('body').contains('metric not found').should('exist')
+  })
+
   it('Visits a metric detail page and tests persistence of query parameters', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
-    cy.wait(1000)
+    cy.wait(2000)
 
     // set group_by parameter
     const randomGroupBy = Math.random().toString(36)
@@ -462,8 +531,8 @@ describe('Metric detail editing', () => {
       .click()
 
     // see that parameter persists
-    cy.reload()
-    cy.wait(1000) // wait for page to load
+    cy.wait(2000).reload()
+    cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy)
 
@@ -471,8 +540,8 @@ describe('Metric detail editing', () => {
     cy.get('[id=group_by-set-default-button]').click()
 
     // see that parameter persists as org default
-    cy.reload()
-    cy.wait(1000) // wait for page to load
+    cy.wait(2000).reload()
+    cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
@@ -487,25 +556,30 @@ describe('Metric detail editing', () => {
       .click()
 
     // see that new parameter persists
-    cy.reload()
-    cy.wait(1000) // wait for page to load
+    cy.wait(2000).reload()
+    cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy2)
 
     // reset new parameter
     cy.get('[id=group_by-reset-button]').click()
-    cy.wait(1000) // wait for reset to process
+    cy.wait(2000) // wait for reset to process
 
     // see that org default parameter appears
     cy.get('[id=group_by-field').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
 
     // see that default parameter persists
-    cy.reload()
-    cy.wait(1000) // wait for page to load
+    cy.wait(2000).reload()
+    cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=group_by-field').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
+
+    // reset default parameter
+    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]').clear().parent().click()
+    cy.get('[id=group_by-set-default-button]').click()
   })
 
   it('Visits a metric detail page, sets parameters, enters a SQL query that uses them, then sees results', () => {
@@ -513,7 +587,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=link-to-detail-button]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
-    cy.wait(1000)
+    cy.wait(2000)
 
     // set parameters
     cy.get('[id=query-settings-button]').click().wait(100)
@@ -554,7 +628,7 @@ describe('Metric detail editing', () => {
         DATE_TRUNC('{{frequency}}', {{beginning_date}}),
         {{group_by}},
         ${randomInt}
-      
+
       UNION ALL
       SELECT
         DATE_TRUNC('{{frequency}}', {{ending_date}}),
@@ -583,16 +657,55 @@ describe('Admin settings', () => {
     )
   })
 
-  it('Visits access management page and sees expected content', () => {
+  it("Visits access management page, sees expected content, then toggles a user's role", () => {
+    // visit access management page
     cy.visit('/mgraph/settings/access-management')
+
+    // see expected content
     cy.get('body').contains('Add Users')
     cy.get('body').contains('Default role')
     cy.get('body').contains('Edit Users')
     cy.get('body').contains('Role')
     cy.get('body').contains('Email')
+
+    // toggle a user's role
+    cy.get('[id=users-table]')
+      .contains('cypress-test-account+awaiting_admin_approval@mgraph.us')
+      .parent('tr')
+      .find('[class*=p-dropdown-trigger]')
+      .first()
+      .click()
+    cy.get('[class*=p-dropdown-item]').contains('viewer').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=users-table]')
+      .contains('cypress-test-account+awaiting_admin_approval@mgraph.us')
+      .parent('tr')
+      .contains('viewer')
+
+    // set it back
+    cy.get('[id=users-table]')
+      .contains('cypress-test-account+awaiting_admin_approval@mgraph.us')
+      .parent('tr')
+      .find('[class*=p-dropdown-trigger]')
+      .first()
+      .click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('awaiting_admin_approval')
+      .click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=users-table]')
+      .contains('cypress-test-account+awaiting_admin_approval@mgraph.us')
+      .parent('tr')
+      .contains('awaiting_admin_approval')
   })
 
-  it('Visits database connections page, then adds and deletes a connection', () => {
+  it('Visits database connections page, then adds, edits, and deletes a connection', () => {
     // visit page
     cy.visit('/mgraph/settings/database-connections')
 
@@ -603,12 +716,33 @@ describe('Admin settings', () => {
     cy.get('[id=region-field]').type(randomString)
     cy.get('[id=account-field]').type(randomString)
     cy.get('[id=username-field]').type(randomString)
-    cy.get('[id=private-key-field]').type(randomString)
-    cy.get('[id=private-key-passphrase-field]').type(randomString)
+    cy.get('[id=password-field]').type(randomString)
     cy.get('[id=save-database-connection-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
     cy.get('[id=database-connections-table]').contains(randomString)
 
     // TODO: test that connection works
+
+    // edit connection
+    const newRandomString = Math.random().toString(36)
+    cy.get('[id=database-connections-table]')
+      .contains(randomString)
+      .parent('tr')
+      .find('[id=edit-database-connection-button]')
+      .click()
+    cy.get('[id=name-field]').type(newRandomString)
+    cy.get('[id=region-field]').type(newRandomString)
+    cy.get('[id=account-field]').type(newRandomString)
+    cy.get('[id=username-field]').type(newRandomString)
+    cy.get('[id=password-field]').type(newRandomString)
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=database-connections-table]').contains(randomString)
 
     // delete connection
     cy.get('[id=database-connections-table]')
@@ -621,23 +755,40 @@ describe('Admin settings', () => {
       .should('not.exist')
   })
 
-  it('Visits graph syncs page and sees expected content', () => {
-    // TODO: test full installation flow
-
+  it('Visits graph syncs page, sees expected content, tests partial installation flow, then edits a sync', () => {
     // visit page
     cy.visit('/mgraph/settings/graph-syncs')
 
     // see expected content
     cy.get('body').contains('Graph Syncs')
+
+    // test partial installation flow
+    const randomString = Math.random().toString(36)
     cy.get('[id=new-graph-sync-button]').click()
     cy.get('body').contains('New Graph Sync')
-    cy.get('[id=name-field]').should('exist')
-    cy.get('[id=github-repo-url-field]').should('exist')
+    cy.get('[id=name-field]').clear().type(randomString)
+    cy.get('[id=github-repo-url-field]').clear().type(randomString)
     cy.get('[id=github-app-button').click()
     cy.url().should('include', 'mgraph-dbt-sync')
+    // TODO: test full installation flow
+
+    // edit graph sync
+    cy.visit('/mgraph/settings/graph-syncs')
+    cy.get('[id=graph-syncs-table]')
+      .contains('dbt Project')
+      .parent('tr')
+      .find('[id=edit-graph-sync-button]')
+      .click()
+    cy.get('[id=name-field]').clear().type(randomString)
+    cy.get('[id=save-graph-sync-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=graph-syncs-table]').contains(randomString)
   })
 
-  it('Visits refresh jobs page, then adds and deletes a job', () => {
+  it('Visits refresh jobs page, then adds, edits, and deletes a job', () => {
     // visit page
     cy.visit('/mgraph/settings/refresh-jobs')
 
@@ -648,12 +799,35 @@ describe('Admin settings', () => {
     cy.get('[id=schedule-field]').type('0 13 * * *')
     cy.get('[id=slack-to-field]').type(newJobSlackTo)
     cy.get('[id=save-refresh-job-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
     cy.get('[id=refresh-jobs-table]')
       .contains(newJobSlackTo)
       .parent('tr')
       .within(() => {
         cy.get('td').contains('0 13 * * *').should('exist')
         cy.get('td').contains(newJobSlackTo).should('exist')
+      })
+
+    // edit job
+    cy.get('[id=refresh-jobs-table]')
+      .contains(newJobSlackTo)
+      .parent('tr')
+      .find('[id=edit-refresh-job-button]')
+      .click()
+    cy.get('[id=schedule-field]').clear().type('0 14 * * *')
+    cy.get('[id=save-refresh-job-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=refresh-jobs-table]')
+      .contains(newJobSlackTo)
+      .parent('tr')
+      .within(() => {
+        cy.get('td').contains('0 14 * * *').should('exist')
       })
 
     // delete job

@@ -18,7 +18,7 @@ export default async function getSession({
 }) {
   // If there's already a supabase client, use it, don't create a new one.
   if (!supabase) {
-    supabase = createClient(supabaseUrl, supabaseAnonKey)
+    supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
   }
 
   // Create a session for the user if it doesn't exist already.

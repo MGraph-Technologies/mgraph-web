@@ -13,9 +13,9 @@ import { EditText } from 'react-edit-text'
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
+import { QueryParameters, useQueries } from '../../contexts/queries'
 import styles from '../../styles/ControlPanel.module.css'
 import { analytics } from '../../utils/segmentClient'
-import { QueryParameters } from '../../utils/queryParameters'
 
 type ControlPanelProps = {
   hideEditButton?: boolean
@@ -26,8 +26,8 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   const { userCanEdit, userIsAdmin } = useAuth()
   const { editingEnabled, enableEditing } = useEditability()
   const showEditButton = userCanEdit && !hideEditButton
+  const { graph } = useGraph()
   const {
-    graph,
     globalQueryRefreshes,
     setGlobalQueryRefreshes,
     queriesLoading,
@@ -37,7 +37,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     resetQueryParameterUserValue,
     setQueryParameterUserValue,
     setQueryParameterOrgDefaultValue,
-  } = useGraph()
+  } = useQueries()
 
   const [graphLoading, setGraphloading] = useState(true)
   useEffect(() => {
@@ -149,9 +149,10 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   const refreshQueryIfParametersChanged = useCallback(() => {
     const parameterChanged = Object.keys(queryParameters).some((key) => {
       return (
-        queryParameters[key]?.userValue &&
-        initialQueryParameters[key]?.userValue &&
-        queryParameters[key].userValue !== initialQueryParameters[key].userValue
+        queryParameters[key] &&
+        initialQueryParameters[key] &&
+        queryParameters[key]?.userValue !==
+          initialQueryParameters[key]?.userValue
       )
     })
     if (parameterChanged) {
