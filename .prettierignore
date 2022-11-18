@@ -1,2 +1,3 @@
-#!include:.gitignore
+.next
+.vercel
 api/v1/database-queries/snowflake-jdbc-proxy/jre/**
