@@ -2,20 +2,38 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
+import zipfile
 
 import jpype
 import jpype.imports
 import jpype.types
 
 # jpype java initialization and imports
-endpoint_path = './api/v1/database-queries/snowflake-jdbc-proxy'
-snowflake_jar_path = os.path.join(endpoint_path, 'snowflake-jdbc-3.13.24.jar')
-jvm_path = os.path.join(endpoint_path, 'jre/lib/server/libjvm.so')
-jpype.startJVM(
-  jvm_path,
-  '--add-opens=java.base/java.nio=ALL-UNNAMED',
-  '-Djava.class.path=%s' % snowflake_jar_path
-)
+if not jpype.isJVMStarted():
+  print('Initializing JVM')
+  endpoint_path = './api/v1/database-queries/snowflake-jdbc-proxy'
+  jre_path = endpoint_path + '/jre'
+
+  if os.environ['NEXT_PUBLIC_ENV'] == 'development':
+    print('Development environment detected.')
+    zip = 'jre_macOS-arm64.zip'
+    jvm_path = jre_path + '/lib/libjli.dylib'
+  else:
+    print('Production/staging environment detected.')
+    zip = 'jre_linux-x64.zip'
+    jvm_path = jre_path + '/lib/server/libjvm.so'
+
+    if not os.path.exists(jvm_path):
+      print('JVM not found. Unzipping JRE.')
+      with zipfile.ZipFile(zip, 'r') as zip_ref:
+        zip_ref.extractall(endpoint_path)
+  
+  snowflake_jar_path = endpoint_path + '/snowflake-jdbc-3.13.24.jar'
+  jpype.startJVM(
+    jvm_path,
+    '--add-opens=java.base/java.nio=ALL-UNNAMED',
+    '-Djava.class.path=%s' % snowflake_jar_path
+  )
 
 from java.sql import DriverManager
 from java.util import Properties
