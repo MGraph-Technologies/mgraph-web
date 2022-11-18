@@ -11,6 +11,8 @@ const mgraphDbtSyncGithubAppPrivateKey =
   process.env.MGRAPH_DBT_SYNC_GITHUB_APP_PRIVATE_KEY
 
 const getGitHubAppToken = async (appId: string, appPrivateKey: string) => {
+  console.log('appId: ', appId)
+  console.log('appPrivateKey: ', appPrivateKey)
   const appTokenPayload = {
     iat: Math.floor(Date.now() / 1000) - 60,
     exp: Math.floor(Date.now() / 1000) + 60 * 10,
