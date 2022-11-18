@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 import jwt from 'jsonwebtoken'
+import getUuid from 'uuid-by-string'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -13,6 +14,8 @@ const mgraphDbtSyncGithubAppPrivateKey =
 const getGitHubAppToken = async (appId: string, appPrivateKey: string) => {
   console.log('appId: ', appId)
   console.log('appPrivateKey: ', appPrivateKey)
+  console.log('appPrivateKey length: ', appPrivateKey.length)
+  console.log('appPrivateKey hash: ' + getUuid(appPrivateKey))
   const appTokenPayload = {
     iat: Math.floor(Date.now() / 1000) - 60,
     exp: Math.floor(Date.now() / 1000) + 60 * 10,
