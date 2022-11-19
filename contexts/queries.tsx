@@ -61,7 +61,7 @@ type QueriesContextType = {
   queriesToCancel: Array<string>
   setQueriesToCancel: Dispatch<SetStateAction<Array<string>>> | undefined
   queryParameters: QueryParameters
-  initializeQueryParameter: ((name: string) => void) | undefined
+  createQueryParameter: ((name: string) => void) | undefined
   resetQueryParameterUserValue: ((name: string) => Promise<void>) | undefined
   setQueryParameterUserValue:
     | ((name: string, value: string) => Promise<void>)
@@ -79,7 +79,7 @@ const queriesContextDefaultValues: QueriesContextType = {
   queriesToCancel: [] as string[],
   setQueriesToCancel: undefined,
   queryParameters: {},
-  initializeQueryParameter: undefined,
+  createQueryParameter: undefined,
   resetQueryParameterUserValue: undefined,
   setQueryParameterUserValue: undefined,
   setQueryParameterOrgDefaultValue: undefined,
@@ -119,7 +119,7 @@ export function QueriesProvider({ children }: QueriesProps) {
     populateQueryParameters()
   }, [populateQueryParameters])
 
-  const initializeQueryParameter = (name: string) => {
+  const createQueryParameter = (name: string) => {
     setQueryParameters((prev) => initializeQueryParameters([name], prev))
   }
 
@@ -249,7 +249,7 @@ export function QueriesProvider({ children }: QueriesProps) {
     queriesToCancel: queriesToCancel,
     setQueriesToCancel: setQueriesToCancel,
     queryParameters: queryParameters,
-    initializeQueryParameter: initializeQueryParameter,
+    createQueryParameter: createQueryParameter,
     resetQueryParameterUserValue: resetQueryParameterUserValue,
     setQueryParameterUserValue: setQueryParameterUserValue,
     setQueryParameterOrgDefaultValue: setQueryParameterOrgDefaultValue,
