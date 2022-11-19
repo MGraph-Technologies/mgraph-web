@@ -61,7 +61,6 @@ type QueriesContextType = {
   queriesToCancel: Array<string>
   setQueriesToCancel: Dispatch<SetStateAction<Array<string>>> | undefined
   queryParameters: QueryParameters
-  createQueryParameter: ((name: string) => void) | undefined
   resetQueryParameterUserValue: ((name: string) => Promise<void>) | undefined
   setQueryParameterUserValue:
     | ((name: string, value: string) => Promise<void>)
@@ -79,7 +78,6 @@ const queriesContextDefaultValues: QueriesContextType = {
   queriesToCancel: [] as string[],
   setQueriesToCancel: undefined,
   queryParameters: {},
-  createQueryParameter: undefined,
   resetQueryParameterUserValue: undefined,
   setQueryParameterUserValue: undefined,
   setQueryParameterOrgDefaultValue: undefined,
@@ -118,10 +116,6 @@ export function QueriesProvider({ children }: QueriesProps) {
   useEffect(() => {
     populateQueryParameters()
   }, [populateQueryParameters])
-
-  const createQueryParameter = (name: string) => {
-    setQueryParameters((prev) => initializeQueryParameters([name], prev))
-  }
 
   const resetQueryParameterUserValue = useCallback(
     async (name: string) => {
@@ -249,7 +243,6 @@ export function QueriesProvider({ children }: QueriesProps) {
     queriesToCancel: queriesToCancel,
     setQueriesToCancel: setQueriesToCancel,
     queryParameters: queryParameters,
-    createQueryParameter: createQueryParameter,
     resetQueryParameterUserValue: resetQueryParameterUserValue,
     setQueryParameterUserValue: setQueryParameterUserValue,
     setQueryParameterOrgDefaultValue: setQueryParameterOrgDefaultValue,
@@ -601,6 +594,12 @@ export const getLatestQueryId = async (
   return queryId
 }
 
+/* On app load, blank queryParameters values are initialized for the set of
+  parameter keys which have either a user-specfic or org-default value in the
+  database. These are then populated with database values to the extent possible.
+  Parameters which have neither a user nor org default value are added to the
+  queryParameters object at ControlPanel render time. Parameters compile as blank
+  within queries until a saved value is in effect. */
 export const getQueryParameters = async (
   organizationId: string,
   supabase: SupabaseClient,
@@ -626,10 +625,11 @@ export const getQueryParameters = async (
     }
 
     if (data) {
-      // initializing record ids enables upserts to work (idempotently) if there's no existing pg record
-      const names = data.map((row) => row.name)
-      queryParameters = initializeQueryParameters(names, queryParameters)
-      // populate with real records where available
+      const names = new Set(data.map((row) => row.name))
+      queryParameters = formQueryParametersScaffold(
+        Array.from(names),
+        queryParameters
+      )
       data.forEach((row) => {
         if (row.user_id) {
           queryParameters = {
@@ -664,7 +664,7 @@ export const getQueryParameters = async (
   return queryParameters
 }
 
-export const initializeQueryParameters = (
+export const formQueryParametersScaffold = (
   names: string[],
   queryParameters: QueryParameters
 ) => {

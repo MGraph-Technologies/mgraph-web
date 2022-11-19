@@ -13,7 +13,11 @@ import { EditText } from 'react-edit-text'
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
-import { QueryParameters, useQueries } from '../../contexts/queries'
+import {
+  QueryParameters,
+  formQueryParametersScaffold,
+  useQueries,
+} from '../../contexts/queries'
 import styles from '../../styles/ControlPanel.module.css'
 import { analytics } from '../../utils/segmentClient'
 
@@ -33,7 +37,6 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     queriesLoading,
     setQueriesToCancel,
     queryParameters,
-    createQueryParameter,
     resetQueryParameterUserValue,
     setQueryParameterUserValue,
     setQueryParameterOrgDefaultValue,
@@ -65,7 +68,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
         setOrgDefaultValue(queryParameters[snakeCaseName].orgDefaultValue)
       } else {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        createQueryParameter!(snakeCaseName)
+        formQueryParametersScaffold([snakeCaseName], queryParameters)
       }
     }, [snakeCaseName])
     useEffect(() => {
