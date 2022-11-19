@@ -635,6 +635,7 @@ export const getQueryParameters = async (
           queryParameters = {
             ...queryParameters,
             [row.name]: {
+              ...queryParameters[row.name],
               userRecordId: row.id,
               userValue: row.deleted_at === null ? row.value : '',
             },
@@ -691,7 +692,7 @@ export const parameterizeStatement = (
     if (queryParameters[snakeCaseName]) {
       return queryParameters[snakeCaseName].userValue
     } else {
-      return '{{' + p1 + '}}'
+      return ''
     }
   })
 }
