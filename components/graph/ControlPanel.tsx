@@ -149,8 +149,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   const refreshQueryIfParametersChanged = useCallback(() => {
     const parameterChanged = Object.keys(queryParameters).some((key) => {
       return (
-        queryParameters[key] &&
-        initialQueryParameters[key] &&
+        Object.keys(initialQueryParameters).length > 0 &&
         queryParameters[key]?.userValue !==
           initialQueryParameters[key]?.userValue
       )
