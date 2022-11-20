@@ -13,13 +13,13 @@ import { EditText } from 'react-edit-text'
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
+import { useQueries } from '../../contexts/queries'
+import styles from '../../styles/ControlPanel.module.css'
+import { analytics } from '../../utils/segmentClient'
 import {
   QueryParameters,
   formQueryParametersScaffold,
-  useQueries,
-} from '../../contexts/queries'
-import styles from '../../styles/ControlPanel.module.css'
-import { analytics } from '../../utils/segmentClient'
+} from '../../utils/queryUtils'
 
 type ControlPanelProps = {
   hideEditButton?: boolean

@@ -45,11 +45,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       if (status === 404) {
-        console.log('No timed out pending_notification refresh job runs found.')
+        console.log(
+          '\nNo timed out pending_notification refresh job runs found.'
+        )
       }
 
       if (data) {
-        console.log(`Cleaned up ${data.length} timed out refresh job runs.`)
+        console.log(`\nCleaned up ${data.length} timed out refresh job runs.`)
       }
     } catch (error: unknown) {
       console.error('\nError: ', error)
