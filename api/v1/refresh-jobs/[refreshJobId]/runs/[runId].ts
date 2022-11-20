@@ -5,12 +5,12 @@ import fetch from 'node-fetch'
 import { Node } from 'react-flow-renderer'
 
 import { Graph } from '../../../../../contexts/graph'
+import { getBaseUrl } from '../../../../../utils/appBaseUrl'
 import {
   getLatestQueryId,
   getQueryParameters,
   parameterizeStatement,
-} from '../../../../../contexts/queries'
-import { getBaseUrl } from '../../../../../utils/appBaseUrl'
+} from '../../../../../utils/queryUtils'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
