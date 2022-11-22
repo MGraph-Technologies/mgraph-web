@@ -182,7 +182,7 @@ const RefreshJobs: FunctionComponent = () => {
                 label="Comment"
                 value={upsertJobComment}
                 setValue={setUpsertJobComment}
-                tooltip="Include a comment to help you remember what this refresh job is for"
+                tooltip="(optional) Brief description of the refresh job"
               />
               <div className={styles.save_cancel_button_container}>
                 <Button
@@ -263,7 +263,7 @@ const RefreshJobs: FunctionComponent = () => {
               first={refreshJobsTableFirst}
               onPage={refreshJobsTableOnPage}
               filterDisplay="row"
-              emptyMessage="No refresh jobs found"
+              emptyMessage="No refresh jobs configured"
             >
               <Column field="schedule" header="Schedule" style={columnStyle} />
               <Column field="slack_to" header="Slack To" style={columnStyle} />

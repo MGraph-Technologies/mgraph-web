@@ -406,7 +406,7 @@ const DatabaseConnections: FunctionComponent = () => {
               first={databaseConnectionsTableFirst}
               onPage={databaseConnectionsTableOnPage}
               filterDisplay="row"
-              emptyMessage="No database connections found"
+              emptyMessage="No database connections configured"
             >
               <Column field="name" header="Name" style={columnStyle} />
               <Column field="type_name" header="Type" style={columnStyle} />

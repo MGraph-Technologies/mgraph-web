@@ -514,7 +514,7 @@ const GraphSyncs: FunctionComponent = () => {
               first={graphSyncsTableFirst}
               onPage={graphSyncsTableOnPage}
               filterDisplay="row"
-              emptyMessage="No graph syncs found"
+              emptyMessage="No graph syncs configured"
             >
               <Column field="name" header="Name" style={columnStyle} />
               <Column field="type_name" header="Type" style={columnStyle} />
