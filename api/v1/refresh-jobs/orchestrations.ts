@@ -21,10 +21,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       supabaseServiceRoleKey || ''
     )
 
-    // clean up timed out pending_notification refresh job runs
-    console.log(
-      '\nCleaning up timed out pending_notification refresh job runs...'
-    )
+    // clean up timed out pending refresh job runs
+    console.log('\nCleaning up timed out pending refresh job runs...')
     const timeoutThreshold = new Date(
       Date.now() - REFRESH_JOB_RUN_TIMEOUT_SECONDS * 1000
     ).toUTCString()
@@ -32,10 +30,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const { data, error, status } = await supabase
         .from('refresh_job_runs')
         .update({
-          status: 'notification_timed_out',
+          status: 'timed_out',
           updated_at: new Date(),
         })
-        .eq('status', 'pending_notification')
+        .eq('status', 'pending')
         .lt('created_at', timeoutThreshold)
         .select('id')
 
@@ -45,9 +43,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       if (status === 404) {
-        console.log(
-          '\nNo timed out pending_notification refresh job runs found.'
-        )
+        console.log('\nNo timed out pending refresh job runs found.')
       }
 
       if (data) {
@@ -60,13 +56,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       })
     }
 
-    // send other pending_notification refresh job runs to finisher
-    console.log('\nProgressing other pending_notification refresh job runs...')
+    // send other pending refresh job runs to finisher
+    console.log('\nProgressing other pending refresh job runs...')
     try {
       const { data, error, status } = await supabase
         .from('refresh_job_runs')
         .select(`id, refresh_job_id`)
-        .eq('status', 'pending_notification')
+        .eq('status', 'pending')
         .gte('created_at', timeoutThreshold)
 
       if (error && status !== 406) {
@@ -76,7 +72,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (data) {
         data.forEach(async (run) => {
           console.log(
-            `\nRefresh job run ${run.id} is pending notification. Sending to finisher...`
+            `\nRefresh job run ${run.id} is pending. Sending to finisher...`
           )
           const finisherRespPromise = fetch(
             getBaseUrl() +
