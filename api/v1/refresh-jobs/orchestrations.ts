@@ -8,7 +8,6 @@ import fetch from 'node-fetch'
 import { getBaseUrl } from '../../../utils/appBaseUrl'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const REFRESH_JOB_RUN_TIMEOUT_SECONDS = 3600
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('\n\nNew request to /api/v1/refresh-jobs/orchestrations...')
@@ -21,49 +20,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       supabaseServiceRoleKey || ''
     )
 
-    // clean up timed out pending refresh job runs
-    console.log('\nCleaning up timed out pending refresh job runs...')
-    const timeoutThreshold = new Date(
-      Date.now() - REFRESH_JOB_RUN_TIMEOUT_SECONDS * 1000
-    ).toUTCString()
-    try {
-      const { data, error, status } = await supabase
-        .from('refresh_job_runs')
-        .update({
-          status: 'timed_out',
-          updated_at: new Date(),
-        })
-        .eq('status', 'pending')
-        .lt('created_at', timeoutThreshold)
-        .select('id')
-
-      if (error && status !== 404) {
-        // 404 means no rows were updated
-        throw error
-      }
-
-      if (status === 404) {
-        console.log('\nNo timed out pending refresh job runs found.')
-      }
-
-      if (data) {
-        console.log(`\nCleaned up ${data.length} timed out refresh job runs.`)
-      }
-    } catch (error: unknown) {
-      console.error('\nError: ', error)
-      return res.status(500).json({
-        error: error,
-      })
-    }
-
-    // send other pending refresh job runs to finisher
+    // send pending refresh job runs to finisher
     console.log('\nProgressing other pending refresh job runs...')
     try {
       const { data, error, status } = await supabase
         .from('refresh_job_runs')
         .select(`id, refresh_job_id`)
         .eq('status', 'pending')
-        .gte('created_at', timeoutThreshold)
 
       if (error && status !== 406) {
         throw error

@@ -198,11 +198,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           response.json().then((data) => {
             setQueryResult({
               status: 'success',
-              data: {
-                columns: data.columns,
-                rows: data.rows,
-                executedAt: data.executedAt,
-              },
+              data: data as QueryData,
             })
             setGetQueryResultComplete(true)
           })

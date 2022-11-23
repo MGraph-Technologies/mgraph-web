@@ -13,6 +13,7 @@ import {
 } from '../../../../../utils/queryUtils'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const REFRESH_JOB_RUN_TIMEOUT_SECONDS = 3600
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log(
@@ -30,6 +31,25 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log(`\nrefreshJobId: ${refreshJobId}`)
     console.log(`\nrunId: ${runId}`)
     try {
+      // get refresh job run record
+      const {
+        data: refreshJobRunData,
+        error: refreshJobRunError,
+        status: refreshJobRunStatus,
+      } = await supabase
+        .from('refresh_job_runs')
+        .select('created_at')
+        .eq('id', runId)
+        .single()
+
+      if (refreshJobRunData && refreshJobRunStatus !== 406) {
+        throw refreshJobRunError
+      }
+
+      if (!refreshJobRunData) {
+        throw new Error('Refresh job run not found.')
+      }
+
       // get refresh job record
       const {
         data: refreshJobData,
@@ -49,78 +69,93 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw new Error('Refresh job not found.')
       }
 
-      // get organization's metric nodes
-      const graphResp = await fetch(
-        getBaseUrl() + `/api/v1/graphs/${refreshJobData.organization_id}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'supabase-access-token': supabaseServiceRoleKey,
-          },
-        }
-      )
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const graphData = (await graphResp.json()) as any
-      const graph = graphData.graph as Graph
-      const metricNodes = graph.nodes.filter(
-        (node: Node) => node.data.source?.query
-      )
+      let runStatus: 'success' | 'timed_out' = 'success'
 
-      // get organization's query parameters
-      const queryParameters = await getQueryParameters(
-        refreshJobData.organization_id,
-        supabase
+      // check for timeout
+      const timeoutThreshold = new Date(
+        Date.now() - REFRESH_JOB_RUN_TIMEOUT_SECONDS * 1000
       )
+      if (refreshJobRunData.created_at < timeoutThreshold) {
+        runStatus = 'timed_out'
+      } else {
+        // check processing status of all metrics' queries
+        // get organization's metric nodes
+        const graphResp = await fetch(
+          getBaseUrl() + `/api/v1/graphs/${refreshJobData.organization_id}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'supabase-access-token': supabaseServiceRoleKey,
+            },
+          }
+        )
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const graphData = (await graphResp.json()) as any
+        const graph = graphData.graph as Graph
+        const metricNodes = graph.nodes.filter(
+          (node: Node) => node.data.source?.query
+        )
 
-      // for each metric node, parameterize its query and check whether it's still running
-      // TODO: think up an implementation that doesn't check every query every time
-      let queryStillRunning = false
-      metricNodes.forEach(async (node: Node) => {
-        const statement = node.data.source.query as string
-        const databaseConnectionId = node.data.source
-          .databaseConnectionId as string
-        if (statement && databaseConnectionId) {
-          console.log(`\nGetting latest query id for node ${node.id}...`)
-          const parameterizedStatement = parameterizeStatement(
-            statement,
-            queryParameters
-          )
-          const latestQueryId = await getLatestQueryId(
-            parameterizedStatement,
-            databaseConnectionId,
-            node.id,
-            supabase
-          )
-          console.log(`\nLatest query id for node ${node.id}: ${latestQueryId}`)
-          if (latestQueryId) {
-            console.log(
-              `\nGetting query status for query id ${latestQueryId}...`
+        // get organization's query parameters
+        const queryParameters = await getQueryParameters(
+          refreshJobData.organization_id,
+          supabase
+        )
+
+        // for each metric node, parameterize its query and check whether it's still running
+        // TODO: think up an implementation that doesn't check every query every time
+        let queryStillRunning = false
+        metricNodes.forEach(async (node: Node) => {
+          const statement = node.data.source.query as string
+          const databaseConnectionId = node.data.source
+            .databaseConnectionId as string
+          if (statement && databaseConnectionId) {
+            const parameterizedStatement = parameterizeStatement(
+              statement,
+              queryParameters
             )
-            const queryResultResp = await fetch(
-              getBaseUrl() +
-                `/api/v1/database-queries/${latestQueryId}/results`,
-              {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'supabase-access-token': supabaseServiceRoleKey,
-                },
+            console.log(
+              `\nGetting latest query id for node ${node.id} and statement ${parameterizedStatement}`
+            )
+            const latestQueryId = await getLatestQueryId(
+              parameterizedStatement,
+              databaseConnectionId,
+              node.id,
+              supabase
+            )
+            console.log(
+              `\nLatest query id for node ${node.id}: ${latestQueryId}`
+            )
+            if (latestQueryId) {
+              console.log(
+                `\nGetting query status for query id ${latestQueryId}...`
+              )
+              const queryResultResp = await fetch(
+                getBaseUrl() +
+                  `/api/v1/database-queries/${latestQueryId}/results`,
+                {
+                  method: 'GET',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'supabase-access-token': supabaseServiceRoleKey,
+                  },
+                }
+              )
+              const queryStatus = queryResultResp.status
+              console.log(
+                `\nQuery status for query id ${latestQueryId}: ${queryStatus}`
+              )
+              if (queryStatus === 202) {
+                queryStillRunning = true
               }
-            )
-            const queryStatus = queryResultResp.status
-            console.log(
-              `\nQuery status for query id ${latestQueryId}: ${queryStatus}`
-            )
-            if (queryStatus === 202) {
-              queryStillRunning = true
             }
           }
-        }
-      })
+        })
 
-      if (queryStillRunning) {
-        return res.status(202).json({})
+        if (queryStillRunning) {
+          return res.status(202).json({})
+        }
       }
 
       // send slack notification, if applicable
@@ -143,35 +178,57 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             ? `${organizationNameTitleCased}'`
             : `${organizationNameTitleCased}'s`
         slackWebhooks.forEach(async (slackWebhook: string) => {
-          const body = {
-            text: `${organizationNameTitleCasedWithApostrophe} MGraph has refreshed!`,
-            blocks: [
-              {
-                type: 'header',
-                text: {
-                  type: 'plain_text',
-                  text: `:chart_with_upwards_trend: :chart_with_upwards_trend: :chart_with_upwards_trend:`,
-                  emoji: true,
-                },
-              },
-              {
-                type: 'section',
-                text: {
-                  type: 'mrkdwn',
-                  text: `*${organizationNameTitleCasedWithApostrophe} MGraph has refreshed!*`,
-                },
-              },
-              {
-                type: 'section',
-                fields: [
-                  {
-                    type: 'mrkdwn',
-                    text: `See the latest metrics here: ${getBaseUrl()}/${organizationNameEncoded}`,
-                  },
-                ],
-              },
-            ],
-          }
+          const body =
+            runStatus === 'success'
+              ? {
+                  text: `${organizationNameTitleCasedWithApostrophe} MGraph has refreshed!`,
+                  blocks: [
+                    {
+                      type: 'header',
+                      text: {
+                        type: 'plain_text',
+                        text: `:chart_with_upwards_trend: :chart_with_upwards_trend: :chart_with_upwards_trend:`,
+                        emoji: true,
+                      },
+                    },
+                    {
+                      type: 'section',
+                      text: {
+                        type: 'mrkdwn',
+                        text: `*${organizationNameTitleCasedWithApostrophe} MGraph has refreshed!*`,
+                      },
+                    },
+                    {
+                      type: 'section',
+                      fields: [
+                        {
+                          type: 'mrkdwn',
+                          text: `See the latest metrics here: ${getBaseUrl()}/${organizationNameEncoded}`,
+                        },
+                      ],
+                    },
+                  ],
+                }
+              : {
+                  text: `A scheduled refresh of ${organizationNameTitleCasedWithApostrophe} MGraph has timed out`,
+                  blocks: [
+                    {
+                      type: 'header',
+                      text: {
+                        type: 'plain_text',
+                        text: `:warning: A scheduled refresh of ${organizationNameTitleCasedWithApostrophe} MGraph has timed out`,
+                        emoji: true,
+                      },
+                    },
+                    {
+                      type: 'section',
+                      text: {
+                        type: 'mrkdwn',
+                        text: `${getBaseUrl()}/${organizationNameEncoded}/settings/refresh-jobs`,
+                      },
+                    },
+                  ],
+                }
           console.log(
             `\nSending slack message to ${slackWebhook} with body:`,
             body
@@ -187,22 +244,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       }
 
-      console.log(`\nSuccess. Updating refresh_job_runs record ${runId}...`)
-      const { data: refreshJobRunData, error: refreshJobRunError } =
+      console.log(`\nUpdating refresh_job_runs record ${runId}...`)
+      const { data: refreshJobRunUpdateData, error: refreshJobRunUpdateError } =
         await supabase
           .from('refresh_job_runs')
           .update({
-            status: 'success',
+            status: runStatus,
             updated_at: new Date(),
           })
           .eq('id', runId)
           .single()
 
-      if (refreshJobRunError) {
-        throw refreshJobRunError
+      if (refreshJobRunUpdateError) {
+        throw refreshJobRunUpdateError
       }
 
-      if (!refreshJobRunData) {
+      if (!refreshJobRunUpdateData) {
         throw new Error('Refresh job run not found.')
       }
 

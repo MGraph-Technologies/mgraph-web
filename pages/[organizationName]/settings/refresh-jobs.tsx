@@ -1,3 +1,4 @@
+import { isValidCron } from 'cron-validator'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
@@ -176,19 +177,24 @@ const RefreshJobs: FunctionComponent = () => {
                 label="Slack To"
                 value={upsertJobSlackTo}
                 setValue={setUpsertJobSlackTo}
-                tooltip="Slack webhook urls to be notified upon refresh job completion, comma separated"
+                tooltip="(optional) Slack webhook urls to be notified upon refresh job completion, comma separated"
               />
               <SettingsInputText
                 label="Comment"
                 value={upsertJobComment}
                 setValue={setUpsertJobComment}
-                tooltip="(optional) Brief description of the refresh job"
+                tooltip="(optional) A brief description of the refresh job"
               />
               <div className={styles.save_cancel_button_container}>
                 <Button
                   id="save-refresh-job-button"
                   label="Save"
                   onClick={async () => {
+                    if (!isValidCron(upsertJobSchedule)) {
+                      alert('Schedule must be a valid cron expression')
+                      return
+                    }
+
                     if (organizationId) {
                       const now = new Date()
                       let toUpsert = {
