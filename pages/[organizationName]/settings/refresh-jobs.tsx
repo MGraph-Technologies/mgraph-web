@@ -26,9 +26,9 @@ const RefreshJobs: FunctionComponent = () => {
   type RefreshJob = {
     id: string
     schedule: string
-    slack_to: string
+    slackTo: string
     comment: string
-    created_at: string
+    createdAt: string
   }
   const [refreshJobs, setRefreshJobs] = useState<RefreshJob[]>([])
   const populateRefreshJobs = useCallback(async () => {
@@ -47,7 +47,18 @@ const RefreshJobs: FunctionComponent = () => {
         }
 
         if (data) {
-          setRefreshJobs(data as RefreshJob[])
+          setRefreshJobs(
+            data.map(
+              (rj) =>
+                ({
+                  id: rj.id,
+                  schedule: rj.schedule,
+                  slackTo: rj.slack_to,
+                  comment: rj.comment,
+                  createdAt: rj.created_at,
+                } as RefreshJob)
+            )
+          )
           setRefreshJobsTableLoading(false)
         }
       } catch (error: unknown) {
@@ -81,7 +92,7 @@ const RefreshJobs: FunctionComponent = () => {
             onClick={() => {
               setUpsertJobId(rowData.id)
               setUpsertJobSchedule(rowData.schedule)
-              setUpsertJobSlackTo(rowData.slack_to)
+              setUpsertJobSlackTo(rowData.slackTo)
               setUpsertJobComment(rowData.comment)
               setUpsertJobIsNew(false)
               setShowUpsertJobPopup(true)
@@ -272,7 +283,7 @@ const RefreshJobs: FunctionComponent = () => {
               emptyMessage="No refresh jobs configured"
             >
               <Column field="schedule" header="Schedule" style={columnStyle} />
-              <Column field="slack_to" header="Slack To" style={columnStyle} />
+              <Column field="slackTo" header="Slack To" style={columnStyle} />
               <Column field="comment" header="Comment" style={columnStyle} />
               <Column
                 field="created_at"

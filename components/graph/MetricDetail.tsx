@@ -27,6 +27,7 @@ import {
   SourceQueryType,
 } from './MetricNode'
 import MonitoringRulesTable from '../MonitoringRulesTable'
+import MetricNodeAlertBadge from './MetricNodeAlertBadge'
 
 type MetricDetailProps = {
   metricId: string
@@ -515,6 +516,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onChange={(e) => setName(e.target.value)}
           onSave={({ value }) => saveDetail('name', value)}
         />
+        <MetricNodeAlertBadge nodeData={metricNode?.data} />
         <ControlPanel />
       </div>
       <div className={styles.body}>
@@ -573,8 +575,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
               : Math.max(outputs.split('\n').filter((n) => n).length, 1)
           }
         />
-        <h2>Monitoring Rules</h2>
-        <MonitoringRulesTable parentNodeId={metricId} />
         <h2>Source</h2>
         <h3>Database</h3>
         <div className={styles.connection_config_block}>
@@ -737,6 +737,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         ) : (
           <pre>{highlight(sourceQuery, 'sql')}</pre>
         )}
+        <h2>Monitoring Rules</h2>
+        <MonitoringRulesTable parentNodeId={metricId} />
       </div>
       {editingEnabled ? (
         <div className={styles.editor_dock}>

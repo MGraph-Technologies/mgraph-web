@@ -3,6 +3,7 @@ import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
+import { Dropdown } from 'primereact/dropdown'
 import React, {
   FunctionComponent,
   useCallback,
@@ -14,10 +15,10 @@ import { v4 as uuidv4 } from 'uuid'
 import SettingsInputText from './SettingsInputText'
 import { useAuth } from '../contexts/auth'
 import styles from '../styles/MonitoringRulesTable.module.css'
+import { objectToBullets } from '../utils/objectToBullets'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
 import { QueryParameterOverrides } from '../utils/queryUtils'
-import { Dropdown } from 'primereact/dropdown'
 
 export type AlertIfValueOption =
   | 'insideRangeInclusive'
@@ -28,6 +29,12 @@ export type MonitoringRuleProperties = {
   rangeUpperBound: number
   lookbackPeriods: number
   queryParameterOverrides: QueryParameterOverrides
+}
+export type MonitoringRuleEvaluationStatus = 'alert' | 'ok' | 'timed_out'
+export type MonitoringRuleLatestEvaluation = {
+  status: MonitoringRuleEvaluationStatus
+  alerts: string[]
+  updatedAt: Date
 }
 
 type MonitoringRulesTableProps = {
@@ -44,9 +51,9 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
     id: string
     properties: MonitoringRuleProperties
     schedule: string
-    slack_to: string
+    slackTo: string
     comment: string
-    created_at: string
+    latestEvaluation: MonitoringRuleLatestEvaluation | null
   }
   const [monitoringRules, setMonitoringRules] = useState<MonitoringRule[]>([])
   const populateMonitoringRules = useCallback(async () => {
@@ -56,7 +63,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
         const { data, error, status } = await supabase
           .from('monitoring_rules')
           .select(
-            'id, properties, schedule, slack_to, comment, created_at, updated_at'
+            'id, properties, schedule, slack_to, comment, latest_monitoring_rule_evaluations ( status, alerts, updated_at )'
           )
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
@@ -68,7 +75,36 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
         }
 
         if (data) {
-          setMonitoringRules(data as MonitoringRule[])
+          setMonitoringRules(
+            data.map(
+              (mr) =>
+                ({
+                  id: mr.id,
+                  properties: {
+                    alertIfValue: mr.properties.alertIfValue,
+                    rangeLowerBound: mr.properties.rangeLowerBound,
+                    rangeUpperBound: mr.properties.rangeUpperBound,
+                    lookbackPeriods: mr.properties.lookbackPeriods,
+                    queryParameterOverrides:
+                      mr.properties.queryParameterOverrides,
+                  } as MonitoringRuleProperties,
+                  schedule: mr.schedule,
+                  slackTo: mr.slack_to,
+                  comment: mr.comment,
+                  latestEvaluation:
+                    mr.latest_monitoring_rule_evaluations.length > 0
+                      ? ({
+                          status:
+                            mr.latest_monitoring_rule_evaluations[0].status,
+                          alerts:
+                            mr.latest_monitoring_rule_evaluations[0].alerts,
+                          updatedAt:
+                            mr.latest_monitoring_rule_evaluations[0].updated_at,
+                        } as MonitoringRuleLatestEvaluation)
+                      : null,
+                } as MonitoringRule)
+            )
+          )
           setMonitoringRulesTableLoading(false)
         }
       } catch (error: unknown) {
@@ -92,20 +128,22 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const propertiesCellBodyTemplate: ColumnBodyType = (rowData: any) => {
-    const properties = rowData.properties
-    const propertyList = Object.keys(properties).map((key) => {
-      const value = properties[key]
-      let valueStr = typeof value === 'string' ? value : JSON.stringify(value)
-      if (valueStr.length > 50) {
-        valueStr = `${valueStr.substring(0, 50)}...`
-      }
-      return (
-        <li key={key}>
-          <strong>{key}:</strong> {valueStr}
-        </li>
-      )
-    })
-    return <ul>{propertyList}</ul>
+    const properties = {
+      ...rowData.properties,
+      // pack schedule, slackTo, comment into properties for display
+      schedule: rowData.schedule,
+      slackTo: rowData.slackTo,
+    }
+    return objectToBullets(properties)
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lastestEvaluationCellBodyTemplate: ColumnBodyType = (rowData: any) => {
+    if (rowData.latestEvaluation) {
+      return objectToBullets(rowData.latestEvaluation)
+    } else {
+      return <>No evaluations yet.</>
+    }
   }
 
   const editCellBodyTemplate: ColumnBodyType = useCallback(
@@ -135,7 +173,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                   .join(',')
               )
               setUpsertRuleSchedule(rowData.schedule)
-              setUpsertRuleSlackTo(rowData.slack_to)
+              setUpsertRuleSlackTo(rowData.slackTo)
               setUpsertRuleComment(rowData.comment)
               setUpsertRuleIsNew(false)
               setShowUpsertRulePopup(true)
@@ -169,6 +207,21 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
       )
     },
     [populateMonitoringRules]
+  )
+
+  const alertCellBodyTemplate: ColumnBodyType = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (rowData: any) => {
+      return rowData.latestEvaluation?.status === 'alert' ? (
+        <Button
+          id="alert-button"
+          className="p-button-text p-button-lg p-button-danger"
+          icon="pi pi-flag-fill"
+          tooltip="This rule's last evaluation resulted in an alert."
+        />
+      ) : null
+    },
+    []
   )
 
   const columnStyle = {
@@ -442,7 +495,14 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
           emptyMessage="No monitoring rules found"
         >
           <Column
-            field="properties"
+            field="comment"
+            header="Comment"
+            style={{
+              ...columnStyle,
+              minWidth: '125px',
+            }}
+          />
+          <Column
             header="Properties"
             body={propertiesCellBodyTemplate}
             style={{
@@ -450,11 +510,26 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
               minWidth: '250px',
             }}
           />
-          <Column field="schedule" header="Schedule" style={columnStyle} />
-          <Column field="slack_to" header="Slack To" style={columnStyle} />
-          <Column field="comment" header="Comment" style={columnStyle} />
-          <Column field="updated_at" header="Updated At" style={columnStyle} />
-          {userCanEdit && <Column body={editCellBodyTemplate} align="center" />}
+          <Column
+            header="Latest Evaluation"
+            body={lastestEvaluationCellBodyTemplate}
+            style={{
+              ...columnStyle,
+              minWidth: '200px',
+            }}
+          />
+          <Column
+            body={alertCellBodyTemplate}
+            align="center"
+            style={columnStyle}
+          />
+          {userCanEdit && (
+            <Column
+              body={editCellBodyTemplate}
+              align="center"
+              style={columnStyle}
+            />
+          )}
         </DataTable>
       </div>
     </>

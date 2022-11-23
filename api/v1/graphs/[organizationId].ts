@@ -13,6 +13,7 @@ import { FunctionNodeProperties } from '../../../components/graph/FunctionNode'
 import { InputEdgeProperties } from '../../../components/graph/InputEdge'
 import { MetricNodeProperties } from '../../../components/graph/MetricNode'
 import { MissionNodeProperties } from '../../../components/graph/MissionNode'
+import { MonitoringRuleEvaluationStatus } from '../../../components/MonitoringRulesTable'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -31,7 +32,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       const { data: nodesData, error: nodesError } = await supabase
         .from('nodes')
-        .select('properties, react_flow_meta')
+        .select(
+          'properties, react_flow_meta, monitoring_rules ( id, latest_monitoring_rule_evaluations ( status ) )'
+        )
         .eq('organization_id', organizationId)
         .is('deleted_at', null)
 
@@ -88,6 +91,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               setNodeDataToChange: () => {
                 return
               },
+              alert: n.monitoring_rules.some(
+                (mr: {
+                  id: string
+                  latest_monitoring_rule_evaluations: [
+                    { status: MonitoringRuleEvaluationStatus }
+                  ]
+                }) => {
+                  return mr.latest_monitoring_rule_evaluations.some(
+                    (mre) => mre.status === 'alert'
+                  )
+                }
+              ),
             } as MetricNodeProperties
           }
           if (node.type === 'function') {

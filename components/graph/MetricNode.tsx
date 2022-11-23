@@ -16,6 +16,7 @@ import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
 import LineChart from '../LineChart'
+import MetricNodeAlertBadge from './MetricNodeAlertBadge'
 import NodeInfoButton from './NodeInfoButton'
 import NodeMenu from './NodeMenu'
 
@@ -39,6 +40,7 @@ export type MetricNodeProperties = {
   // below not in postgres
   initialProperties: object
   setNodeDataToChange: (data: MetricNodeProperties) => void
+  alert: boolean
 }
 type MetricNodeProps = {
   data: MetricNodeProperties
@@ -149,7 +151,12 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
             onChange={(e) => setName(e.target.value)}
             onSave={saveName}
           />
-          {!editingEnabled && <NodeInfoButton nodeData={data} />}
+          {!editingEnabled && (
+            <>
+              <NodeInfoButton nodeData={data} />
+              <MetricNodeAlertBadge nodeData={data} />
+            </>
+          )}
         </div>
         <div className={styles.buttons}>
           <NodeMenu

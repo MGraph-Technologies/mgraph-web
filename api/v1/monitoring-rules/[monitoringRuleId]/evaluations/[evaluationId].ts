@@ -3,7 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 
-import { MonitoringRuleProperties } from '../../../../../components/MonitoringRulesTable'
+import {
+  MonitoringRuleEvaluationStatus,
+  MonitoringRuleProperties,
+} from '../../../../../components/MonitoringRulesTable'
 import {
   QueryData,
   QueryRow,
@@ -120,7 +123,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const metricNodeProperties =
         metricNodeData.properties as MetricNodeProperties
 
-      let evaluationStatus: 'alert' | 'ok' | 'timed_out' = 'ok'
+      let evaluationStatus: MonitoringRuleEvaluationStatus = 'ok'
       const evaluationAlerts: string[] = []
       const processAlert = (alert: string) => {
         console.log('\n' + alert)
