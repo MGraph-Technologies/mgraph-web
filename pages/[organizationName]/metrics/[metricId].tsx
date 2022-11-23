@@ -12,7 +12,9 @@ const MetricDetailPage: FunctionComponent = () => {
     // head populated by MetricDetail
     <Workspace>
       <div className={styles.metric_detail_container}>
-        <MetricDetail metricId={metricId} />
+        {typeof metricId === 'string' && metricId && (
+          <MetricDetail metricId={metricId} />
+        )}
       </div>
     </Workspace>
   )

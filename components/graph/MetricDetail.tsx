@@ -26,9 +26,10 @@ import {
   MetricNodeSource,
   SourceQueryType,
 } from './MetricNode'
+import MonitoringRulesTable from '../MonitoringRulesTable'
 
 type MetricDetailProps = {
-  metricId: string | string[] | undefined
+  metricId: string
 }
 const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const { session, organizationId, organizationName } = useAuth()
@@ -572,6 +573,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
               : Math.max(outputs.split('\n').filter((n) => n).length, 1)
           }
         />
+        <h2>Monitoring Rules</h2>
+        <MonitoringRulesTable parentNodeId={metricId} />
         <h2>Source</h2>
         <h3>Database</h3>
         <div className={styles.connection_config_block}>

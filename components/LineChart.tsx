@@ -23,6 +23,11 @@ import {
 } from '../components/graph/QueryRunner'
 import styles from '../styles/LineChart.module.css'
 import { useAuth } from '../contexts/auth'
+import {
+  checkColumnsStructure,
+  sortQueryRowsByDate,
+  snowflakeDateToJsDate,
+} from '../utils/queryUtils'
 
 ChartJS.register(
   Legend,
@@ -45,44 +50,6 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   const { userOnMobile } = useAuth()
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
-  const checkColumnsStructure = (queryData: QueryData) => {
-    const snowflakeDateTypes = [
-      'DATE',
-      'TIMESTAMP',
-      'TIMESTAMPNTZ',
-      'TIMESTAMPLTZ',
-      'TIMESTAMPTZ',
-    ]
-    const snowflakeStringTypes = [
-      'CHAR',
-      'CHARACTER',
-      'STRING',
-      'TEXT',
-      'VARCHAR',
-    ]
-    const snowflakeNumberTypes = [
-      'DECIMAL',
-      'DOUBLE',
-      'DOUBLE PRECISION',
-      'FIXED',
-      'FLOAT',
-      'FLOAT4',
-      'FLOAT8',
-      'INTEGER',
-      'NUMBER',
-      'NUMERIC',
-      'REAL',
-    ]
-    const columns = queryData.columns
-    return (
-      columns &&
-      columns.length === 3 &&
-      snowflakeDateTypes.includes(columns[0].type.toUpperCase()) &&
-      snowflakeStringTypes.includes(columns[1].type.toUpperCase()) &&
-      snowflakeNumberTypes.includes(columns[2].type.toUpperCase())
-    )
-  }
-
   const makeChartJsDatasets = (columns: QueryColumn[], rows: QueryRow[]) => {
     const datasets: {
       label: string
@@ -101,15 +68,11 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     ]
     const dimensions = Array.from(new Set(rows.map((row: QueryRow) => row[1])))
     dimensions.forEach((dimension, index) => {
-      const data = rows.filter((row: QueryRow) => row[1] === dimension)
-      data.sort((a: QueryRow, b: QueryRow) => {
-        const aDate = snowflakeDateToJsDate(a[0])
-        const bDate = snowflakeDateToJsDate(b[0])
-        return aDate.getTime() - bDate.getTime()
-      }) // sort by date
+      let dimensionRows = rows.filter((row: QueryRow) => row[1] === dimension)
+      dimensionRows = sortQueryRowsByDate(dimensionRows)
       datasets.push({
         label: dimension,
-        data: data.map((row: QueryRow) => ({
+        data: dimensionRows.map((row: QueryRow) => ({
           x: snowflakeDateToJsDate(row[0]),
           y: row[2] !== 'None' ? parseFloat(row[2]) : null,
         })),
@@ -119,13 +82,6 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       })
     })
     return datasets
-  }
-
-  const snowflakeDateToJsDate = (snowflakeDate: string) => {
-    // strip tz info
-    const _snowflakeDate = snowflakeDate.replace(/(Z|[-+]\d{2}:\d{2})$/, '')
-    const date = new Date(_snowflakeDate + 'Z')
-    return date
   }
 
   const centerStyle = {

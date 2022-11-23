@@ -1,6 +1,8 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
 
+import { QueryData, QueryRow } from '../components/graph/QueryRunner'
+
 export const getLatestQueryId = async (
   statement: string,
   databaseConnectionId: string,
@@ -50,6 +52,48 @@ type QueryParameterValues = {
 
 export type QueryParameters = {
   [name: string]: QueryParameterValues
+}
+
+export type QueryParameterOverrides = {
+  [name: string]: string
+}
+
+export const checkColumnsStructure = (queryData: QueryData) => {
+  const snowflakeDateTypes = [
+    'DATE',
+    'TIMESTAMP',
+    'TIMESTAMPNTZ',
+    'TIMESTAMPLTZ',
+    'TIMESTAMPTZ',
+  ]
+  const snowflakeStringTypes = [
+    'CHAR',
+    'CHARACTER',
+    'STRING',
+    'TEXT',
+    'VARCHAR',
+  ]
+  const snowflakeNumberTypes = [
+    'DECIMAL',
+    'DOUBLE',
+    'DOUBLE PRECISION',
+    'FIXED',
+    'FLOAT',
+    'FLOAT4',
+    'FLOAT8',
+    'INTEGER',
+    'NUMBER',
+    'NUMERIC',
+    'REAL',
+  ]
+  const columns = queryData.columns
+  return (
+    columns &&
+    columns.length === 3 &&
+    snowflakeDateTypes.includes(columns[0].type.toUpperCase()) &&
+    snowflakeStringTypes.includes(columns[1].type.toUpperCase()) &&
+    snowflakeNumberTypes.includes(columns[2].type.toUpperCase())
+  )
 }
 
 export const getQueryParameters = async (
@@ -135,6 +179,23 @@ export const formQueryParametersScaffold = (
   return newQueryParameters
 }
 
+export const overrideQueryParameters = (
+  queryParameters: QueryParameters,
+  queryParameterOverrides: QueryParameterOverrides
+) => {
+  let newQueryParameters = { ...queryParameters }
+  Object.entries(queryParameterOverrides).forEach(([name, value]) => {
+    if (!Object.keys(newQueryParameters).includes(name)) {
+      newQueryParameters = formQueryParametersScaffold(
+        [name],
+        newQueryParameters
+      )
+    }
+    newQueryParameters[name].userValue = value
+  })
+  return newQueryParameters
+}
+
 export const parameterizeStatement = (
   statement: string,
   queryParameters: QueryParameters
@@ -146,5 +207,20 @@ export const parameterizeStatement = (
     } else {
       return ''
     }
+  })
+}
+
+export const snowflakeDateToJsDate = (snowflakeDate: string) => {
+  // strip tz info
+  const _snowflakeDate = snowflakeDate.replace(/(Z|[-+]\d{2}:\d{2})$/, '')
+  const date = new Date(_snowflakeDate + 'Z')
+  return date
+}
+
+export const sortQueryRowsByDate = (rows: QueryRow[]) => {
+  return rows.sort((a: QueryRow, b: QueryRow) => {
+    const aDate = snowflakeDateToJsDate(a[0])
+    const bDate = snowflakeDateToJsDate(b[0])
+    return aDate.getTime() - bDate.getTime()
   })
 }
