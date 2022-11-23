@@ -13,7 +13,6 @@ import { v4 as uuidv4 } from 'uuid'
 
 import SettingsInputText from './SettingsInputText'
 import { useAuth } from '../contexts/auth'
-import { useEditability } from '../contexts/editability'
 import styles from '../styles/MonitoringRulesTable.module.css'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
@@ -38,7 +37,6 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   parentNodeId,
 }) => {
   const { organizationId, userCanEdit } = useAuth()
-  const { editingEnabled } = useEditability()
 
   const [monitoringRulesTableLoading, setMonitoringRulesTableLoading] =
     useState(true)
@@ -214,7 +212,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
 
   return (
     <>
-      {userCanEdit && editingEnabled && (
+      {userCanEdit && (
         <div className={styles.new_monitoring_rule_container}>
           <Button
             id="new-monitoring-rule-button"
@@ -456,9 +454,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
           <Column field="slack_to" header="Slack To" style={columnStyle} />
           <Column field="comment" header="Comment" style={columnStyle} />
           <Column field="updated_at" header="Updated At" style={columnStyle} />
-          {userCanEdit && editingEnabled && (
-            <Column body={editCellBodyTemplate} align="center" />
-          )}
+          {userCanEdit && <Column body={editCellBodyTemplate} align="center" />}
         </DataTable>
       </div>
     </>
