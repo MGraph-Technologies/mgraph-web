@@ -647,6 +647,72 @@ describe('Metric detail editing', () => {
       .contains(randomInt.toLocaleString())
       .should('exist')
   })
+
+  it('Visits a metric detail page, then adds, edits, and deletes a monitoring rule', () => {
+    // visit page
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
+
+    // add monitoring rule
+    const randomString = Math.random().toString(36)
+    const newRuleSlackTo = '#' + randomString
+    const newRuleComment = 'test comment ' + randomString
+    cy.get('[id=new-monitoring-rule-button]').click()
+    cy.get('[id=range-lower-bound-field]').type('-Infinity')
+    cy.get('[id=range-upper-bound-field]').type('0.0')
+    cy.get('[id=lookback-periods-field]').type('1')
+    cy.get('[id=query-parameter-overrides-field]').type(
+      'frequency:DAY,conditions:FALSE'
+    )
+    cy.get('[id=schedule-field]').type('0 13 * * *')
+    cy.get('[id=slack-to-field]').type(newRuleSlackTo)
+    cy.get('[id=comment-field]').type(newRuleComment)
+    cy.get('[id=save-monitoring-rule-button]').click()
+
+    // TODO: check validation errors
+    // TODO: test that rule actually works
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=monitoring-rules-table]')
+      .contains(newRuleComment)
+      .parent('tr')
+      .within(() => {
+        cy.get('td').contains('0 13 * * *').should('exist')
+        cy.get('td').contains(newRuleSlackTo).should('exist')
+      })
+
+    // edit rule
+    cy.get('[id=monitoring-rules-table]')
+      .contains(newRuleComment)
+      .parent('tr')
+      .find('[id=edit-monitoring-rule-button]')
+      .click()
+    cy.get('[id=schedule-field]').clear().type('0 14 * * *')
+    cy.get('[id=save-monitoring-rule-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=monitoring-rules-table]')
+      .contains(newRuleComment)
+      .parent('tr')
+      .within(() => {
+        cy.get('td').contains('0 14 * * *').should('exist')
+      })
+
+    // delete rule
+    cy.get('[id=monitoring-rules-table]')
+      .contains(newRuleComment)
+      .parent('tr')
+      .find('[id=delete-monitoring-rule-button]')
+      .click()
+    cy.get('[id=monitoring-rules-table]')
+      .contains(newRuleSlackTo)
+      .should('not.exist')
+  })
 })
 
 describe('Admin settings', () => {
