@@ -4,6 +4,7 @@ import { FunctionComponent } from 'react'
 import { MetricNodeProperties } from './MetricNode'
 import { useAuth } from '../../contexts/auth'
 import { useBrowser } from '../../contexts/browser'
+import { analytics } from '../../utils/segmentClient'
 
 type MetricNodeAlertBadgeProps = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,7 +24,12 @@ const MetricNodeAlertBadge: FunctionComponent<MetricNodeAlertBadgeProps> = ({
       tooltipOptions={{
         style: { width: '300px' },
       }}
-      onClick={() => push(`/${organizationName}/metrics/${nodeData.id}`)}
+      onClick={() => {
+        analytics.track('click_metric_node_alert_badge', {
+          nodeId: nodeData.id,
+        })
+        push(`/${organizationName}/metrics/${nodeData.id}`)
+      }}
     />
   ) : null
 }
