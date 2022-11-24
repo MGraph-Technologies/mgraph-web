@@ -103,7 +103,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                         ]
                       }) => {
                         return mr.latest_monitoring_rule_evaluations.some(
-                          (mre) => mre.status === 'alert'
+                          (mre) => ['alert', 'timed_out'].includes(mre.status)
                         )
                       }
                     )

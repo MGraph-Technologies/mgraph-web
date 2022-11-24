@@ -212,7 +212,9 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   const alertCellBodyTemplate: ColumnBodyType = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
-      return rowData.latestEvaluation?.status === 'alert' ? (
+      return ['alert', 'timed_out'].includes(
+        rowData.latestEvaluation?.status
+      ) ? (
         <Button
           id="alert-button"
           className="p-button-text p-button-lg p-button-danger"
