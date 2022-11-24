@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import SettingsInputText from './SettingsInputText'
 import { useAuth } from '../contexts/auth'
+import { useGraph } from '../contexts/graph'
 import styles from '../styles/MonitoringRulesTable.module.css'
 import { objectToBullets } from '../utils/objectToBullets'
 import { analytics } from '../utils/segmentClient'
@@ -44,6 +45,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   parentNodeId,
 }) => {
   const { organizationId, userCanEdit } = useAuth()
+  const { graph, updateGraph } = useGraph()
 
   const [monitoringRulesTableLoading, setMonitoringRulesTableLoading] =
     useState(true)
@@ -56,27 +58,27 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
     latestEvaluation: MonitoringRuleLatestEvaluation | null
   }
   const [monitoringRules, setMonitoringRules] = useState<MonitoringRule[]>([])
-  const populateMonitoringRules = useCallback(async () => {
-    if (organizationId) {
-      setMonitoringRulesTableLoading(true)
-      try {
-        const { data, error, status } = await supabase
-          .from('monitoring_rules')
-          .select(
-            'id, name, properties, schedule, slack_to, latest_monitoring_rule_evaluations ( status, alerts, updated_at )'
-          )
-          .is('deleted_at', null)
-          .eq('organization_id', organizationId)
-          .eq('parent_node_id', parentNodeId)
-          .order('created_at', { ascending: true })
+  const populateMonitoringRules = useCallback(
+    async (updateNode = false) => {
+      if (organizationId) {
+        setMonitoringRulesTableLoading(true)
+        try {
+          const { data, error, status } = await supabase
+            .from('monitoring_rules')
+            .select(
+              'id, name, properties, schedule, slack_to, latest_monitoring_rule_evaluations ( status, alerts, updated_at )'
+            )
+            .is('deleted_at', null)
+            .eq('organization_id', organizationId)
+            .eq('parent_node_id', parentNodeId)
+            .order('created_at', { ascending: true })
 
-        if (error && status !== 406) {
-          throw error
-        }
+          if (error && status !== 406) {
+            throw error
+          }
 
-        if (data) {
-          setMonitoringRules(
-            data.map(
+          if (data) {
+            const _monitoringRules = data.map(
               (mr) =>
                 ({
                   id: mr.id,
@@ -104,14 +106,52 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                       : null,
                 } as MonitoringRule)
             )
-          )
-          setMonitoringRulesTableLoading(false)
+            setMonitoringRules(_monitoringRules)
+            setMonitoringRulesTableLoading(false)
+            if (updateNode) {
+              const monitored = _monitoringRules.length > 0
+              const alert = _monitoringRules.some(
+                (mr) => mr.latestEvaluation !== null
+              )
+                ? _monitoringRules.some((mr) => {
+                    const latestStatus = mr.latestEvaluation?.status
+                    return (
+                      latestStatus !== undefined &&
+                      ['alert', 'timed_out'].includes(latestStatus)
+                    )
+                  })
+                  ? true
+                  : false
+                : undefined
+              const parentNode = graph.nodes.find((n) => n.id === parentNodeId)
+              if (parentNode && updateGraph) {
+                const newParentNode = {
+                  ...parentNode,
+                  data: {
+                    ...parentNode.data,
+                    monitored,
+                    alert,
+                  },
+                }
+                updateGraph(
+                  {
+                    nodes: graph.nodes.map((n) =>
+                      n.id === parentNodeId ? newParentNode : n
+                    ),
+                    edges: undefined,
+                  },
+                  true
+                )
+              }
+            }
+          }
+        } catch (error: unknown) {
+          console.error(error)
         }
-      } catch (error: unknown) {
-        console.error(error)
       }
-    }
-  }, [organizationId, parentNodeId])
+    },
+    [organizationId, parentNodeId, graph.nodes, updateGraph]
+  )
   useEffect(() => {
     populateMonitoringRules()
   }, [populateMonitoringRules])
@@ -196,7 +236,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                   analytics.track('delete_monitoring_rule', {
                     id: rowData.id,
                   })
-                  populateMonitoringRules()
+                  populateMonitoringRules(true)
                 }
               } catch (error: unknown) {
                 console.error(error)
@@ -455,7 +495,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                             id: data[0].id,
                           }
                         )
-                        populateMonitoringRules()
+                        populateMonitoringRules(true)
                         setShowUpsertRulePopup(false)
                         clearFields()
                       }
