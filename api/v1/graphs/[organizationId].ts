@@ -37,6 +37,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         )
         .eq('organization_id', organizationId)
         .is('deleted_at', null)
+        .is('monitoring_rules.deleted_at', null)
+        .is(
+          'monitoring_rules.latest_monitoring_rule_evaluations.deleted_at',
+          null
+        )
 
       if (nodesError) {
         throw nodesError
