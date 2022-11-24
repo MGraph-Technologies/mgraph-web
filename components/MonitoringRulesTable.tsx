@@ -49,10 +49,10 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
     useState(true)
   type MonitoringRule = {
     id: string
+    name: string
     properties: MonitoringRuleProperties
     schedule: string
     slackTo: string
-    comment: string
     latestEvaluation: MonitoringRuleLatestEvaluation | null
   }
   const [monitoringRules, setMonitoringRules] = useState<MonitoringRule[]>([])
@@ -63,7 +63,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
         const { data, error, status } = await supabase
           .from('monitoring_rules')
           .select(
-            'id, properties, schedule, slack_to, comment, latest_monitoring_rule_evaluations ( status, alerts, updated_at )'
+            'id, name, properties, schedule, slack_to, latest_monitoring_rule_evaluations ( status, alerts, updated_at )'
           )
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
@@ -80,6 +80,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
               (mr) =>
                 ({
                   id: mr.id,
+                  name: mr.name,
                   properties: {
                     alertIfValue: mr.properties.alertIfValue,
                     rangeLowerBound: mr.properties.rangeLowerBound,
@@ -90,7 +91,6 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                   } as MonitoringRuleProperties,
                   schedule: mr.schedule,
                   slackTo: mr.slack_to,
-                  comment: mr.comment,
                   latestEvaluation:
                     mr.latest_monitoring_rule_evaluations.length > 0
                       ? ({
@@ -130,7 +130,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   const propertiesCellBodyTemplate: ColumnBodyType = (rowData: any) => {
     const properties = {
       ...rowData.properties,
-      // pack schedule, slackTo, comment into properties for display
+      // pack schedule, slackTo into properties for display
       schedule: rowData.schedule,
       slackTo: rowData.slackTo,
     }
@@ -157,6 +157,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             icon="pi pi-pencil"
             onClick={() => {
               setUpsertRuleId(rowData.id)
+              setUpsertRuleName(rowData.name)
               setUpsertRuleAlertIfValue(rowData.properties.alertIfValue)
               setUpsertRuleRangeLowerBoundStr(
                 rowData.properties.rangeLowerBound
@@ -174,7 +175,6 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
               )
               setUpsertRuleSchedule(rowData.schedule)
               setUpsertRuleSlackTo(rowData.slackTo)
-              setUpsertRuleComment(rowData.comment)
               setUpsertRuleIsNew(false)
               setShowUpsertRulePopup(true)
             }}
@@ -235,6 +235,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
 
   const [showUpsertRulePopup, setShowUpsertRulePopup] = useState(false)
   const [upsertRuleId, setUpsertRuleId] = useState<string>('')
+  const [upsertRuleName, setUpsertRuleName] = useState<string>('')
   const [upsertRuleAlertIfValue, setUpsertRuleAlertIfValue] =
     useState<AlertIfValueOption>('insideRangeInclusive')
   const [upsertRuleRangeLowerBoundStr, setUpsertRuleRangeLowerBoundStr] =
@@ -249,11 +250,11 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   ] = useState('')
   const [upsertRuleSchedule, setUpsertRuleSchedule] = useState<string>('')
   const [upsertRuleSlackTo, setUpsertRuleSlackTo] = useState<string>('')
-  const [upsertRuleComment, setUpsertRuleComment] = useState<string>('')
   const [upsertRuleIsNew, setUpsertRuleIsNew] = useState(true)
 
   const clearFields = useCallback(() => {
     setUpsertRuleId('')
+    setUpsertRuleName('')
     setUpsertRuleAlertIfValue('insideRangeInclusive')
     setUpsertRuleRangeLowerBoundStr('')
     setUpsertRuleRangeUpperBoundStr('')
@@ -261,7 +262,6 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
     setUpsertRuleQueryParameterOverridesStr('')
     setUpsertRuleSchedule('')
     setUpsertRuleSlackTo('')
-    setUpsertRuleComment('')
     setUpsertRuleIsNew(true)
   }, [])
 
@@ -288,6 +288,12 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
               return
             }} // handled by buttons, but required
           >
+            <SettingsInputText
+              label="Name"
+              value={upsertRuleName}
+              setValue={setUpsertRuleName}
+              tooltip="A descriptive name for the rule"
+            />
             <label
               htmlFor="upsert-rule-alert-if-value-dropdown"
               style={{ display: 'block', fontWeight: 'bold' }}
@@ -345,12 +351,6 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
               value={upsertRuleSlackTo}
               setValue={setUpsertRuleSlackTo}
               tooltip="(optional) Slack webhook urls to receive alerts, comma separated"
-            />
-            <SettingsInputText
-              label="Comment"
-              value={upsertRuleComment}
-              setValue={setUpsertRuleComment}
-              tooltip="(optional) A brief description of the rule"
             />
             <div className={styles.save_cancel_button_container}>
               <Button
@@ -421,12 +421,12 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                     const now = new Date()
                     let toUpsert = {
                       id: upsertRuleId,
+                      name: upsertRuleName,
                       organization_id: organizationId,
                       parent_node_id: parentNodeId,
                       properties: upsertRuleProperties,
                       schedule: upsertRuleSchedule,
                       slack_to: upsertRuleSlackTo,
-                      comment: upsertRuleComment,
                       updated_at: now,
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     } as any
@@ -497,8 +497,8 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
           emptyMessage="No monitoring rules found"
         >
           <Column
-            field="comment"
-            header="Comment"
+            field="name"
+            header="Name"
             style={{
               ...columnStyle,
               minWidth: '125px',

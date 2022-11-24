@@ -657,8 +657,9 @@ describe('Metric detail editing', () => {
     // add monitoring rule
     const randomString = Math.random().toString(36)
     const newRuleSlackTo = '#' + randomString
-    const newRuleComment = 'test comment ' + randomString
+    const newRuleName = 'test name ' + randomString
     cy.get('[id=new-monitoring-rule-button]').click()
+    cy.get('[id=name-field]').type(newRuleName)
     cy.get('[id=range-lower-bound-field]').type('-Infinity')
     cy.get('[id=range-upper-bound-field]').type('0.0')
     cy.get('[id=lookback-periods-field]').type('1')
@@ -667,17 +668,15 @@ describe('Metric detail editing', () => {
     )
     cy.get('[id=schedule-field]').type('0 13 * * *')
     cy.get('[id=slack-to-field]').type(newRuleSlackTo)
-    cy.get('[id=comment-field]').type(newRuleComment)
     cy.get('[id=save-monitoring-rule-button]').click()
 
     // TODO: check validation errors
     // TODO: test that rule actually works
 
-    // check change has persisted
-    cy.wait(2000)
+    // check change has persistedName.wait(2000)
     cy.reload()
     cy.get('[id=monitoring-rules-table]')
-      .contains(newRuleComment)
+      .contains(newRuleName)
       .parent('tr')
       .within(() => {
         cy.get('td').contains('0 13 * * *').should('exist')
@@ -686,7 +685,7 @@ describe('Metric detail editing', () => {
 
     // edit rule
     cy.get('[id=monitoring-rules-table]')
-      .contains(newRuleComment)
+      .contains(newRuleName)
       .parent('tr')
       .find('[id=edit-monitoring-rule-button]')
       .click()
@@ -697,7 +696,7 @@ describe('Metric detail editing', () => {
     cy.wait(2000)
     cy.reload()
     cy.get('[id=monitoring-rules-table]')
-      .contains(newRuleComment)
+      .contains(newRuleName)
       .parent('tr')
       .within(() => {
         cy.get('td').contains('0 14 * * *').should('exist')
@@ -705,7 +704,7 @@ describe('Metric detail editing', () => {
 
     // delete rule
     cy.get('[id=monitoring-rules-table]')
-      .contains(newRuleComment)
+      .contains(newRuleName)
       .parent('tr')
       .find('[id=delete-monitoring-rule-button]')
       .click()

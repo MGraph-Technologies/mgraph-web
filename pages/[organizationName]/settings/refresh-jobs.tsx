@@ -25,9 +25,9 @@ const RefreshJobs: FunctionComponent = () => {
   const [refreshJobsTableLoading, setRefreshJobsTableLoading] = useState(true)
   type RefreshJob = {
     id: string
+    name: string
     schedule: string
     slackTo: string
-    comment: string
     createdAt: string
   }
   const [refreshJobs, setRefreshJobs] = useState<RefreshJob[]>([])
@@ -37,7 +37,7 @@ const RefreshJobs: FunctionComponent = () => {
       try {
         const { data, error, status } = await supabase
           .from('refresh_jobs')
-          .select('id, schedule, slack_to, comment, created_at')
+          .select('id, name, schedule, slack_to, created_at')
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true })
@@ -52,9 +52,9 @@ const RefreshJobs: FunctionComponent = () => {
               (rj) =>
                 ({
                   id: rj.id,
+                  name: rj.name,
                   schedule: rj.schedule,
                   slackTo: rj.slack_to,
-                  comment: rj.comment,
                   createdAt: rj.created_at,
                 } as RefreshJob)
             )
@@ -91,9 +91,9 @@ const RefreshJobs: FunctionComponent = () => {
             icon="pi pi-pencil"
             onClick={() => {
               setUpsertJobId(rowData.id)
+              setUpsertJobName(rowData.name)
               setUpsertJobSchedule(rowData.schedule)
               setUpsertJobSlackTo(rowData.slackTo)
-              setUpsertJobComment(rowData.comment)
               setUpsertJobIsNew(false)
               setShowUpsertJobPopup(true)
             }}
@@ -137,16 +137,16 @@ const RefreshJobs: FunctionComponent = () => {
 
   const [showUpsertJobPopup, setShowUpsertJobPopup] = useState(false)
   const [upsertJobId, setUpsertJobId] = useState<string>('')
+  const [upsertJobName, setUpsertJobName] = useState<string>('')
   const [upsertJobSchedule, setUpsertJobSchedule] = useState<string>('')
   const [upsertJobSlackTo, setUpsertJobSlackTo] = useState<string>('')
-  const [upsertJobComment, setUpsertJobComment] = useState<string>('')
   const [upsertJobIsNew, setUpsertJobIsNew] = useState(true)
 
   const clearFields = useCallback(() => {
     setUpsertJobId('')
+    setUpsertJobName('')
     setUpsertJobSchedule('')
     setUpsertJobSlackTo('')
-    setUpsertJobComment('')
     setUpsertJobIsNew(true)
   }, [])
 
@@ -179,6 +179,12 @@ const RefreshJobs: FunctionComponent = () => {
               }} // handled by buttons, but required
             >
               <SettingsInputText
+                label="Name"
+                value={upsertJobName}
+                setValue={setUpsertJobName}
+                tooltip="(optional) A brief description of the refresh job"
+              />
+              <SettingsInputText
                 label="Schedule"
                 value={upsertJobSchedule}
                 setValue={setUpsertJobSchedule}
@@ -189,12 +195,6 @@ const RefreshJobs: FunctionComponent = () => {
                 value={upsertJobSlackTo}
                 setValue={setUpsertJobSlackTo}
                 tooltip="(optional) Slack webhook urls to be notified upon refresh job completion, comma separated"
-              />
-              <SettingsInputText
-                label="Comment"
-                value={upsertJobComment}
-                setValue={setUpsertJobComment}
-                tooltip="(optional) A brief description of the refresh job"
               />
               <div className={styles.save_cancel_button_container}>
                 <Button
@@ -210,10 +210,10 @@ const RefreshJobs: FunctionComponent = () => {
                       const now = new Date()
                       let toUpsert = {
                         id: upsertJobId,
+                        name: upsertJobName,
                         organization_id: organizationId,
                         schedule: upsertJobSchedule,
                         slack_to: upsertJobSlackTo,
-                        comment: upsertJobComment,
                         updated_at: now,
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       } as any
@@ -282,9 +282,9 @@ const RefreshJobs: FunctionComponent = () => {
               filterDisplay="row"
               emptyMessage="No refresh jobs configured"
             >
+              <Column field="name" header="Name" style={columnStyle} />
               <Column field="schedule" header="Schedule" style={columnStyle} />
               <Column field="slackTo" header="Slack To" style={columnStyle} />
-              <Column field="comment" header="Comment" style={columnStyle} />
               <Column
                 field="created_at"
                 header="Created At"
