@@ -96,6 +96,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               setNodeDataToChange: () => {
                 return
               },
+              monitored: n.monitoring_rules?.length > 0,
               alert:
                 n.monitoring_rules?.length > 0 &&
                 n.monitoring_rules[0].latest_monitoring_rule_evaluations

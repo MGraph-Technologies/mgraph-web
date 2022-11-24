@@ -15,38 +15,58 @@ const MetricNodeAlertBadge: FunctionComponent<MetricNodeAlertBadgeProps> = ({
 }) => {
   const { organizationName } = useAuth()
   const { push } = useBrowser()
-  if (!nodeData || nodeData.alert === undefined) {
+  if (!nodeData || !nodeData.monitored) {
     return null
-  } else if (nodeData.alert) {
-    return (
-      <Button
-        id="alert-button"
-        className="p-button-text p-button-lg p-button-danger"
-        icon="pi pi-flag-fill"
-        tooltip="A alert is in effect for this metric. Click to view more details."
-        tooltipOptions={{
-          style: { width: '300px' },
-        }}
-        onClick={() => {
-          analytics.track('click_metric_node_alert_badge', {
-            nodeId: nodeData.id,
-          })
-          push(`/${organizationName}/metrics/${nodeData.id}#monitoring-rules`)
-        }}
-      />
-    )
   } else {
-    return (
-      <Button
-        id="alert-button"
-        className="p-button-text p-button-lg p-button-success"
-        icon="pi pi-check-circle"
-        tooltip="All monitoring rules are passing for this metric."
-        tooltipOptions={{
-          style: { width: '300px' },
-        }}
-      />
-    )
+    switch (nodeData.alert) {
+      case undefined: {
+        return (
+          <Button
+            id="alert-badge"
+            className="p-button-text p-button-lg"
+            icon="pi pi-check-circle"
+            tooltip="This metric has monitoring enabled, but no rules have been evaluated yet."
+            tooltipOptions={{
+              style: { width: '300px' },
+            }}
+          />
+        )
+      }
+      case false: {
+        return (
+          <Button
+            id="alert-badge"
+            className="p-button-text p-button-lg p-button-success"
+            icon="pi pi-check-circle"
+            tooltip="All monitoring rules are passing for this metric."
+            tooltipOptions={{
+              style: { width: '300px' },
+            }}
+          />
+        )
+      }
+      case true: {
+        return (
+          <Button
+            id="alert-badge"
+            className="p-button-text p-button-lg p-button-danger"
+            icon="pi pi-flag-fill"
+            tooltip="A alert is in effect for this metric. Click to view more details."
+            tooltipOptions={{
+              style: { width: '300px' },
+            }}
+            onClick={() => {
+              analytics.track('click_metric_node_alert_badge', {
+                nodeId: nodeData.id,
+              })
+              push(
+                `/${organizationName}/metrics/${nodeData.id}#monitoring-rules`
+              )
+            }}
+          />
+        )
+      }
+    }
   }
 }
 

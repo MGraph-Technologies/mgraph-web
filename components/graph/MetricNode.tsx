@@ -40,6 +40,7 @@ export type MetricNodeProperties = {
   // below not in postgres
   initialProperties: object
   setNodeDataToChange: (data: MetricNodeProperties) => void
+  monitored: boolean
   alert: boolean | undefined
 }
 type MetricNodeProps = {

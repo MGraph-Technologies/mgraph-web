@@ -484,7 +484,8 @@ export function GraphProvider({ children }: GraphProps) {
       color: '#FFFFFF',
       initialProperties: {},
       setNodeDataToChange: setNodeDataToChange,
-      alert: false,
+      monitored: false,
+      alert: undefined,
     }
     const newNode: Node = {
       id: newNodeId,

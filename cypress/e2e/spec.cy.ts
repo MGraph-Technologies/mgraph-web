@@ -682,6 +682,7 @@ describe('Metric detail editing', () => {
         cy.get('td').contains('0 13 * * *').should('exist')
         cy.get('td').contains(newRuleSlackTo).should('exist')
       })
+    cy.get('[id=alert-badge]').should('exist')
 
     // edit rule
     cy.get('[id=monitoring-rules-table]')
