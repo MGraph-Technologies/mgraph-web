@@ -289,7 +289,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             }} // handled by buttons, but required
           >
             <SettingsInputText
-              label="Name"
+              label="Rule Name"
               value={upsertRuleName}
               setValue={setUpsertRuleName}
               tooltip="A descriptive name for the rule"
