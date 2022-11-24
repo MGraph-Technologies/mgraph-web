@@ -76,6 +76,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             } as MissionNodeProperties
           }
           if (node.type === 'metric') {
+            type MR = {
+              id: string
+              latest_monitoring_rule_evaluations: [
+                { status: MonitoringRuleEvaluationStatus }
+              ]
+            }
             node.data = {
               // explicit construction so properties added outside of react flow don't break it
               id: properties.id,
@@ -99,20 +105,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               monitored: n.monitoring_rules?.length > 0,
               alert:
                 n.monitoring_rules?.length > 0 &&
-                n.monitoring_rules[0].latest_monitoring_rule_evaluations
-                  ?.length > 0
-                  ? n.monitoring_rules.some(
-                      (mr: {
-                        id: string
-                        latest_monitoring_rule_evaluations: [
-                          { status: MonitoringRuleEvaluationStatus }
-                        ]
-                      }) => {
-                        return mr.latest_monitoring_rule_evaluations.some(
-                          (mre) => ['alert', 'timed_out'].includes(mre.status)
+                n.monitoring_rules.some(
+                  (mr: MR) => mr.latest_monitoring_rule_evaluations.length > 0
+                )
+                  ? n.monitoring_rules.some((mr: MR) => {
+                      return (
+                        mr.latest_monitoring_rule_evaluations.length > 0 &&
+                        mr.latest_monitoring_rule_evaluations.some((mre) =>
+                          ['alert', 'timed_out'].includes(mre.status)
                         )
-                      }
-                    )
+                      )
+                    })
                   : undefined,
             } as MetricNodeProperties
           }
