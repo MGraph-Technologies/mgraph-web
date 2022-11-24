@@ -91,18 +91,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               setNodeDataToChange: () => {
                 return
               },
-              alert: n.monitoring_rules.some(
-                (mr: {
-                  id: string
-                  latest_monitoring_rule_evaluations: [
-                    { status: MonitoringRuleEvaluationStatus }
-                  ]
-                }) => {
-                  return mr.latest_monitoring_rule_evaluations.some(
-                    (mre) => mre.status === 'alert'
-                  )
-                }
-              ),
+              alert:
+                n.monitoring_rules?.length > 0 &&
+                n.monitoring_rules[0].latest_monitoring_rule_evaluations
+                  ?.length > 0
+                  ? n.monitoring_rules.some(
+                      (mr: {
+                        id: string
+                        latest_monitoring_rule_evaluations: [
+                          { status: MonitoringRuleEvaluationStatus }
+                        ]
+                      }) => {
+                        return mr.latest_monitoring_rule_evaluations.some(
+                          (mre) => mre.status === 'alert'
+                        )
+                      }
+                    )
+                  : undefined,
             } as MetricNodeProperties
           }
           if (node.type === 'function') {
