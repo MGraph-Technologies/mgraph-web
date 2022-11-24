@@ -36,6 +36,12 @@
   margin: auto;
 }
 
+.metric_detail .body .chart_container .refresh_chart_button_container {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
 .metric_detail .body .detail_field {
   background-color: #ffffff;
   border-radius: 5px;

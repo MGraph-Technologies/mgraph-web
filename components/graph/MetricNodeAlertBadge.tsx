@@ -28,7 +28,7 @@ const MetricNodeAlertBadge: FunctionComponent<MetricNodeAlertBadgeProps> = ({
         analytics.track('click_metric_node_alert_badge', {
           nodeId: nodeData.id,
         })
-        push(`/${organizationName}/metrics/${nodeData.id}`)
+        push(`/${organizationName}/metrics/${nodeData.id}#monitoring-rules`)
       }}
     />
   ) : null
