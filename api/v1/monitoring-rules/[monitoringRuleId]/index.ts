@@ -108,7 +108,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         'pending'
       )
 
-      return res.status(200).json({})
+      // let requests finish before returning
+      setTimeout(() => {
+        console.log('\nReturning successfully...')
+        return res.status(200).json({})
+      }, 1000)
     } catch (error: unknown) {
       console.error('\nError: ', error)
       await logMonitoringRuleEvaluation(

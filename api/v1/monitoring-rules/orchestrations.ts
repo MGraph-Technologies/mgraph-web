@@ -24,17 +24,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // send other pending monitoring rule evaluations to finisher
     console.log('\nProgressing other pending monitoring rule evaluations...')
     try {
-      const { data, error, status } = await supabase
+      const {
+        data: MREData,
+        error: MREError,
+        status: MREStatus,
+      } = await supabase
         .from('monitoring_rule_evaluations')
         .select(`id, monitoring_rule_id`)
         .eq('status', 'pending')
 
-      if (error && status !== 406) {
-        throw error
+      if (MREError && MREStatus !== 406) {
+        throw MREError
       }
 
-      if (data) {
-        data.forEach(async (evaluation) => {
+      if (MREData) {
+        MREData.forEach(async (evaluation) => {
           console.log(
             `\nMonitoring rule evaluation ${evaluation.id} is pending notification. Sending to finisher...`
           )
@@ -55,33 +59,30 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           )
         })
       }
-    } catch (error: unknown) {
-      console.error('\nError: ', error)
-      return res.status(500).json({
-        error: error,
-      })
-    }
 
-    // send this-minuted-scheduled monitoring rule evaluations to initiator
-    console.log(
-      '\nInitiating this-minute-scheduled monitoring rule evaluations...'
-    )
-    try {
-      type MonitorinRule = {
+      // send this-minuted-scheduled monitoring rule evaluations to initiator
+      console.log(
+        '\nInitiating this-minute-scheduled monitoring rule evaluations...'
+      )
+      type MonitoringRule = {
         id: string
         schedule: string
       }
-      const { data, error, status } = await supabase
+      const {
+        data: MRData,
+        error: MRError,
+        status: MRStatus,
+      } = await supabase
         .from('monitoring_rules')
         .select(`id, schedule`)
         .is('deleted_at', null)
 
-      if (error && status !== 406) {
-        throw error
+      if (MRError && MRStatus !== 406) {
+        throw MRError
       }
 
-      if (data) {
-        data.forEach(async (monitoringRule: MonitorinRule) => {
+      if (MRData) {
+        MRData.forEach(async (monitoringRule: MonitoringRule) => {
           console.log(
             `\nMonitoring rule ${monitoringRule.id} has schedule ${monitoringRule.schedule}. Checking if it should run now...`
           )
@@ -134,7 +135,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       }
 
-      return res.status(200).json({})
+      // let requests finish before returning
+      setTimeout(() => {
+        console.log('\nReturning successfully...')
+        return res.status(200).json({})
+      }, 1000)
     } catch (error: unknown) {
       console.error('\nError: ', error)
       return res.status(500).json({

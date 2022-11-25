@@ -100,7 +100,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       })
 
       await logRefreshJobRun(refreshJobId as string, supabase, 'pending')
-      return res.status(200).json({})
+      // let requests finish before returning
+      setTimeout(() => {
+        console.log('\nReturning successfully...')
+        return res.status(200).json({})
+      }, 1000)
     } catch (error: unknown) {
       console.error('\nError: ', error)
       await logRefreshJobRun(refreshJobId as string, supabase, 'error')

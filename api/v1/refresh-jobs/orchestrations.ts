@@ -23,17 +23,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // send pending refresh job runs to finisher
     console.log('\nProgressing other pending refresh job runs...')
     try {
-      const { data, error, status } = await supabase
+      const {
+        data: RJRData,
+        error: RJRError,
+        status: RJRStatus,
+      } = await supabase
         .from('refresh_job_runs')
         .select(`id, refresh_job_id`)
         .eq('status', 'pending')
 
-      if (error && status !== 406) {
-        throw error
+      if (RJRError && RJRStatus !== 406) {
+        throw RJRError
       }
 
-      if (data) {
-        data.forEach(async (run) => {
+      if (RJRData) {
+        RJRData.forEach(async (run) => {
           console.log(
             `\nRefresh job run ${run.id} is pending. Sending to finisher...`
           )
@@ -54,31 +58,28 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           )
         })
       }
-    } catch (error: unknown) {
-      console.error('\nError: ', error)
-      return res.status(500).json({
-        error: error,
-      })
-    }
 
-    // send this-minuted-scheduled refresh job runs to initiator
-    console.log('\nInitiating this-minute-scheduled refresh job runs...')
-    try {
+      // send this-minuted-scheduled refresh job runs to initiator
+      console.log('\nInitiating this-minute-scheduled refresh job runs...')
       type RefreshJob = {
         id: string
         schedule: string
       }
-      const { data, error, status } = await supabase
+      const {
+        data: RJData,
+        error: RJError,
+        status: RJStatus,
+      } = await supabase
         .from('refresh_jobs')
         .select(`id, schedule`)
         .is('deleted_at', null)
 
-      if (error && status !== 406) {
-        throw error
+      if (RJError && RJStatus !== 406) {
+        throw RJError
       }
 
-      if (data) {
-        data.forEach(async (refreshJob: RefreshJob) => {
+      if (RJData) {
+        RJData.forEach(async (refreshJob: RefreshJob) => {
           console.log(
             `\nRefresh job ${refreshJob.id} has schedule ${refreshJob.schedule}. Checking if it should run now...`
           )
@@ -129,7 +130,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       }
 
-      return res.status(200).json({})
+      // let requests finish before returning
+      setTimeout(() => {
+        console.log('\nReturning successfully...')
+        return res.status(200).json({})
+      }, 1000)
     } catch (error: unknown) {
       console.error('\nError: ', error)
       return res.status(500).json({
