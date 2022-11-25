@@ -54,7 +54,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         .single()
 
       if (
-        monitoringRuleEvaluationData &&
+        monitoringRuleEvaluationError &&
         monitoringRuleEvaluationStatus !== 406
       ) {
         throw monitoringRuleEvaluationError
@@ -72,7 +72,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       } = await supabase
         .from('monitoring_rules')
         .select(
-          'organization_id, parent_node_id, properties, email_to, slack_to, organizations ( name ), nodes ( name )'
+          'organization_id, parent_node_id, properties, email_to, slack_to, organizations ( name )'
         )
         .eq('id', monitoringRuleId)
         .single()
@@ -127,6 +127,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const evaluationAlerts: string[] = []
       const processAlert = (alert: string) => {
         console.log('\n' + alert)
+        evaluationStatus = 'alert'
         if (monitoringRuleData.slack_to) {
           sendSlackAlerts(
             alert,
@@ -144,8 +145,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       )
       if (monitoringRuleEvaluationData.created_at < timeoutThreshold) {
         // terminate early
-        evaluationStatus = 'timed_out'
         processAlert('Monitoring rule evaluation timed out.')
+        evaluationStatus = 'timed_out' // override processAlert
       } else {
         // try to evaluate monitoring rule
         // get organization's query parameters
@@ -308,8 +309,7 @@ const sendSlackAlerts = async (
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `*:warning: Alert on metric ${metricNodeProperties.name}`,
-            emoji: true,
+            text: `*:warning: Alert on metric ${metricNodeProperties.name}*`,
           },
         },
         {
@@ -317,7 +317,6 @@ const sendSlackAlerts = async (
           text: {
             type: 'mrkdwn',
             text: `Alert: ${alert}`,
-            emoji: true,
           },
         },
         {
@@ -327,7 +326,7 @@ const sendSlackAlerts = async (
               type: 'mrkdwn',
               text: `${getBaseUrl()}/${organizationNameEncoded}/metrics/${
                 metricNodeProperties.id
-              }`,
+              }#monitoring-rules`,
             },
           ],
         },
