@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import SettingsInputText from './SettingsInputText'
 import { useAuth } from '../contexts/auth'
+import { useEditability } from '../contexts/editability'
 import { useGraph } from '../contexts/graph'
 import styles from '../styles/MonitoringRulesTable.module.css'
 import { objectToBullets } from '../utils/objectToBullets'
@@ -45,6 +46,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   parentNodeId,
 }) => {
   const { organizationId, userCanEdit } = useAuth()
+  const { editingEnabled } = useEditability()
   const { graph, updateGraph } = useGraph()
 
   const [monitoringRulesTableLoading, setMonitoringRulesTableLoading] =
@@ -307,7 +309,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
 
   return (
     <>
-      {userCanEdit && (
+      {userCanEdit && editingEnabled && (
         <div className={styles.new_monitoring_rule_container}>
           <Button
             id="new-monitoring-rule-button"
@@ -565,7 +567,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             align="center"
             style={columnStyle}
           />
-          {userCanEdit && (
+          {userCanEdit && editingEnabled && (
             <Column
               body={editCellBodyTemplate}
               align="center"
