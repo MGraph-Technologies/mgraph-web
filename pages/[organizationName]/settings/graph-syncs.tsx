@@ -156,7 +156,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
         value={upsertGraphSyncRepoUrl}
         setValue={setUpsertGraphSyncRepoUrl}
         type="text"
-        tooltip="The GitHub repo of the dbt project to sync"
+        tooltip="The GitHub repo URL of the dbt project to sync (e.g., https://github.com/MGraph-Technologies/dbt-prod)"
       />
       <label
         htmlFor="github-app-button"
