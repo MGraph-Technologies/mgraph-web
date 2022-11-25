@@ -658,6 +658,7 @@ describe('Metric detail editing', () => {
     const randomString = Math.random().toString(36)
     const newRuleSlackTo = '#' + randomString
     const newRuleName = 'test name ' + randomString
+    cy.get('[id=edit-button]').click()
     cy.get('[id=new-monitoring-rule-button]').click()
     cy.get('[id=rule-name-field]').type(newRuleName)
     cy.get('[id=range-lower-bound-field]').type('-Infinity')
@@ -673,7 +674,8 @@ describe('Metric detail editing', () => {
     // TODO: check validation errors
     // TODO: test that rule actually works
 
-    // check change has persistedName.wait(2000)
+    // check change has persisted
+    cy.wait(2000)
     cy.reload()
     cy.get('[id=monitoring-rules-table]')
       .contains(newRuleName)
@@ -685,6 +687,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=alert-badge]').should('exist')
 
     // edit rule
+    cy.get('[id=edit-button]').click()
     cy.get('[id=monitoring-rules-table]')
       .contains(newRuleName)
       .parent('tr')
@@ -704,6 +707,7 @@ describe('Metric detail editing', () => {
       })
 
     // delete rule
+    cy.get('[id=edit-button]').click()
     cy.get('[id=monitoring-rules-table]')
       .contains(newRuleName)
       .parent('tr')
