@@ -42,7 +42,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         .eq('id', runId)
         .single()
 
-      if (refreshJobRunData && refreshJobRunStatus !== 406) {
+      if (refreshJobRunError && refreshJobRunStatus !== 406) {
         throw refreshJobRunError
       }
 
