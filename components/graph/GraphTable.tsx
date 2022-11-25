@@ -12,6 +12,7 @@ import styles from '../../styles/GraphTable.module.css'
 import { analytics } from '../../utils/segmentClient'
 import LineChart from '../LineChart'
 import ControlPanel from './ControlPanel'
+import MetricNodeAlertBadge from './MetricNodeAlertBadge'
 import NodeInfoButton from './NodeInfoButton'
 
 type GraphTableProps = {
@@ -199,6 +200,11 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   }, [])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const alertCellBodyTemplate = useCallback((rowData: any) => {
+    return <MetricNodeAlertBadge nodeData={rowData.data} />
+  }, [])
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const infoCellBodyTemplate = useCallback((rowData: any) => {
     return <NodeInfoButton nodeData={rowData.data} />
   }, [])
@@ -260,7 +266,12 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
         <Column
           body={trendCellBodyTemplate}
           align="center"
-          style={{ width: '50%' }}
+          style={{ width: '60%' }}
+        />
+        <Column
+          body={alertCellBodyTemplate}
+          align="center"
+          style={{ width: '5%' }}
         />
         <Column
           body={infoCellBodyTemplate}

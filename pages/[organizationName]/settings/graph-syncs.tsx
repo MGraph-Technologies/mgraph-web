@@ -23,6 +23,7 @@ import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
 import styles from '../../../styles/GraphSyncs.module.css'
 import { highlight } from '../../../utils/codeHighlighter'
+import { objectToBullets } from '../../../utils/objectToBullets'
 import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
 
@@ -376,20 +377,7 @@ const GraphSyncs: FunctionComponent = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const propertiesCellBodyTemplate: ColumnBodyType = (rowData: any) => {
-    const properties = rowData.properties
-    const propertyList = Object.keys(properties).map((key) => {
-      const value = properties[key]
-      let valueStr = typeof value === 'string' ? value : JSON.stringify(value)
-      if (valueStr.length > 50) {
-        valueStr = `${valueStr.substring(0, 50)}...`
-      }
-      return (
-        <li key={key}>
-          <strong>{key}:</strong> {valueStr}
-        </li>
-      )
-    })
-    return <ul>{propertyList}</ul>
+    return objectToBullets(rowData.properties)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -514,7 +502,7 @@ const GraphSyncs: FunctionComponent = () => {
               first={graphSyncsTableFirst}
               onPage={graphSyncsTableOnPage}
               filterDisplay="row"
-              emptyMessage="No graph syncs found"
+              emptyMessage="No graph syncs configured"
             >
               <Column field="name" header="Name" style={columnStyle} />
               <Column field="type_name" header="Type" style={columnStyle} />

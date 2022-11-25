@@ -84,7 +84,7 @@ class handler(BaseHTTPRequestHandler):
       self.send_header('Content-type', 'application/json')
       self.end_headers()
       self.wfile.write(json.dumps(result_body).encode('utf-8'))
-    elif query_status_str in ['RUNNING', 'RESUMING_WAREHOUSE', 'QUEUED', 'NO_DATA', 'DISCONNECTED', 'BLOCKED', 'ABORTING']:
+    elif query_status_str in ['RUNNING', 'RESUMING_WAREHOUSE', 'QUEUED', 'DISCONNECTED', 'BLOCKED', 'ABORTING']:
       self.send_response(202)
       self.send_header('Content-type', 'application/json')
       self.end_headers()

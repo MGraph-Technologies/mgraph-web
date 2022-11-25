@@ -1,3 +1,4 @@
+import { isValidCron } from 'cron-validator'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
@@ -24,10 +25,10 @@ const RefreshJobs: FunctionComponent = () => {
   const [refreshJobsTableLoading, setRefreshJobsTableLoading] = useState(true)
   type RefreshJob = {
     id: string
+    name: string
     schedule: string
-    slack_to: string
-    comment: string
-    created_at: string
+    slackTo: string
+    createdAt: string
   }
   const [refreshJobs, setRefreshJobs] = useState<RefreshJob[]>([])
   const populateRefreshJobs = useCallback(async () => {
@@ -36,7 +37,7 @@ const RefreshJobs: FunctionComponent = () => {
       try {
         const { data, error, status } = await supabase
           .from('refresh_jobs')
-          .select('id, schedule, slack_to, comment, created_at')
+          .select('id, name, schedule, slack_to, created_at')
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true })
@@ -46,7 +47,18 @@ const RefreshJobs: FunctionComponent = () => {
         }
 
         if (data) {
-          setRefreshJobs(data as RefreshJob[])
+          setRefreshJobs(
+            data.map(
+              (rj) =>
+                ({
+                  id: rj.id,
+                  name: rj.name,
+                  schedule: rj.schedule,
+                  slackTo: rj.slack_to,
+                  createdAt: rj.created_at,
+                } as RefreshJob)
+            )
+          )
           setRefreshJobsTableLoading(false)
         }
       } catch (error: unknown) {
@@ -79,9 +91,9 @@ const RefreshJobs: FunctionComponent = () => {
             icon="pi pi-pencil"
             onClick={() => {
               setUpsertJobId(rowData.id)
+              setUpsertJobName(rowData.name)
               setUpsertJobSchedule(rowData.schedule)
-              setUpsertJobSlackTo(rowData.slack_to)
-              setUpsertJobComment(rowData.comment)
+              setUpsertJobSlackTo(rowData.slackTo)
               setUpsertJobIsNew(false)
               setShowUpsertJobPopup(true)
             }}
@@ -125,16 +137,16 @@ const RefreshJobs: FunctionComponent = () => {
 
   const [showUpsertJobPopup, setShowUpsertJobPopup] = useState(false)
   const [upsertJobId, setUpsertJobId] = useState<string>('')
+  const [upsertJobName, setUpsertJobName] = useState<string>('')
   const [upsertJobSchedule, setUpsertJobSchedule] = useState<string>('')
   const [upsertJobSlackTo, setUpsertJobSlackTo] = useState<string>('')
-  const [upsertJobComment, setUpsertJobComment] = useState<string>('')
   const [upsertJobIsNew, setUpsertJobIsNew] = useState(true)
 
   const clearFields = useCallback(() => {
     setUpsertJobId('')
+    setUpsertJobName('')
     setUpsertJobSchedule('')
     setUpsertJobSlackTo('')
-    setUpsertJobComment('')
     setUpsertJobIsNew(true)
   }, [])
 
@@ -167,6 +179,12 @@ const RefreshJobs: FunctionComponent = () => {
               }} // handled by buttons, but required
             >
               <SettingsInputText
+                label="Name"
+                value={upsertJobName}
+                setValue={setUpsertJobName}
+                tooltip="(optional) A brief description of the refresh job"
+              />
+              <SettingsInputText
                 label="Schedule"
                 value={upsertJobSchedule}
                 setValue={setUpsertJobSchedule}
@@ -176,27 +194,26 @@ const RefreshJobs: FunctionComponent = () => {
                 label="Slack To"
                 value={upsertJobSlackTo}
                 setValue={setUpsertJobSlackTo}
-                tooltip="Slack webhook urls to be notified upon refresh job completion, comma separated"
-              />
-              <SettingsInputText
-                label="Comment"
-                value={upsertJobComment}
-                setValue={setUpsertJobComment}
-                tooltip="Include a comment to help you remember what this refresh job is for"
+                tooltip="(optional) Slack webhook urls to be notified upon refresh job completion, comma separated"
               />
               <div className={styles.save_cancel_button_container}>
                 <Button
                   id="save-refresh-job-button"
                   label="Save"
                   onClick={async () => {
+                    if (!isValidCron(upsertJobSchedule)) {
+                      alert('Schedule must be a valid cron expression')
+                      return
+                    }
+
                     if (organizationId) {
                       const now = new Date()
                       let toUpsert = {
                         id: upsertJobId,
+                        name: upsertJobName,
                         organization_id: organizationId,
                         schedule: upsertJobSchedule,
                         slack_to: upsertJobSlackTo,
-                        comment: upsertJobComment,
                         updated_at: now,
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       } as any
@@ -263,11 +280,11 @@ const RefreshJobs: FunctionComponent = () => {
               first={refreshJobsTableFirst}
               onPage={refreshJobsTableOnPage}
               filterDisplay="row"
-              emptyMessage="No refresh jobs found"
+              emptyMessage="No refresh jobs configured"
             >
+              <Column field="name" header="Name" style={columnStyle} />
               <Column field="schedule" header="Schedule" style={columnStyle} />
-              <Column field="slack_to" header="Slack To" style={columnStyle} />
-              <Column field="comment" header="Comment" style={columnStyle} />
+              <Column field="slackTo" header="Slack To" style={columnStyle} />
               <Column
                 field="created_at"
                 header="Created At"

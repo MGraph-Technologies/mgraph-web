@@ -32,7 +32,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         status: refreshJobStatus,
       } = await supabase
         .from('refresh_jobs')
-        .select('organization_id, email_to, slack_to')
+        .select('organization_id')
         .eq('id', refreshJobId)
         .single()
 
@@ -99,14 +99,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
       })
 
-      await logRefreshJobRun(
-        refreshJobId as string,
-        supabase,
-        refreshJobData.slack_to || refreshJobData.email_to
-          ? 'pending_notification'
-          : 'success'
-      )
-      return res.status(200).json({})
+      await logRefreshJobRun(refreshJobId as string, supabase, 'pending')
+      // let requests finish before returning
+      setTimeout(() => {
+        console.log('\nReturning successfully...')
+        return res.status(200).json({})
+      }, 1000)
     } catch (error: unknown) {
       console.error('\nError: ', error)
       await logRefreshJobRun(refreshJobId as string, supabase, 'error')

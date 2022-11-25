@@ -1,10 +1,16 @@
 import jsYaml from 'js-yaml'
 import Head from 'next/head'
+import Link from 'next/link'
 import { Button } from 'primereact/button'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { Toolbar } from 'primereact/toolbar'
-import { FunctionComponent, useCallback, useEffect, useState } from 'react'
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 import { EditText, EditTextarea } from 'react-edit-text'
 import { Edge, Node } from 'react-flow-renderer'
 import Editor from 'react-simple-code-editor'
@@ -26,9 +32,11 @@ import {
   MetricNodeSource,
   SourceQueryType,
 } from './MetricNode'
+import MonitoringRulesTable from '../MonitoringRulesTable'
+import MetricNodeAlertBadge from './MetricNodeAlertBadge'
 
 type MetricDetailProps = {
-  metricId: string | string[] | undefined
+  metricId: string
 }
 const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const { session, organizationId, organizationName } = useAuth()
@@ -485,6 +493,14 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     saveDetail,
   ])
 
+  // scroll to hash upon page load
+  useEffect(() => {
+    const hash = window?.location?.hash
+    if (hash) {
+      document.getElementById(hash.replace('#', ''))?.scrollIntoView()
+    }
+  }, [])
+
   return (
     <div className={styles.metric_detail}>
       <Head>
@@ -501,9 +517,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         />
         <EditText
           id="name-field"
-          className={
-            editingEnabled ? styles.detail_field_editable : styles.detail_field
-          }
+          className={styles.detail_field_editable}
           value={name}
           readonly={!editingEnabled}
           formatDisplayText={(value) => {
@@ -516,6 +530,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onChange={(e) => setName(e.target.value)}
           onSave={({ value }) => saveDetail('name', value)}
         />
+        <MetricNodeAlertBadge nodeData={metricNode?.data} />
         <ControlPanel />
       </div>
       <div className={styles.body}>
@@ -527,32 +542,41 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             setQueryResult={setQueryResult}
           />
           <LineChart queryResult={queryResult} />
+
+          {editingEnabled && (
+            <div className={styles.refresh_chart_button_container}>
+              <Button
+                id="refresh-query-button"
+                className="p-button-text"
+                icon="pi pi-refresh"
+                onClick={() => {
+                  setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+                }}
+              />
+            </div>
+          )}
         </div>
-        <h2>Owner</h2>
+        <SectionHeader title="Owner" size="h2" />
         <EditText
           id="owner-field"
-          className={
-            editingEnabled ? styles.detail_field_editable : styles.detail_field
-          }
+          className={styles.detail_field_editable}
           value={owner}
           readonly={!editingEnabled}
           placeholder={editingEnabled ? 'Add...' : '-'}
           onChange={(e) => setOwner(e.target.value)}
           onSave={({ value }) => saveDetail('owner', value)}
         />
-        <h2>Description</h2>
+        <SectionHeader title="Description" size="h2" />
         <EditTextarea
           id="description-field"
-          className={
-            editingEnabled ? styles.detail_field_editable : styles.detail_field
-          }
+          className={styles.detail_field_editable}
           value={description}
           readonly={!editingEnabled}
           placeholder={editingEnabled ? 'Add...' : '-'}
           onChange={(e) => setDescription(e.target.value)}
           onSave={({ value }) => saveDetail('description', value)}
         />
-        <h2>Inputs</h2>
+        <SectionHeader title="Inputs" size="h2" />
         {/* inputs set via function editor */}
         <EditTextarea
           className={styles.detail_field}
@@ -565,7 +589,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
               : Math.max(inputs.split('\n').filter((n) => n).length, 1)
           }
         />
-        <h2>Outputs</h2>
+        <SectionHeader title="Outputs" size="h2" />
         {/* outputs set via function editor */}
         <EditTextarea
           className={styles.detail_field}
@@ -578,8 +602,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
               : Math.max(outputs.split('\n').filter((n) => n).length, 1)
           }
         />
-        <h2>Source</h2>
-        <h3>Database</h3>
+        <SectionHeader title="Monitoring Rules" size="h2" />
+        <MonitoringRulesTable parentNodeId={metricId} />
+        <SectionHeader title="Source" size="h2" />
+        <SectionHeader title="Database" size="h3" />
         <div className={styles.connection_config_block}>
           <div className={styles.connection_config}>
             <Dropdown
@@ -606,7 +632,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         </div>
         {(editingEnabled || sourceDbtProjectGraphSync?.id) && (
           <>
-            <h3>dbt Metric</h3>
+            <SectionHeader title="dbt" size="h3" />
             <div className={styles.connection_config_block}>
               <div className={styles.connection_config}>
                 <label
@@ -677,20 +703,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             )}
           </>
         )}
-        <h3>
-          Query
-          {editingEnabled && (
-            <Button
-              id="refresh-query-button"
-              className="p-button-text p-button-sm"
-              icon="pi pi-refresh"
-              onClick={() => {
-                setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-              }}
-              style={{ marginLeft: '1em' }}
-            />
-          )}
-        </h3>
+        <SectionHeader title="Query" size="h3" />
         {(editingEnabled || sourceDbtProjectGraphSync?.id) && (
           <>
             <div className={styles.connection_config_block}>
@@ -747,6 +760,22 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         </div>
       ) : null}
     </div>
+  )
+}
+
+type SectionHeaderProps = {
+  title: string
+  size: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+}
+const SectionHeader: FunctionComponent<SectionHeaderProps> = ({
+  title,
+  size,
+}) => {
+  const sectionId = title.toLowerCase().replace(' ', '-')
+  return React.createElement(
+    size,
+    { id: sectionId },
+    <Link href={`#${sectionId}`}>{title}</Link>
   )
 }
 

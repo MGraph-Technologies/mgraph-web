@@ -13,6 +13,7 @@ import { FunctionNodeProperties } from '../../../components/graph/FunctionNode'
 import { InputEdgeProperties } from '../../../components/graph/InputEdge'
 import { MetricNodeProperties } from '../../../components/graph/MetricNode'
 import { MissionNodeProperties } from '../../../components/graph/MissionNode'
+import { MonitoringRuleEvaluationStatus } from '../../../components/MonitoringRulesTable'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -31,9 +32,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       const { data: nodesData, error: nodesError } = await supabase
         .from('nodes')
-        .select('properties, react_flow_meta')
+        .select(
+          'properties, react_flow_meta, monitoring_rules ( id, latest_monitoring_rule_evaluations ( status ) )'
+        )
         .eq('organization_id', organizationId)
         .is('deleted_at', null)
+        .is('monitoring_rules.deleted_at', null)
+        .is(
+          'monitoring_rules.latest_monitoring_rule_evaluations.deleted_at',
+          null
+        )
 
       if (nodesError) {
         throw nodesError
@@ -68,6 +76,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             } as MissionNodeProperties
           }
           if (node.type === 'metric') {
+            type MR = {
+              id: string
+              latest_monitoring_rule_evaluations: [
+                { status: MonitoringRuleEvaluationStatus }
+              ]
+            }
             node.data = {
               // explicit construction so properties added outside of react flow don't break it
               id: properties.id,
@@ -88,6 +102,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               setNodeDataToChange: () => {
                 return
               },
+              monitored: n.monitoring_rules?.length > 0,
+              alert:
+                n.monitoring_rules?.length > 0 &&
+                n.monitoring_rules.some(
+                  (mr: MR) => mr.latest_monitoring_rule_evaluations.length > 0
+                )
+                  ? n.monitoring_rules.some((mr: MR) => {
+                      return (
+                        mr.latest_monitoring_rule_evaluations.length > 0 &&
+                        mr.latest_monitoring_rule_evaluations.some((mre) =>
+                          ['alert', 'timed_out'].includes(mre.status)
+                        )
+                      )
+                    })
+                  : undefined,
             } as MetricNodeProperties
           }
           if (node.type === 'function') {

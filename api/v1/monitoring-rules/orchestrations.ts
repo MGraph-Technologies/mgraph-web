@@ -9,8 +9,9 @@ import { getBaseUrl } from '../../../utils/appBaseUrl'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
+// TODO: achieve DRY with api/v1/refresh-jobs/orchestrations
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log('\n\nNew request to /api/v1/refresh-jobs/orchestrations...')
+  console.log('\n\nNew request to /api/v1/monitoring-rules/orchestrations...')
   const method = req.method
   if (method === 'POST') {
     const supabaseServiceRoleKey =
@@ -20,30 +21,30 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       supabaseServiceRoleKey || ''
     )
 
-    // send pending refresh job runs to finisher
-    console.log('\nProgressing other pending refresh job runs...')
+    // send other pending monitoring rule evaluations to finisher
+    console.log('\nProgressing other pending monitoring rule evaluations...')
     try {
       const {
-        data: RJRData,
-        error: RJRError,
-        status: RJRStatus,
+        data: MREData,
+        error: MREError,
+        status: MREStatus,
       } = await supabase
-        .from('refresh_job_runs')
-        .select(`id, refresh_job_id`)
+        .from('monitoring_rule_evaluations')
+        .select(`id, monitoring_rule_id`)
         .eq('status', 'pending')
 
-      if (RJRError && RJRStatus !== 406) {
-        throw RJRError
+      if (MREError && MREStatus !== 406) {
+        throw MREError
       }
 
-      if (RJRData) {
-        RJRData.forEach(async (run) => {
+      if (MREData) {
+        MREData.forEach(async (evaluation) => {
           console.log(
-            `\nRefresh job run ${run.id} is pending. Sending to finisher...`
+            `\nMonitoring rule evaluation ${evaluation.id} is pending notification. Sending to finisher...`
           )
           const finisherRespPromise = fetch(
             getBaseUrl() +
-              `/api/v1/refresh-jobs/${run.refresh_job_id}/runs/${run.id}`,
+              `/api/v1/monitoring-rules/${evaluation.monitoring_rule_id}/evaluations/${evaluation.id}`,
             {
               method: 'PATCH',
               headers: {
@@ -53,37 +54,39 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             }
           )
           console.log(
-            `\nFinisher promise for refresh job run ${run.id}: `,
+            `\nFinisher promise for monitoring rule evaluation ${evaluation.id}: `,
             finisherRespPromise
           )
         })
       }
 
-      // send this-minuted-scheduled refresh job runs to initiator
-      console.log('\nInitiating this-minute-scheduled refresh job runs...')
-      type RefreshJob = {
+      // send this-minuted-scheduled monitoring rule evaluations to initiator
+      console.log(
+        '\nInitiating this-minute-scheduled monitoring rule evaluations...'
+      )
+      type MonitoringRule = {
         id: string
         schedule: string
       }
       const {
-        data: RJData,
-        error: RJError,
-        status: RJStatus,
+        data: MRData,
+        error: MRError,
+        status: MRStatus,
       } = await supabase
-        .from('refresh_jobs')
+        .from('monitoring_rules')
         .select(`id, schedule`)
         .is('deleted_at', null)
 
-      if (RJError && RJStatus !== 406) {
-        throw RJError
+      if (MRError && MRStatus !== 406) {
+        throw MRError
       }
 
-      if (RJData) {
-        RJData.forEach(async (refreshJob: RefreshJob) => {
+      if (MRData) {
+        MRData.forEach(async (monitoringRule: MonitoringRule) => {
           console.log(
-            `\nRefresh job ${refreshJob.id} has schedule ${refreshJob.schedule}. Checking if it should run now...`
+            `\nMonitoring rule ${monitoringRule.id} has schedule ${monitoringRule.schedule}. Checking if it should run now...`
           )
-          if (refreshJob.schedule && isValidCron(refreshJob.schedule)) {
+          if (monitoringRule.schedule && isValidCron(monitoringRule.schedule)) {
             const now = new Date()
             const minuteStart = new Date(
               now.getFullYear(),
@@ -99,7 +102,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               now.getHours(),
               now.getMinutes() + 1
             )
-            const interval = parseExpression(refreshJob.schedule, { utc: true })
+            const interval = parseExpression(monitoringRule.schedule, {
+              utc: true,
+            })
             const next = interval.next()
             const prev = interval.prev()
             if (
@@ -109,10 +114,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 prev.getTime() < minuteEnd.getTime())
             ) {
               console.log(
-                `\nRefresh job ${refreshJob.id} is scheduled to run this minute. Sending to initiator...`
+                `\nMonitoring rule ${monitoringRule.id} is scheduled to run this minute. Sending to initiator...`
               )
               const initiatorRespPromise = fetch(
-                getBaseUrl() + `/api/v1/refresh-jobs/${refreshJob.id}`,
+                getBaseUrl() + `/api/v1/monitoring-rules/${monitoringRule.id}`,
                 {
                   method: 'POST',
                   headers: {
@@ -122,7 +127,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 }
               )
               console.log(
-                `\nInitiator promise for refresh job ${refreshJob.id}: `,
+                `\nInitiator promise for monitoring rule ${monitoringRule.id}: `,
                 initiatorRespPromise
               )
             }
