@@ -380,7 +380,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
               label="Query Parameter Overrides"
               value={upsertRuleQueryParameterOverridesStr}
               setValue={setUpsertRuleQueryParameterOverridesStr}
-              tooltip="(optional) Parameter:Value pairs to override default query paramters (comma-separated without added quotes; e.g., beginning_date:2021-01-01,ending_date:2021-01-31)"
+              tooltip="(optional) Parameter:Value pairs to override default query parameters (comma-separated without added quotes; e.g., beginning_date:2021-01-01,ending_date:2021-01-31)"
             />
             <SettingsInputText
               label="Schedule"
