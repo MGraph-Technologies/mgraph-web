@@ -142,7 +142,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // check for timeout
       const timeoutThreshold = new Date(
         Date.now() - MONITORING_RULE_EVALUATION_TIMEOUT_SECONDS * 1000
-      )
+      ).toISOString()
       if (monitoringRuleEvaluationData.created_at < timeoutThreshold) {
         // terminate early
         processAlert('Monitoring rule evaluation timed out.')

@@ -37,6 +37,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw MREError
       }
 
+      let finisherRequests = 0
       const finisherResponses: {
         [monitoringRuleEvaluationId: string]: number
       } = {}
@@ -45,6 +46,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           console.log(
             `\nMonitoring rule evaluation ${evaluation.id} is pending notification. Sending to finisher...`
           )
+          finisherRequests++
           const finisherResp = await fetch(
             getBaseUrl() +
               `/api/v1/monitoring-rules/${evaluation.monitoring_rule_id}/evaluations/${evaluation.id}`,
@@ -85,6 +87,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw MRError
       }
 
+      let initiatorRequests = 0
       const initiatorResponses: { [monitoringRuleId: string]: number } = {}
       if (MRData) {
         MRData.forEach(async (monitoringRule: MonitoringRule) => {
@@ -121,6 +124,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               console.log(
                 `\nMonitoring rule ${monitoringRule.id} is scheduled to run this minute. Sending to initiator...`
               )
+              initiatorRequests++
               const initiatorResp = await fetch(
                 getBaseUrl() + `/api/v1/monitoring-rules/${monitoringRule.id}`,
                 {
@@ -141,11 +145,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       }
 
+      // force awaiting all responses before sending response
+      while (
+        finisherRequests > Object.keys(finisherResponses).length ||
+        initiatorRequests > Object.keys(initiatorResponses).length
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
       // avoid log clipping
       console.log('\nFinisher responses: ', JSON.stringify(finisherResponses))
       console.log('\nInitiator responses: ', JSON.stringify(initiatorResponses))
       console.log('\nReturning successfully...')
-      return res.status(200).json({})
+      res.status(200).json({})
     } catch (error: unknown) {
       console.error('\nError: ', error)
       return res.status(500).json({
