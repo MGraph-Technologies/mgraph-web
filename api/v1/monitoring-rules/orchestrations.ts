@@ -21,8 +21,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       supabaseServiceRoleKey || ''
     )
 
-    // send other pending monitoring rule evaluations to finisher
-    console.log('\nProgressing other pending monitoring rule evaluations...')
+    // send pending monitoring rule evaluations to finisher
+    console.log('\nProgressing pending monitoring rule evaluations...')
     try {
       const {
         data: MREData,
@@ -37,12 +37,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw MREError
       }
 
+      const finisherResponses: {
+        [monitoringRuleEvaluationId: string]: number
+      } = {}
       if (MREData) {
         MREData.forEach(async (evaluation) => {
           console.log(
             `\nMonitoring rule evaluation ${evaluation.id} is pending notification. Sending to finisher...`
           )
-          const finisherRespPromise = fetch(
+          const finisherResp = await fetch(
             getBaseUrl() +
               `/api/v1/monitoring-rules/${evaluation.monitoring_rule_id}/evaluations/${evaluation.id}`,
             {
@@ -54,9 +57,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             }
           )
           console.log(
-            `\nFinisher promise for monitoring rule evaluation ${evaluation.id}: `,
-            finisherRespPromise
+            `\nFinisher status for monitoring rule evaluation ${evaluation.id}: `,
+            finisherResp.status
           )
+          finisherResponses[evaluation.id] = finisherResp.status
         })
       }
 
@@ -81,6 +85,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw MRError
       }
 
+      const initiatorResponses: { [monitoringRuleId: string]: number } = {}
       if (MRData) {
         MRData.forEach(async (monitoringRule: MonitoringRule) => {
           console.log(
@@ -116,7 +121,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               console.log(
                 `\nMonitoring rule ${monitoringRule.id} is scheduled to run this minute. Sending to initiator...`
               )
-              const initiatorRespPromise = fetch(
+              const initiatorResp = await fetch(
                 getBaseUrl() + `/api/v1/monitoring-rules/${monitoringRule.id}`,
                 {
                   method: 'POST',
@@ -127,19 +132,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 }
               )
               console.log(
-                `\nInitiator promise for monitoring rule ${monitoringRule.id}: `,
-                initiatorRespPromise
+                `\nInitiator status for monitoring rule ${monitoringRule.id}: `,
+                initiatorResp.status
               )
+              initiatorResponses[monitoringRule.id] = initiatorResp.status
             }
           }
         })
       }
 
-      // let requests finish before returning
-      setTimeout(() => {
-        console.log('\nReturning successfully...')
-        return res.status(200).json({})
-      }, 1000)
+      // avoid log clipping
+      console.log('\nFinisher responses: ', JSON.stringify(finisherResponses))
+      console.log('\nInitiator responses: ', JSON.stringify(initiatorResponses))
+      console.log('\nReturning successfully...')
+      return res.status(200).json({})
     } catch (error: unknown) {
       console.error('\nError: ', error)
       return res.status(500).json({
