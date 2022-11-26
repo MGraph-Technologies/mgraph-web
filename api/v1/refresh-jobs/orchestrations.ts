@@ -36,12 +36,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw RJRError
       }
 
+      let finisherRequests = 0
       const finisherResponses: { [refreshJobRunId: string]: number } = {}
       if (RJRData) {
         RJRData.forEach(async (run) => {
           console.log(
             `\nRefresh job run ${run.id} is pending. Sending to finisher...`
           )
+          finisherRequests++
           const finisherResp = await fetch(
             getBaseUrl() +
               `/api/v1/refresh-jobs/${run.refresh_job_id}/runs/${run.id}`,
@@ -80,6 +82,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw RJError
       }
 
+      let initiatorRequests = 0
       const initiatorResponses: { [refreshJobId: string]: number } = {}
       if (RJData) {
         RJData.forEach(async (refreshJob: RefreshJob) => {
@@ -114,6 +117,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               console.log(
                 `\nRefresh job ${refreshJob.id} is scheduled to run this minute. Sending to initiator...`
               )
+              initiatorRequests++
               const initiatorResp = await fetch(
                 getBaseUrl() + `/api/v1/refresh-jobs/${refreshJob.id}`,
                 {
@@ -135,38 +139,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       // force awaiting all responses before sending response
-      const finisherStatusCounts = Object.values(finisherResponses).reduce(
-        (acc, status) => {
-          if (acc[status]) {
-            acc[status] += 1
-          } else {
-            acc[status] = 1
-          }
-          return acc
-        },
-        {} as { [status: number]: number }
-      )
-      console.log('\nFinisher statuses:', JSON.stringify(finisherStatusCounts))
-      const initiatorStatusCounts = Object.values(initiatorResponses).reduce(
-        (acc, status) => {
-          if (acc[status]) {
-            acc[status] += 1
-          } else {
-            acc[status] = 1
-          }
-          return acc
-        },
-        {} as { [status: number]: number }
-      )
-      console.log(
-        '\nInitiator statuses:',
-        JSON.stringify(initiatorStatusCounts)
-      )
+      while (
+        finisherRequests > Object.keys(finisherResponses).length ||
+        initiatorRequests > Object.keys(initiatorResponses).length
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+      // avoid log clipping
+      console.log('\nFinisher responses: ', JSON.stringify(finisherResponses))
+      console.log('\nInitiator responses: ', JSON.stringify(initiatorResponses))
       console.log('\nReturning successfully...')
-      res.status(200).json({
-        finisherResponses: finisherStatusCounts,
-        initiatorResponses: initiatorStatusCounts,
-      })
+      res.status(200).json({})
     } catch (error: unknown) {
       console.error('\nError: ', error)
       return res.status(500).json({
