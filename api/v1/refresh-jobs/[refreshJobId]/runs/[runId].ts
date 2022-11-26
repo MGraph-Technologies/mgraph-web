@@ -74,7 +74,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // check for timeout
       const timeoutThreshold = new Date(
         Date.now() - REFRESH_JOB_RUN_TIMEOUT_SECONDS * 1000
-      )
+      ).toISOString()
       if (refreshJobRunData.created_at < timeoutThreshold) {
         runStatus = 'timed_out'
       } else {
