@@ -21,7 +21,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     )
 
     // send pending refresh job runs to finisher
-    console.log('\nProgressing other pending refresh job runs...')
+    console.log('\nProgressing pending refresh job runs...')
     try {
       const {
         data: RJRData,
@@ -36,12 +36,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw RJRError
       }
 
+      const finisherResponses: { [refreshJobRunId: string]: number } = {}
       if (RJRData) {
         RJRData.forEach(async (run) => {
           console.log(
             `\nRefresh job run ${run.id} is pending. Sending to finisher...`
           )
-          const finisherRespPromise = fetch(
+          const finisherResp = await fetch(
             getBaseUrl() +
               `/api/v1/refresh-jobs/${run.refresh_job_id}/runs/${run.id}`,
             {
@@ -53,9 +54,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             }
           )
           console.log(
-            `\nFinisher promise for refresh job run ${run.id}: `,
-            finisherRespPromise
+            `\nFinisher status for refresh job run ${run.id}: `,
+            finisherResp.status
           )
+          finisherResponses[run.id] = finisherResp.status
         })
       }
 
@@ -78,6 +80,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw RJError
       }
 
+      const initiatorResponses: { [refreshJobId: string]: number } = {}
       if (RJData) {
         RJData.forEach(async (refreshJob: RefreshJob) => {
           console.log(
@@ -111,7 +114,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               console.log(
                 `\nRefresh job ${refreshJob.id} is scheduled to run this minute. Sending to initiator...`
               )
-              const initiatorRespPromise = fetch(
+              const initiatorResp = await fetch(
                 getBaseUrl() + `/api/v1/refresh-jobs/${refreshJob.id}`,
                 {
                   method: 'POST',
@@ -122,19 +125,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 }
               )
               console.log(
-                `\nInitiator promise for refresh job ${refreshJob.id}: `,
-                initiatorRespPromise
+                `\nInitiator status for refresh job ${refreshJob.id}: `,
+                initiatorResp.status
               )
+              initiatorResponses[refreshJob.id] = initiatorResp.status
             }
           }
         })
       }
 
-      // let requests finish before returning
-      setTimeout(() => {
-        console.log('\nReturning successfully...')
-        return res.status(200).json({})
-      }, 1000)
+      // avoid log clipping
+      console.log('\nFinisher responses: ', JSON.stringify(finisherResponses))
+      console.log('\nInitiator responses: ', JSON.stringify(initiatorResponses))
+      console.log('\nReturning successfully...')
+      return res.status(200).json({})
     } catch (error: unknown) {
       console.error('\nError: ', error)
       return res.status(500).json({
