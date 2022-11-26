@@ -134,11 +134,39 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       }
 
-      // avoid log clipping
-      console.log('\nFinisher responses: ', JSON.stringify(finisherResponses))
-      console.log('\nInitiator responses: ', JSON.stringify(initiatorResponses))
+      // force awaiting all responses before sending response
+      const finisherStatusCounts = Object.values(finisherResponses).reduce(
+        (acc, status) => {
+          if (acc[status]) {
+            acc[status] += 1
+          } else {
+            acc[status] = 1
+          }
+          return acc
+        },
+        {} as { [status: number]: number }
+      )
+      console.log('\nFinisher statuses:', JSON.stringify(finisherStatusCounts))
+      const initiatorStatusCounts = Object.values(initiatorResponses).reduce(
+        (acc, status) => {
+          if (acc[status]) {
+            acc[status] += 1
+          } else {
+            acc[status] = 1
+          }
+          return acc
+        },
+        {} as { [status: number]: number }
+      )
+      console.log(
+        '\nInitiator statuses:',
+        JSON.stringify(initiatorStatusCounts)
+      )
       console.log('\nReturning successfully...')
-      return res.status(200).json({})
+      res.status(200).json({
+        finisherResponses: finisherStatusCounts,
+        initiatorResponses: initiatorStatusCounts,
+      })
     } catch (error: unknown) {
       console.error('\nError: ', error)
       return res.status(500).json({
