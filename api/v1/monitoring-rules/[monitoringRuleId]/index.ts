@@ -87,7 +87,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         queryParameters
       )
       console.log(`\nExecuting query for node ${parentNodeId}...`)
-      const queryResp = await fetch(getBaseUrl() + '/api/v1/database-queries', {
+      fetch(getBaseUrl() + '/api/v1/database-queries', {
         method: 'POST',
         body: JSON.stringify({
           databaseConnectionId:
@@ -99,26 +99,30 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           'supabase-access-token': supabaseServiceRoleKey,
         },
       })
-      console.log(
-        `\nQuery for node ${parentNodeId} executed, status: ${queryResp.status}`
-      )
-      await logMonitoringRuleEvaluation(
-        monitoringRuleId as string,
-        supabase,
-        'pending'
-      )
-
-      console.log('\nReturning successfully...')
-      return res.status(200).json({})
+        // force awaiting response before sending response
+        .then((queryResp) => {
+          console.log(
+            `\nQuery for node ${parentNodeId} executed, status: ${queryResp.status}`
+          )
+          logMonitoringRuleEvaluation(
+            monitoringRuleId as string,
+            supabase,
+            'pending'
+          ).then(() => {
+            console.log('\nReturning successfully...')
+            return res.status(200).json({})
+          })
+        })
     } catch (error: unknown) {
       console.error('\nError: ', error)
-      await logMonitoringRuleEvaluation(
+      logMonitoringRuleEvaluation(
         monitoringRuleId as string,
         supabase,
         'error'
-      )
-      return res.status(500).json({
-        error: error,
+      ).then(() => {
+        return res.status(500).json({
+          error: error,
+        })
       })
     }
   } else {
@@ -148,13 +152,16 @@ const logMonitoringRuleEvaluation = async (
     .single()
 
   if (monitoringRuleEvaluationError) {
-    console.error('\nError: monitoringRuleEvaluationError')
+    throw monitoringRuleEvaluationError
   }
 
-  if (monitoringRuleEvaluationData) {
+  if (!monitoringRuleEvaluationData) {
+    throw new Error('Monitoring rule evaluation was not inserted.')
+  } else {
     console.log(
       `\nMonitoring rule evaluation ${monitoringRuleEvaluationData.id} created with status ${status}.`
     )
+    return 'ok'
   }
 }
 
