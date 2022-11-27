@@ -125,18 +125,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       let evaluationStatus: MonitoringRuleEvaluationStatus = 'ok'
       const evaluationAlerts: string[] = []
-      const processAlert = (alert: string) => {
+      let alertRequests = 0
+      const alertResponses: { [recipientId: string]: number[] } = {}
+      const processAlert = async (alert: string) => {
         console.log('\n' + alert)
         evaluationStatus = 'alert'
+        evaluationAlerts.push(alert)
         if (monitoringRuleData.slack_to) {
-          sendSlackAlerts(
+          alertRequests++
+          const slackResponses = await sendSlackAlerts(
             alert,
             monitoringRuleData.slack_to,
             metricNodeProperties,
             organizationName
           )
+          alertResponses[monitoringRuleData.slack_to] = slackResponses
         }
-        evaluationAlerts.push(alert)
       }
 
       // check for timeout
@@ -251,6 +255,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           }
         }
       }
+
+      // force awaiting all responses before sending response
+      while (alertRequests > Object.keys(alertResponses).length) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+      console.log('\nAlert responses: ', JSON.stringify(alertResponses))
+
       console.log(
         `\nSuccess. Updating monitoring_rule_evaluations record ${evaluationId}...`
       )
@@ -273,10 +284,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (!monitoringRuleEvaluationUpdateData) {
         throw new Error('Monitoring rule evaluation not found.')
+      } else {
+        console.log('\nReturning successfully...')
+        return res.status(200).json({})
       }
-
-      console.log('\nReturning successfully...')
-      return res.status(200).json({})
     } catch (error: unknown) {
       console.error('\nError: ', error)
       return res.status(500).json({
@@ -302,6 +313,7 @@ const sendSlackAlerts = async (
   const slackWebhooks = slackTo.split(',')
   console.log(`\nBeginning slack messaging...`)
   const organizationNameEncoded = encodeURIComponent(organizationName)
+  const slackResponses: number[] = []
   slackWebhooks.forEach(async (slackWebhook: string) => {
     const body = {
       text: `Alert on metric ${metricNodeProperties.name}`,
@@ -342,5 +354,11 @@ const sendSlackAlerts = async (
       body: JSON.stringify(body),
     })
     console.log(`\nSlack response: ${slackResp.status}`)
+    slackResponses.push(slackResp.status)
   })
+  // force awaiting all responses before returning
+  while (slackWebhooks.length > slackResponses.length) {
+    await new Promise((resolve) => setTimeout(resolve, 100))
+  }
+  return slackResponses
 }

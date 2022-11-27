@@ -69,6 +69,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       )
 
       // for each metric node, parameterize its query and send to query runner
+      let refreshRequests = 0
+      const refreshResponses: { [nodeId: string]: number } = {}
       metricNodes.forEach(async (node: Node) => {
         const statement = node.data.source.query as string
         const databaseConnectionId = node.data.source
@@ -79,6 +81,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             queryParameters
           )
           console.log(`\nExecuting query for node ${node.id}...`)
+          refreshRequests++
           const queryResp = await fetch(
             getBaseUrl() + '/api/v1/database-queries',
             {
@@ -96,18 +99,26 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           console.log(
             `\nQuery for node ${node.id} executed, status: ${queryResp.status}`
           )
+          refreshResponses[node.id] = queryResp.status
         }
       })
 
-      await logRefreshJobRun(refreshJobId as string, supabase, 'pending')
+      // force awaiting all responses before sending response
+      while (refreshRequests > Object.keys(refreshResponses).length) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+      console.log('\nRefresh responses: ', JSON.stringify(refreshResponses))
 
-      console.log('\nReturning successfully...')
-      return res.status(200).json({})
+      logRefreshJobRun(refreshJobId as string, supabase, 'pending').then(() => {
+        console.log('\nReturning successfully...')
+        return res.status(200).json({})
+      })
     } catch (error: unknown) {
       console.error('\nError: ', error)
-      await logRefreshJobRun(refreshJobId as string, supabase, 'error')
-      return res.status(500).json({
-        error: error,
+      logRefreshJobRun(refreshJobId as string, supabase, 'error').then(() => {
+        return res.status(500).json({
+          error: error,
+        })
       })
     }
   } else {
@@ -134,13 +145,16 @@ const logRefreshJobRun = async (
     .single()
 
   if (refreshJobRunError) {
-    console.error('\nError: refreshJobRunError')
+    throw refreshJobRunError
   }
 
-  if (refreshJobRunData) {
+  if (!refreshJobRunData) {
+    throw new Error('Refresh job run to be updated not found.')
+  } else {
     console.log(
       `\nRefresh job run ${refreshJobRunData.id} created with status ${status}.`
     )
+    return 'ok'
   }
 }
 

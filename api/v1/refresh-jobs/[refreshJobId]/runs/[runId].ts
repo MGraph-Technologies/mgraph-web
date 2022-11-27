@@ -159,6 +159,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       // send slack notification, if applicable
+      let slackRequests = 0
+      const slackResponses: { [webhookId: string]: number } = {}
       console.log(`\nNo queries are still running.`)
       if (refreshJobData.slack_to) {
         console.log(`\nBeginning slack messaging...`)
@@ -233,6 +235,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             `\nSending slack message to ${slackWebhook} with body:`,
             body
           )
+          slackRequests++
           const slackResp = await fetch(slackWebhook, {
             method: 'POST',
             headers: {
@@ -241,8 +244,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             body: JSON.stringify(body),
           })
           console.log(`\nSlack response: ${slackResp.status}`)
+          slackResponses[`${slackRequests} - ${slackWebhook}`] =
+            slackResp.status // handle duplicate webhooks
         })
       }
+
+      // force awaiting all responses before sending response
+      while (slackRequests > Object.keys(slackResponses).length) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+      console.log('\nSlack responses: ', JSON.stringify(slackResponses))
 
       console.log(`\nUpdating refresh_job_runs record ${runId}...`)
       const { data: refreshJobRunUpdateData, error: refreshJobRunUpdateError } =
@@ -261,10 +272,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (!refreshJobRunUpdateData) {
         throw new Error('Refresh job run not found.')
+      } else {
+        console.log('\nReturning successfully...')
+        return res.status(200).json({})
       }
-
-      console.log('\nReturning successfully...')
-      return res.status(200).json({})
     } catch (error: unknown) {
       console.error('\nError: ', error)
       return res.status(500).json({

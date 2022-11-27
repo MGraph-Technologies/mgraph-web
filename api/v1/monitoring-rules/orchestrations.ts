@@ -152,6 +152,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       ) {
         await new Promise((resolve) => setTimeout(resolve, 100))
       }
+
       // avoid log clipping
       console.log('\nFinisher responses: ', JSON.stringify(finisherResponses))
       console.log('\nInitiator responses: ', JSON.stringify(initiatorResponses))
