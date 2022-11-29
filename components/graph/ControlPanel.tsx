@@ -28,7 +28,13 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   hideEditButton,
 }) => {
   const { userCanEdit, userIsAdmin } = useAuth()
-  const { editingEnabled, enableEditing } = useEditability()
+  const {
+    commentingEnabled,
+    enableCommenting,
+    disableCommenting,
+    editingEnabled,
+    enableEditing,
+  } = useEditability()
   const showEditButton = userCanEdit && !hideEditButton
   const { graph } = useGraph()
   const {
@@ -171,6 +177,22 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
 
   if (editingEnabled) {
     return null
+  } else if (commentingEnabled) {
+    return (
+      <div className={styles.control_panel}>
+        <Button
+          id="comment-button"
+          className={`${styles.button} p-overlay-badge`}
+          icon="pi pi-comment"
+          onClick={() => {
+            analytics.track('disable_commenting')
+            disableCommenting()
+          }}
+        >
+          <Badge severity="danger" />
+        </Button>
+      </div>
+    )
   } else {
     return (
       <div className={styles.control_panel}>
@@ -238,6 +260,15 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
             }}
           />
         ) : null}
+        <Button
+          id="comment-button"
+          className={styles.button}
+          icon="pi pi-comment"
+          onClick={() => {
+            analytics.track('enable_commenting')
+            enableCommenting()
+          }}
+        />
         <OverlayPanel
           id="query-parameters-overlay"
           ref={overlayPanel}
