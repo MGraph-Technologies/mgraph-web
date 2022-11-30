@@ -5,6 +5,7 @@ import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import React, {
+  CSSProperties,
   FunctionComponent,
   useCallback,
   useEffect,
@@ -273,7 +274,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
     wordWrap: 'break-word',
     wordBreak: 'break-all',
     wordSpace: 'normal',
-  }
+  } as CSSProperties
 
   const [showUpsertRulePopup, setShowUpsertRulePopup] = useState(false)
   const [upsertRuleId, setUpsertRuleId] = useState<string>('')

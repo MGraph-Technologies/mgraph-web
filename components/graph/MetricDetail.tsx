@@ -15,6 +15,7 @@ import { EditText, EditTextarea } from 'react-edit-text'
 import { Edge, Node } from 'react-flow-renderer'
 import Editor from 'react-simple-code-editor'
 import 'react-edit-text/dist/index.css'
+import { Comments, CommentsProvider } from 'supabase-comments-extension'
 
 import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
 import { useAuth } from '../../contexts/auth'
@@ -556,6 +557,9 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             </div>
           )}
         </div>
+        <CommentsProvider supabaseClient={supabase}>
+          <Comments topic="tutorial-one" />
+        </CommentsProvider>
         <SectionHeader title="Owner" size="h2" />
         <EditText
           id="owner-field"

@@ -6,6 +6,7 @@ import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import React, {
+  CSSProperties,
   Dispatch,
   FunctionComponent,
   SetStateAction,
@@ -411,7 +412,7 @@ const GraphSyncs: FunctionComponent = () => {
     wordWrap: 'break-word',
     wordBreak: 'break-all',
     wordSpace: 'normal',
-  }
+  } as CSSProperties
 
   const upsertGraphSyncTypeName = 'dbt Project' // in the future, below dropdown will vary this
   const [showUpsertGraphSyncPopup, setShowUpsertGraphSyncPopup] =
