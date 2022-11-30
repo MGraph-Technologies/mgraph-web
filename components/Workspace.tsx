@@ -15,19 +15,27 @@ const Workspace: FunctionComponent<WorkspaceProps> = ({ children }) => {
     session,
     organizationName: userOrganizationName,
     organizationEnabled: userOrganizationEnabled,
+    authStatePopulated,
   } = useAuth()
 
   const renderAuthorized =
     organizationName === userOrganizationName && userOrganizationEnabled
   useEffect(() => {
     if (
-      (session !== undefined && !session) ||
-      (userOrganizationName && !renderAuthorized)
+      authStatePopulated &&
+      ((session !== undefined && !session) ||
+        (userOrganizationName && !renderAuthorized))
     ) {
       // route to home page if user isn't authorized to view this organization
       router.push('/')
     }
-  }, [session, userOrganizationName, renderAuthorized, router])
+  }, [
+    authStatePopulated,
+    session,
+    userOrganizationName,
+    renderAuthorized,
+    router,
+  ])
 
   return renderAuthorized ? (
     <div className={styles.workspace}>
