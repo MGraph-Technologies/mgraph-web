@@ -182,7 +182,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
       <div className={styles.control_panel}>
         <Button
           id="comment-button"
-          className={`${styles.button} p-overlay-badge`}
+          className={`${styles.button} p-overlay-badge p-button-icon-only`}
           icon="pi pi-comment"
           onClick={() => {
             analytics.track('disable_commenting')
@@ -226,7 +226,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
             <>
               <Button
                 id="query-settings-button"
-                className={`${styles.button} p-overlay-badge`}
+                className={`${styles.button} p-overlay-badge p-button-icon-only`}
                 icon="pi pi-sliders-h"
                 onClick={(event) => {
                   analytics.track('view_query_settings')
