@@ -16,7 +16,6 @@ export const highlight = (code: string, language: string) => {
       dangerouslySetInnerHTML={{
         __html: hljs.highlight(code, { language }).value,
       }}
-      style={{ borderRadius: '5px' }}
     />
   )
 }
