@@ -28,6 +28,7 @@ import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
 import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/GraphViewer.module.css'
 import { analytics } from '../../utils/segmentClient'
+import CommentsDock, { GRAPH_COMMENTS_TOPIC_ID } from './CommentsDock'
 import ControlPanel from './ControlPanel'
 import EditorDock from './editing/EditorDock'
 
@@ -420,6 +421,7 @@ const GraphViewer: FunctionComponent = () => {
         <ControlPanel />
         <Controls showInteractive={false} />
         <EditorDock />
+        <CommentsDock topicId={GRAPH_COMMENTS_TOPIC_ID} />
         <MiniMap nodeColor="#AFADFF" nodeStrokeColor="#AFADFF" />
       </ReactFlow>
     </div>

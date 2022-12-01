@@ -11,6 +11,7 @@ import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/GraphTable.module.css'
 import { analytics } from '../../utils/segmentClient'
 import LineChart from '../LineChart'
+import CommentsDock, { GRAPH_COMMENTS_TOPIC_ID } from './CommentsDock'
 import ControlPanel from './ControlPanel'
 import MetricNodeAlertBadge from './MetricNodeAlertBadge'
 import NodeInfoButton from './NodeInfoButton'
@@ -284,6 +285,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
           style={{ width: '5%' }}
         />
       </DataTable>
+      <CommentsDock topicId={GRAPH_COMMENTS_TOPIC_ID} />
     </div>
   )
 }

@@ -1,0 +1,11 @@
+.comments_dock {
+  position: absolute;
+  bottom: 10px;
+  left: 20%;
+  right: 20%;
+  z-index: 6;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  padding: 10px;
+}

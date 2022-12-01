@@ -15,7 +15,6 @@ import { EditText, EditTextarea } from 'react-edit-text'
 import { Edge, Node } from 'react-flow-renderer'
 import Editor from 'react-simple-code-editor'
 import 'react-edit-text/dist/index.css'
-import { Comments, CommentsProvider } from 'supabase-comments-extension'
 
 import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
 import { useAuth } from '../../contexts/auth'
@@ -34,6 +33,7 @@ import {
   SourceQueryType,
 } from './MetricNode'
 import MonitoringRulesTable from '../MonitoringRulesTable'
+import CommentsDock from './CommentsDock'
 import MetricNodeAlertBadge from './MetricNodeAlertBadge'
 
 type MetricDetailProps = {
@@ -41,7 +41,7 @@ type MetricDetailProps = {
 }
 const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const { session, organizationId, organizationName } = useAuth()
-  const { editingEnabled } = useEditability()
+  const { commentingEnabled, editingEnabled } = useEditability()
   const { push } = useBrowser()
 
   const { graph, getFunctionSymbol, getConnectedObjects } = useGraph()
@@ -556,9 +556,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             </div>
           )}
         </div>
-        <CommentsProvider supabaseClient={supabase}>
-          <Comments topic="tutorial-one" />
-        </CommentsProvider>
         <SectionHeader title="Owner" size="h2" />
         <EditText
           id="owner-field"
@@ -741,11 +738,12 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           )}
         </pre>
       </div>
-      {editingEnabled ? (
+      {editingEnabled && (
         <div className={styles.editor_dock}>
           <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
         </div>
-      ) : null}
+      )}
+      {commentingEnabled && <CommentsDock topicId={metricId} />}
     </div>
   )
 }

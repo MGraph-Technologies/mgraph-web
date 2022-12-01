@@ -182,15 +182,13 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
       <div className={styles.control_panel}>
         <Button
           id="comment-button"
-          className={`${styles.button} p-overlay-badge p-button-icon-only`}
-          icon="pi pi-comment"
+          className={`${styles.button} p-button-text`}
+          icon="pi pi-times"
           onClick={() => {
             analytics.track('disable_commenting')
             disableCommenting()
           }}
-        >
-          <Badge severity="danger" />
-        </Button>
+        />
       </div>
     )
   } else {
