@@ -20,11 +20,14 @@ import {
   QueryParameters,
   formQueryParametersScaffold,
 } from '../../utils/queryUtils'
+import { supabase } from '../../utils/supabaseClient'
 
 type ControlPanelProps = {
+  commentsTopicId: string
   hideEditButton?: boolean
 }
 const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
+  commentsTopicId,
   hideEditButton,
 }) => {
   const { userCanEdit, userIsAdmin } = useAuth()
@@ -57,6 +60,28 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
       }, 100)
     }
   }, [graph])
+
+  const [topicHasRecentComments, setTopicHasRecentComments] = useState(false)
+  useEffect(() => {
+    const recentCommentsCutoff = new Date(Date.now() - 86400000).toISOString()
+    const fetchTopicHasRecentComments = async () => {
+      if (commentsTopicId) {
+        const { data, error } = await supabase
+          .from('sce_comments')
+          .select('id')
+          .eq('topic', commentsTopicId)
+          .gte('created_at', recentCommentsCutoff)
+          .limit(1)
+
+        if (error) {
+          console.error(error)
+        } else {
+          setTopicHasRecentComments(data && data.length > 0)
+        }
+      }
+    }
+    fetchTopicHasRecentComments()
+  }, [commentsTopicId, commentingEnabled])
 
   type QueryParameterFieldProps = {
     titleCaseName: string
@@ -260,13 +285,23 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
         ) : null}
         <Button
           id="comment-button"
-          className={styles.button}
+          className={`${styles.button} p-overlay-badge p-button-icon-only`}
           icon="pi pi-comment"
           onClick={() => {
             analytics.track('enable_commenting')
             enableCommenting()
           }}
-        />
+          tooltip={
+            topicHasRecentComments
+              ? 'New comments added in the past day'
+              : undefined
+          }
+          tooltipOptions={{
+            style: { width: '300px' },
+          }}
+        >
+          {topicHasRecentComments && <Badge severity="danger" />}
+        </Button>
         <OverlayPanel
           id="query-parameters-overlay"
           ref={overlayPanel}

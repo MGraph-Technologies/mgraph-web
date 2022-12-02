@@ -237,7 +237,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
     >
       {expansionLevel === 0 && (
         <div className={styles.control_panel_container}>
-          <ControlPanel />
+          <ControlPanel commentsTopicId={GRAPH_COMMENTS_TOPIC_ID} />
         </div>
       )}
       <DataTable

@@ -418,7 +418,7 @@ const GraphViewer: FunctionComponent = () => {
           gap={16}
           size={1}
         />
-        <ControlPanel />
+        <ControlPanel commentsTopicId={GRAPH_COMMENTS_TOPIC_ID} />
         <Controls showInteractive={false} />
         <EditorDock />
         <CommentsDock topicId={GRAPH_COMMENTS_TOPIC_ID} />

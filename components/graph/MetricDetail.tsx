@@ -532,7 +532,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onSave={({ value }) => saveDetail('name', value)}
         />
         <MetricNodeAlertBadge nodeData={metricNode?.data} />
-        <ControlPanel />
+        <ControlPanel commentsTopicId={metricId} />
       </div>
       <div className={styles.body}>
         <div className={styles.chart_container}>
