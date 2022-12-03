@@ -23,12 +23,29 @@ const AccountMenu: FunctionComponent = () => {
 
   const [userEmail, setUserEmail] = useState('')
   const [avatarChar, setAvatarChar] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
   useEffect(() => {
     setUserEmail(session?.user?.email || '')
   }, [session])
   useEffect(() => {
     setAvatarChar(userEmail?.charAt(0).toUpperCase() || '')
   }, [userEmail])
+  useEffect(() => {
+    const fetchAvatarUrl = async () => {
+      const { data, error } = await supabase
+        .from('sce_display_users')
+        .select('avatar')
+        .eq('id', session?.user?.id)
+        .single()
+
+      if (error) {
+        console.error(error)
+      } else if (data) {
+        setAvatarUrl(data.avatar)
+      }
+    }
+    fetchAvatarUrl()
+  }, [session])
 
   const router = useRouter()
   async function handleSignOut() {
@@ -130,6 +147,8 @@ const AccountMenu: FunctionComponent = () => {
       <Avatar
         id="account-menu"
         label={avatarChar}
+        image={avatarUrl ? avatarUrl : undefined}
+        shape="circle"
         onClick={(event) => overlayMenu.current?.toggle(event)}
       />
     </>
