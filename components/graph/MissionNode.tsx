@@ -13,7 +13,7 @@ import useFitText from 'use-fit-text'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MissionNode.module.css'
-import NodeMenu from './NodeMenu'
+import NodePanel from './NodePanel'
 
 export type MissionNodeProperties = {
   id: string
@@ -86,7 +86,7 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
     >
       <div className={styles.header}>
         <div className={styles.buttons}>
-          <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
+          <NodePanel color={color} setColor={setColor} saveColor={saveColor} />
         </div>
       </div>
       <div className={styles.mission_container} ref={ref} style={{ fontSize }}>

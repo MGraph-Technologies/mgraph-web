@@ -10,7 +10,7 @@ import { Handle, Position } from 'react-flow-renderer'
 
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/FunctionNode.module.css'
-import NodeMenu from './NodeMenu'
+import NodePanel from './NodePanel'
 
 export type FunctionNodeProperties = {
   id: string
@@ -61,7 +61,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
     >
       <div className={styles.header}>
         <div className={styles.buttons}>
-          <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
+          <NodePanel color={color} setColor={setColor} saveColor={saveColor} />
         </div>
       </div>
       <div className={styles.symbol}>

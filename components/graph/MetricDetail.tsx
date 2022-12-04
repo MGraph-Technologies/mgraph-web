@@ -34,7 +34,7 @@ import {
 } from './MetricNode'
 import MonitoringRulesTable from '../MonitoringRulesTable'
 import CommentsDock from './CommentsDock'
-import MetricNodeAlertBadge from './MetricNodeAlertBadge'
+import NodePanel from './NodePanel'
 
 type MetricDetailProps = {
   metricId: string
@@ -531,7 +531,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onChange={(e) => setName(e.target.value)}
           onSave={({ value }) => saveDetail('name', value)}
         />
-        <MetricNodeAlertBadge nodeData={metricNode?.data} />
+        <NodePanel nodeId={metricId} />
         <ControlPanel commentsTopicId={metricId} />
       </div>
       <div className={styles.body}>
