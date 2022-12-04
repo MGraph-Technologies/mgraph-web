@@ -29,17 +29,18 @@ const NodeInfoButton: FunctionComponent<NodeInfoButtonProps> = ({ node }) => {
         icon="pi pi-info-circle"
         tooltip={node.data.description}
         tooltipOptions={{
-          position: 'left',
-          style: { width: '500px' },
+          style: { width: '300px' },
         }}
         onClick={() => {
           if (!linkTo) return
           push(linkTo)
         }}
         onMouseEnter={() => {
-          analytics.track('view_tooltip', {
-            nodeId: node.data.id,
-          })
+          if (node.data.description) {
+            analytics.track('view_tooltip', {
+              nodeId: node.data.id,
+            })
+          }
         }}
       />
     )
