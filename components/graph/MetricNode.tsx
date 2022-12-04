@@ -173,22 +173,21 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
       }}
     >
       <div className={styles.header}>
-        <div className={styles.name}>
-          <EditText
-            value={name}
-            readonly={!editingEnabled}
-            style={{
-              backgroundColor: editingEnabled ? '#eee' : 'transparent',
-              fontSize: '2em',
-              fontWeight: 'bold',
-            }}
-            onChange={(e) => setName(e.target.value)}
-            onSave={saveName}
-          />
-        </div>
-        <div className={styles.buttons}>
-          <NodePanel nodeId={data.id} additions={<ColorPicker />} />
-        </div>
+        <EditText
+          value={name}
+          readonly={!editingEnabled}
+          style={{
+            backgroundColor: editingEnabled ? '#eee' : 'transparent',
+            fontSize: '2em',
+            fontWeight: 'bold',
+            // remove spacing
+            margin: 0,
+            padding: 0,
+          }}
+          onChange={(e) => setName(e.target.value)}
+          onSave={saveName}
+        />
+        <NodePanel nodeId={data.id} additions={<ColorPicker />} />
       </div>
       <div className={styles.chart_container}>
         <QueryRunner

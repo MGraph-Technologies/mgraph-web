@@ -21,7 +21,7 @@ const NodeInfoButton: FunctionComponent<NodeInfoButtonProps> = ({ node }) => {
     setLinkTo(_linkTo)
   }, [organizationName, node])
 
-  if (node && node.data.description) {
+  if (node) {
     return (
       <Button
         id="link-to-detail-button"
