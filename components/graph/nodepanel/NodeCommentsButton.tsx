@@ -32,7 +32,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
         if (error) {
           console.error(error)
         } else {
-          setTopicRecentComments(data.length)
+          setTopicRecentComments(data?.length || 0)
         }
       }
     }
@@ -49,6 +49,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
       )
       const currentScrollHeight = topLevelComments?.scrollHeight
       if (
+        topLevelComments &&
         currentScrollHeight &&
         (lastScrollHeight === undefined ||
           currentScrollHeight > lastScrollHeight)
