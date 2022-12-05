@@ -19,26 +19,25 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   const commentsOverlay = useRef<OverlayPanel>(null)
   // TODO: add overlay
 
-  const [topicHasRecentComments, setTopicHasRecentComments] = useState(false)
+  const [topicRecentComments, setTopicRecentComments] = useState(0)
   useEffect(() => {
     const recentCommentsCutoff = new Date(Date.now() - 86400000).toISOString()
-    const fetchTopicHasRecentComments = async () => {
+    const fetchTopicRecentComments = async () => {
       if (node) {
         const { data, error } = await supabase
           .from('sce_comments')
           .select('id')
           .eq('topic', node.id)
           .gte('created_at', recentCommentsCutoff)
-          .limit(1)
 
         if (error) {
           console.error(error)
         } else {
-          setTopicHasRecentComments(data && data.length > 0)
+          setTopicRecentComments(data.length)
         }
       }
     }
-    fetchTopicHasRecentComments()
+    fetchTopicRecentComments()
   }, [node])
 
   // auto scroll top-level comments to bottom initially and on new comment
@@ -75,15 +74,22 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
             event.stopPropagation()
           }}
           tooltip={
-            topicHasRecentComments
-              ? 'New comments added in the past day'
+            topicRecentComments
+              ? `${topicRecentComments} comments added in the past day`
               : undefined
           }
           tooltipOptions={{
             style: { width: '300px' },
           }}
         >
-          {topicHasRecentComments && <Badge severity="danger" />}
+          {topicRecentComments > 0 && (
+            <Badge
+              severity="danger"
+              // override primereact's styling so badge count is actually visible
+              style={{ transform: 'translate(0%, 0%)', fontSize: '0.5em' }}
+              value={topicRecentComments < 10 ? topicRecentComments : '10+'}
+            />
+          )}
         </Button>
         <OverlayPanel id="comments-overlay" ref={commentsOverlay}>
           {node && (
