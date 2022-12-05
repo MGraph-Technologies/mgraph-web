@@ -8,7 +8,7 @@ import React, {
 import { ColorResult, TwitterPicker } from 'react-color'
 import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
-import { Handle, Position } from 'react-flow-renderer'
+import { Handle, Node, Position } from 'react-flow-renderer'
 
 import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
 import { useAuth } from '../../contexts/auth'
@@ -57,6 +57,11 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   const { editingEnabled } = useEditability()
   const { graph, reactFlowRenderer, reactFlowViewport, formNodeHandleStyle } =
     useGraph()
+
+  const [thisNode, setThisNode] = useState<Node | undefined>(undefined)
+  useEffect(() => {
+    setThisNode(graph.nodes.find((node) => node.id === data.id))
+  }, [graph.nodes, data.id])
 
   const [name, setName] = useState('')
   useEffect(() => {
@@ -127,7 +132,6 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
 
   const [renderChart, setRenderChart] = useState(false)
   useEffect(() => {
-    const thisNode = graph.nodes.find((node) => node.id === data.id)
     if (!reactFlowViewport || !reactFlowRenderer || !thisNode) return
     const scale = 1 / reactFlowViewport.zoom
     const clientWidth = reactFlowRenderer.clientWidth
@@ -154,15 +158,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
         nodeYUpper > rendererYLower - yBuffer &&
         reactFlowViewport.zoom > minZoom
     )
-  }, [
-    graph,
-    data.id,
-    reactFlowViewport,
-    reactFlowRenderer,
-    xPos,
-    yPos,
-    userOnMobile,
-  ])
+  }, [reactFlowViewport, reactFlowRenderer, thisNode, xPos, yPos, userOnMobile])
 
   return (
     <div
