@@ -39,9 +39,7 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
         border: selected ? '5px solid' : '1px solid',
       }}
     >
-      <div className={styles.symbol}>
-        <h1>{symbol}</h1>
-      </div>
+      <div className={styles.symbol}>{symbol}</div>
       <Handle
         type="source"
         id="top_source"
