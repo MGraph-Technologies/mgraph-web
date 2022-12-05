@@ -86,7 +86,11 @@ export function BrowserProvider({ children }: BrowserProps) {
   useEffect(() => {
     const inputHandler = (e: Event) => {
       const target = e.target as HTMLElement
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.className.includes('ProseMirror tiptap-editor')
+      ) {
         if (e.type === 'focusin') {
           setInputInProgress(true)
         } else if (e.type === 'focusout') {
