@@ -17,7 +17,6 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   node,
 }) => {
   const commentsOverlay = useRef<OverlayPanel>(null)
-  // TODO: add overlay
 
   const [topicRecentComments, setTopicRecentComments] = useState(0)
   useEffect(() => {
@@ -43,7 +42,8 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   // auto scroll top-level comments to bottom initially and on new comment
   // unfortunately there's no onCommment prop in SCE so we have to continuously check
   useEffect(() => {
-    const scrollCommentsIfNeeded = (lastScrollHeight: number | undefined) => {
+    let lastScrollHeight: number | undefined = undefined
+    const interval = setInterval(() => {
       const topLevelComments = document.querySelector(
         '.rounded-md > .space-y-1' // SCE's top-level comments container
       )
@@ -55,17 +55,15 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
       ) {
         topLevelComments.scrollTop = currentScrollHeight
       }
-      setTimeout(() => {
-        scrollCommentsIfNeeded(currentScrollHeight)
-      }, 100)
-    }
-    scrollCommentsIfNeeded(undefined)
+      lastScrollHeight = currentScrollHeight
+    }, 100)
+    return () => clearInterval(interval)
   }, [])
 
   // hack to prevent SCE's dropdown overlays from closing OverlayPanel
   const [overlayDismissible, setOverlayDismissible] = useState(true)
   useEffect(() => {
-    const updateOverlayDismissibleIfNeeded = () => {
+    const interval = setInterval(() => {
       const sbuiDropdown = document.querySelector(
         '[class^=sbui-dropdown__content]'
       )
@@ -78,11 +76,8 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
           setOverlayDismissible(true)
         }
       }
-      setTimeout(() => {
-        updateOverlayDismissibleIfNeeded()
-      }, 100)
-    }
-    updateOverlayDismissibleIfNeeded()
+    }, 100)
+    return () => clearInterval(interval)
   }, [overlayDismissible])
 
   if (node) {
