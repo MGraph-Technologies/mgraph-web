@@ -9,7 +9,6 @@ import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/GraphTable.module.css'
 import { analytics } from '../../utils/segmentClient'
 import LineChart from '../LineChart'
-import CommentsDock, { GRAPH_COMMENTS_TOPIC_ID } from './CommentsDock'
 import ControlPanel from './ControlPanel'
 import NodePanel from './NodePanel'
 
@@ -210,7 +209,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
     >
       {expansionLevel === 0 && (
         <div className={styles.control_panel_container}>
-          <ControlPanel commentsTopicId={GRAPH_COMMENTS_TOPIC_ID} />
+          <ControlPanel />
         </div>
       )}
       <DataTable
@@ -248,7 +247,6 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
           style={{ width: '15%' }}
         />
       </DataTable>
-      <CommentsDock topicId={GRAPH_COMMENTS_TOPIC_ID} />
     </div>
   )
 }

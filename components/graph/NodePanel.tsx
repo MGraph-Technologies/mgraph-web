@@ -3,6 +3,7 @@ import { Node } from 'react-flow-renderer'
 
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/NodePanel.module.css'
+import NodeCommentsButton from './NodeCommentsButton'
 import NodeInfoButton from './NodeInfoButton'
 import NodeStatusButton from './NodeStatusButton'
 
@@ -25,6 +26,7 @@ const NodePanel: FunctionComponent<NodePanelProps> = ({
     <div className={styles.menu_container}>
       {additions}
       <NodeStatusButton node={node} />
+      <NodeCommentsButton node={node} />
       <NodeInfoButton node={node} />
     </div>
   )

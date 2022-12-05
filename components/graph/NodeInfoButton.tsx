@@ -31,9 +31,10 @@ const NodeInfoButton: FunctionComponent<NodeInfoButtonProps> = ({ node }) => {
         tooltipOptions={{
           style: { width: '300px' },
         }}
-        onClick={() => {
+        onClick={(event) => {
           if (!linkTo) return
           push(linkTo)
+          event.stopPropagation()
         }}
         onMouseEnter={() => {
           if (node.data.description) {

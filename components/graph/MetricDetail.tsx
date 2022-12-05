@@ -33,7 +33,6 @@ import {
   SourceQueryType,
 } from './MetricNode'
 import MonitoringRulesTable from '../MonitoringRulesTable'
-import CommentsDock from './CommentsDock'
 import NodePanel from './NodePanel'
 
 type MetricDetailProps = {
@@ -41,7 +40,7 @@ type MetricDetailProps = {
 }
 const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const { session, organizationId, organizationName } = useAuth()
-  const { commentingEnabled, editingEnabled } = useEditability()
+  const { editingEnabled } = useEditability()
   const { push } = useBrowser()
 
   const { graph, getFunctionSymbol, getConnectedObjects } = useGraph()
@@ -532,7 +531,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onSave={({ value }) => saveDetail('name', value)}
         />
         <NodePanel nodeId={metricId} />
-        <ControlPanel commentsTopicId={metricId} />
+        <ControlPanel />
       </div>
       <div className={styles.body}>
         <div className={styles.chart_container}>
@@ -743,7 +742,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
         </div>
       )}
-      {commentingEnabled && <CommentsDock topicId={metricId} />}
     </div>
   )
 }
