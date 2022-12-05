@@ -13,7 +13,7 @@ import useFitText from 'use-fit-text'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MissionNode.module.css'
-import NodePanel from './NodePanel'
+import NodePanel from './nodepanel/NodePanel'
 
 export type MissionNodeProperties = {
   id: string

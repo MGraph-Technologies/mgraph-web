@@ -10,7 +10,7 @@ import { Handle, Position } from 'react-flow-renderer'
 
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/FunctionNode.module.css'
-import NodePanel from './NodePanel'
+import NodePanel from './nodepanel/NodePanel'
 
 export type FunctionNodeProperties = {
   id: string

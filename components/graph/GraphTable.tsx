@@ -10,7 +10,7 @@ import styles from '../../styles/GraphTable.module.css'
 import { analytics } from '../../utils/segmentClient'
 import LineChart from '../LineChart'
 import ControlPanel from './ControlPanel'
-import NodePanel from './NodePanel'
+import NodePanel from './nodepanel/NodePanel'
 
 type GraphTableProps = {
   metricNodes: Node[]

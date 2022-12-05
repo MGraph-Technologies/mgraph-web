@@ -5,8 +5,8 @@ import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
 import { Node } from 'react-flow-renderer'
 import { Comments, CommentsProvider } from 'supabase-comments-extension'
 
-import styles from '../../styles/NodeCommentsButton.module.css'
-import { supabase } from '../../utils/supabaseClient'
+import styles from '../../../styles/NodeCommentsButton.module.css'
+import { supabase } from '../../../utils/supabaseClient'
 
 export const GRAPH_COMMENTS_TOPIC_ID = 'graph'
 

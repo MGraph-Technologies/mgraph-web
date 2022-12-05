@@ -1,8 +1,8 @@
 import { FunctionComponent, ReactNode, useEffect, useState } from 'react'
 import { Node } from 'react-flow-renderer'
 
-import { useGraph } from '../../contexts/graph'
-import styles from '../../styles/NodePanel.module.css'
+import { useGraph } from '../../../contexts/graph'
+import styles from '../../../styles/NodePanel.module.css'
 import NodeCommentsButton from './NodeCommentsButton'
 import NodeInfoButton from './NodeInfoButton'
 import NodeStatusButton from './NodeStatusButton'

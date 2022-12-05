@@ -16,7 +16,7 @@ import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
 import LineChart from '../LineChart'
-import NodePanel from './NodePanel'
+import NodePanel from './nodepanel/NodePanel'
 
 export type SourceQueryType = 'freeform' | 'generated'
 export type MetricNodeSource = {

@@ -33,7 +33,7 @@ import {
   SourceQueryType,
 } from './MetricNode'
 import MonitoringRulesTable from '../MonitoringRulesTable'
-import NodePanel from './NodePanel'
+import NodePanel from './nodepanel/NodePanel'
 
 type MetricDetailProps = {
   metricId: string

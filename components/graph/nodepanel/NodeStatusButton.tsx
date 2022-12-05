@@ -2,9 +2,9 @@ import { Button } from 'primereact/button'
 import { FunctionComponent } from 'react'
 import { Node } from 'react-flow-renderer'
 
-import { useAuth } from '../../contexts/auth'
-import { useBrowser } from '../../contexts/browser'
-import { analytics } from '../../utils/segmentClient'
+import { useAuth } from '../../../contexts/auth'
+import { useBrowser } from '../../../contexts/browser'
+import { analytics } from '../../../utils/segmentClient'
 
 type NodeStatusButtonProps = {
   node: Node | undefined
