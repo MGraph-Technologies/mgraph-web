@@ -93,7 +93,12 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
         </Button>
         <OverlayPanel id="comments-overlay" ref={commentsOverlay}>
           {node && (
-            <div className={styles.comments_container}>
+            <div
+              className={styles.comments_container}
+              onClick={(event) => {
+                event.stopPropagation()
+              }}
+            >
               <CommentsProvider supabaseClient={supabase} accentColor="#3943ac">
                 <Comments topic={node.id} />
               </CommentsProvider>
