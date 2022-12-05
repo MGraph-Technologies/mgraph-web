@@ -97,6 +97,22 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
               className={styles.comments_container}
               onClick={(event) => {
                 event.stopPropagation()
+                // increment topicRecentComments if submit button clicked
+                // (this is a hacky workaround for the lack of onComment prop)
+                const target = event.target as HTMLElement
+                const checkTarget = (target: HTMLElement) => {
+                  return (
+                    target.tagName === 'SPAN' && target.textContent === 'Submit'
+                  )
+                }
+                const checkChildren = (target: HTMLElement) => {
+                  return Array.from(target.children).some((child) =>
+                    checkTarget(child as HTMLElement)
+                  )
+                }
+                if (checkTarget(target) || checkChildren(target)) {
+                  setTopicRecentComments(topicRecentComments + 1)
+                }
               }}
             >
               <CommentsProvider supabaseClient={supabase} accentColor="#3943ac">
