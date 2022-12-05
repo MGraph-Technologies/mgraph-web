@@ -41,7 +41,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   }, [node])
 
   // auto scroll top-level comments to bottom initially and on new comment
-  // unfortunately there's no onCommment prop so we have to continuously check
+  // unfortunately there's no onCommment prop in SCE so we have to continuously check
   useEffect(() => {
     const scrollCommentsIfNeeded = (lastScrollHeight: number | undefined) => {
       const topLevelComments = document.querySelector(
@@ -61,6 +61,29 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
     }
     scrollCommentsIfNeeded(undefined)
   }, [])
+
+  // hack to prevent SCE's dropdown overlays from closing OverlayPanel
+  const [overlayDismissible, setOverlayDismissible] = useState(true)
+  useEffect(() => {
+    const updateOverlayDismissibleIfNeeded = () => {
+      const sbuiDropdown = document.querySelector(
+        '[class^=sbui-dropdown__content]'
+      )
+      if (sbuiDropdown) {
+        if (overlayDismissible) {
+          setOverlayDismissible(false)
+        }
+      } else {
+        if (!overlayDismissible) {
+          setOverlayDismissible(true)
+        }
+      }
+      setTimeout(() => {
+        updateOverlayDismissibleIfNeeded()
+      }, 100)
+    }
+    updateOverlayDismissibleIfNeeded()
+  }, [overlayDismissible])
 
   if (node) {
     return (
@@ -91,7 +114,11 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
             />
           )}
         </Button>
-        <OverlayPanel id="comments-overlay" ref={commentsOverlay}>
+        <OverlayPanel
+          id="comments-overlay"
+          ref={commentsOverlay}
+          dismissable={overlayDismissible}
+        >
           {node && (
             <div
               className={styles.comments_container}
