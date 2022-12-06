@@ -514,6 +514,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onClick={() => {
             push('/' + organizationName)
           }}
+          style={{ minWidth: '32px' }}
         />
         <EditText
           id="name-field"
