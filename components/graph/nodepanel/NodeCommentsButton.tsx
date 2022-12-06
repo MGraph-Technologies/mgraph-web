@@ -17,6 +17,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   node,
 }) => {
   const commentsOverlay = useRef<OverlayPanel>(null)
+  const [commentsOverlayVisible, setCommentsOverlayVisible] = useState(false)
 
   const [topicRecentComments, setTopicRecentComments] = useState(0)
   useEffect(() => {
@@ -42,6 +43,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   // auto scroll top-level comments to bottom initially and on new comment
   // unfortunately there's no onCommment prop in SCE so we have to continuously check
   useEffect(() => {
+    if (!commentsOverlayVisible) return
     let lastScrollHeight: number | undefined = undefined
     const interval = setInterval(() => {
       const topLevelComments = document.querySelector(
@@ -59,11 +61,12 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
       lastScrollHeight = currentScrollHeight
     }, 100)
     return () => clearInterval(interval)
-  }, [])
+  }, [commentsOverlayVisible])
 
   // hack to prevent SCE's dropdown overlays from closing OverlayPanel
   const [overlayDismissible, setOverlayDismissible] = useState(true)
   useEffect(() => {
+    if (!commentsOverlayVisible) return
     const interval = setInterval(() => {
       const sbuiDropdown = document.querySelector(
         '[class^=sbui-dropdown__content]'
@@ -79,7 +82,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
       }
     }, 100)
     return () => clearInterval(interval)
-  }, [overlayDismissible])
+  }, [commentsOverlayVisible, overlayDismissible])
 
   if (node) {
     return (
@@ -114,6 +117,8 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
           id="comments-overlay"
           ref={commentsOverlay}
           dismissable={overlayDismissible}
+          onShow={() => setCommentsOverlayVisible(true)}
+          onHide={() => setCommentsOverlayVisible(false)}
         >
           {node && (
             <div
