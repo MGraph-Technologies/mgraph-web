@@ -167,7 +167,7 @@ const GraphViewer: FunctionComponent = () => {
       reactFlowInstance.fitView()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reactFlowInstance.viewportInitialized, initialGraph])
+  }, [reactFlowInstance.viewportInitialized, graph, initialGraph])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {

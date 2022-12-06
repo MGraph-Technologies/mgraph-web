@@ -5,6 +5,7 @@ import { Column, ColumnBodyType } from 'primereact/column'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import React, {
+  CSSProperties,
   FunctionComponent,
   useCallback,
   useEffect,
@@ -133,7 +134,7 @@ const RefreshJobs: FunctionComponent = () => {
     wordWrap: 'break-word',
     wordBreak: 'break-all',
     wordSpace: 'normal',
-  }
+  } as CSSProperties
 
   const [showUpsertJobPopup, setShowUpsertJobPopup] = useState(false)
   const [upsertJobId, setUpsertJobId] = useState<string>('')

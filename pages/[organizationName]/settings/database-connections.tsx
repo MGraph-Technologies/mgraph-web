@@ -5,6 +5,7 @@ import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import React, {
+  CSSProperties,
   FunctionComponent,
   useCallback,
   useEffect,
@@ -133,7 +134,7 @@ const DatabaseConnections: FunctionComponent = () => {
     wordWrap: 'break-word',
     wordBreak: 'break-all',
     wordSpace: 'normal',
-  }
+  } as CSSProperties
 
   const upsertDatabaseConnectionTypeName = 'snowflake'
   const [

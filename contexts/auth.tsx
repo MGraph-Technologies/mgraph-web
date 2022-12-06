@@ -21,6 +21,7 @@ type AuthContextType = {
   userCanEdit: boolean
   userCanView: boolean
   userOnMobile: boolean
+  authStatePopulated: boolean
 }
 
 const authContextTypeValues: AuthContextType = {
@@ -33,6 +34,7 @@ const authContextTypeValues: AuthContextType = {
   userCanEdit: false,
   userCanView: false,
   userOnMobile: false,
+  authStatePopulated: false,
 }
 
 const AuthContext = createContext<AuthContextType>(authContextTypeValues)
@@ -66,6 +68,7 @@ export function AuthProvider({ children }: AuthProps) {
   const [userCanEdit, setUserCanEdit] = useState(false)
   const [userCanView, setUserCanView] = useState(false)
   const [userOnMobile, setUserOnMobile] = useState(false)
+  const [authStatePopulated, setAuthStatePopulated] = useState(false)
   const populateAuthState = useCallback(async () => {
     if (session?.user) {
       try {
@@ -94,6 +97,7 @@ export function AuthProvider({ children }: AuthProps) {
           const _userCanView = _userCanEdit || data.roles.name === 'viewer'
           setUserCanView(_userCanView)
           setUserOnMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
+          setAuthStatePopulated(true)
 
           analytics.identify(session.user.id, {
             email: session.user.email,
@@ -124,6 +128,7 @@ export function AuthProvider({ children }: AuthProps) {
     userCanEdit,
     userCanView,
     userOnMobile,
+    authStatePopulated,
   }
   return (
     <>

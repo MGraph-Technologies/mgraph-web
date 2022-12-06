@@ -45,13 +45,25 @@
 .metric_detail .body .detail_field {
   background-color: #ffffff;
   border-radius: 5px;
-  font-size: 0.95rem; /* prevents scrollbar from appearing on inputs/outputs */
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
 }
 
 .metric_detail .body .detail_field_editable {
   background-color: #f8f8fe;
   border-radius: 5px;
-  font-size: 0.95rem; /* prevents scrollbar from appearing on inputs/outputs */
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.metric_detail .body .detail_field_code {
+  background-color: #f8f8fe;
+  border-radius: 5px;
+  width: 100%;
+  font-family: monospace;
+  font-size: 0.8rem;
 }
 
 .metric_detail .body .connection_config_block {

@@ -1,16 +1,9 @@
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react'
-import { ColorResult } from 'react-color'
+import React, { FunctionComponent, useEffect, useState } from 'react'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
 
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/FunctionNode.module.css'
-import NodeMenu from './NodeMenu'
 
 export type FunctionNodeProperties = {
   id: string
@@ -38,35 +31,15 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
     setSymbol(getFunctionSymbol(data.functionTypeId))
   }, [getFunctionSymbol, setSymbol, data.functionTypeId])
 
-  const [color, setColor] = useState('#FFFFFF')
-  useEffect(() => {
-    setColor(data.color)
-  }, [data.color])
-  const saveColor = useCallback(
-    (color: ColorResult) => {
-      const newData = { ...data }
-      newData.color = color.hex
-      data.setNodeDataToChange(newData)
-    },
-    [data]
-  )
-
   return (
     <div
       className={styles.function_node}
       style={{
-        backgroundColor: color,
+        backgroundColor: '#ffffff',
         border: selected ? '5px solid' : '1px solid',
       }}
     >
-      <div className={styles.header}>
-        <div className={styles.buttons}>
-          <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
-        </div>
-      </div>
-      <div className={styles.symbol}>
-        <h1>{symbol}</h1>
-      </div>
+      <div className={styles.symbol}>{symbol}</div>
       <Handle
         type="source"
         id="top_source"

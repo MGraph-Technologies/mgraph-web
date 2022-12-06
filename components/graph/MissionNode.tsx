@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useState,
 } from 'react'
-import { ColorResult } from 'react-color'
 import { EditTextarea, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Position } from 'react-flow-renderer'
@@ -13,7 +12,6 @@ import useFitText from 'use-fit-text'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MissionNode.module.css'
-import NodeMenu from './NodeMenu'
 
 export type MissionNodeProperties = {
   id: string
@@ -63,32 +61,14 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
     },
   })
 
-  const [color, setColor] = useState('#FFFFFF')
-  useEffect(() => {
-    setColor(data.color)
-  }, [data.color])
-  const saveColor = useCallback(
-    (color: ColorResult) => {
-      const newData = { ...data }
-      newData.color = color.hex
-      data.setNodeDataToChange(newData)
-    },
-    [data]
-  )
-
   return (
     <div
       className={styles.mission_node}
       style={{
-        backgroundColor: color,
+        backgroundColor: '#ffffff',
         border: selected ? '2px solid' : '1px solid',
       }}
     >
-      <div className={styles.header}>
-        <div className={styles.buttons}>
-          <NodeMenu color={color} setColor={setColor} saveColor={saveColor} />
-        </div>
-      </div>
       <div className={styles.mission_container} ref={ref} style={{ fontSize }}>
         <EditTextarea
           id="mission-field"

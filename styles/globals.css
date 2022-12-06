@@ -47,3 +47,23 @@ a {
 .p-paginator {
   justify-content: right !important;
 }
+
+/* rid supabase-comments-extension of supabase styling */
+.CommentContainer_comment_container__gpMEx {
+  background-color: #fff !important;
+  border: none !important;
+}
+
+/* add scrolling to top level of comments in SCE */
+.rounded-md > .space-y-1 {
+  max-height: 200px;
+  overflow-y: scroll;
+  /* hide scrollbar */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+  scroll-behavior: calc((100% - 50em) / 2);
+}
+
+.rounded-md > .space-y-1::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}

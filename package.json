@@ -12,7 +12,13 @@
     "cy:run": "cypress run"
   },
   "dependencies": {
+    "@babel/runtime": "^7.20.6",
     "@sentry/nextjs": "^7.13.0",
+    "@supabase/supabase-js": "^1.35.6",
+    "@supabase/ui": "^0.36.5",
+    "@tiptap/core": "^2.0.0-beta.193",
+    "@tiptap/extension-code-block": "^2.0.0-beta.193",
+    "@tiptap/suggestion": "^2.0.0-beta.193",
     "chart.js": "^3.9.1",
     "chartjs-adapter-moment": "^1.0.0",
     "cron-parser": "^4.6.0",
@@ -29,13 +35,15 @@
     "node-fetch": "2.6.1",
     "primeicons": "^5.0.0",
     "primereact": "^8.5.0",
-    "react": "18.2.0",
+    "react": "^17.0.2",
     "react-chartjs-2": "^4.3.1",
     "react-color": "^2.19.3",
-    "react-dom": "18.2.0",
+    "react-dom": "^17.0.2",
     "react-edit-text": "^5.0.2",
     "react-flow-renderer": "^10.3.8",
+    "react-query": "^3.39.2",
     "react-simple-code-editor": "^0.13.1",
+    "supabase-comments-extension": "^0.0.2",
     "use-fit-text": "^2.4.0",
     "use-undoable": "^3.3.11",
     "uuid": "^8.3.2",
@@ -43,17 +51,17 @@
   },
   "devDependencies": {
     "@segment/analytics-next": "^1.43.0",
-    "@supabase/supabase-js": "^1.35.6",
     "@types/crypto-js": "^4.1.1",
     "@types/js-yaml": "^4.0.5",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/lodash": "^4.14.184",
     "@types/node": "18.0.0",
     "@types/node-fetch": "^2.6.2",
-    "@types/react": "18.0.14",
+    "@types/react": "^17.0.39",
     "@types/react-color": "^3.0.6",
-    "@types/react-dom": "18.0.5",
+    "@types/react-dom": "^17.0.11",
     "@types/react-edit-text": "^5.0.1",
+    "@types/react-query": "^1.2.9",
     "@types/react-syntax-highlighter": "^15.5.5",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.42.1",
@@ -68,5 +76,9 @@
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
     "typescript": "4.7.4"
+  },
+  "resolutions": {
+    "**/@types/react": "^17.0.39",
+    "**/@types/react-dom": "^17.0.11"
   }
 }

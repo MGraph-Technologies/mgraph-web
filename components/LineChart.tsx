@@ -135,7 +135,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
             >
               {showNumberOverlay && numberToOverlayString ? ( // show number overlay if only one series
                 <div className={styles.number_overlay}>
-                  <h1>{numberToOverlayString}</h1>
+                  {numberToOverlayString}
                 </div>
               ) : null}
               {renderChart ? (

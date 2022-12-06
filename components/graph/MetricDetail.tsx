@@ -33,7 +33,7 @@ import {
   SourceQueryType,
 } from './MetricNode'
 import MonitoringRulesTable from '../MonitoringRulesTable'
-import MetricNodeAlertBadge from './MetricNodeAlertBadge'
+import NodePanel from './nodepanel/NodePanel'
 
 type MetricDetailProps = {
   metricId: string
@@ -514,6 +514,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onClick={() => {
             push('/' + organizationName)
           }}
+          style={{ minWidth: '32px' }}
         />
         <EditText
           id="name-field"
@@ -530,7 +531,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onChange={(e) => setName(e.target.value)}
           onSave={({ value }) => saveDetail('name', value)}
         />
-        <MetricNodeAlertBadge nodeData={metricNode?.data} />
+        <NodePanel nodeId={metricId} />
         <ControlPanel />
       </div>
       <div className={styles.body}>
@@ -542,7 +543,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             setQueryResult={setQueryResult}
           />
           <LineChart queryResult={queryResult} />
-
           {editingEnabled && (
             <div className={styles.refresh_chart_button_container}>
               <Button
@@ -577,31 +577,13 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onSave={({ value }) => saveDetail('description', value)}
         />
         <SectionHeader title="Inputs" size="h2" />
-        {/* inputs set via function editor */}
-        <EditTextarea
-          className={styles.detail_field}
-          value={inputs.match(functionTypeIdRegex) ? '' : inputs.trim()}
-          readonly={true}
-          placeholder={'-'}
-          rows={
-            inputs.match(functionTypeIdRegex)
-              ? 1
-              : Math.max(inputs.split('\n').filter((n) => n).length, 1)
-          }
-        />
+        <pre className={styles.detail_field}>
+          {inputs.match(functionTypeIdRegex) ? '' : inputs.trim()}
+        </pre>
         <SectionHeader title="Outputs" size="h2" />
-        {/* outputs set via function editor */}
-        <EditTextarea
-          className={styles.detail_field}
-          value={outputs.match(functionTypeIdRegex) ? '' : outputs.trim()}
-          readonly={true}
-          placeholder={'-'}
-          rows={
-            outputs.match(functionTypeIdRegex)
-              ? 1
-              : Math.max(outputs.split('\n').filter((n) => n).length, 1)
-          }
-        />
+        <pre className={styles.detail_field}>
+          {outputs.match(functionTypeIdRegex) ? '' : outputs.trim()}
+        </pre>
         <SectionHeader title="Monitoring Rules" size="h2" />
         <MonitoringRulesTable parentNodeId={metricId} />
         <SectionHeader title="Source" size="h2" />
@@ -693,7 +675,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
               <>
                 <br />
                 <div>Definition</div>
-                <pre>
+                <pre className={styles.detail_field_code}>
                   {highlight(
                     sourceDbtMetricYaml || '(metric not found)',
                     'yaml'
@@ -736,29 +718,31 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             {sourceQueryType === 'generated' && <div>Generated SQL</div>}
           </>
         )}
-        {editingEnabled && sourceQueryType === 'freeform' ? (
-          <Editor
-            id="source-query-field"
-            value={sourceQuery}
-            onValueChange={(query) => setSourceQuery(query)}
-            onBlur={() => {
-              saveDetail('source', {
-                ...metricNode?.data?.source,
-                query: sourceQuery,
-              })
-            }}
-            highlight={(query) => highlight(query, 'sql')}
-            textareaClassName="react-simple-code-editor-textarea"
-          />
-        ) : (
-          <pre>{highlight(sourceQuery, 'sql')}</pre>
-        )}
+        <pre className={styles.detail_field_code}>
+          {editingEnabled && sourceQueryType === 'freeform' ? (
+            <Editor
+              id="source-query-field"
+              value={sourceQuery}
+              onValueChange={(query) => setSourceQuery(query)}
+              onBlur={() => {
+                saveDetail('source', {
+                  ...metricNode?.data?.source,
+                  query: sourceQuery,
+                })
+              }}
+              highlight={(query) => highlight(query, 'sql')}
+              textareaClassName="react-simple-code-editor-textarea"
+            />
+          ) : (
+            highlight(sourceQuery, 'sql')
+          )}
+        </pre>
       </div>
-      {editingEnabled ? (
+      {editingEnabled && (
         <div className={styles.editor_dock}>
           <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
         </div>
-      ) : null}
+      )}
     </div>
   )
 }
@@ -771,10 +755,26 @@ const SectionHeader: FunctionComponent<SectionHeaderProps> = ({
   title,
   size,
 }) => {
+  const sizeEmMap = {
+    h1: 2.0,
+    h2: 1.5,
+    h3: 1.17,
+    h4: 1.0,
+    h5: 0.83,
+    h6: 0.67,
+  }
   const sectionId = title.toLowerCase().replace(' ', '-')
   return React.createElement(
     size,
-    { id: sectionId },
+    {
+      id: sectionId,
+      style: {
+        fontSize: `${sizeEmMap[size]}em`,
+        fontWeight: 'bold',
+        marginTop: '1em',
+        marginBottom: '0.5em',
+      },
+    },
     <Link href={`#${sectionId}`}>{title}</Link>
   )
 }

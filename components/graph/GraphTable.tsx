@@ -5,15 +5,12 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { Node } from 'react-flow-renderer'
 
 import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
-import { useAuth } from '../../contexts/auth'
 import { useGraph } from '../../contexts/graph'
-import { useBrowser } from '../../contexts/browser'
 import styles from '../../styles/GraphTable.module.css'
 import { analytics } from '../../utils/segmentClient'
 import LineChart from '../LineChart'
 import ControlPanel from './ControlPanel'
-import MetricNodeAlertBadge from './MetricNodeAlertBadge'
-import NodeInfoButton from './NodeInfoButton'
+import NodePanel from './nodepanel/NodePanel'
 
 type GraphTableProps = {
   metricNodes: Node[]
@@ -24,8 +21,6 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   expansionLevel = 0,
 }) => {
   const { getConnectedObjects } = useGraph()
-  const { organizationName } = useAuth()
-  const { push } = useBrowser()
 
   const [metrics, setMetrics] = useState<Node[]>([])
   useEffect(() => {
@@ -200,31 +195,9 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   }, [])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const alertCellBodyTemplate = useCallback((rowData: any) => {
-    return <MetricNodeAlertBadge nodeData={rowData.data} />
+  const nodePanelCellBodyTemplate = useCallback((rowData: any) => {
+    return <NodePanel nodeId={rowData.id} />
   }, [])
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const infoCellBodyTemplate = useCallback((rowData: any) => {
-    return <NodeInfoButton nodeData={rowData.data} />
-  }, [])
-
-  const linkCellBodyTemplate = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (rowData: any) => {
-      return (
-        <Button
-          id="link-to-detail-button"
-          className="p-button-text p-button-lg"
-          icon="pi pi-angle-right"
-          onClick={() => {
-            push(`/${organizationName}/metrics/${rowData.id}`)
-          }}
-        />
-      )
-    },
-    [push, organizationName]
-  )
 
   return (
     <div
@@ -269,19 +242,9 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
           style={{ width: '60%' }}
         />
         <Column
-          body={alertCellBodyTemplate}
-          align="center"
-          style={{ width: '5%' }}
-        />
-        <Column
-          body={infoCellBodyTemplate}
-          align="center"
-          style={{ width: '5%' }}
-        />
-        <Column
-          body={linkCellBodyTemplate}
-          align="center"
-          style={{ width: '5%' }}
+          body={nodePanelCellBodyTemplate}
+          align="right"
+          style={{ width: '15%' }}
         />
       </DataTable>
     </div>

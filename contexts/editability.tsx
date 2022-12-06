@@ -32,7 +32,11 @@ export function EditabilityProvider({ children }: EditabilityProps) {
   const [editingEnabled, setEditingEnabled] = useState(false)
   const enableEditing = () => setEditingEnabled(true)
   const disableEditing = () => setEditingEnabled(false)
-  const value = { editingEnabled, enableEditing, disableEditing }
+  const value = {
+    editingEnabled,
+    enableEditing,
+    disableEditing,
+  }
   return (
     <>
       <EditabilityContext.Provider value={value}>

@@ -1,14 +1,14 @@
-import router from 'next/router'
+import { Button } from 'primereact/button'
 import React, {
   FunctionComponent,
   useCallback,
   useEffect,
   useState,
 } from 'react'
-import { ColorResult } from 'react-color'
+import { ColorResult, TwitterPicker } from 'react-color'
 import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
-import { Handle, Position } from 'react-flow-renderer'
+import { Handle, Node, Position } from 'react-flow-renderer'
 
 import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
 import { useAuth } from '../../contexts/auth'
@@ -16,9 +16,7 @@ import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
 import LineChart from '../LineChart'
-import MetricNodeAlertBadge from './MetricNodeAlertBadge'
-import NodeInfoButton from './NodeInfoButton'
-import NodeMenu from './NodeMenu'
+import NodePanel from './nodepanel/NodePanel'
 
 export type SourceQueryType = 'freeform' | 'generated'
 export type MetricNodeSource = {
@@ -55,11 +53,15 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   xPos,
   yPos,
 }) => {
-  const { organizationName } = router.query
   const { userOnMobile } = useAuth()
   const { editingEnabled } = useEditability()
   const { graph, reactFlowRenderer, reactFlowViewport, formNodeHandleStyle } =
     useGraph()
+
+  const [thisNode, setThisNode] = useState<Node | undefined>(undefined)
+  useEffect(() => {
+    setThisNode(graph.nodes.find((node) => node.id === data.id))
+  }, [graph.nodes, data.id])
 
   const [name, setName] = useState('')
   useEffect(() => {
@@ -78,6 +80,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   useEffect(() => {
     setColor(data.color)
   }, [data.color])
+  const [displayColorPicker, setDisplayColorPicker] = useState(false)
   const saveColor = useCallback(
     (color: ColorResult) => {
       const newData = { ...data }
@@ -86,6 +89,41 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     },
     [data]
   )
+  const handleColorChangeComplete = useCallback(
+    (color: ColorResult) => {
+      setColor(color.hex)
+      saveColor(color)
+    },
+    [setColor, saveColor]
+  )
+
+  const ColorPicker: FunctionComponent = () => {
+    if (editingEnabled) {
+      return displayColorPicker ? (
+        <>
+          <TwitterPicker
+            color={color}
+            onChangeComplete={(color) => handleColorChangeComplete(color)}
+          />
+          <Button
+            id="close-node-coloring-button"
+            className="p-button-text p-button-lg"
+            icon="pi pi-times"
+            onClick={() => setDisplayColorPicker(false)}
+          />
+        </>
+      ) : (
+        <Button
+          id="expand-node-menu-button"
+          className="p-button-text p-button-lg"
+          icon="pi pi-palette"
+          onClick={() => setDisplayColorPicker(true)}
+        />
+      )
+    } else {
+      return null
+    }
+  }
 
   const [queryResult, setQueryResult] = useState<QueryResult>({
     status: 'processing',
@@ -94,7 +132,6 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
 
   const [renderChart, setRenderChart] = useState(false)
   useEffect(() => {
-    const thisNode = graph.nodes.find((node) => node.id === data.id)
     if (!reactFlowViewport || !reactFlowRenderer || !thisNode) return
     const scale = 1 / reactFlowViewport.zoom
     const clientWidth = reactFlowRenderer.clientWidth
@@ -121,15 +158,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
         nodeYUpper > rendererYLower - yBuffer &&
         reactFlowViewport.zoom > minZoom
     )
-  }, [
-    graph,
-    data.id,
-    reactFlowViewport,
-    reactFlowRenderer,
-    xPos,
-    yPos,
-    userOnMobile,
-  ])
+  }, [reactFlowViewport, reactFlowRenderer, thisNode, xPos, yPos, userOnMobile])
 
   return (
     <div
@@ -140,33 +169,21 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
       }}
     >
       <div className={styles.header}>
-        <div className={styles.name}>
-          <EditText
-            value={name}
-            readonly={!editingEnabled}
-            style={{
-              backgroundColor: editingEnabled ? '#eee' : 'transparent',
-              fontSize: '2em',
-              fontWeight: 'bold',
-            }}
-            onChange={(e) => setName(e.target.value)}
-            onSave={saveName}
-          />
-          {!editingEnabled && (
-            <>
-              <NodeInfoButton nodeData={data} />
-              <MetricNodeAlertBadge nodeData={data} />
-            </>
-          )}
-        </div>
-        <div className={styles.buttons}>
-          <NodeMenu
-            color={color}
-            setColor={setColor}
-            saveColor={saveColor}
-            linkTo={'/' + organizationName + '/metrics/' + data.id}
-          />
-        </div>
+        <EditText
+          value={name}
+          readonly={!editingEnabled}
+          style={{
+            backgroundColor: editingEnabled ? '#eee' : 'transparent',
+            fontSize: '2em',
+            fontWeight: 'bold',
+            // remove spacing
+            margin: 0,
+            padding: 0,
+          }}
+          onChange={(e) => setName(e.target.value)}
+          onSave={saveName}
+        />
+        <NodePanel nodeId={data.id} additions={<ColorPicker />} />
       </div>
       <div className={styles.chart_container}>
         <QueryRunner
