@@ -131,6 +131,43 @@ describe('Graphviewer viewing as admin', () => {
     cy.get('[class=p-menuitem]').contains('Refresh Jobs').click()
     cy.url().should('include', '/refresh-jobs')
   })
+
+  it('Views comments, then adds and deletes a comment', () => {
+    cy.visit('/mgraph')
+    // view comments
+    cy.get('[id=comments-button]').first().click()
+
+    // add comment
+    const randomString = Math.random().toString(36)
+    cy.get('[class*=module_editor]').first().click().clear().type(randomString)
+    cy.get('[class*=sbui-btn').contains('Submit').click()
+    cy.contains('[class*=sce-comment-body]', randomString)
+
+    // edit comment
+    cy.get('[class*=sce-comment-body]')
+      .get('[class*=sbui-dropdown__trigger')
+      .first()
+      .click()
+    cy.get('[class*=sbui-dropdown-item]').contains('Edit').click()
+    const randomString2 = Math.random().toString(36)
+    cy.get('[class*=sce-comment-body]')
+      .get('[class*=module_editor]')
+      .first()
+      .click()
+      .clear()
+      .type(randomString2)
+    cy.get('[class*=sbui-btn').contains('Save').click()
+    cy.contains('[class*=sce-comment-body]', randomString2)
+
+    // delete comment
+    cy.get('[class*=sce-comment-body]')
+      .get('[class*=sbui-dropdown__trigger')
+      .first()
+      .click({ force: true })
+    cy.get('[class*=sbui-dropdown-item]')
+      .contains('Delete')
+      .click({ force: true })
+  })
 })
 
 describe('Graphviewer viewing as viewer', () => {
@@ -283,6 +320,46 @@ describe('Metric detail viewing', () => {
     // TODO: check population of inputs and outputs
     cy.get('body').contains('Owner')
     cy.get('body').contains('Source')
+  })
+
+  it('Views comments, then adds and deletes a comment', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
+
+    // view comments
+    cy.get('[id=comments-button]').first().click()
+
+    // add comment
+    const randomString = Math.random().toString(36)
+    cy.get('[class*=module_editor]').first().click().clear().type(randomString)
+    cy.get('[class*=sbui-btn').contains('Submit').click()
+    cy.contains('[class*=sce-comment-body]', randomString)
+
+    // edit comment
+    cy.get('[class*=sce-comment-body]')
+      .get('[class*=sbui-dropdown__trigger')
+      .first()
+      .click()
+    cy.get('[class*=sbui-dropdown-item]').contains('Edit').click()
+    const randomString2 = Math.random().toString(36)
+    cy.get('[class*=sce-comment-body]')
+      .get('[class*=module_editor]')
+      .first()
+      .click()
+      .clear()
+      .type(randomString2)
+    cy.get('[class*=sbui-btn').contains('Save').click()
+    cy.contains('[class*=sce-comment-body]', randomString2)
+
+    // delete comment
+    cy.get('[class*=sce-comment-body]')
+      .get('[class*=sbui-dropdown__trigger')
+      .first()
+      .click({ force: true })
+    cy.get('[class*=sbui-dropdown-item]')
+      .contains('Delete')
+      .click({ force: true })
   })
 })
 
