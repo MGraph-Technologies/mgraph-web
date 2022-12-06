@@ -6,6 +6,7 @@ import { Node } from 'react-flow-renderer'
 import { Comments, CommentsProvider } from 'supabase-comments-extension'
 
 import styles from '../../../styles/NodeCommentsButton.module.css'
+import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
 
 export const GRAPH_COMMENTS_TOPIC_ID = 'graph'
@@ -117,8 +118,18 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
           id="comments-overlay"
           ref={commentsOverlay}
           dismissable={overlayDismissible}
-          onShow={() => setCommentsOverlayVisible(true)}
-          onHide={() => setCommentsOverlayVisible(false)}
+          onShow={() => {
+            setCommentsOverlayVisible(true)
+            analytics.track('show_comments', {
+              topicId: node.id,
+            })
+          }}
+          onHide={() => {
+            setCommentsOverlayVisible(false)
+            analytics.track('hide_comments', {
+              topicId: node.id,
+            })
+          }}
         >
           {node && (
             <div
@@ -140,6 +151,9 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
                 }
                 if (checkTarget(target) || checkChildren(target)) {
                   setTopicRecentComments(topicRecentComments + 1)
+                  analytics.track('add_comment', {
+                    topicId: node.id,
+                  })
                 }
               }}
             >
