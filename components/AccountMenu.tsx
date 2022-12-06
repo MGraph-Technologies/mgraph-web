@@ -144,13 +144,24 @@ const AccountMenu: FunctionComponent = () => {
         onClick={(event) => helpMenu.current?.toggle(event)}
       />
       <Menu model={overlayMenuItems} popup ref={overlayMenu} />
-      <Avatar
-        id="account-menu"
-        label={avatarChar}
-        image={avatarUrl ? avatarUrl : undefined}
-        shape="circle"
-        onClick={(event) => overlayMenu.current?.toggle(event)}
-      />
+      {avatarUrl ? (
+        <Image
+          src={avatarUrl}
+          alt="User Avatar"
+          height={32}
+          width={32}
+          onClick={(event) => overlayMenu.current?.toggle(event)}
+          // round
+          style={{ borderRadius: '50%' }}
+        />
+      ) : (
+        <Avatar
+          id="account-menu"
+          label={avatarChar}
+          shape="circle"
+          onClick={(event) => overlayMenu.current?.toggle(event)}
+        />
+      )}
     </>
   )
 }

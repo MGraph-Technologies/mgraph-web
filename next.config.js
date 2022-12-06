@@ -8,6 +8,7 @@ const moduleExports = {
       'foijfafafqxtuwqjshcu.supabase.co', // dev
       'yvyswaeeardmmcwqgybm.supabase.co', // staging
       'qfajvvqhnbvjgvgesooj.supabase.co', // prod
+      'lh3.googleusercontent.com', // google avatars
     ],
   },
   reactStrictMode: true,
