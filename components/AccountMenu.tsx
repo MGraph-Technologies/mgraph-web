@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import { Avatar } from 'primereact/avatar'
 import { Button } from 'primereact/button'
 import { Menu } from 'primereact/menu'
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
@@ -10,6 +9,7 @@ import { useBrowser } from '../contexts/browser'
 import styles from '../styles/AccountMenu.module.css'
 import { analytics } from '../utils/segmentClient'
 import { supabase } from '../utils/supabaseClient'
+import UserAvatar from './UserAvatar'
 
 const AccountMenu: FunctionComponent = () => {
   const {
@@ -22,25 +22,23 @@ const AccountMenu: FunctionComponent = () => {
   const { push } = useBrowser()
 
   const [userEmail, setUserEmail] = useState('')
-  const [avatarChar, setAvatarChar] = useState('')
+  const [userName, setUserName] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   useEffect(() => {
     setUserEmail(session?.user?.email || '')
   }, [session])
   useEffect(() => {
-    setAvatarChar(userEmail?.charAt(0).toUpperCase() || '')
-  }, [userEmail])
-  useEffect(() => {
     const fetchAvatarUrl = async () => {
       const { data, error } = await supabase
         .from('sce_display_users')
-        .select('avatar')
+        .select('name, avatar')
         .eq('id', session?.user?.id)
         .single()
 
       if (error) {
         console.error(error)
       } else if (data) {
+        setUserName(data.name)
         setAvatarUrl(data.avatar)
       }
     }
@@ -144,24 +142,14 @@ const AccountMenu: FunctionComponent = () => {
         onClick={(event) => helpMenu.current?.toggle(event)}
       />
       <Menu model={overlayMenuItems} popup ref={overlayMenu} />
-      {avatarUrl ? (
-        <Image
-          src={avatarUrl}
-          alt="User Avatar"
-          height={32}
-          width={32}
-          onClick={(event) => overlayMenu.current?.toggle(event)}
-          // round
-          style={{ borderRadius: '50%' }}
-        />
-      ) : (
-        <Avatar
-          id="account-menu"
-          label={avatarChar}
-          shape="circle"
-          onClick={(event) => overlayMenu.current?.toggle(event)}
-        />
-      )}
+      <UserAvatar
+        user={{
+          name: userName,
+          email: session?.user?.email || '',
+          avatarUrl: avatarUrl,
+        }}
+        onClick={(event) => overlayMenu.current?.toggle(event)}
+      />
     </>
   )
 }

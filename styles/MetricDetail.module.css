@@ -58,6 +58,13 @@
   font-size: 1rem;
 }
 
+.metric_detail .body .detail_field_editable .at_mention {
+  /* match supabase-comments-extension style */
+  border: 1px solid #c2c2c2;
+  border-radius: 5px;
+  padding: 0 3px;
+}
+
 .metric_detail .body .detail_field_code {
   background-color: #f8f8fe;
   border-radius: 5px;

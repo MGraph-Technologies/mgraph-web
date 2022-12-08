@@ -420,6 +420,30 @@ describe('Metric detail editing', () => {
     cy.contains(newValue).should('exist')
   })
 
+  it('Visits a metric detail page, successfully mentions a user as owner, then sees the mention', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
+
+    // begin editing
+    cy.get('[id=edit-button]').click()
+
+    // mention user
+    cy.get('[id=owner-field').click().clear()
+    cy.get('[id=owner-field').type('@cypress-test-account')
+    cy.get('[class*=p-mention-item]')
+      .contains('cypress-test-account')
+      .first()
+      .click()
+
+    // save
+    cy.get('[id=save-button]').click()
+    cy.wait(2000)
+    cy.get('[class*=at_mention]')
+      .contains('cypress-test-account')
+      .should('exist')
+  })
+
   it('Visits a metric detail page, enters a working SQL query, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
