@@ -1,3 +1,4 @@
+import fetch from 'node-fetch'
 import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { OverlayPanel } from 'primereact/overlaypanel'
@@ -5,6 +6,7 @@ import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
 import { Node } from 'react-flow-renderer'
 import { Comments, CommentsProvider } from 'supabase-comments-extension'
 
+import { useAuth } from '../../../contexts/auth'
 import styles from '../../../styles/NodeCommentsButton.module.css'
 import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
@@ -17,6 +19,7 @@ type NodeCommentsButtonProps = {
 const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   node,
 }) => {
+  const { session } = useAuth()
   const commentsOverlay = useRef<OverlayPanel>(null)
   const [commentsOverlayVisible, setCommentsOverlayVisible] = useState(false)
 
@@ -85,6 +88,26 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
     return () => clearInterval(interval)
   }, [commentsOverlayVisible, overlayDismissible])
 
+  // TODO: move this to backend
+  const initiateNotifications = async () => {
+    if (!node) return
+    const accessToken = session?.access_token
+    if (!accessToken) return
+    console.log('Initiating notifications for topic', node.id)
+    const notifResp = await fetch('/api/v1/notifications/comment', {
+      method: 'POST',
+      headers: {
+        'supabase-access-token': accessToken,
+      },
+      body: JSON.stringify({
+        topicId: node.id,
+      }),
+    })
+    if (notifResp.status !== 200) {
+      console.error('Error initiating notifications', notifResp)
+    }
+  }
+
   if (node) {
     return (
       <>
@@ -136,7 +159,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
               className={styles.comments_container}
               onClick={(event) => {
                 event.stopPropagation()
-                // increment topicRecentComments if submit button clicked
+                // increment topicRecentComments + trigger notifs on submission
                 // (this is a hacky workaround for the lack of onComment prop)
                 const target = event.target as HTMLElement
                 const checkTarget = (target: HTMLElement) => {
@@ -154,6 +177,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
                   analytics.track('add_comment', {
                     topicId: node.id,
                   })
+                  initiateNotifications()
                 }
               }}
             >
