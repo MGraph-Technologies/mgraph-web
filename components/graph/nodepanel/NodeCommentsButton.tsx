@@ -90,10 +90,15 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
 
   // TODO: move this to backend
   const initiateNotifications = async () => {
-    if (!node) return
+    if (!node) {
+      console.error('No node to initiate notifications for')
+      return
+    }
     const accessToken = session?.access_token
-    if (!accessToken) return
-    console.log('Initiating notifications for topic', node.id)
+    if (!accessToken) {
+      console.error('No access token to initiate notifications')
+      return
+    }
     const notifResp = await fetch('/api/v1/notifications/comment', {
       method: 'POST',
       headers: {
