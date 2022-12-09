@@ -894,7 +894,7 @@ const MentionableDetailField: FunctionComponent<MentionFieldProps> = ({
         __html: value.replaceAll(
           /@[a-zA-Z0-9_.+-]+/g,
           (match) =>
-            `<span style='border: 1px solid #c2c2c2; border-radius: 5px; padding: 0 3px'>${match}</span>`
+            `<span class='at_mention' style='border: 1px solid #c2c2c2; border-radius: 5px; padding: 0 3px'>${match}</span>`
         ),
       }}
     />
