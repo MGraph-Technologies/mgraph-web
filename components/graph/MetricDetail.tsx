@@ -888,25 +888,16 @@ const MentionableDetailField: FunctionComponent<MentionFieldProps> = ({
       }}
     />
   ) : (
-    <div className={styles.detail_field_editable}>
-      {value.split(' ').map((word, i) => {
-        if (word.startsWith('@')) {
-          return (
-            <span key={i}>
-              <span className={styles.at_mention}>{word}</span>
-              &nbsp;
-            </span>
-          )
-        } else {
-          return (
-            <span key={i}>
-              {word}
-              &nbsp;
-            </span>
-          )
-        }
-      })}
-    </div>
+    <div
+      className={styles.detail_field_editable}
+      dangerouslySetInnerHTML={{
+        __html: value.replaceAll(
+          /@[a-zA-Z0-9_.+-]+/g,
+          (match) =>
+            `<span style='border: 1px solid #c2c2c2; border-radius: 5px; padding: 0 3px'>${match}</span>`
+        ),
+      }}
+    />
   )
 }
 
