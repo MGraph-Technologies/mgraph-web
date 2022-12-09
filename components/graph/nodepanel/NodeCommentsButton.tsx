@@ -181,7 +181,13 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
                 }
               }}
             >
-              <CommentsProvider supabaseClient={supabase} accentColor="#3943ac">
+              <CommentsProvider
+                supabaseClient={supabase}
+                accentColor="#3943ac"
+                components={{
+                  CommentReactions: () => null,
+                }}
+              >
                 <Comments topic={node.id} />
               </CommentsProvider>
             </div>
