@@ -53,7 +53,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
   clearFields,
 }) => {
   const appUrl = `https://github.com/apps/mgraph-dbt-sync${
-    process.env.NEXT_PUBLIC_ENV === 'production' ? '' : '-dev'
+    process.env.VERCEL_ENV === 'production' ? '' : '-dev'
   }`
   const { organizationId } = useAuth()
   const { editingEnabled } = useEditability()
