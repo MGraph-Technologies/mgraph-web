@@ -70,6 +70,7 @@ export function AuthProvider({ children }: AuthProps) {
   const [userOnMobile, setUserOnMobile] = useState(false)
   const [authStatePopulated, setAuthStatePopulated] = useState(false)
   const populateAuthState = useCallback(async () => {
+    if (session === undefined) return
     if (session?.user) {
       try {
         const { data, error, status } = await supabase
@@ -97,7 +98,6 @@ export function AuthProvider({ children }: AuthProps) {
           const _userCanView = _userCanEdit || data.roles.name === 'viewer'
           setUserCanView(_userCanView)
           setUserOnMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
-          setAuthStatePopulated(true)
 
           analytics.identify(session.user.id, {
             email: session.user.email,
@@ -113,7 +113,8 @@ export function AuthProvider({ children }: AuthProps) {
         console.error(error)
       }
     }
-  }, [session?.user])
+    setAuthStatePopulated(true)
+  }, [session])
   useEffect(() => {
     populateAuthState()
   }, [populateAuthState])
