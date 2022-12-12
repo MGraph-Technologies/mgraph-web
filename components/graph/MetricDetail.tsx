@@ -98,13 +98,18 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   })
 
   const populateMetricNode = useCallback(() => {
-    if (metricId) {
-      setMetricNode(graph.nodes.find((node) => node.id === metricId))
+    if (metricId && graph.nodes.length > 0) {
+      const _metricNode = graph.nodes.find((node) => node.id === metricId)
+      if (_metricNode) {
+        setMetricNode(_metricNode)
+      } else {
+        push('/')
+      }
     }
-  }, [graph, metricId])
+  }, [graph, metricId, push])
   useEffect(() => {
     populateMetricNode()
-  }, [populateMetricNode])
+  }, [populateMetricNode, editingEnabled])
 
   const populateDatabaseConnections = useCallback(async () => {
     if (organizationId) {
