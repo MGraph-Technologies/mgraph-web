@@ -1,11 +1,14 @@
-import { withSentry } from '@sentry/nextjs'
+import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { parseExpression } from 'cron-parser'
 import { isValidCron } from 'cron-validator'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 
+import { SENTRY_CONFIG } from '../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../utils/appBaseUrl'
+
+Sentry.init(SENTRY_CONFIG)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
@@ -172,4 +175,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
-export default withSentry(handler)
+export default Sentry.withSentryAPI(
+  handler,
+  'api/v1/monitoring-rules/orchestrations'
+)
