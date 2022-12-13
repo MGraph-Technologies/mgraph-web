@@ -27,6 +27,27 @@ describe('App landing page, authenticated as member of enabled org', () => {
     cy.get('[class=p-menuitem]').contains('Sign Out').click()
     cy.location('pathname').should('eq', '/')
   })
+
+  it('Visits the app landing page, simulates visibility change, and does not see chart reloading/rerendering', () => {
+    // visit page
+    cy.visit('/')
+    cy.wait(2000)
+
+    // wait for loading to complete
+    cy.get('[class*=progress_spinner_container]', { timeout: 30000 }).should(
+      'not.exist'
+    )
+
+    // simulate visibility change
+    cy.document().then((doc) => {
+      cy.stub(doc, 'hidden').value(true)
+    })
+    cy.document().trigger('visibilitychange')
+    cy.wait(1000)
+
+    // check no loading spinners
+    cy.get('[class*=progress_spinner_container]').should('have.length', 0)
+  })
 })
 
 describe('App landing page, authenticated as member of disabled org', () => {
