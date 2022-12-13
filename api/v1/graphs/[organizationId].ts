@@ -1,4 +1,4 @@
-import { withSentry } from '@sentry/nextjs'
+import * as Sentry from '@sentry/nextjs'
 import {
   createClient,
   PostgrestError,
@@ -14,6 +14,9 @@ import { InputEdgeProperties } from '../../../components/graph/InputEdge'
 import { MetricNodeProperties } from '../../../components/graph/MetricNode'
 import { MissionNodeProperties } from '../../../components/graph/MissionNode'
 import { MonitoringRuleEvaluationStatus } from '../../../components/MonitoringRulesTable'
+import { SENTRY_CONFIG } from '../../../sentry.server.config.js'
+
+Sentry.init(SENTRY_CONFIG)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -385,4 +388,4 @@ async function upsert(
     .upsert(records, { returning: 'minimal' })
 }
 
-export default withSentry(handler)
+export default Sentry.withSentryAPI(handler, 'api/v1/graphs/[organizationId]')

@@ -1,11 +1,14 @@
-import { withSentry } from '@sentry/nextjs'
+import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 
+import { SENTRY_CONFIG } from '../../sentry.server.config.js'
 import {
   SnowflakeCredentials,
   encryptCredentials,
 } from '../../utils/snowflakeCrypto'
+
+Sentry.init(SENTRY_CONFIG)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -80,4 +83,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
-export default withSentry(handler)
+export default Sentry.withSentryAPI(handler, 'api/v1/database-connections')

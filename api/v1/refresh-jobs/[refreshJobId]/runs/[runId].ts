@@ -1,16 +1,19 @@
-import { withSentry } from '@sentry/nextjs'
+import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 import { Node } from 'react-flow-renderer'
 
 import { Graph } from '../../../../../contexts/graph'
+import { SENTRY_CONFIG } from '../../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../../utils/appBaseUrl'
 import {
   getLatestQueryId,
   getQueryParameters,
   parameterizeStatement,
 } from '../../../../../utils/queryUtils'
+
+Sentry.init(SENTRY_CONFIG)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const REFRESH_JOB_RUN_TIMEOUT_SECONDS = 3600
@@ -290,4 +293,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
-export default withSentry(handler)
+export default Sentry.withSentryAPI(
+  handler,
+  'api/v1/refresh-jobs/[refreshJobId]/runs/[runId]'
+)

@@ -237,6 +237,7 @@ const DatabaseConnections: FunctionComponent = () => {
                 setValue={setUpsertDatabaseConnectionName}
                 tooltip="Help users distinguish between different database connections"
                 type="text"
+                onClick={() => setUpsertDatabaseConnectionPlaceholder('')}
               />
               <SettingsInputText
                 label="Region"

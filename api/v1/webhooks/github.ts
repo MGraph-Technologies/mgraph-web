@@ -1,8 +1,12 @@
-import { withSentry } from '@sentry/nextjs'
+import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 import { NextApiRequest, NextApiResponse } from 'next'
 import getUuid from 'uuid-by-string'
+
+import { SENTRY_CONFIG } from '../../../sentry.server.config.js'
+
+Sentry.init(SENTRY_CONFIG)
 
 const githubWebhookSecret = process.env.GITHUB_WEBHOOK_SECRET
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -144,4 +148,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
-export default withSentry(handler)
+export default Sentry.withSentryAPI(handler, 'api/v1/webhooks/github')

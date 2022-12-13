@@ -1,4 +1,4 @@
-import { withSentry } from '@sentry/nextjs'
+import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
@@ -11,6 +11,7 @@ import {
   QueryData,
   QueryRow,
 } from '../../../../../components/graph/QueryRunner'
+import { SENTRY_CONFIG } from '../../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../../utils/appBaseUrl'
 import {
   checkColumnsStructure,
@@ -22,6 +23,8 @@ import {
   sortQueryRowsByDate,
 } from '../../../../../utils/queryUtils'
 import { MetricNodeProperties } from '../../../../../components/graph/MetricNode'
+
+Sentry.init(SENTRY_CONFIG)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const MONITORING_RULE_EVALUATION_TIMEOUT_SECONDS = 3600
@@ -302,7 +305,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
-export default withSentry(handler)
+export default Sentry.withSentryAPI(
+  handler,
+  'api/v1/monitoring-rules/[monitoringRuleId]/evaluations/[evaluationId]'
+)
 
 const sendSlackAlerts = async (
   alert: string,

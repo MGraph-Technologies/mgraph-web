@@ -1,8 +1,9 @@
-import { withSentry } from '@sentry/nextjs'
+import * as Sentry from '@sentry/nextjs'
 import { SupabaseClient, createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 
+import { SENTRY_CONFIG } from '../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../utils/appBaseUrl'
 import {
   QueryParameterOverrides,
@@ -10,6 +11,8 @@ import {
   overrideQueryParameters,
   parameterizeStatement,
 } from '../../../../utils/queryUtils'
+
+Sentry.init(SENTRY_CONFIG)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
@@ -165,4 +168,7 @@ const logMonitoringRuleEvaluation = async (
   }
 }
 
-export default withSentry(handler)
+export default Sentry.withSentryAPI(
+  handler,
+  'api/v1/monitoring-rules/[monitoringRuleId]'
+)
