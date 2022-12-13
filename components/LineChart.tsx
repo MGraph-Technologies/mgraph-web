@@ -130,8 +130,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
           <>
             <div
               className={styles.chart_container}
-              onMouseEnter={() => setShowNumberOverlay(false)}
-              onMouseLeave={() => setShowNumberOverlay(true)}
+              onMouseOver={() => setShowNumberOverlay(false)}
+              onMouseOut={() => setShowNumberOverlay(true)}
             >
               {showNumberOverlay && numberToOverlayString ? ( // show number overlay if only one series
                 <div className={styles.number_overlay}>
