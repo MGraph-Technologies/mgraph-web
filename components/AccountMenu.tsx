@@ -29,6 +29,10 @@ const AccountMenu: FunctionComponent = () => {
   }, [session])
   useEffect(() => {
     const fetchAvatarUrl = async () => {
+      if (!session?.user?.id) {
+        setAvatarUrl('')
+        return
+      }
       const { data, error } = await supabase
         .from('sce_display_users')
         .select('name, avatar')
