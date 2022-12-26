@@ -55,6 +55,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       if (data) {
+        const queryCreated = new Date(data.created_at)
+        const now = new Date()
+        const diff = now.getTime() - queryCreated.getTime()
+        const diffHours = Math.round(diff / (1000 * 60 * 60))
+        if (diffHours > 24) {
+          console.log('\nQuery expired')
+          return res.status(410).json({
+            error: 'Results expired',
+          } as QueryError)
+        }
+
         const decryptedCredentials = decryptCredentials(
           data.database_connections.encrypted_credentials,
           data.database_connections.organizations.id,
@@ -102,17 +113,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           console.log('\nQuery still processing')
           return res.status(202).json({})
         } else if (queryStatusResp.status === 422) {
-          if (queryStatus.message === 'Result not found') {
-            console.log('\nQuery expired')
-            return res.status(410).json({
-              error: 'Results expired',
-            } as QueryError)
-          } else {
-            console.log('\nQuery failed')
-            return res.status(422).json({
-              error: queryStatus.message,
-            } as QueryError)
-          }
+          console.log('\nQuery failed')
+          return res.status(422).json({
+            error: queryStatus.message,
+          } as QueryError)
         } else {
           console.error('\nError')
           return res.status(500).json({})

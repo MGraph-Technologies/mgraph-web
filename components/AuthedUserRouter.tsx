@@ -5,17 +5,16 @@ import { useAuth } from '../contexts/auth'
 
 const AuthedUserRouter: FunctionComponent = () => {
   const router = useRouter()
-  const { organizationName, organizationEnabled, authStatePopulated } =
-    useAuth()
+  const { organizationName, organizationEnabled } = useAuth()
 
   const routeToOrganizationIfEnabled = useCallback(() => {
-    if (!authStatePopulated) return
-    if (organizationName && organizationEnabled) {
+    if (!organizationName) return
+    if (organizationEnabled) {
       router.push(`/${organizationName}`)
-    } else if (organizationName && !organizationEnabled) {
+    } else {
       router.push(`/coming-soon`)
     }
-  }, [authStatePopulated, organizationName, organizationEnabled, router])
+  }, [organizationName, organizationEnabled, router])
   useEffect(() => {
     routeToOrganizationIfEnabled()
   }, [routeToOrganizationIfEnabled])

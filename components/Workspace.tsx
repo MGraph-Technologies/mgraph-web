@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import React, { FunctionComponent, ReactNode, useEffect } from 'react'
+import React, { FunctionComponent, ReactNode, useEffect, useState } from 'react'
 
 import { useAuth } from '../contexts/auth'
 import styles from '../styles/Workspace.module.css'
@@ -15,25 +15,26 @@ const Workspace: FunctionComponent<WorkspaceProps> = ({ children }) => {
     session,
     organizationName: userOrganizationName,
     organizationEnabled: userOrganizationEnabled,
-    authStatePopulated,
   } = useAuth()
 
-  const renderAuthorized =
-    organizationName === userOrganizationName && userOrganizationEnabled
+  const [renderAuthorized, setRenderAuthorized] = useState(false)
   useEffect(() => {
+    const _renderAuthorized =
+      organizationName === userOrganizationName && userOrganizationEnabled
+    setRenderAuthorized(_renderAuthorized)
+
+    // route to home page if user isn't authorized to view this organization
     if (
-      authStatePopulated &&
-      ((session !== undefined && !session) ||
-        (userOrganizationName && !renderAuthorized))
+      (session !== undefined && !session) ||
+      (organizationName && userOrganizationName && !_renderAuthorized)
     ) {
-      // route to home page if user isn't authorized to view this organization
       router.push('/')
     }
   }, [
-    authStatePopulated,
-    session,
+    organizationName,
     userOrganizationName,
-    renderAuthorized,
+    userOrganizationEnabled,
+    session,
     router,
   ])
 

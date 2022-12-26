@@ -69,7 +69,11 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
         border: selected ? '2px solid' : '1px solid',
       }}
     >
-      <div className={styles.mission_container} ref={ref} style={{ fontSize }}>
+      <div
+        className={styles.mission_container}
+        ref={ref}
+        style={{ fontSize: editingEnabled ? 48 : fontSize }}
+      >
         <EditTextarea
           id="mission-field"
           value={mission}

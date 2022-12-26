@@ -14,27 +14,25 @@ import { supabase } from '../utils/supabaseClient'
 type AuthContextType = {
   session: Session | null | undefined
   organizationId: string
-  organizationName: string
-  organizationLogoStoragePath: string
   organizationEnabled: boolean
+  organizationLogoStoragePath: string
+  organizationName: string
   userIsAdmin: boolean
   userCanEdit: boolean
   userCanView: boolean
   userOnMobile: boolean
-  authStatePopulated: boolean
 }
 
 const authContextTypeValues: AuthContextType = {
   session: null,
   organizationId: '',
-  organizationName: '',
-  organizationLogoStoragePath: '',
   organizationEnabled: false,
+  organizationLogoStoragePath: '',
+  organizationName: '',
   userIsAdmin: false,
   userCanEdit: false,
   userCanView: false,
   userOnMobile: false,
-  authStatePopulated: false,
 }
 
 const AuthContext = createContext<AuthContextType>(authContextTypeValues)
@@ -60,15 +58,14 @@ export function AuthProvider({ children }: AuthProps) {
   }, [])
 
   const [organizationId, setOrganizationId] = useState('')
-  const [organizationName, setOrganizationName] = useState('')
+  const [organizationEnabled, setOrganizationEnabled] = useState(false)
   const [organizationLogoStoragePath, setOrganizationLogoStoragePath] =
     useState('')
-  const [organizationEnabled, setOrganizationEnabled] = useState(false)
+  const [organizationName, setOrganizationName] = useState('')
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [userCanEdit, setUserCanEdit] = useState(false)
   const [userCanView, setUserCanView] = useState(false)
   const [userOnMobile, setUserOnMobile] = useState(false)
-  const [authStatePopulated, setAuthStatePopulated] = useState(false)
   const populateAuthState = useCallback(async () => {
     if (session === undefined) return
     if (session?.user) {
@@ -88,9 +85,9 @@ export function AuthProvider({ children }: AuthProps) {
 
         if (data) {
           setOrganizationId(data.organizations.id)
-          setOrganizationName(data.organizations.name)
-          setOrganizationLogoStoragePath(data.organizations.logo_storage_path)
           setOrganizationEnabled(data.organizations.enabled)
+          setOrganizationLogoStoragePath(data.organizations.logo_storage_path)
+          setOrganizationName(data.organizations.name)
           const _userIsAdmin = data.roles.name === 'admin'
           setUserIsAdmin(_userIsAdmin)
           const _userCanEdit = _userIsAdmin || data.roles.name === 'editor'
@@ -113,7 +110,6 @@ export function AuthProvider({ children }: AuthProps) {
         console.error(error)
       }
     }
-    setAuthStatePopulated(true)
   }, [session])
   useEffect(() => {
     populateAuthState()
@@ -122,14 +118,13 @@ export function AuthProvider({ children }: AuthProps) {
   const value = {
     session,
     organizationId,
-    organizationName,
-    organizationLogoStoragePath,
     organizationEnabled,
+    organizationLogoStoragePath,
+    organizationName,
     userIsAdmin,
     userCanEdit,
     userCanView,
     userOnMobile,
-    authStatePopulated,
   }
   return (
     <>
