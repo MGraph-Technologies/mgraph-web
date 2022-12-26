@@ -87,7 +87,7 @@ const AccountMenu: FunctionComponent = () => {
       ],
     },
   ]
-  if (userIsAdmin) {
+  if (userIsAdmin && organizationEnabled) {
     overlayMenuItems = [
       ...overlayMenuItems,
       {
