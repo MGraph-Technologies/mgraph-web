@@ -287,7 +287,7 @@ const RefreshJobs: FunctionComponent = () => {
               <Column field="schedule" header="Schedule" style={columnStyle} />
               <Column field="slackTo" header="Slack To" style={columnStyle} />
               <Column
-                field="created_at"
+                field="createdAt"
                 header="Created At"
                 style={columnStyle}
               />
