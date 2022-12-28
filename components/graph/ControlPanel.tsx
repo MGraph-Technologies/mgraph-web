@@ -1,6 +1,7 @@
 import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
+import { ListBox } from 'primereact/listbox'
 import { OverlayPanel, OverlayPanelEventType } from 'primereact/overlaypanel'
 import React, {
   FunctionComponent,
@@ -55,7 +56,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
 
   type QueryParameterFieldProps = {
     titleCaseName: string
-    picker?: 'date'
+    picker?: 'date' | 'frequency'
   }
   const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
     titleCaseName,
@@ -135,6 +136,25 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                   setParameter(dateStr)
                 }}
                 panelStyle={{ border: '0px' }}
+              />
+            )}
+            {picker === 'frequency' && (
+              <ListBox
+                id={snakeCaseName + '-frequency-dropdown'}
+                options={[
+                  { label: 'SECOND', value: 'SECOND' },
+                  { label: 'MINUTE', value: 'MINUTE' },
+                  { label: 'HOUR', value: 'HOUR' },
+                  { label: 'DAY', value: 'DAY' },
+                  { label: 'WEEK', value: 'WEEK' },
+                  { label: 'MONTH', value: 'MONTH' },
+                  { label: 'QUARTER', value: 'QUARTER' },
+                  { label: 'YEAR', value: 'YEAR' },
+                ]}
+                onChange={(e) => {
+                  setParameter(e.value)
+                }}
+                style={{ border: '0px' }}
               />
             )}
           </OverlayPanel>
@@ -295,7 +315,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
         >
           <QueryParameterField titleCaseName="Beginning Date" picker="date" />
           <QueryParameterField titleCaseName="Ending Date" picker="date" />
-          <QueryParameterField titleCaseName="Frequency" />
+          <QueryParameterField titleCaseName="Frequency" picker="frequency" />
           <QueryParameterField titleCaseName="Group By" />
           <QueryParameterField titleCaseName="Conditions" />
           <QueryParameterField titleCaseName="Show Unfinished Values" />
