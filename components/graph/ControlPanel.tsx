@@ -3,6 +3,7 @@ import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { ListBox } from 'primereact/listbox'
 import { OverlayPanel, OverlayPanelEventType } from 'primereact/overlaypanel'
+import { SelectItemOptionsType } from 'primereact/selectitem'
 import React, {
   FunctionComponent,
   useCallback,
@@ -22,6 +23,7 @@ import {
   QueryParameters,
   formQueryParametersScaffold,
 } from '../../utils/queryUtils'
+import { supabase } from '../../utils/supabaseClient'
 
 type ControlPanelProps = {
   hideEditButton?: boolean
@@ -29,7 +31,7 @@ type ControlPanelProps = {
 const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   hideEditButton,
 }) => {
-  const { userCanEdit, userIsAdmin } = useAuth()
+  const { organizationId, userCanEdit, userIsAdmin } = useAuth()
   const { editingEnabled, enableEditing } = useEditability()
   const showEditButton = userCanEdit && !hideEditButton
   const { graph } = useGraph()
@@ -56,7 +58,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
 
   type QueryParameterFieldProps = {
     titleCaseName: string
-    picker?: 'date' | 'frequency'
+    picker?: 'date' | 'dimension' | 'frequency'
   }
   const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
     titleCaseName,
@@ -66,6 +68,9 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     const [userValue, setUserValue] = useState('')
     const [orgDefaultValue, setOrgDefaultValue] = useState('')
     const pickerOverlayPanel = useRef<OverlayPanel>(null)
+    const [pickerOptions, setPickerOptions] = useState<
+      SelectItemOptionsType | undefined
+    >(undefined)
 
     const populateParameter = useCallback(() => {
       if (queryParameters[snakeCaseName]) {
@@ -92,6 +97,40 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
       },
       [snakeCaseName]
     )
+
+    const populatePickerOptions = useCallback(async () => {
+      if (picker === 'dimension') {
+        const { data, error } = await supabase
+          .from('database_query_dimensions')
+          .select('name, value')
+          .is('deleted_at', null)
+          .eq('organization_id', organizationId)
+
+        if (error) {
+          console.error(error)
+        } else {
+          setPickerOptions(
+            data.map((d) => {
+              return { label: d.name, value: d.value }
+            })
+          )
+        }
+      } else if (picker === 'frequency') {
+        setPickerOptions([
+          { label: 'SECOND', value: 'SECOND' },
+          { label: 'MINUTE', value: 'MINUTE' },
+          { label: 'HOUR', value: 'HOUR' },
+          { label: 'DAY', value: 'DAY' },
+          { label: 'WEEK', value: 'WEEK' },
+          { label: 'MONTH', value: 'MONTH' },
+          { label: 'QUARTER', value: 'QUARTER' },
+          { label: 'YEAR', value: 'YEAR' },
+        ])
+      }
+    }, [picker])
+    useEffect(() => {
+      populatePickerOptions()
+    }, [populatePickerOptions])
 
     return (
       <div
@@ -138,19 +177,9 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                 panelStyle={{ border: '0px' }}
               />
             )}
-            {picker === 'frequency' && (
+            {(picker === 'dimension' || picker === 'frequency') && (
               <ListBox
-                id={snakeCaseName + '-frequency-dropdown'}
-                options={[
-                  { label: 'SECOND', value: 'SECOND' },
-                  { label: 'MINUTE', value: 'MINUTE' },
-                  { label: 'HOUR', value: 'HOUR' },
-                  { label: 'DAY', value: 'DAY' },
-                  { label: 'WEEK', value: 'WEEK' },
-                  { label: 'MONTH', value: 'MONTH' },
-                  { label: 'QUARTER', value: 'QUARTER' },
-                  { label: 'YEAR', value: 'YEAR' },
-                ]}
+                options={pickerOptions}
                 onChange={(e) => {
                   setParameter(e.value)
                 }}
@@ -316,7 +345,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
           <QueryParameterField titleCaseName="Beginning Date" picker="date" />
           <QueryParameterField titleCaseName="Ending Date" picker="date" />
           <QueryParameterField titleCaseName="Frequency" picker="frequency" />
-          <QueryParameterField titleCaseName="Group By" />
+          <QueryParameterField titleCaseName="Group By" picker="dimension" />
           <QueryParameterField titleCaseName="Conditions" />
           <QueryParameterField titleCaseName="Show Unfinished Values" />
         </OverlayPanel>
