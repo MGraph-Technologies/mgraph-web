@@ -1,6 +1,7 @@
 import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
-import { OverlayPanel } from 'primereact/overlaypanel'
+import { Calendar } from 'primereact/calendar'
+import { OverlayPanel, OverlayPanelEventType } from 'primereact/overlaypanel'
 import React, {
   FunctionComponent,
   useCallback,
@@ -54,13 +55,16 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
 
   type QueryParameterFieldProps = {
     titleCaseName: string
+    picker?: 'date'
   }
   const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
     titleCaseName,
+    picker,
   }) => {
     const snakeCaseName = titleCaseName.toLowerCase().replace(/ /g, '_')
     const [userValue, setUserValue] = useState('')
     const [orgDefaultValue, setOrgDefaultValue] = useState('')
+    const pickerOverlayPanel = useRef<OverlayPanel>(null)
 
     const populateParameter = useCallback(() => {
       if (queryParameters[snakeCaseName]) {
@@ -75,8 +79,24 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
       populateParameter()
     }, [populateParameter])
 
+    const setParameter = useCallback(
+      (value: string) => {
+        analytics.track('set_query_parameter', {
+          parameter: snakeCaseName,
+          value: value,
+        })
+        setUserValue(value)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        setQueryParameterUserValue!(snakeCaseName, value)
+      },
+      [snakeCaseName]
+    )
+
     return (
-      <div className={styles.query_parameter}>
+      <div
+        id={snakeCaseName + '-field-container'}
+        className={styles.query_parameter}
+      >
         <span>
           <b>
             <label htmlFor={snakeCaseName + '-field'}>{titleCaseName}</label>
@@ -84,20 +104,41 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
           <EditText
             id={snakeCaseName + '-field'}
             value={userValue}
+            onEditMode={() => {
+              pickerOverlayPanel.current?.show(
+                {} as OverlayPanelEventType,
+                document.getElementById(snakeCaseName + '-field-container')
+              )
+            }}
             onChange={(e) => {
               setUserValue(e.target.value)
             }}
             onSave={({ value }) => {
-              analytics.track('set_query_parameter', {
-                parameter: snakeCaseName,
-                value: value,
-              })
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              setQueryParameterUserValue!(snakeCaseName, value)
+              setParameter(value)
             }}
             style={{ width: '200px', border: '1px solid #ccc' }}
           />
         </span>
+        {picker && (
+          <OverlayPanel
+            id={snakeCaseName + '-picker-overlay'}
+            ref={pickerOverlayPanel}
+          >
+            {picker === 'date' && (
+              <Calendar
+                inline
+                value={new Date(userValue)}
+                onChange={(e) => {
+                  if (!e.value) return
+                  const val = e.value as Date
+                  const dateStr = `'${val.toISOString().split('T')[0]}'`
+                  setParameter(dateStr)
+                }}
+                panelStyle={{ border: '0px' }}
+              />
+            )}
+          </OverlayPanel>
+        )}
         {!(userValue === orgDefaultValue) ? (
           <>
             <Button
@@ -145,8 +186,11 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     )
   }, [queryParameters])
 
-  const overlayPanel = useRef<OverlayPanel>(null)
-  const [overlayPanelVisible, setOverlayPanelVisible] = useState(false)
+  const queryParametersOverlayPanel = useRef<OverlayPanel>(null)
+  const [
+    queryParametersOverlayPanelVisible,
+    setQueryParametersOverlayPanelVisible,
+  ] = useState(false)
   const [initialQueryParameters, setInitialQueryParameters] =
     useState<QueryParameters>({})
   const refreshQueryIfParametersChanged = useCallback(() => {
@@ -164,10 +208,10 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     }
   }, [queryParameters, initialQueryParameters, setGlobalQueryRefreshes])
   useEffect(() => {
-    if (!overlayPanelVisible) {
+    if (!queryParametersOverlayPanelVisible) {
       refreshQueryIfParametersChanged()
     }
-  }, [overlayPanelVisible, refreshQueryIfParametersChanged])
+  }, [queryParametersOverlayPanelVisible, refreshQueryIfParametersChanged])
 
   if (editingEnabled) {
     return null
@@ -208,7 +252,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                 icon="pi pi-sliders-h"
                 onClick={(event) => {
                   analytics.track('view_query_settings')
-                  overlayPanel.current?.toggle(event)
+                  queryParametersOverlayPanel.current?.toggle(event)
                 }}
               >
                 {queryParameterUserValueInEffect && <Badge severity="danger" />}
@@ -240,17 +284,17 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
         ) : null}
         <OverlayPanel
           id="query-parameters-overlay"
-          ref={overlayPanel}
+          ref={queryParametersOverlayPanel}
           onShow={() => {
             setInitialQueryParameters(queryParameters)
-            setOverlayPanelVisible(true)
+            setQueryParametersOverlayPanelVisible(true)
           }}
           onHide={() => {
-            setOverlayPanelVisible(false)
+            setQueryParametersOverlayPanelVisible(false)
           }}
         >
-          <QueryParameterField titleCaseName="Beginning Date" />
-          <QueryParameterField titleCaseName="Ending Date" />
+          <QueryParameterField titleCaseName="Beginning Date" picker="date" />
+          <QueryParameterField titleCaseName="Ending Date" picker="date" />
           <QueryParameterField titleCaseName="Frequency" />
           <QueryParameterField titleCaseName="Group By" />
           <QueryParameterField titleCaseName="Conditions" />
