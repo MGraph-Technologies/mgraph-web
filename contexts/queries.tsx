@@ -23,6 +23,7 @@ type QueriesContextType = {
   queriesToCancel: Array<string>
   setQueriesToCancel: Dispatch<SetStateAction<Array<string>>> | undefined
   queryParameters: QueryParameters
+  setQueryParameters: Dispatch<SetStateAction<QueryParameters>> | undefined
   resetQueryParameterUserValue: ((name: string) => Promise<void>) | undefined
   setQueryParameterUserValue:
     | ((name: string, value: string) => Promise<void>)
@@ -40,6 +41,7 @@ const queriesContextDefaultValues: QueriesContextType = {
   queriesToCancel: [] as string[],
   setQueriesToCancel: undefined,
   queryParameters: {},
+  setQueryParameters: undefined,
   resetQueryParameterUserValue: undefined,
   setQueryParameterUserValue: undefined,
   setQueryParameterOrgDefaultValue: undefined,
@@ -205,6 +207,7 @@ export function QueriesProvider({ children }: QueriesProps) {
     queriesToCancel: queriesToCancel,
     setQueriesToCancel: setQueriesToCancel,
     queryParameters: queryParameters,
+    setQueryParameters: setQueryParameters,
     resetQueryParameterUserValue: resetQueryParameterUserValue,
     setQueryParameterUserValue: setQueryParameterUserValue,
     setQueryParameterOrgDefaultValue: setQueryParameterOrgDefaultValue,

@@ -41,6 +41,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     queriesLoading,
     setQueriesToCancel,
     queryParameters,
+    setQueryParameters,
     resetQueryParameterUserValue,
     setQueryParameterUserValue,
     setQueryParameterOrgDefaultValue,
@@ -78,7 +79,9 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
         setOrgDefaultValue(queryParameters[snakeCaseName].orgDefaultValue)
       } else {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        formQueryParametersScaffold([snakeCaseName], queryParameters)
+        setQueryParameters!(
+          formQueryParametersScaffold([snakeCaseName], queryParameters)
+        )
       }
     }, [snakeCaseName])
     useEffect(() => {
