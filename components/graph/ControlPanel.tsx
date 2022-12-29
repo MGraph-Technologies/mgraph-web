@@ -1,7 +1,9 @@
 import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
+import { Dropdown } from 'primereact/dropdown'
 import { ListBox } from 'primereact/listbox'
+import { InputText } from 'primereact/inputtext'
 import { OverlayPanel, OverlayPanelEventType } from 'primereact/overlaypanel'
 import { SelectItemOptionsType } from 'primereact/selectitem'
 import React, {
@@ -59,7 +61,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
 
   type QueryParameterFieldProps = {
     titleCaseName: string
-    picker?: 'date' | 'dimension' | 'frequency'
+    picker?: 'conditions' | 'date' | 'dimension' | 'frequency'
   }
   const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
     titleCaseName,
@@ -72,6 +74,12 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     const [pickerOptions, setPickerOptions] = useState<
       SelectItemOptionsType | undefined
     >(undefined)
+    const [wipCondition, setWipCondition] = useState({
+      conjunction: '',
+      dimension: '',
+      operator: '',
+      value: '',
+    })
 
     const populateParameter = useCallback(() => {
       if (queryParameters[snakeCaseName]) {
@@ -102,7 +110,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     )
 
     const populatePickerOptions = useCallback(async () => {
-      if (picker === 'dimension') {
+      if (picker === 'conditions' || picker === 'dimension') {
         const { data, error } = await supabase
           .from('database_query_dimensions')
           .select('name, value')
@@ -167,6 +175,86 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
             id={snakeCaseName + '-picker-overlay'}
             ref={pickerOverlayPanel}
           >
+            {picker === 'conditions' && (
+              <>
+                {userValue && (
+                  <Dropdown
+                    value={wipCondition.conjunction}
+                    options={[
+                      { label: 'AND', value: 'AND' },
+                      { label: 'OR', value: 'OR' },
+                    ]}
+                    onChange={(e) => {
+                      setWipCondition({ ...wipCondition, conjunction: e.value })
+                    }}
+                    placeholder="Conjunction"
+                    style={{ width: '200px' }}
+                  />
+                )}
+                <Dropdown
+                  value={wipCondition.dimension}
+                  options={pickerOptions}
+                  onChange={(e) => {
+                    setWipCondition({ ...wipCondition, dimension: e.value })
+                  }}
+                  placeholder="Dimension"
+                  style={{ width: '200px' }}
+                />
+                <Dropdown
+                  value={wipCondition.operator}
+                  options={[
+                    { label: '=', value: '=' },
+                    { label: '!=', value: '!=' },
+                    { label: '<', value: '<' },
+                    { label: '<=', value: '<=' },
+                    { label: '>', value: '>' },
+                    { label: '>=', value: '>=' },
+                    { label: 'IN', value: 'IN' },
+                    { label: 'NOT IN', value: 'NOT IN' },
+                    { label: 'LIKE', value: 'LIKE' },
+                    { label: 'NOT LIKE', value: 'NOT LIKE' },
+                  ]}
+                  onChange={(e) => {
+                    setWipCondition({ ...wipCondition, operator: e.value })
+                  }}
+                  placeholder="Operator"
+                  style={{ width: '200px' }}
+                />
+                <InputText
+                  value={wipCondition.value}
+                  onChange={(e) => {
+                    setWipCondition({ ...wipCondition, value: e.target.value })
+                  }}
+                  placeholder="Value"
+                  style={{ width: '200px' }}
+                />
+                <br />
+                <Button
+                  label="Add Condition"
+                  onClick={() => {
+                    if (
+                      (userValue && !wipCondition.conjunction) ||
+                      !wipCondition.dimension ||
+                      !wipCondition.operator
+                    )
+                      return
+                    const newCondition = `${wipCondition.conjunction} ${wipCondition.dimension} ${wipCondition.operator} ${wipCondition.value}`
+                    const newConditions = userValue
+                      ? userValue + ' ' + newCondition
+                      : newCondition
+                    setParameter(newConditions)
+                    setWipCondition({
+                      conjunction: '',
+                      dimension: '',
+                      operator: '',
+                      value: '',
+                    })
+                    pickerOverlayPanel.current?.hide()
+                  }}
+                  style={{ float: 'right', margin: '5px 0px' }}
+                />
+              </>
+            )}
             {picker === 'date' && (
               <Calendar
                 inline
@@ -349,7 +437,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
           <QueryParameterField titleCaseName="Ending Date" picker="date" />
           <QueryParameterField titleCaseName="Frequency" picker="frequency" />
           <QueryParameterField titleCaseName="Group By" picker="dimension" />
-          <QueryParameterField titleCaseName="Conditions" />
+          <QueryParameterField titleCaseName="Conditions" picker="conditions" />
           <QueryParameterField titleCaseName="Show Unfinished Values" />
         </OverlayPanel>
       </div>
