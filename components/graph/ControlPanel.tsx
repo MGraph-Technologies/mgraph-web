@@ -272,17 +272,30 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
               </>
             )}
             {picker === 'date' && (
-              <Calendar
-                inline
-                value={new Date(userValue)}
-                onChange={(e) => {
-                  if (!e.value) return
-                  const val = e.value as Date
-                  const dateStr = `'${val.toISOString().split('T')[0]}'`
-                  setParameter(dateStr)
-                }}
-                panelStyle={{ border: '0px' }}
-              />
+              <div style={{ width: '400px' }}>
+                <Calendar
+                  inline
+                  value={new Date(userValue)}
+                  onChange={(e) => {
+                    if (!e.value) return
+                    const val = e.value as Date
+                    const dateStr = `'${val.toISOString().split('T')[0]}'`
+                    setParameter(dateStr)
+                  }}
+                  panelStyle={{ border: '0px' }}
+                />
+                {/* add pro tip */}
+                <div
+                  style={{
+                    fontSize: '0.8em',
+                    fontStyle: 'italic',
+                    textAlign: 'center',
+                  }}
+                >
+                  Pro tip: you can also type values above, including relative
+                  ones like CURRENT_DATE - &apos;INTERVAL 90 DAY&apos;
+                </div>
+              </div>
             )}
             {(picker === 'dimension' || picker === 'frequency') && (
               <ListBox
