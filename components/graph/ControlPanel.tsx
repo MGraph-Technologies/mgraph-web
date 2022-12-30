@@ -143,6 +143,22 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
       populatePickerOptions()
     }, [populatePickerOptions])
 
+    // close pickerOverlayPanel if queryParametersOverlayPanel is clicked
+    useEffect(() => {
+      const queryParametersOverlay = document.getElementById(
+        'query-parameters-overlay'
+      )
+      if (queryParametersOverlay) {
+        const hideOverlayPanel = () => {
+          pickerOverlayPanel.current?.hide()
+        }
+        queryParametersOverlay.addEventListener('click', hideOverlayPanel)
+        return () => {
+          queryParametersOverlay.removeEventListener('click', hideOverlayPanel)
+        }
+      }
+    }, [])
+
     return (
       <div
         id={snakeCaseName + '-field-container'}
