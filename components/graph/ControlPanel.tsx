@@ -186,7 +186,8 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
             style={{ width: '200px', border: '1px solid #ccc' }}
           />
         </span>
-        {picker && (
+        {((picker && (pickerOptions?.length || 0) > 0) ||
+          picker === 'date') && (
           <OverlayPanel
             id={snakeCaseName + '-picker-overlay'}
             ref={pickerOverlayPanel}
