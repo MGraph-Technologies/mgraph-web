@@ -3,6 +3,7 @@ import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Dropdown } from 'primereact/dropdown'
 import { ListBox } from 'primereact/listbox'
+import { InputSwitch } from 'primereact/inputswitch'
 import { InputText } from 'primereact/inputtext'
 import { OverlayPanel, OverlayPanelEventType } from 'primereact/overlaypanel'
 import { SelectItemOptionsType } from 'primereact/selectitem'
@@ -61,7 +62,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
 
   type QueryParameterFieldProps = {
     titleCaseName: string
-    picker?: 'conditions' | 'date' | 'dimension' | 'frequency'
+    picker?: 'boolean' | 'conditions' | 'date' | 'dimension' | 'frequency'
   }
   const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
     titleCaseName,
@@ -168,23 +169,35 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
           <b>
             <label htmlFor={snakeCaseName + '-field'}>{titleCaseName}</label>
           </b>
-          <EditText
-            id={snakeCaseName + '-field'}
-            value={userValue}
-            onEditMode={() => {
-              pickerOverlayPanel.current?.show(
-                {} as OverlayPanelEventType,
-                document.getElementById(snakeCaseName + '-field-container')
-              )
-            }}
-            onChange={(e) => {
-              setUserValue(e.target.value)
-            }}
-            onSave={({ value }) => {
-              setParameter(value)
-            }}
-            style={{ width: '200px', border: '1px solid #ccc' }}
-          />
+          {picker === 'boolean' ? (
+            <div style={{ paddingTop: '5px' }}>
+              <InputSwitch
+                id={snakeCaseName + '-field'}
+                checked={userValue === 'TRUE'}
+                onChange={(e) => {
+                  setParameter(e.value ? 'TRUE' : 'FALSE')
+                }}
+              />
+            </div>
+          ) : (
+            <EditText
+              id={snakeCaseName + '-field'}
+              value={userValue}
+              onEditMode={() => {
+                pickerOverlayPanel.current?.show(
+                  {} as OverlayPanelEventType,
+                  document.getElementById(snakeCaseName + '-field-container')
+                )
+              }}
+              onChange={(e) => {
+                setUserValue(e.target.value)
+              }}
+              onSave={({ value }) => {
+                setParameter(value)
+              }}
+              style={{ width: '200px', border: '1px solid #ccc' }}
+            />
+          )}
         </span>
         {((picker && (pickerOptions?.length || 0) > 0) ||
           picker === 'date') && (
@@ -468,7 +481,10 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
           <QueryParameterField titleCaseName="Frequency" picker="frequency" />
           <QueryParameterField titleCaseName="Group By" picker="dimension" />
           <QueryParameterField titleCaseName="Conditions" picker="conditions" />
-          <QueryParameterField titleCaseName="Show Unfinished Values" />
+          <QueryParameterField
+            titleCaseName="Show Unfinished Values"
+            picker="boolean"
+          />
         </OverlayPanel>
       </div>
     )
