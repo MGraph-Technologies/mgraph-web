@@ -402,8 +402,8 @@ describe('Metric detail editing', () => {
 
     // edit field
     const newValue = Math.random().toString(36)
-    cy.get('[id=description-field').click()
-    cy.get('[id=description-field').clear().type(newValue)
+    cy.get('[id=description-field]').click()
+    cy.get('[id=description-field]').clear().type(newValue)
     cy.get('[class*=Header]').first().click() // click outside of textarea to save
     cy.contains(newValue).should('exist')
 
@@ -430,8 +430,8 @@ describe('Metric detail editing', () => {
 
     // edit field
     const newValue = Math.random().toString(36)
-    cy.get('[id=description-field').click()
-    cy.get('[id=description-field').clear().type(newValue)
+    cy.get('[id=description-field]').click()
+    cy.get('[id=description-field]').clear().type(newValue)
     cy.get('[class*=Header]').first().click()
     cy.contains(newValue).should('exist')
 
@@ -450,8 +450,8 @@ describe('Metric detail editing', () => {
     cy.get('[id=edit-button]').click()
 
     // mention user
-    cy.get('[id=owner-field').click().clear()
-    cy.get('[id=owner-field').type('@cypress-test-account')
+    cy.get('[id=owner-field]').click().clear()
+    cy.get('[id=owner-field]').type('@cypress-test-account')
     cy.get('[class*=p-mention-item]')
       .contains('cypress-test-account')
       .first()
@@ -483,8 +483,8 @@ describe('Metric detail editing', () => {
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
-    cy.get('[id=source-query-field').click()
-    cy.get('[id=source-query-field').clear().type(newQuery)
+    cy.get('[id=source-query-field]').click()
+    cy.get('[id=source-query-field]').clear().type(newQuery)
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
@@ -513,8 +513,8 @@ describe('Metric detail editing', () => {
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
-    cy.get('[id=source-query-field').click()
-    cy.get('[id=source-query-field').clear().type(newQuery)
+    cy.get('[id=source-query-field]').click()
+    cy.get('[id=source-query-field]').clear().type(newQuery)
     cy.get('[class*=Header]').first().click()
     cy.get('[id=save-button]').click()
 
@@ -548,8 +548,8 @@ describe('Metric detail editing', () => {
 
     // edit query
     const newQuery = 'SELECT x'
-    cy.get('[id=source-query-field').click()
-    cy.get('[id=source-query-field').clear().type(newQuery)
+    cy.get('[id=source-query-field]').click()
+    cy.get('[id=source-query-field]').clear().type(newQuery)
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
@@ -575,8 +575,8 @@ describe('Metric detail editing', () => {
 
     // edit query
     const newQuery = "SELECT date FROM {{ ref('dim_dates') }} LIMIT 1"
-    cy.get('[id=source-query-field').click()
-    cy.get('[id=source-query-field')
+    cy.get('[id=source-query-field]').click()
+    cy.get('[id=source-query-field]')
       .clear()
       .type(newQuery, { parseSpecialCharSequences: false })
     cy.get('[id=refresh-query-button]').first().click()
@@ -648,7 +648,7 @@ describe('Metric detail editing', () => {
     // set group_by parameter
     const randomGroupBy = Math.random().toString(36)
     cy.get('[id=query-settings-button]').click().wait(100)
-    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]').click()
     cy.get('[id=group_by-field]')
       .clear()
       .type("'" + randomGroupBy + "'")
@@ -659,7 +659,7 @@ describe('Metric detail editing', () => {
     cy.wait(2000).reload()
     cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
-    cy.get('[id=group_by-field').contains(randomGroupBy)
+    cy.get('[id=group_by-field]').contains(randomGroupBy)
 
     // set parameter as default
     cy.get('[id=group_by-set-default-button]').click()
@@ -668,12 +668,12 @@ describe('Metric detail editing', () => {
     cy.wait(2000).reload()
     cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
-    cy.get('[id=group_by-field').contains(randomGroupBy)
+    cy.get('[id=group_by-field]').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
 
     // set a new group_by parameter
     const randomGroupBy2 = Math.random().toString(36)
-    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]').click()
     cy.get('[id=group_by-field]')
       .clear()
       .type("'" + randomGroupBy2 + "'")
@@ -684,25 +684,25 @@ describe('Metric detail editing', () => {
     cy.wait(2000).reload()
     cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
-    cy.get('[id=group_by-field').contains(randomGroupBy2)
+    cy.get('[id=group_by-field]').contains(randomGroupBy2)
 
     // reset new parameter
     cy.get('[id=group_by-reset-button]').click()
     cy.wait(2000) // wait for reset to process
 
     // see that org default parameter appears
-    cy.get('[id=group_by-field').contains(randomGroupBy)
+    cy.get('[id=group_by-field]').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
 
     // see that default parameter persists
     cy.wait(2000).reload()
     cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
-    cy.get('[id=group_by-field').contains(randomGroupBy)
+    cy.get('[id=group_by-field]').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
 
     // reset default parameter
-    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]').click()
     cy.get('[id=group_by-field]').clear().parent().click()
     cy.get('[id=group_by-set-default-button]').click()
   })
@@ -716,22 +716,22 @@ describe('Metric detail editing', () => {
 
     // set parameters
     cy.get('[id=query-settings-button]').click().wait(100)
-    cy.get('[id=beginning_date-field').click()
+    cy.get('[id=beginning_date-field]').click()
     cy.get('[id=beginning_date-field]')
       .clear()
       .type("CURRENT_DATE - INTERVAL '90 DAY'")
       .parent()
       .click()
-    cy.get('[id=ending_date-field').click()
+    cy.get('[id=ending_date-field]').click()
     cy.get('[id=ending_date-field]')
       .clear()
       .type('CURRENT_DATE')
       .parent()
       .click()
-    cy.get('[id=frequency-field').click()
+    cy.get('[id=frequency-field]').click()
     cy.get('[id=frequency-field]').clear().type('WEEK').parent().click()
     const randomGroupBy = Math.random().toString(36)
-    cy.get('[id=group_by-field').click()
+    cy.get('[id=group_by-field]').click()
     cy.get('[id=group_by-field]')
       .clear()
       .type("'" + randomGroupBy + "'")
@@ -760,8 +760,8 @@ describe('Metric detail editing', () => {
         {{group_by}},
         ${randomInt}
     `
-    cy.get('[id=source-query-field').click()
-    cy.get('[id=source-query-field')
+    cy.get('[id=source-query-field]').click()
+    cy.get('[id=source-query-field]')
       .clear()
       .type(newQuery, { parseSpecialCharSequences: false })
     cy.get('[id=refresh-query-button]').first().click()
