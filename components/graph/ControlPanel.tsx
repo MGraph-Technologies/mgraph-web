@@ -286,7 +286,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
               </>
             )}
             {picker === 'date' && (
-              <div style={{ width: '400px' }}>
+              <div style={{ width: '300px' }}>
                 <Calendar
                   inline
                   value={new Date(userValue)}
