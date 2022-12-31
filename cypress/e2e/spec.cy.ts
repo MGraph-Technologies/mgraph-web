@@ -983,6 +983,48 @@ describe('Admin settings', () => {
     cy.get('[id=graph-syncs-table]').contains(randomString)
   })
 
+  it('Visits query parameters page, then adds, edits, and deletes a dimension', () => {
+    // visit page
+    cy.visit('/mgraph/settings/query-parameters')
+
+    // add job
+    const randomString = Math.random().toString(36)
+    cy.get('[id=new-query-dimension-button]').click()
+    cy.get('[id=name-field]').type(randomString)
+    cy.get('[id=value-field]').type(randomString)
+    cy.get('[id=save-query-dimension-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=query-dimensions-table]').contains(randomString)
+
+    // edit job
+    const newRandomString = Math.random().toString(36)
+    cy.get('[id=query-dimensions-table]')
+      .contains(randomString)
+      .parent('tr')
+      .find('[id=edit-query-dimension-button]')
+      .click()
+    cy.get('[id=value-field]').clear().type(newRandomString)
+    cy.get('[id=save-query-dimension-button]').click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=query-dimensions-table]').contains(newRandomString)
+
+    // delete job
+    cy.get('[id=query-dimensions-table]')
+      .contains(newRandomString)
+      .parent('tr')
+      .find('[id=delete-query-dimension-button]')
+      .click()
+    cy.get('[id=query-dimensions-table]')
+      .contains(newRandomString)
+      .should('not.exist')
+  })
+
   it('Visits refresh jobs page, then adds, edits, and deletes a job', () => {
     // visit page
     cy.visit('/mgraph/settings/refresh-jobs')
