@@ -638,28 +638,70 @@ describe('Metric detail editing', () => {
     cy.get('body').contains('metric not found').should('exist')
   })
 
-  it('Visits a metric detail page and tests persistence of query parameters', () => {
+  it('Visits a metric detail page and tests persistence of query parameters via keyboard', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
     cy.wait(2000)
 
-    // set group_by parameter
-    const randomGroupBy = Math.random().toString(36)
+    // set parameters
     cy.get('[id=query-settings-button]').click().wait(100)
+
+    const randomBeginningDate = Math.random().toString(36)
+    cy.get('[id=beginning_date-field]').click()
+    cy.get('[id=beginning_date-field]')
+      .clear()
+      .type("'" + randomBeginningDate + "'")
+      .parent()
+      .click()
+      .wait(100)
+
+    const randomEndingDate = Math.random().toString(36)
+    cy.get('[id=ending_date-field]').click()
+    cy.get('[id=ending_date-field]')
+      .clear()
+      .type("'" + randomEndingDate + "'")
+      .parent()
+      .click()
+      .wait(100)
+
+    const randomFrequency = Math.random().toString(36)
+    cy.get('[id=frequency-field]').click()
+    cy.get('[id=frequency-field]')
+      .clear()
+      .type("'" + randomFrequency + "'")
+      .parent()
+      .click()
+      .wait(100)
+
+    const randomGroupBy = Math.random().toString(36)
     cy.get('[id=group_by-field]').click()
     cy.get('[id=group_by-field]')
       .clear()
       .type("'" + randomGroupBy + "'")
       .parent()
       .click()
+      .wait(100)
 
-    // see that parameter persists
+    const randomConditions = Math.random().toString(36)
+    cy.get('[id=conditions-field]').click()
+    cy.get('[id=conditions-field]')
+      .clear()
+      .type("'" + randomConditions + "'")
+      .parent()
+      .click()
+      .wait(100)
+
+    // see that parameters persists
     cy.wait(2000).reload()
     cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
+    cy.get('[id=beginning_date-field]').contains(randomBeginningDate)
+    cy.get('[id=ending_date-field]').contains(randomEndingDate)
     cy.get('[id=group_by-field]').contains(randomGroupBy)
+    cy.get('[id=frequency-field]').contains(randomFrequency)
+    cy.get('[id=conditions-field]').contains(randomConditions)
 
     // set parameter as default
     cy.get('[id=group_by-set-default-button]').click()
@@ -701,10 +743,12 @@ describe('Metric detail editing', () => {
     cy.get('[id=group_by-field]').contains(randomGroupBy)
     cy.get('[id=group_by-set-default-button]').should('not.exist')
 
-    // reset default parameter
-    cy.get('[id=group_by-field]').click()
-    cy.get('[id=group_by-field]').clear().parent().click()
-    cy.get('[id=group_by-set-default-button]').click()
+    // reset other default parameters
+    cy.get('[id=beginning_date-reset-button]').click().wait(100)
+    cy.get('[id=ending_date-reset-button]').click().wait(100)
+    cy.get('[id=frequency-reset-button]').click().wait(100)
+    cy.get('[id=conditions-reset-button]').click().wait(100)
+    cy.wait(2000) // wait for reset to process
   })
 
   it('Visits a metric detail page, sets parameters, enters a SQL query that uses them, then sees results', () => {
