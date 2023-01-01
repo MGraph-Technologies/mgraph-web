@@ -12,7 +12,43 @@
   margin-left: 5px;
 }
 
-.query_parameter {
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
+.query_parameters_container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: left;
+}
+
+.query_parameters_container .query_parameter_field_container {
+  width: 200px;
+  margin: 0.5rem;
+}
+
+.query_parameters_container
+  .query_parameter_field_container
+  .query_parameter_field {
+  width: 100%;
+  border: 1px solid #ccc;
+}
+
+.query_parameter_field_picker {
+  width: 200px;
+  border: 0px;
+}
+
+.query_parameter_field_picker_boolean {
+  margin-top: 5px;
+}
+
+.query_parameter_field_picker_calendar {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.query_parameter_field_picker_calendar_tip {
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
 }
