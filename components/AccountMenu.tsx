@@ -112,6 +112,12 @@ const AccountMenu: FunctionComponent = () => {
               push('/' + organizationName + '/settings/graph-syncs'),
           },
           {
+            label: 'Query Parameters',
+            icon: 'pi pi-sliders-h',
+            command: () =>
+              push('/' + organizationName + '/settings/query-parameters'),
+          },
+          {
             label: 'Refresh Jobs',
             icon: 'pi pi-clock',
             command: () =>

@@ -1,6 +1,12 @@
 import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
-import { OverlayPanel } from 'primereact/overlaypanel'
+import { Calendar } from 'primereact/calendar'
+import { Dropdown } from 'primereact/dropdown'
+import { ListBox } from 'primereact/listbox'
+import { InputSwitch } from 'primereact/inputswitch'
+import { InputText } from 'primereact/inputtext'
+import { OverlayPanel, OverlayPanelEventType } from 'primereact/overlaypanel'
+import { SelectItemOptionsType } from 'primereact/selectitem'
 import React, {
   FunctionComponent,
   useCallback,
@@ -20,6 +26,7 @@ import {
   QueryParameters,
   formQueryParametersScaffold,
 } from '../../utils/queryUtils'
+import { supabase } from '../../utils/supabaseClient'
 
 type ControlPanelProps = {
   hideEditButton?: boolean
@@ -27,7 +34,7 @@ type ControlPanelProps = {
 const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   hideEditButton,
 }) => {
-  const { userCanEdit, userIsAdmin } = useAuth()
+  const { organizationId, userCanEdit, userIsAdmin } = useAuth()
   const { editingEnabled, enableEditing } = useEditability()
   const showEditButton = userCanEdit && !hideEditButton
   const { graph } = useGraph()
@@ -37,6 +44,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     queriesLoading,
     setQueriesToCancel,
     queryParameters,
+    setQueryParameters,
     resetQueryParameterUserValue,
     setQueryParameterUserValue,
     setQueryParameterOrgDefaultValue,
@@ -54,13 +62,25 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
 
   type QueryParameterFieldProps = {
     titleCaseName: string
+    picker?: 'boolean' | 'conditions' | 'date' | 'dimension' | 'frequency'
   }
   const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
     titleCaseName,
+    picker,
   }) => {
     const snakeCaseName = titleCaseName.toLowerCase().replace(/ /g, '_')
     const [userValue, setUserValue] = useState('')
     const [orgDefaultValue, setOrgDefaultValue] = useState('')
+    const pickerOverlayPanel = useRef<OverlayPanel>(null)
+    const [pickerOptions, setPickerOptions] = useState<
+      SelectItemOptionsType | undefined
+    >(undefined)
+    const [wipCondition, setWipCondition] = useState({
+      conjunction: 'AND',
+      dimension: '',
+      operator: '',
+      value: '',
+    })
 
     const populateParameter = useCallback(() => {
       if (queryParameters[snakeCaseName]) {
@@ -68,37 +88,120 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
         setOrgDefaultValue(queryParameters[snakeCaseName].orgDefaultValue)
       } else {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        formQueryParametersScaffold([snakeCaseName], queryParameters)
+        setQueryParameters!(
+          formQueryParametersScaffold([snakeCaseName], queryParameters)
+        )
       }
     }, [snakeCaseName])
     useEffect(() => {
       populateParameter()
     }, [populateParameter])
 
+    const setParameter = useCallback(
+      (value: string) => {
+        analytics.track('set_query_parameter', {
+          parameter: snakeCaseName,
+          value: value,
+        })
+        setUserValue(value)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        setQueryParameterUserValue!(snakeCaseName, value)
+      },
+      [snakeCaseName]
+    )
+
+    const populatePickerOptions = useCallback(async () => {
+      if (picker === 'conditions' || picker === 'dimension') {
+        const { data, error } = await supabase
+          .from('database_query_dimensions')
+          .select('name, value')
+          .is('deleted_at', null)
+          .eq('organization_id', organizationId)
+
+        if (error) {
+          console.error(error)
+        } else {
+          setPickerOptions(
+            data.map((d) => {
+              return { label: d.name, value: d.value }
+            })
+          )
+        }
+      } else if (picker === 'frequency') {
+        setPickerOptions([
+          { label: 'SECOND', value: 'SECOND' },
+          { label: 'MINUTE', value: 'MINUTE' },
+          { label: 'HOUR', value: 'HOUR' },
+          { label: 'DAY', value: 'DAY' },
+          { label: 'WEEK', value: 'WEEK' },
+          { label: 'MONTH', value: 'MONTH' },
+          { label: 'QUARTER', value: 'QUARTER' },
+          { label: 'YEAR', value: 'YEAR' },
+        ])
+      }
+    }, [picker])
+    useEffect(() => {
+      populatePickerOptions()
+    }, [populatePickerOptions])
+
+    // close pickerOverlayPanel if queryParametersOverlayPanel is clicked
+    useEffect(() => {
+      const queryParametersOverlay = document.getElementById(
+        'query-parameters-overlay'
+      )
+      if (queryParametersOverlay) {
+        const hideOverlayPanel = () => {
+          pickerOverlayPanel.current?.hide()
+        }
+        queryParametersOverlay.addEventListener('click', hideOverlayPanel)
+        return () => {
+          queryParametersOverlay.removeEventListener('click', hideOverlayPanel)
+        }
+      }
+    }, [])
+
     return (
-      <div className={styles.query_parameter}>
+      <div
+        id={snakeCaseName + '-field-container'}
+        className={styles.query_parameter_field_container}
+      >
         <span>
           <b>
             <label htmlFor={snakeCaseName + '-field'}>{titleCaseName}</label>
           </b>
-          <EditText
-            id={snakeCaseName + '-field'}
-            value={userValue}
-            onChange={(e) => {
-              setUserValue(e.target.value)
-            }}
-            onSave={({ value }) => {
-              analytics.track('set_query_parameter', {
-                parameter: snakeCaseName,
-                value: value,
-              })
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              setQueryParameterUserValue!(snakeCaseName, value)
-            }}
-            style={{ width: '200px', border: '1px solid #ccc' }}
-          />
+          {picker === 'boolean' ? (
+            <InputSwitch
+              id={snakeCaseName + '-field'}
+              className={styles.query_parameter_field_picker_boolean}
+              checked={userValue === 'TRUE'}
+              onChange={(e) => {
+                setParameter(e.value ? 'TRUE' : 'FALSE')
+              }}
+            />
+          ) : (
+            <EditText
+              id={snakeCaseName + '-field'}
+              className={styles.query_parameter_field}
+              value={userValue}
+              onEditMode={() => {
+                pickerOverlayPanel.current?.show(
+                  {} as OverlayPanelEventType,
+                  document.getElementById(
+                    snakeCaseName + '-field-picker-overlay-anchor'
+                  )
+                )
+              }}
+              onChange={(e) => {
+                setUserValue(e.target.value)
+              }}
+              onSave={({ value }) => {
+                setParameter(value)
+              }}
+            />
+          )}
         </span>
-        {!(userValue === orgDefaultValue) ? (
+        <div id={snakeCaseName + '-field-picker-overlay-anchor'} />
+        {!(userValue === orgDefaultValue) && (
           <>
             <Button
               id={snakeCaseName + '-reset-button'}
@@ -112,7 +215,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                 resetQueryParameterUserValue!(snakeCaseName)
               }}
             />
-            {userIsAdmin ? (
+            {userIsAdmin && (
               <Button
                 id={snakeCaseName + '-set-default-button'}
                 label="Set Default"
@@ -126,9 +229,130 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                   setQueryParameterOrgDefaultValue!(snakeCaseName, userValue)
                 }}
               />
-            ) : null}
+            )}
           </>
-        ) : null}
+        )}
+        {((picker && (pickerOptions?.length || 0) > 0) ||
+          picker === 'date') && (
+          <OverlayPanel
+            id={snakeCaseName + '-field-picker-overlay'}
+            ref={pickerOverlayPanel}
+          >
+            {picker === 'conditions' && (
+              <>
+                {userValue && (
+                  <Dropdown
+                    id={snakeCaseName + '-condition-conjunction-picker'}
+                    className={styles.query_parameter_field_picker}
+                    value={wipCondition.conjunction}
+                    options={[
+                      { label: 'AND', value: 'AND' },
+                      { label: 'OR', value: 'OR' },
+                    ]}
+                    onChange={(e) => {
+                      setWipCondition({ ...wipCondition, conjunction: e.value })
+                    }}
+                    placeholder="Conjunction"
+                  />
+                )}
+                <Dropdown
+                  id={snakeCaseName + '-condition-dimension-picker'}
+                  className={styles.query_parameter_field_picker}
+                  value={wipCondition.dimension}
+                  options={pickerOptions}
+                  onChange={(e) => {
+                    setWipCondition({ ...wipCondition, dimension: e.value })
+                  }}
+                  placeholder="Dimension"
+                />
+                <Dropdown
+                  id={snakeCaseName + '-condition-operator-picker'}
+                  className={styles.query_parameter_field_picker}
+                  value={wipCondition.operator}
+                  options={[
+                    { label: '=', value: '=' },
+                    { label: '!=', value: '!=' },
+                    { label: '<', value: '<' },
+                    { label: '<=', value: '<=' },
+                    { label: '>', value: '>' },
+                    { label: '>=', value: '>=' },
+                    { label: 'IN', value: 'IN' },
+                    { label: 'NOT IN', value: 'NOT IN' },
+                    { label: 'LIKE', value: 'LIKE' },
+                    { label: 'NOT LIKE', value: 'NOT LIKE' },
+                  ]}
+                  onChange={(e) => {
+                    setWipCondition({ ...wipCondition, operator: e.value })
+                  }}
+                  placeholder="Operator"
+                />
+                <InputText
+                  id={snakeCaseName + '-condition-value-field'}
+                  className={styles.query_parameter_field_picker}
+                  value={wipCondition.value}
+                  onChange={(e) => {
+                    setWipCondition({ ...wipCondition, value: e.target.value })
+                  }}
+                  placeholder="Value"
+                />
+                <br />
+                <Button
+                  id={snakeCaseName + '-condition-add-button'}
+                  label="Add Condition"
+                  onClick={() => {
+                    if (
+                      (userValue && !wipCondition.conjunction) ||
+                      !wipCondition.dimension ||
+                      !wipCondition.operator
+                    )
+                      return
+                    const newCondition = `${wipCondition.conjunction} ${wipCondition.dimension} ${wipCondition.operator} ${wipCondition.value}`
+                    const newConditions = userValue
+                      ? userValue + ' ' + newCondition
+                      : newCondition
+                    setParameter(newConditions)
+                    setWipCondition({
+                      conjunction: 'AND',
+                      dimension: '',
+                      operator: '',
+                      value: '',
+                    })
+                    pickerOverlayPanel.current?.hide()
+                  }}
+                  style={{ float: 'right', margin: '5px 0px' }}
+                />
+              </>
+            )}
+            {picker === 'date' && (
+              <div className={styles.query_parameter_field_picker_calendar}>
+                <Calendar
+                  inline
+                  value={new Date(userValue)}
+                  onChange={(e) => {
+                    if (!e.value) return
+                    const val = e.value as Date
+                    const dateStr = `'${val.toISOString().split('T')[0]}'`
+                    setParameter(dateStr)
+                  }}
+                  panelStyle={{ border: '0px' }}
+                />
+                <div className={styles.query_parameter_picker_calendar_tip}>
+                  Pro tip: you can also type values above, including relative
+                  ones like CURRENT_DATE - INTERVAL &apos;90 DAY&apos;
+                </div>
+              </div>
+            )}
+            {(picker === 'dimension' || picker === 'frequency') && (
+              <ListBox
+                className={styles.query_parameter_field_picker}
+                options={pickerOptions}
+                onChange={(e) => {
+                  setParameter(e.value)
+                }}
+              />
+            )}
+          </OverlayPanel>
+        )}
       </div>
     )
   }
@@ -145,8 +369,11 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     )
   }, [queryParameters])
 
-  const overlayPanel = useRef<OverlayPanel>(null)
-  const [overlayPanelVisible, setOverlayPanelVisible] = useState(false)
+  const queryParametersOverlayPanel = useRef<OverlayPanel>(null)
+  const [
+    queryParametersOverlayPanelVisible,
+    setQueryParametersOverlayPanelVisible,
+  ] = useState(false)
   const [initialQueryParameters, setInitialQueryParameters] =
     useState<QueryParameters>({})
   const refreshQueryIfParametersChanged = useCallback(() => {
@@ -164,10 +391,10 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     }
   }, [queryParameters, initialQueryParameters, setGlobalQueryRefreshes])
   useEffect(() => {
-    if (!overlayPanelVisible) {
+    if (!queryParametersOverlayPanelVisible) {
       refreshQueryIfParametersChanged()
     }
-  }, [overlayPanelVisible, refreshQueryIfParametersChanged])
+  }, [queryParametersOverlayPanelVisible, refreshQueryIfParametersChanged])
 
   if (editingEnabled) {
     return null
@@ -208,7 +435,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                 icon="pi pi-sliders-h"
                 onClick={(event) => {
                   analytics.track('view_query_settings')
-                  overlayPanel.current?.toggle(event)
+                  queryParametersOverlayPanel.current?.toggle(event)
                 }}
               >
                 {queryParameterUserValueInEffect && <Badge severity="danger" />}
@@ -240,21 +467,29 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
         ) : null}
         <OverlayPanel
           id="query-parameters-overlay"
-          ref={overlayPanel}
+          ref={queryParametersOverlayPanel}
           onShow={() => {
             setInitialQueryParameters(queryParameters)
-            setOverlayPanelVisible(true)
+            setQueryParametersOverlayPanelVisible(true)
           }}
           onHide={() => {
-            setOverlayPanelVisible(false)
+            setQueryParametersOverlayPanelVisible(false)
           }}
         >
-          <QueryParameterField titleCaseName="Beginning Date" />
-          <QueryParameterField titleCaseName="Ending Date" />
-          <QueryParameterField titleCaseName="Frequency" />
-          <QueryParameterField titleCaseName="Group By" />
-          <QueryParameterField titleCaseName="Conditions" />
-          <QueryParameterField titleCaseName="Show Unfinished Values" />
+          <div className={styles.query_parameters_container}>
+            <QueryParameterField titleCaseName="Beginning Date" picker="date" />
+            <QueryParameterField titleCaseName="Ending Date" picker="date" />
+            <QueryParameterField titleCaseName="Frequency" picker="frequency" />
+            <QueryParameterField titleCaseName="Group By" picker="dimension" />
+            <QueryParameterField
+              titleCaseName="Conditions"
+              picker="conditions"
+            />
+            <QueryParameterField
+              titleCaseName="Show Unfinished Values"
+              picker="boolean"
+            />
+          </div>
         </OverlayPanel>
       </div>
     )

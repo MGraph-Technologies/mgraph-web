@@ -1,6 +1,5 @@
 import jsYaml from 'js-yaml'
 import Head from 'next/head'
-import Link from 'next/link'
 import { Button } from 'primereact/button'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
@@ -18,6 +17,7 @@ import Editor from 'react-simple-code-editor'
 import 'react-edit-text/dist/index.css'
 
 import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
+import SectionHeader from '../../components/SectionHeader'
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
@@ -745,38 +745,6 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         </div>
       )}
     </div>
-  )
-}
-
-type SectionHeaderProps = {
-  title: string
-  size: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
-}
-const SectionHeader: FunctionComponent<SectionHeaderProps> = ({
-  title,
-  size,
-}) => {
-  const sizeEmMap = {
-    h1: 2.0,
-    h2: 1.5,
-    h3: 1.17,
-    h4: 1.0,
-    h5: 0.83,
-    h6: 0.67,
-  }
-  const sectionId = title.toLowerCase().replace(' ', '-')
-  return React.createElement(
-    size,
-    {
-      id: sectionId,
-      style: {
-        fontSize: `${sizeEmMap[size]}em`,
-        fontWeight: 'bold',
-        marginTop: '1em',
-        marginBottom: '0.5em',
-      },
-    },
-    <Link href={`#${sectionId}`}>{title}</Link>
   )
 }
 

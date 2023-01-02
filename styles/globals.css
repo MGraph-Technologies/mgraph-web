@@ -67,3 +67,20 @@ a {
 .rounded-md > .space-y-1::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }
+
+/* decrease calendar picker size */
+.p-datepicker-header {
+  padding: 0 !important;
+}
+
+.p-datepicker table td > span {
+  height: 16px !important;
+  width: 16px !important;
+  font-size: 12px !important;
+}
+
+.p-datepicker table th > span {
+  height: 16px !important;
+  width: 16px !important;
+  font-size: 12px !important;
+}

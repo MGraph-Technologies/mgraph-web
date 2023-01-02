@@ -1,4 +1,3 @@
-import { isValidCron } from 'cron-validator'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
@@ -12,33 +11,34 @@ import React, {
   useState,
 } from 'react'
 import { v4 as uuidv4 } from 'uuid'
+import SectionHeader from '../../../components/SectionHeader'
 
 import SettingsInputText from '../../../components/SettingsInputText'
 import Workspace from '../../../components/Workspace'
 import { useAuth } from '../../../contexts/auth'
-import styles from '../../../styles/RefreshJobs.module.css'
+import styles from '../../../styles/QueryParameters.module.css'
 import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
 
-const RefreshJobs: FunctionComponent = () => {
+const QueryParameters: FunctionComponent = () => {
   const { organizationId } = useAuth()
 
-  const [refreshJobsTableLoading, setRefreshJobsTableLoading] = useState(true)
-  type RefreshJob = {
+  const [queryDimensionsTableLoading, setQueryDimensionsTableLoading] =
+    useState(true)
+  type QueryDimension = {
     id: string
     name: string
-    schedule: string
-    slackTo: string
+    value: string
     createdAt: string
   }
-  const [refreshJobs, setRefreshJobs] = useState<RefreshJob[]>([])
-  const populateRefreshJobs = useCallback(async () => {
+  const [queryDimensions, setQueryDimensions] = useState<QueryDimension[]>([])
+  const populateQueryDimensions = useCallback(async () => {
     if (organizationId) {
-      setRefreshJobsTableLoading(true)
+      setQueryDimensionsTableLoading(true)
       try {
         const { data, error, status } = await supabase
-          .from('refresh_jobs')
-          .select('id, name, schedule, slack_to, created_at')
+          .from('database_query_dimensions')
+          .select('id, name, value, created_at')
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: true })
@@ -48,19 +48,18 @@ const RefreshJobs: FunctionComponent = () => {
         }
 
         if (data) {
-          setRefreshJobs(
+          setQueryDimensions(
             data.map(
-              (rj) =>
+              (qp) =>
                 ({
-                  id: rj.id,
-                  name: rj.name,
-                  schedule: rj.schedule,
-                  slackTo: rj.slack_to,
-                  createdAt: rj.created_at,
-                } as RefreshJob)
+                  id: qp.id,
+                  name: qp.name,
+                  value: qp.value,
+                  createdAt: qp.created_at,
+                } as QueryDimension)
             )
           )
-          setRefreshJobsTableLoading(false)
+          setQueryDimensionsTableLoading(false)
         }
       } catch (error: unknown) {
         console.error(error)
@@ -68,17 +67,17 @@ const RefreshJobs: FunctionComponent = () => {
     }
   }, [organizationId])
   useEffect(() => {
-    populateRefreshJobs()
-  }, [populateRefreshJobs])
+    populateQueryDimensions()
+  }, [populateQueryDimensions])
 
-  const [refreshJobsTableFirst, setRefreshJobsTableFirst] = useState(0)
-  const refreshJobsTableOnPage = (e: DataTablePFSEvent) => {
+  const [queryDimensionsTableFirst, setQueryDimensionsTableFirst] = useState(0)
+  const queryDimensionsTableOnPage = (e: DataTablePFSEvent) => {
     analytics.track('change_table_page', {
-      table: 'refresh_jobs',
+      table: 'query_dimensions',
       page: e.page,
       first: e.first,
     })
-    setRefreshJobsTableFirst(e.first)
+    setQueryDimensionsTableFirst(e.first)
   }
 
   const editCellBodyTemplate: ColumnBodyType = useCallback(
@@ -87,36 +86,35 @@ const RefreshJobs: FunctionComponent = () => {
       return (
         <>
           <Button
-            id="edit-refresh-job-button"
+            id="edit-query-dimension-button"
             className="p-button-text p-button-lg"
             icon="pi pi-pencil"
             onClick={() => {
               setUpsertJobId(rowData.id)
               setUpsertJobName(rowData.name)
-              setUpsertJobSchedule(rowData.schedule)
-              setUpsertJobSlackTo(rowData.slackTo)
+              setUpsertJobValue(rowData.value)
               setUpsertJobIsNew(false)
               setShowUpsertJobPopup(true)
             }}
           />
           <Button
-            id="delete-refresh-job-button"
+            id="delete-query-dimension-button"
             className="p-button-text p-button-lg"
             icon="pi pi-trash"
             onClick={async () => {
               try {
                 const { data, error } = await supabase
-                  .from('refresh_jobs')
+                  .from('database_query_dimensions')
                   .update({ deleted_at: new Date() })
                   .eq('id', rowData.id)
 
                 if (error) {
                   throw error
                 } else if (data) {
-                  analytics.track('delete_refresh_job', {
+                  analytics.track('delete_query_dimension', {
                     id: rowData.id,
                   })
-                  populateRefreshJobs()
+                  populateQueryDimensions()
                 }
               } catch (error: unknown) {
                 console.error(error)
@@ -126,7 +124,7 @@ const RefreshJobs: FunctionComponent = () => {
         </>
       )
     },
-    [populateRefreshJobs]
+    [populateQueryDimensions]
   )
 
   const columnStyle = {
@@ -139,29 +137,28 @@ const RefreshJobs: FunctionComponent = () => {
   const [showUpsertJobPopup, setShowUpsertJobPopup] = useState(false)
   const [upsertJobId, setUpsertJobId] = useState<string>('')
   const [upsertJobName, setUpsertJobName] = useState<string>('')
-  const [upsertJobSchedule, setUpsertJobSchedule] = useState<string>('')
-  const [upsertJobSlackTo, setUpsertJobSlackTo] = useState<string>('')
+  const [upsertJobValue, setUpsertJobValue] = useState<string>('')
   const [upsertJobIsNew, setUpsertJobIsNew] = useState(true)
 
   const clearFields = useCallback(() => {
     setUpsertJobId('')
     setUpsertJobName('')
-    setUpsertJobSchedule('')
-    setUpsertJobSlackTo('')
+    setUpsertJobValue('')
     setUpsertJobIsNew(true)
   }, [])
 
   return (
     <>
       <Head>
-        <title>Refresh Jobs — MGraph</title>
+        <title>Query Parameters — MGraph</title>
       </Head>
       <Workspace>
-        <div className={styles.refresh_jobs_container}>
-          <div className={styles.refresh_jobs_title}>Refresh Jobs</div>
-          <div className={styles.new_refresh_job_container}>
+        <div className={styles.query_parameters_container}>
+          <div className={styles.query_parameters_title}>Query Parameters</div>
+          <SectionHeader title="Query Dimensions" size="h2" />
+          <div className={styles.new_query_dimension_container}>
             <Button
-              id="new-refresh-job-button"
+              id="new-query-dimension-button"
               icon="pi pi-plus"
               onClick={() => {
                 setUpsertJobId(uuidv4())
@@ -169,8 +166,8 @@ const RefreshJobs: FunctionComponent = () => {
               }}
             />
             <Dialog
-              id="new-refresh-job-dialog"
-              header={(upsertJobIsNew ? 'New' : 'Edit') + ' Refresh Job'}
+              id="new-query-dimension-dialog"
+              header={(upsertJobIsNew ? 'New' : 'Edit') + ' Query Dimension'}
               visible={showUpsertJobPopup}
               resizable={false}
               draggable={false}
@@ -183,38 +180,26 @@ const RefreshJobs: FunctionComponent = () => {
                 label="Name"
                 value={upsertJobName}
                 setValue={setUpsertJobName}
-                tooltip="(optional) A brief description of the refresh job"
+                tooltip="Displayed in Query Parameters dropdown in MGraph"
               />
               <SettingsInputText
-                label="Schedule"
-                value={upsertJobSchedule}
-                setValue={setUpsertJobSchedule}
-                tooltip="A cron expression in UTC time; max every-minute frequency"
-              />
-              <SettingsInputText
-                label="Slack To"
-                value={upsertJobSlackTo}
-                setValue={setUpsertJobSlackTo}
-                tooltip="(optional) Slack webhook urls to be notified upon refresh job completion, comma separated"
+                label="Value"
+                value={upsertJobValue}
+                setValue={setUpsertJobValue}
+                tooltip="Inserted into queries when selected in MGraph"
               />
               <div className={styles.save_cancel_button_container}>
                 <Button
-                  id="save-refresh-job-button"
+                  id="save-query-dimension-button"
                   label="Save"
                   onClick={async () => {
-                    if (!isValidCron(upsertJobSchedule)) {
-                      alert('Schedule must be a valid cron expression')
-                      return
-                    }
-
                     if (organizationId) {
                       const now = new Date()
                       let toUpsert = {
                         id: upsertJobId,
                         name: upsertJobName,
                         organization_id: organizationId,
-                        schedule: upsertJobSchedule,
-                        slack_to: upsertJobSlackTo,
+                        value: upsertJobValue,
                         updated_at: now,
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       } as any
@@ -226,7 +211,7 @@ const RefreshJobs: FunctionComponent = () => {
                       }
                       try {
                         const { data, error } = await supabase
-                          .from('refresh_jobs')
+                          .from('database_query_dimensions')
                           .upsert([toUpsert])
                           .select()
 
@@ -237,13 +222,13 @@ const RefreshJobs: FunctionComponent = () => {
                         if (data) {
                           analytics.track(
                             upsertJobIsNew
-                              ? 'create_refresh_job'
-                              : 'update_refresh_job',
+                              ? 'create_query_dimension'
+                              : 'update_query_dimension',
                             {
                               id: data[0].id,
                             }
                           )
-                          populateRefreshJobs()
+                          populateQueryDimensions()
                           setShowUpsertJobPopup(false)
                           clearFields()
                         }
@@ -255,7 +240,7 @@ const RefreshJobs: FunctionComponent = () => {
                 />
                 <div className={styles.save_cancel_button_spacer} />
                 <Button
-                  id="cancel-refresh-job-button"
+                  id="cancel-query-dimension-button"
                   className="p-button-outlined"
                   label="Cancel"
                   onClick={() => {
@@ -266,26 +251,25 @@ const RefreshJobs: FunctionComponent = () => {
               </div>
             </Dialog>
           </div>
-          <div className={styles.refresh_jobs_table_container}>
+          <div className={styles.query_dimensions_table_container}>
             <DataTable
               paginator
               scrollable
-              id="refresh-jobs-table"
-              className="p-datatable-refresh_jobs"
-              value={refreshJobs}
-              loading={refreshJobsTableLoading}
+              id="query-dimensions-table"
+              className="p-datatable-query_dimensions"
+              value={queryDimensions}
+              loading={queryDimensionsTableLoading}
               scrollHeight="flex"
               rows={10}
               paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
-              first={refreshJobsTableFirst}
-              onPage={refreshJobsTableOnPage}
+              first={queryDimensionsTableFirst}
+              onPage={queryDimensionsTableOnPage}
               filterDisplay="row"
-              emptyMessage="No refresh jobs configured"
+              emptyMessage="No query dimensions configured"
             >
               <Column field="name" header="Name" style={columnStyle} />
-              <Column field="schedule" header="Schedule" style={columnStyle} />
-              <Column field="slackTo" header="Slack To" style={columnStyle} />
+              <Column field="value" header="Value" style={columnStyle} />
               <Column
                 field="createdAt"
                 header="Created At"
@@ -300,4 +284,4 @@ const RefreshJobs: FunctionComponent = () => {
   )
 }
 
-export default RefreshJobs
+export default QueryParameters

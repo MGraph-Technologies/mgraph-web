@@ -10,6 +10,7 @@ import {
 } from 'primereact/datatable'
 import { Dropdown } from 'primereact/dropdown'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
+import SectionHeader from '../../../components/SectionHeader'
 
 import Workspace from '../../../components/Workspace'
 import { useAuth } from '../../../contexts/auth'
@@ -292,12 +293,12 @@ const AccessManagement: FunctionComponent = () => {
           <div className={styles.access_management_title}>
             Access Management
           </div>
-          <h2>Add Users</h2>
+          <SectionHeader title="Add Users" size="h2" />
           <p>
             Anyone under your organization&apos;s domain can access MGraph via
             Google OAuth - just share a link!
           </p>
-          <h3>Default role for new users:</h3>
+          <SectionHeader title="Default role for new users:" size="h2" />
           <Dropdown
             value={orgDefaultRoleName}
             options={roles.map((r) => r.name)}
@@ -308,7 +309,7 @@ const AccessManagement: FunctionComponent = () => {
             style={{ width: '25%' }}
           />
           <br></br>
-          <h2>Edit Users</h2>
+          <SectionHeader title="Edit Users" size="h2" />
           <div className={styles.users_table_container}>
             <DataTable
               paginator
