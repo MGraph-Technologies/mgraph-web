@@ -76,7 +76,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
       SelectItemOptionsType | undefined
     >(undefined)
     const [wipCondition, setWipCondition] = useState({
-      conjunction: '',
+      conjunction: 'AND',
       dimension: '',
       operator: '',
       value: '',
@@ -242,6 +242,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
               <>
                 {userValue && (
                   <Dropdown
+                    id={snakeCaseName + '-condition-conjunction-picker'}
                     className={styles.query_parameter_field_picker}
                     value={wipCondition.conjunction}
                     options={[
@@ -255,6 +256,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                   />
                 )}
                 <Dropdown
+                  id={snakeCaseName + '-condition-dimension-picker'}
                   className={styles.query_parameter_field_picker}
                   value={wipCondition.dimension}
                   options={pickerOptions}
@@ -264,6 +266,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                   placeholder="Dimension"
                 />
                 <Dropdown
+                  id={snakeCaseName + '-condition-operator-picker'}
                   className={styles.query_parameter_field_picker}
                   value={wipCondition.operator}
                   options={[
@@ -284,6 +287,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                   placeholder="Operator"
                 />
                 <InputText
+                  id={snakeCaseName + '-condition-value-field'}
                   className={styles.query_parameter_field_picker}
                   value={wipCondition.value}
                   onChange={(e) => {
@@ -293,6 +297,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                 />
                 <br />
                 <Button
+                  id={snakeCaseName + '-condition-add-button'}
                   label="Add Condition"
                   onClick={() => {
                     if (
@@ -307,7 +312,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                       : newCondition
                     setParameter(newConditions)
                     setWipCondition({
-                      conjunction: '',
+                      conjunction: 'AND',
                       dimension: '',
                       operator: '',
                       value: '',

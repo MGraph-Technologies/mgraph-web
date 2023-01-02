@@ -693,7 +693,7 @@ describe('Metric detail editing', () => {
       .click()
       .wait(100)
 
-    // see that parameters persists
+    // see that parameters persist
     cy.wait(2000).reload()
     cy.wait(2000) // wait for page to load
     cy.get('[id=query-settings-button]').click().wait(100)
@@ -749,6 +749,72 @@ describe('Metric detail editing', () => {
     cy.get('[id=frequency-reset-button]').click().wait(100)
     cy.get('[id=conditions-reset-button]').click().wait(100)
     cy.wait(2000) // wait for reset to process
+  })
+
+  it('Visits a metric detail page and tests persistence of query parameters via mouse', () => {
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    /* wait for page to load
+     (otherwise the query settings menu will be closed on transition) */
+    cy.wait(2000)
+
+    // set parameters
+    cy.get('[id=query-settings-button]').click().wait(100)
+
+    cy.get('[id=beginning_date-field]').click()
+    cy.get('[id=beginning_date-field]')
+      .clear()
+      .type("'2022-01-01'")
+      .parent()
+      .click()
+      .wait(1000)
+    cy.get('[id=beginning_date-field]').click()
+    cy.get('[class*=p-datepicker-calendar]').contains('10').click().wait(1000)
+
+    cy.get('[id=ending_date-field]').click()
+    cy.get('[id=ending_date-field]')
+      .click()
+      .clear()
+      .type("'2022-01-01'")
+      .parent()
+      .click()
+      .wait(1000)
+    cy.get('[id=ending_date-field]').click()
+    cy.get('[class*=p-datepicker-calendar]').contains('12').click().wait(1000)
+
+    cy.get('[id=frequency-field]').click()
+    cy.get('li').contains('MONTH').click().wait(1000)
+
+    cy.get('[id=group_by-field]').click()
+    cy.get('li').contains('test').click().wait(1000)
+
+    cy.get('[id=conditions-field]').click()
+    cy.get('[id*=condition-dimension-picker]').click()
+    cy.get('li').contains('test').click().wait(1000)
+    cy.get('[id*=condition-operator-picker]').click()
+    cy.get('li').contains('=').click().wait(1000)
+    cy.get('[id*=condition-value-field]')
+      .click()
+      .clear()
+      .type("'test'")
+      .wait(1000)
+    cy.get('[id*=condition-add-button]').click().wait(1000)
+
+    // see that parameters persist
+    cy.wait(2000).reload()
+    cy.wait(2000) // wait for page to load
+    cy.get('[id=query-settings-button]').click().wait(100)
+    cy.get('[id=beginning_date-field]').contains('2022-01-10')
+    cy.get('[id=ending_date-field]').contains('2022-01-12')
+    cy.get('[id=group_by-field]').contains('test')
+    cy.get('[id=frequency-field]').contains('MONTH')
+    cy.get('[id=conditions-field]').contains('test')
+
+    // reset all
+    cy.get('[id*=reset-button]').each(() => {
+      // avoid dom detached error
+      cy.get('[id*=reset-button]').first().click().wait(1000)
+    })
   })
 
   it('Visits a metric detail page, sets parameters, enters a SQL query that uses them, then sees results', () => {
