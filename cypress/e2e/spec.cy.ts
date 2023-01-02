@@ -826,20 +826,31 @@ describe('Metric detail editing', () => {
 
     // set parameters
     cy.get('[id=query-settings-button]').click().wait(100)
+
     cy.get('[id=beginning_date-field]').click()
     cy.get('[id=beginning_date-field]')
       .clear()
       .type("CURRENT_DATE - INTERVAL '90 DAY'")
       .parent()
       .click()
+      .wait(100)
+
     cy.get('[id=ending_date-field]').click()
     cy.get('[id=ending_date-field]')
       .clear()
       .type('CURRENT_DATE')
       .parent()
       .click()
+      .wait(100)
+
     cy.get('[id=frequency-field]').click()
-    cy.get('[id=frequency-field]').clear().type('WEEK').parent().click()
+    cy.get('[id=frequency-field]')
+      .clear()
+      .type('WEEK')
+      .parent()
+      .click()
+      .wait(100)
+
     const randomGroupBy = Math.random().toString(36)
     cy.get('[id=group_by-field]').click()
     cy.get('[id=group_by-field]')
@@ -847,6 +858,8 @@ describe('Metric detail editing', () => {
       .type("'" + randomGroupBy + "'")
       .parent()
       .click()
+      .wait(100)
+
     cy.get('[id=query-settings-button]').click().wait(100)
 
     // begin editing
@@ -881,6 +894,14 @@ describe('Metric detail editing', () => {
     cy.get('[class*=LineChart_chart_container]')
       .contains(randomInt.toLocaleString())
       .should('exist')
+
+    // reset parameters
+    cy.reload()
+    cy.get('[id=query-settings-button]').click().wait(100)
+    cy.get('[id*=reset-button]').each(() => {
+      // avoid dom detached error
+      cy.get('[id*=reset-button]').first().click().wait(1000)
+    })
   })
 
   it('Visits a metric detail page, then adds, edits, and deletes a monitoring rule', () => {
