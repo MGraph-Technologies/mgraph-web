@@ -15,7 +15,7 @@ if not jpype.isJVMStarted():
   jre_path = endpoint_path + '/jre'
   jvm_path = jre_path + '/lib/server/libjvm.so'
 
-  if os.environ['VERCEL_ENV'] == 'development':
+  if os.environ['NEXT_PUBLIC_ENV'] == 'development':
     print('Development environment detected.')
     jre_path = endpoint_path + '/jre_dev'
     jvm_path = jre_path + '/lib/libjli.dylib'
