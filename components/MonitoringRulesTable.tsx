@@ -1,6 +1,7 @@
 import { isValidCron } from 'cron-validator'
 import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
@@ -192,6 +193,35 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   const editCellBodyTemplate: ColumnBodyType = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
+      const deleteMonitoringRule = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('monitoring_rules')
+            .update({ deleted_at: new Date() })
+            .eq('id', rowData.id)
+
+          if (error) {
+            throw error
+          } else if (data) {
+            analytics.track('delete_monitoring_rule', {
+              id: rowData.id,
+            })
+            populateMonitoringRules(true)
+          }
+        } catch (error: unknown) {
+          console.error(error)
+        }
+      }
+      const confirmDelete = () => {
+        confirmDialog({
+          message: `Are you sure you want to delete the monitoring rule "${rowData.name}"?`,
+          icon: 'pi pi-exclamation-triangle',
+          accept: deleteMonitoringRule,
+          acceptLabel: 'Delete',
+          rejectLabel: 'Cancel',
+          acceptClassName: 'p-button-danger',
+        })
+      }
       return (
         <>
           <Button
@@ -226,25 +256,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             id="delete-monitoring-rule-button"
             className="p-button-text p-button-lg"
             icon="pi pi-trash"
-            onClick={async () => {
-              try {
-                const { data, error } = await supabase
-                  .from('monitoring_rules')
-                  .update({ deleted_at: new Date() })
-                  .eq('id', rowData.id)
-
-                if (error) {
-                  throw error
-                } else if (data) {
-                  analytics.track('delete_monitoring_rule', {
-                    id: rowData.id,
-                  })
-                  populateMonitoringRules(true)
-                }
-              } catch (error: unknown) {
-                console.error(error)
-              }
-            }}
+            onClick={confirmDelete}
           />
         </>
       )
@@ -576,6 +588,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             />
           )}
         </DataTable>
+        <ConfirmDialog />
       </div>
     </>
   )
