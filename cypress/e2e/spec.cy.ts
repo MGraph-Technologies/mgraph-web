@@ -1122,39 +1122,39 @@ describe('Admin settings', () => {
 
     // add job
     const randomString = Math.random().toString(36)
-    cy.get('[id=new-query-dimension-button]').click()
+    cy.get('[id=new-dimension-button]').click()
     cy.get('[id=name-field]').type(randomString)
     cy.get('[id=value-field]').type(randomString)
-    cy.get('[id=save-query-dimension-button]').click()
+    cy.get('[id=save-dimension-button]').click()
 
     // check change has persisted
     cy.wait(2000)
     cy.reload()
-    cy.get('[id=query-dimensions-table]').contains(randomString)
+    cy.get('[id=dimensions-table]').contains(randomString)
 
     // edit job
     const newRandomString = Math.random().toString(36)
-    cy.get('[id=query-dimensions-table]')
+    cy.get('[id=dimensions-table]')
       .contains(randomString)
       .parent('tr')
-      .find('[id=edit-query-dimension-button]')
+      .find('[id=edit-dimension-button]')
       .click()
     cy.get('[id=value-field]').clear().type(newRandomString)
-    cy.get('[id=save-query-dimension-button]').click()
+    cy.get('[id=save-dimension-button]').click()
 
     // check change has persisted
     cy.wait(2000)
     cy.reload()
-    cy.get('[id=query-dimensions-table]').contains(newRandomString)
+    cy.get('[id=dimensions-table]').contains(newRandomString)
 
     // delete job
-    cy.get('[id=query-dimensions-table]')
+    cy.get('[id=dimensions-table]')
       .contains(newRandomString)
       .parent('tr')
-      .find('[id=delete-query-dimension-button]')
+      .find('[id=delete-dimension-button]')
       .click()
     cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
-    cy.get('[id=query-dimensions-table]')
+    cy.get('[id=dimensions-table]')
       .contains(newRandomString)
       .should('not.exist')
   })

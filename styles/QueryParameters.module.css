@@ -15,7 +15,7 @@
   justify-content: center;
 }
 
-.query_parameters_container .new_query_dimension_container {
+.query_parameters_container .new_dimension_container {
   display: flex;
   flex-direction: row;
   justify-content: right;
@@ -32,7 +32,7 @@
   width: 0.5rem;
 }
 
-.query_parameters_container .query_dimensions_table_container {
+.query_parameters_container .dimensions_table_container {
   width: 100%;
   height: auto;
 }

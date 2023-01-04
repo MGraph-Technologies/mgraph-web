@@ -24,18 +24,17 @@ import { supabase } from '../../../utils/supabaseClient'
 const QueryParameters: FunctionComponent = () => {
   const { organizationId } = useAuth()
 
-  const [queryDimensionsTableLoading, setQueryDimensionsTableLoading] =
-    useState(true)
-  type QueryDimension = {
+  const [dimensionsTableLoading, setDimensionsTableLoading] = useState(true)
+  type Dimension = {
     id: string
     name: string
     value: string
     createdAt: string
   }
-  const [queryDimensions, setQueryDimensions] = useState<QueryDimension[]>([])
-  const populateQueryDimensions = useCallback(async () => {
+  const [dimensions, setDimensions] = useState<Dimension[]>([])
+  const populateDimensions = useCallback(async () => {
     if (organizationId) {
-      setQueryDimensionsTableLoading(true)
+      setDimensionsTableLoading(true)
       try {
         const { data, error, status } = await supabase
           .from('database_query_dimensions')
@@ -49,7 +48,7 @@ const QueryParameters: FunctionComponent = () => {
         }
 
         if (data) {
-          setQueryDimensions(
+          setDimensions(
             data.map(
               (qp) =>
                 ({
@@ -57,10 +56,10 @@ const QueryParameters: FunctionComponent = () => {
                   name: qp.name,
                   value: qp.value,
                   createdAt: qp.created_at,
-                } as QueryDimension)
+                } as Dimension)
             )
           )
-          setQueryDimensionsTableLoading(false)
+          setDimensionsTableLoading(false)
         }
       } catch (error: unknown) {
         console.error(error)
@@ -68,23 +67,23 @@ const QueryParameters: FunctionComponent = () => {
     }
   }, [organizationId])
   useEffect(() => {
-    populateQueryDimensions()
-  }, [populateQueryDimensions])
+    populateDimensions()
+  }, [populateDimensions])
 
-  const [queryDimensionsTableFirst, setQueryDimensionsTableFirst] = useState(0)
-  const queryDimensionsTableOnPage = (e: DataTablePFSEvent) => {
+  const [dimensionsTableFirst, setDimensionsTableFirst] = useState(0)
+  const dimensionsTableOnPage = (e: DataTablePFSEvent) => {
     analytics.track('change_table_page', {
       table: 'query_dimensions',
       page: e.page,
       first: e.first,
     })
-    setQueryDimensionsTableFirst(e.first)
+    setDimensionsTableFirst(e.first)
   }
 
   const editCellBodyTemplate: ColumnBodyType = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
-      const deleteQueryDimension = async () => {
+      const deleteDimension = async () => {
         try {
           const { data, error } = await supabase
             .from('database_query_dimensions')
@@ -97,7 +96,7 @@ const QueryParameters: FunctionComponent = () => {
             analytics.track('delete_query_dimension', {
               id: rowData.id,
             })
-            populateQueryDimensions()
+            populateDimensions()
           }
         } catch (error: unknown) {
           console.error(error)
@@ -105,9 +104,9 @@ const QueryParameters: FunctionComponent = () => {
       }
       const confirmDelete = () => {
         confirmDialog({
-          message: `Are you sure you want to delete the query dimension "${rowData.name}"?`,
+          message: `Are you sure you want to delete the dimension "${rowData.name}"?`,
           icon: 'pi pi-exclamation-triangle',
-          accept: deleteQueryDimension,
+          accept: deleteDimension,
           acceptLabel: 'Delete',
           rejectLabel: 'Cancel',
           acceptClassName: 'p-button-danger',
@@ -116,7 +115,7 @@ const QueryParameters: FunctionComponent = () => {
       return (
         <>
           <Button
-            id="edit-query-dimension-button"
+            id="edit-dimension-button"
             className="p-button-text p-button-lg"
             icon="pi pi-pencil"
             onClick={() => {
@@ -128,7 +127,7 @@ const QueryParameters: FunctionComponent = () => {
             }}
           />
           <Button
-            id="delete-query-dimension-button"
+            id="delete-dimension-button"
             className="p-button-text p-button-lg"
             icon="pi pi-trash"
             onClick={confirmDelete}
@@ -136,7 +135,7 @@ const QueryParameters: FunctionComponent = () => {
         </>
       )
     },
-    [populateQueryDimensions]
+    [populateDimensions]
   )
 
   const columnStyle = {
@@ -167,10 +166,10 @@ const QueryParameters: FunctionComponent = () => {
       <Workspace>
         <div className={styles.query_parameters_container}>
           <div className={styles.query_parameters_title}>Query Parameters</div>
-          <SectionHeader title="Query Dimensions" size="h2" />
-          <div className={styles.new_query_dimension_container}>
+          <SectionHeader title="Dimensions" size="h2" />
+          <div className={styles.new_dimension_container}>
             <Button
-              id="new-query-dimension-button"
+              id="new-dimension-button"
               icon="pi pi-plus"
               onClick={() => {
                 setUpsertJobId(uuidv4())
@@ -178,8 +177,8 @@ const QueryParameters: FunctionComponent = () => {
               }}
             />
             <Dialog
-              id="new-query-dimension-dialog"
-              header={(upsertJobIsNew ? 'New' : 'Edit') + ' Query Dimension'}
+              id="new-dimension-dialog"
+              header={(upsertJobIsNew ? 'New' : 'Edit') + ' Dimension'}
               visible={showUpsertJobPopup}
               resizable={false}
               draggable={false}
@@ -202,7 +201,7 @@ const QueryParameters: FunctionComponent = () => {
               />
               <div className={styles.save_cancel_button_container}>
                 <Button
-                  id="save-query-dimension-button"
+                  id="save-dimension-button"
                   label="Save"
                   onClick={async () => {
                     if (organizationId) {
@@ -240,7 +239,7 @@ const QueryParameters: FunctionComponent = () => {
                               id: data[0].id,
                             }
                           )
-                          populateQueryDimensions()
+                          populateDimensions()
                           setShowUpsertJobPopup(false)
                           clearFields()
                         }
@@ -252,7 +251,7 @@ const QueryParameters: FunctionComponent = () => {
                 />
                 <div className={styles.save_cancel_button_spacer} />
                 <Button
-                  id="cancel-query-dimension-button"
+                  id="cancel-dimension-button"
                   className="p-button-outlined"
                   label="Cancel"
                   onClick={() => {
@@ -263,22 +262,22 @@ const QueryParameters: FunctionComponent = () => {
               </div>
             </Dialog>
           </div>
-          <div className={styles.query_dimensions_table_container}>
+          <div className={styles.dimensions_table_container}>
             <DataTable
               paginator
               scrollable
-              id="query-dimensions-table"
-              className="p-datatable-query_dimensions"
-              value={queryDimensions}
-              loading={queryDimensionsTableLoading}
+              id="dimensions-table"
+              className="p-datatable-dimensions"
+              value={dimensions}
+              loading={dimensionsTableLoading}
               scrollHeight="flex"
               rows={10}
               paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
-              first={queryDimensionsTableFirst}
-              onPage={queryDimensionsTableOnPage}
+              first={dimensionsTableFirst}
+              onPage={dimensionsTableOnPage}
               filterDisplay="row"
-              emptyMessage="No query dimensions configured"
+              emptyMessage="No dimensions configured"
             >
               <Column field="name" header="Name" style={columnStyle} />
               <Column field="value" header="Value" style={columnStyle} />
