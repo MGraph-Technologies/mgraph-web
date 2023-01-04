@@ -1116,47 +1116,29 @@ describe('Admin settings', () => {
     cy.get('[id=graph-syncs-table]').contains(randomString)
   })
 
-  it('Visits query parameters page, then adds, edits, and deletes a dimension', () => {
+  it('Visits query parameters page, edits then resets dimensions', () => {
     // visit page
     cy.visit('/mgraph/settings/query-parameters')
 
-    // add job
-    const randomString = Math.random().toString(36)
-    cy.get('[id=new-query-dimension-button]').click()
-    cy.get('[id=name-field]').type(randomString)
-    cy.get('[id=value-field]').type(randomString)
-    cy.get('[id=save-query-dimension-button]').click()
+    // add dimension
+    const randomString = 'randomDimension_' + Math.random().toString(36)
+    cy.get('[id=dimensions-field-edit-button]').click()
+    cy.get('[id=dimensions-field]').clear().type(randomString).parent().click()
 
     // check change has persisted
     cy.wait(2000)
     cy.reload()
-    cy.get('[id=query-dimensions-table]').contains(randomString)
+    cy.get('[id=dimensions-field]').contains(randomString)
 
-    // edit job
-    const newRandomString = Math.random().toString(36)
-    cy.get('[id=query-dimensions-table]')
-      .contains(randomString)
-      .parent('tr')
-      .find('[id=edit-query-dimension-button]')
-      .click()
-    cy.get('[id=value-field]').clear().type(newRandomString)
-    cy.get('[id=save-query-dimension-button]').click()
+    // reset
+    const resetString = 'NULL,test_dimension'
+    cy.get('[id=dimensions-field-edit-button]').click()
+    cy.get('[id=dimensions-field]').clear().type(resetString).parent().click()
 
     // check change has persisted
     cy.wait(2000)
     cy.reload()
-    cy.get('[id=query-dimensions-table]').contains(newRandomString)
-
-    // delete job
-    cy.get('[id=query-dimensions-table]')
-      .contains(newRandomString)
-      .parent('tr')
-      .find('[id=delete-query-dimension-button]')
-      .click()
-    cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
-    cy.get('[id=query-dimensions-table]')
-      .contains(newRandomString)
-      .should('not.exist')
+    cy.get('[id=dimensions-field]').contains(resetString)
   })
 
   it('Visits refresh jobs page, then adds, edits, and deletes a job', () => {

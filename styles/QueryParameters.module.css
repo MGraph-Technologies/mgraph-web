@@ -14,25 +14,3 @@
   flex-direction: row;
   justify-content: center;
 }
-
-.query_parameters_container .new_query_dimension_container {
-  display: flex;
-  flex-direction: row;
-  justify-content: right;
-  padding: 1rem;
-}
-
-.save_cancel_button_container {
-  display: flex;
-  flex-direction: row;
-  justify-content: right;
-}
-
-.save_cancel_button_container .save_cancel_button_spacer {
-  width: 0.5rem;
-}
-
-.query_parameters_container .query_dimensions_table_container {
-  width: 100%;
-  height: auto;
-}
