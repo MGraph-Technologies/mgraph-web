@@ -1,20 +1,14 @@
 import Head from 'next/head'
 import { Button } from 'primereact/button'
-import { Column, ColumnBodyType } from 'primereact/column'
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog'
-import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
-import { Dialog } from 'primereact/dialog'
 import React, {
-  CSSProperties,
   FunctionComponent,
   useCallback,
   useEffect,
   useState,
 } from 'react'
-import { v4 as uuidv4 } from 'uuid'
+import { EditText } from 'react-edit-text'
 import SectionHeader from '../../../components/SectionHeader'
 
-import SettingsInputText from '../../../components/SettingsInputText'
 import Workspace from '../../../components/Workspace'
 import { useAuth } from '../../../contexts/auth'
 import styles from '../../../styles/QueryParameters.module.css'
@@ -24,42 +18,24 @@ import { supabase } from '../../../utils/supabaseClient'
 const QueryParameters: FunctionComponent = () => {
   const { organizationId } = useAuth()
 
-  const [dimensionsTableLoading, setDimensionsTableLoading] = useState(true)
-  type Dimension = {
-    id: string
-    name: string
-    value: string
-    createdAt: string
-  }
-  const [dimensions, setDimensions] = useState<Dimension[]>([])
+  const [dimensions, setDimensions] = useState('')
   const populateDimensions = useCallback(async () => {
     if (organizationId) {
-      setDimensionsTableLoading(true)
       try {
         const { data, error, status } = await supabase
-          .from('database_query_dimensions')
-          .select('id, name, value, created_at')
+          .from('organizations')
+          .select('query_dimensions')
           .is('deleted_at', null)
-          .eq('organization_id', organizationId)
+          .eq('id', organizationId)
           .order('created_at', { ascending: true })
+          .single()
 
         if (error && status !== 406) {
           throw error
         }
 
         if (data) {
-          setDimensions(
-            data.map(
-              (qp) =>
-                ({
-                  id: qp.id,
-                  name: qp.name,
-                  value: qp.value,
-                  createdAt: qp.created_at,
-                } as Dimension)
-            )
-          )
-          setDimensionsTableLoading(false)
+          setDimensions(data.query_dimensions)
         }
       } catch (error: unknown) {
         console.error(error)
@@ -70,93 +46,31 @@ const QueryParameters: FunctionComponent = () => {
     populateDimensions()
   }, [populateDimensions])
 
-  const [dimensionsTableFirst, setDimensionsTableFirst] = useState(0)
-  const dimensionsTableOnPage = (e: DataTablePFSEvent) => {
-    analytics.track('change_table_page', {
-      table: 'query_dimensions',
-      page: e.page,
-      first: e.first,
-    })
-    setDimensionsTableFirst(e.first)
-  }
-
-  const editCellBodyTemplate: ColumnBodyType = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (rowData: any) => {
-      const deleteDimension = async () => {
+  const updateDimensions = useCallback(
+    async (newDimensions: string) => {
+      if (organizationId) {
         try {
-          const { data, error } = await supabase
-            .from('database_query_dimensions')
-            .update({ deleted_at: new Date() })
-            .eq('id', rowData.id)
+          const { data, error, status } = await supabase
+            .from('organizations')
+            .update({ query_dimensions: newDimensions })
+            .is('deleted_at', null)
+            .eq('id', organizationId)
+            .single()
 
-          if (error) {
+          if (error && status !== 406) {
             throw error
-          } else if (data) {
-            analytics.track('delete_query_dimension', {
-              id: rowData.id,
-            })
-            populateDimensions()
+          }
+
+          if (data) {
+            setDimensions(data.query_dimensions)
           }
         } catch (error: unknown) {
           console.error(error)
         }
       }
-      const confirmDelete = () => {
-        confirmDialog({
-          message: `Are you sure you want to delete the dimension "${rowData.name}"?`,
-          icon: 'pi pi-exclamation-triangle',
-          accept: deleteDimension,
-          acceptLabel: 'Delete',
-          rejectLabel: 'Cancel',
-          acceptClassName: 'p-button-danger',
-        })
-      }
-      return (
-        <>
-          <Button
-            id="edit-dimension-button"
-            className="p-button-text p-button-lg"
-            icon="pi pi-pencil"
-            onClick={() => {
-              setUpsertJobId(rowData.id)
-              setUpsertJobName(rowData.name)
-              setUpsertJobValue(rowData.value)
-              setUpsertJobIsNew(false)
-              setShowUpsertJobPopup(true)
-            }}
-          />
-          <Button
-            id="delete-dimension-button"
-            className="p-button-text p-button-lg"
-            icon="pi pi-trash"
-            onClick={confirmDelete}
-          />
-        </>
-      )
     },
-    [populateDimensions]
+    [organizationId]
   )
-
-  const columnStyle = {
-    width: '20%',
-    wordWrap: 'break-word',
-    wordBreak: 'break-all',
-    wordSpace: 'normal',
-  } as CSSProperties
-
-  const [showUpsertJobPopup, setShowUpsertJobPopup] = useState(false)
-  const [upsertJobId, setUpsertJobId] = useState<string>('')
-  const [upsertJobName, setUpsertJobName] = useState<string>('')
-  const [upsertJobValue, setUpsertJobValue] = useState<string>('')
-  const [upsertJobIsNew, setUpsertJobIsNew] = useState(true)
-
-  const clearFields = useCallback(() => {
-    setUpsertJobId('')
-    setUpsertJobName('')
-    setUpsertJobValue('')
-    setUpsertJobIsNew(true)
-  }, [])
 
   return (
     <>
@@ -167,129 +81,37 @@ const QueryParameters: FunctionComponent = () => {
         <div className={styles.query_parameters_container}>
           <div className={styles.query_parameters_title}>Query Parameters</div>
           <SectionHeader title="Dimensions" size="h2" />
-          <div className={styles.new_dimension_container}>
-            <Button
-              id="new-dimension-button"
-              icon="pi pi-plus"
-              onClick={() => {
-                setUpsertJobId(uuidv4())
-                setShowUpsertJobPopup(true)
-              }}
-            />
-            <Dialog
-              id="new-dimension-dialog"
-              header={(upsertJobIsNew ? 'New' : 'Edit') + ' Dimension'}
-              visible={showUpsertJobPopup}
-              resizable={false}
-              draggable={false}
-              closable={false} // use cancel button instead
-              onHide={() => {
-                return
-              }} // handled by buttons, but required
-            >
-              <SettingsInputText
-                label="Name"
-                value={upsertJobName}
-                setValue={setUpsertJobName}
-                tooltip="Displayed in Query Parameters dropdown in MGraph"
+          <EditText
+            id="dimensions-field"
+            value={dimensions}
+            onChange={(e) => {
+              setDimensions(e.target.value)
+            }}
+            onSave={({ value }) => {
+              updateDimensions(value)
+              analytics.track('update_query_dimensions', {
+                value: value,
+              })
+            }}
+            showEditButton
+            editButtonContent={
+              <Button
+                id="dimensions-field-edit-button"
+                icon="pi pi-pencil"
+                className="p-button-rounded p-button-text"
+                tooltip='Enter comma-separated values to populate the Dimensions picker (spaces will be preserved; e.g., "NULL,market")'
+                tooltipOptions={{
+                  style: { width: '300px' },
+                }}
               />
-              <SettingsInputText
-                label="Value"
-                value={upsertJobValue}
-                setValue={setUpsertJobValue}
-                tooltip="Inserted into queries when selected in MGraph"
-              />
-              <div className={styles.save_cancel_button_container}>
-                <Button
-                  id="save-dimension-button"
-                  label="Save"
-                  onClick={async () => {
-                    if (organizationId) {
-                      const now = new Date()
-                      let toUpsert = {
-                        id: upsertJobId,
-                        name: upsertJobName,
-                        organization_id: organizationId,
-                        value: upsertJobValue,
-                        updated_at: now,
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      } as any
-                      if (upsertJobIsNew) {
-                        toUpsert = {
-                          ...toUpsert,
-                          created_at: now,
-                        }
-                      }
-                      try {
-                        const { data, error } = await supabase
-                          .from('database_query_dimensions')
-                          .upsert([toUpsert])
-                          .select()
-
-                        if (error) {
-                          throw error
-                        }
-
-                        if (data) {
-                          analytics.track(
-                            upsertJobIsNew
-                              ? 'create_query_dimension'
-                              : 'update_query_dimension',
-                            {
-                              id: data[0].id,
-                            }
-                          )
-                          populateDimensions()
-                          setShowUpsertJobPopup(false)
-                          clearFields()
-                        }
-                      } catch (error: unknown) {
-                        console.error(error)
-                      }
-                    }
-                  }}
-                />
-                <div className={styles.save_cancel_button_spacer} />
-                <Button
-                  id="cancel-dimension-button"
-                  className="p-button-outlined"
-                  label="Cancel"
-                  onClick={() => {
-                    setShowUpsertJobPopup(false)
-                    clearFields()
-                  }}
-                />
-              </div>
-            </Dialog>
-          </div>
-          <div className={styles.dimensions_table_container}>
-            <DataTable
-              paginator
-              scrollable
-              id="dimensions-table"
-              className="p-datatable-dimensions"
-              value={dimensions}
-              loading={dimensionsTableLoading}
-              scrollHeight="flex"
-              rows={10}
-              paginatorTemplate="FirstPageLink PrevPageLink NextPageLink LastPageLink CurrentPageReport"
-              currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
-              first={dimensionsTableFirst}
-              onPage={dimensionsTableOnPage}
-              filterDisplay="row"
-              emptyMessage="No dimensions configured"
-            >
-              <Column field="name" header="Name" style={columnStyle} />
-              <Column field="value" header="Value" style={columnStyle} />
-              <Column
-                field="createdAt"
-                header="Created At"
-                style={columnStyle}
-              />
-              <Column body={editCellBodyTemplate} align="center" />
-            </DataTable>
-            <ConfirmDialog />
-          </div>
+            }
+            style={{
+              backgroundColor: '#fff',
+              width: '300px',
+              border: '1px solid #d9d9d9',
+              borderRadius: '5px',
+            }}
+          />
         </div>
       </Workspace>
     </>

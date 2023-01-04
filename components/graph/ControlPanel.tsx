@@ -113,17 +113,20 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     const populatePickerOptions = useCallback(async () => {
       if (picker === 'conditions' || picker === 'dimension') {
         const { data, error } = await supabase
-          .from('database_query_dimensions')
-          .select('name, value')
+          .from('organizations')
+          .select('query_dimensions')
           .is('deleted_at', null)
-          .eq('organization_id', organizationId)
+          .eq('id', organizationId)
+          .single()
 
         if (error) {
           console.error(error)
-        } else {
+        }
+
+        if (data) {
           setPickerOptions(
-            data.map((d) => {
-              return { label: d.name, value: d.value }
+            data.query_dimensions.split(',').map((option: string) => {
+              return { label: option, value: option }
             })
           )
         }
