@@ -2,6 +2,7 @@ import { isValidCron } from 'cron-validator'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import React, {
@@ -84,6 +85,35 @@ const RefreshJobs: FunctionComponent = () => {
   const editCellBodyTemplate: ColumnBodyType = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
+      const deleteRefreshJob = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('refresh_jobs')
+            .update({ deleted_at: new Date() })
+            .eq('id', rowData.id)
+
+          if (error) {
+            throw error
+          } else if (data) {
+            analytics.track('delete_refresh_job', {
+              id: rowData.id,
+            })
+            populateRefreshJobs()
+          }
+        } catch (error: unknown) {
+          console.error(error)
+        }
+      }
+      const confirmDelete = () => {
+        confirmDialog({
+          message: `Are you sure you want to delete the refresh job "${rowData.name}"?`,
+          icon: 'pi pi-exclamation-triangle',
+          accept: deleteRefreshJob,
+          acceptLabel: 'Delete',
+          rejectLabel: 'Cancel',
+          acceptClassName: 'p-button-danger',
+        })
+      }
       return (
         <>
           <Button
@@ -103,25 +133,7 @@ const RefreshJobs: FunctionComponent = () => {
             id="delete-refresh-job-button"
             className="p-button-text p-button-lg"
             icon="pi pi-trash"
-            onClick={async () => {
-              try {
-                const { data, error } = await supabase
-                  .from('refresh_jobs')
-                  .update({ deleted_at: new Date() })
-                  .eq('id', rowData.id)
-
-                if (error) {
-                  throw error
-                } else if (data) {
-                  analytics.track('delete_refresh_job', {
-                    id: rowData.id,
-                  })
-                  populateRefreshJobs()
-                }
-              } catch (error: unknown) {
-                console.error(error)
-              }
-            }}
+            onClick={confirmDelete}
           />
         </>
       )
@@ -293,6 +305,7 @@ const RefreshJobs: FunctionComponent = () => {
               />
               <Column body={editCellBodyTemplate} align="center" />
             </DataTable>
+            <ConfirmDialog />
           </div>
         </div>
       </Workspace>

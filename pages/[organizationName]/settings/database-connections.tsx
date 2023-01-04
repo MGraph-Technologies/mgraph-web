@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
@@ -85,6 +86,35 @@ const DatabaseConnections: FunctionComponent = () => {
   const editCellBodyTemplate: ColumnBodyType = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
+      const deleteDatabaseConnection = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('database_connections')
+            .update({ deleted_at: new Date() })
+            .eq('id', rowData.id)
+
+          if (error) {
+            throw error
+          } else if (data) {
+            analytics.track('delete_database_connection', {
+              id: rowData.id,
+            })
+            populateDatabaseConnections()
+          }
+        } catch (error: unknown) {
+          console.error(error)
+        }
+      }
+      const confirmDelete = () => {
+        confirmDialog({
+          message: `Are you sure you want to delete the database connection "${rowData.name}"?`,
+          icon: 'pi pi-exclamation-triangle',
+          accept: deleteDatabaseConnection,
+          acceptLabel: 'Delete',
+          rejectLabel: 'Cancel',
+          acceptClassName: 'p-button-danger',
+        })
+      }
       return (
         <>
           <Button
@@ -103,25 +133,7 @@ const DatabaseConnections: FunctionComponent = () => {
             id="delete-database-connection-button"
             className="p-button-text p-button-lg"
             icon="pi pi-trash"
-            onClick={async () => {
-              try {
-                const { data, error } = await supabase
-                  .from('database_connections')
-                  .update({ deleted_at: new Date() })
-                  .eq('id', rowData.id)
-
-                if (error) {
-                  throw error
-                } else if (data) {
-                  analytics.track('delete_database_connection', {
-                    id: rowData.id,
-                  })
-                  populateDatabaseConnections()
-                }
-              } catch (error: unknown) {
-                console.error(error)
-              }
-            }}
+            onClick={confirmDelete}
           />
         </>
       )
@@ -419,6 +431,7 @@ const DatabaseConnections: FunctionComponent = () => {
               />
               <Column body={editCellBodyTemplate} align="center" />
             </DataTable>
+            <ConfirmDialog />
           </div>
         </div>
       </Workspace>
