@@ -111,36 +111,29 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     )
 
     const populatePickerOptions = useCallback(async () => {
-      if (picker === 'conditions' || picker === 'dimension') {
-        const { data, error } = await supabase
-          .from('organizations')
-          .select('query_dimensions')
-          .is('deleted_at', null)
-          .eq('id', organizationId)
-          .single()
+      if (!['conditions', 'dimension', 'frequency'].includes(picker || '')) {
+        return
+      }
+      const colName = `query_${
+        picker == 'frequency' ? 'frequencies' : 'dimensions'
+      }`
+      const { data, error } = await supabase
+        .from('organizations')
+        .select(colName)
+        .is('deleted_at', null)
+        .eq('id', organizationId)
+        .single()
 
-        if (error) {
-          console.error(error)
-        }
+      if (error) {
+        console.error(error)
+      }
 
-        if (data) {
-          setPickerOptions(
-            data.query_dimensions.split(',').map((option: string) => {
-              return { label: option, value: option }
-            })
-          )
-        }
-      } else if (picker === 'frequency') {
-        setPickerOptions([
-          { label: 'SECOND', value: 'SECOND' },
-          { label: 'MINUTE', value: 'MINUTE' },
-          { label: 'HOUR', value: 'HOUR' },
-          { label: 'DAY', value: 'DAY' },
-          { label: 'WEEK', value: 'WEEK' },
-          { label: 'MONTH', value: 'MONTH' },
-          { label: 'QUARTER', value: 'QUARTER' },
-          { label: 'YEAR', value: 'YEAR' },
-        ])
+      if (data) {
+        setPickerOptions(
+          data[colName].split(',').map((option: string) => {
+            return { label: option, value: option }
+          })
+        )
       }
     }, [picker])
     useEffect(() => {
