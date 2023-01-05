@@ -16,15 +16,42 @@ import { analytics } from '../../../utils/segmentClient'
 import { supabase } from '../../../utils/supabaseClient'
 
 const QueryParameters: FunctionComponent = () => {
-  const { organizationId } = useAuth()
+  return (
+    <>
+      <Head>
+        <title>Query Parameters — MGraph</title>
+      </Head>
+      <Workspace>
+        <div className={styles.query_parameters_container}>
+          <div className={styles.query_parameters_title}>Query Parameters</div>
+          <SectionHeader title="Dimensions" size="h2" />
+          <Field name="dimensions" example="NULL,market" />
+          <SectionHeader title="Frequencies" size="h2" />
+          <Field
+            name="frequencies"
+            example="SECOND,MINUTE,HOUR,DAY,WEEK,MONTH,QUARTER,YEAR"
+          />
+        </div>
+      </Workspace>
+    </>
+  )
+}
 
-  const [dimensions, setDimensions] = useState('')
-  const populateDimensions = useCallback(async () => {
+type FieldProps = {
+  name: string
+  example: string
+}
+const Field: FunctionComponent<FieldProps> = ({ name, example }) => {
+  const { organizationId } = useAuth()
+  const [value, setValue] = useState('')
+
+  const populate = useCallback(async () => {
     if (organizationId) {
       try {
+        const colName = `query_${name}`
         const { data, error, status } = await supabase
           .from('organizations')
-          .select('query_dimensions')
+          .select(colName)
           .is('deleted_at', null)
           .eq('id', organizationId)
           .order('created_at', { ascending: true })
@@ -35,24 +62,25 @@ const QueryParameters: FunctionComponent = () => {
         }
 
         if (data) {
-          setDimensions(data.query_dimensions)
+          setValue(data[colName])
         }
       } catch (error: unknown) {
         console.error(error)
       }
     }
-  }, [organizationId])
+  }, [organizationId, name, setValue])
   useEffect(() => {
-    populateDimensions()
-  }, [populateDimensions])
+    populate()
+  }, [populate])
 
-  const updateDimensions = useCallback(
-    async (newDimensions: string) => {
+  const save = useCallback(
+    async (newValue: string) => {
       if (organizationId) {
         try {
-          const { data, error, status } = await supabase
+          const colName = `query_${name}`
+          const { error, status } = await supabase
             .from('organizations')
-            .update({ query_dimensions: newDimensions })
+            .update({ [colName]: newValue })
             .is('deleted_at', null)
             .eq('id', organizationId)
             .single()
@@ -60,61 +88,45 @@ const QueryParameters: FunctionComponent = () => {
           if (error && status !== 406) {
             throw error
           }
-
-          if (data) {
-            setDimensions(data.query_dimensions)
-          }
         } catch (error: unknown) {
           console.error(error)
         }
       }
     },
-    [organizationId]
+    [organizationId, name]
   )
-
   return (
-    <>
-      <Head>
-        <title>Query Parameters — MGraph</title>
-      </Head>
-      <Workspace>
-        <div className={styles.query_parameters_container}>
-          <div className={styles.query_parameters_title}>Query Parameters</div>
-          <SectionHeader title="Dimensions" size="h2" />
-          <EditText
-            id="dimensions-field"
-            value={dimensions}
-            onChange={(e) => {
-              setDimensions(e.target.value)
-            }}
-            onSave={({ value }) => {
-              updateDimensions(value)
-              analytics.track('update_query_dimensions', {
-                value: value,
-              })
-            }}
-            showEditButton
-            editButtonContent={
-              <Button
-                id="dimensions-field-edit-button"
-                icon="pi pi-pencil"
-                className="p-button-rounded p-button-text"
-                tooltip='Enter comma-separated values to populate the Dimensions picker (spaces will be preserved; e.g., "NULL,market")'
-                tooltipOptions={{
-                  style: { width: '300px' },
-                }}
-              />
-            }
-            style={{
-              backgroundColor: '#fff',
-              width: '300px',
-              border: '1px solid #d9d9d9',
-              borderRadius: '5px',
-            }}
-          />
-        </div>
-      </Workspace>
-    </>
+    <EditText
+      id={`${name}-field`}
+      value={value}
+      onChange={(e) => {
+        setValue(e.target.value)
+      }}
+      onSave={({ value }) => {
+        save(value)
+        analytics.track(`update_query_${name}`, {
+          value: value,
+        })
+      }}
+      showEditButton
+      editButtonContent={
+        <Button
+          id={`${name}-field-edit-button`}
+          icon="pi pi-pencil"
+          className="p-button-rounded p-button-text"
+          tooltip={`Enter comma-separated values to populate the ${name} picker (spaces will be preserved; e.g., "${example}")`}
+          tooltipOptions={{
+            style: { width: '300px' },
+          }}
+        />
+      }
+      style={{
+        backgroundColor: '#fff',
+        width: '300px',
+        border: '1px solid #d9d9d9',
+        borderRadius: '5px',
+      }}
+    />
   )
 }
 

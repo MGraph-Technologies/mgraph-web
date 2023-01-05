@@ -1122,7 +1122,7 @@ describe('Admin settings', () => {
 
     // add dimension
     const randomString = 'randomDimension_' + Math.random().toString(36)
-    cy.get('[id=dimensions-field-edit-button]').click()
+    cy.get('[id=dimensions-field-edit-button]').click().wait(1000)
     cy.get('[id=dimensions-field]').clear().type(randomString).parent().click()
 
     // check change has persisted
@@ -1132,13 +1132,38 @@ describe('Admin settings', () => {
 
     // reset
     const resetString = 'NULL,test_dimension'
-    cy.get('[id=dimensions-field-edit-button]').click()
+    cy.get('[id=dimensions-field-edit-button]').click().wait(1000)
     cy.get('[id=dimensions-field]').clear().type(resetString).parent().click()
 
     // check change has persisted
     cy.wait(2000)
     cy.reload()
     cy.get('[id=dimensions-field]').contains(resetString)
+  })
+
+  it('Visits query parameters page, edits then resets frequencies', () => {
+    // visit page
+    cy.visit('/mgraph/settings/query-parameters')
+
+    // add frequency
+    const randomString = 'randomFrequency_' + Math.random().toString(36)
+    cy.get('[id=frequencies-field-edit-button]').click().wait(1000)
+    cy.get('[id=frequencies-field]').clear().type(randomString).parent().click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=frequencies-field]').contains(randomString)
+
+    // reset
+    const resetString = 'SECOND,MINUTE,HOUR,DAY,WEEK,MONTH,QUARTER,YEAR'
+    cy.get('[id=frequencies-field-edit-button]').click().wait(1000)
+    cy.get('[id=frequencies-field]').clear().type(resetString).parent().click()
+
+    // check change has persisted
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=frequencies-field]').contains(resetString)
   })
 
   it('Visits refresh jobs page, then adds, edits, and deletes a job', () => {
