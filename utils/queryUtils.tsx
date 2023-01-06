@@ -113,7 +113,7 @@ export const getQueryParameters = async (
       /* output user's records first, so below logic to overwrite deleted user
         records with org default records will work */
       .order('user_id', { ascending: true })
-      // in rare case of multiple org defaults, use first one
+      // in case of dupes, use first one
       .order('created_at', { ascending: true })
 
     if (error && status !== 406) {
@@ -126,33 +126,43 @@ export const getQueryParameters = async (
         Array.from(names),
         queryParameters
       )
-      data.forEach((row) => {
-        if (row.user_id) {
-          queryParameters = {
-            ...queryParameters,
-            [row.name]: {
-              ...queryParameters[row.name],
-              userRecordId: row.id,
-              userValue: row.deleted_at === null ? row.value : '',
-            },
+      // dedupe data
+      data
+        .filter(
+          (row, index, self) =>
+            index ===
+            self.findIndex(
+              (r) => r.name === row.name && r.user_id === row.user_id
+            )
+          // set queryParameters
+        )
+        .forEach((row) => {
+          if (row.user_id) {
+            queryParameters = {
+              ...queryParameters,
+              [row.name]: {
+                ...queryParameters[row.name],
+                userRecordId: row.id,
+                userValue: row.deleted_at === null ? row.value : '',
+              },
+            }
+          } else {
+            const userValueExists = data.some(
+              (r) => r.name === row.name && r.user_id && r.deleted_at === null
+            )
+            queryParameters = {
+              ...queryParameters,
+              [row.name]: {
+                userRecordId: queryParameters[row.name].userRecordId,
+                userValue: userValueExists
+                  ? queryParameters[row.name].userValue
+                  : row.value,
+                orgDefaultRecordId: row.id,
+                orgDefaultValue: row.value,
+              },
+            }
           }
-        } else {
-          const userValueExists = data.some(
-            (r) => r.name === row.name && r.user_id && r.deleted_at === null
-          )
-          queryParameters = {
-            ...queryParameters,
-            [row.name]: {
-              userRecordId: queryParameters[row.name].userRecordId,
-              userValue: userValueExists
-                ? queryParameters[row.name].userValue
-                : row.value,
-              orgDefaultRecordId: row.id,
-              orgDefaultValue: row.value,
-            },
-          }
-        }
-      })
+        })
     }
   } catch (error: unknown) {
     console.error(error)
