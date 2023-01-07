@@ -10,6 +10,7 @@ import styles from '../../styles/GraphTable.module.css'
 import { analytics } from '../../utils/segmentClient'
 import LineChart from '../LineChart'
 import ControlPanel from './ControlPanel'
+import EditorDock from './editing/EditorDock'
 import NodePanel from './nodepanel/NodePanel'
 
 type GraphTableProps = {
@@ -208,9 +209,12 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
       }}
     >
       {expansionLevel === 0 && (
-        <div className={styles.control_panel_container}>
-          <ControlPanel />
-        </div>
+        <>
+          <div className={styles.control_panel_container}>
+            <ControlPanel />
+          </div>
+          <EditorDock parent="GraphTable" />
+        </>
       )}
       <DataTable
         value={metrics}
@@ -254,11 +258,20 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
 const GraphTableViewer: FunctionComponent = () => {
   const { graph, getConnectedObjects } = useGraph()
 
-  const [outputMetricNodes, setOutputMetricNodes] = useState<Node[]>([])
+  const [topLevelMetricNodes, setTopLevelMetricNodes] = useState<Node[]>([])
   useEffect(() => {
     if (graph && getConnectedObjects) {
-      setOutputMetricNodes(
-        graph.nodes.filter((node) => {
+      let _topLevelMetricNodes: Node[] = []
+      // attempt to sort by tablePosition
+      _topLevelMetricNodes = graph.nodes.filter((node) => {
+        return node.type === 'metric' && node.data.tablePosition
+      })
+      _topLevelMetricNodes.sort((a, b) => {
+        return a.data.tablePosition - b.data.tablePosition
+      })
+      if (_topLevelMetricNodes.length === 0) {
+        // fall back to output metrics if top level not manually defined
+        _topLevelMetricNodes = graph.nodes.filter((node) => {
           return (
             node.type === 'metric' &&
             getConnectedObjects(node, 1, 'outputs').filter(
@@ -266,11 +279,12 @@ const GraphTableViewer: FunctionComponent = () => {
             ).length === 0
           )
         })
-      )
+      }
+      setTopLevelMetricNodes(_topLevelMetricNodes)
     }
   }, [graph, getConnectedObjects])
 
-  return <GraphTable metricNodes={outputMetricNodes} expansionLevel={0} />
+  return <GraphTable metricNodes={topLevelMetricNodes} expansionLevel={0} />
 }
 
 export default GraphTableViewer
