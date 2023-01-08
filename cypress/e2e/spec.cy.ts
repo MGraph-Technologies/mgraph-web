@@ -321,6 +321,51 @@ describe('Graphviewer editing', () => {
     cy.get('[id=save-formula-button]').click()
   })
 
+  it('Edits table view order', () => {
+    cy.visit('/mgraph')
+
+    // go to metric page
+    cy.get('[id=link-to-detail-button]').first().click()
+    // wait for page to load
+    cy.get('[id=name-field]').contains(/^Metric: .+/)
+    // get a metric id + name
+    cy.url().then((url) => {
+      const metricId = url.split('/').pop()
+      cy.get('[id=name-field]')
+        .invoke('text')
+        .then((text) => {
+          const metricName = text.split(': ').pop() // remove 'Metric: ' prefix
+          cy.log(`metricId: ${metricId}`)
+          cy.log(`metricName: ${metricName}`)
+
+          // go back to graph
+          cy.visit('/mgraph')
+
+          // go to table view
+          cy.get('[class*=pi-table]').click()
+
+          // wait for table to load
+          cy.get('[class*=pi-info-circle]').should('be.visible')
+
+          // edit top-level metrics
+          cy.get('[id=edit-button]').click()
+          cy.get('[id=table-position-field]')
+            .click()
+            .clear()
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            .type(metricId!)
+          cy.get('[class*=Header]').first().click() // click outside of field to save
+
+          // check that metric is now at top of table
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          cy.get('td').contains(metricName!).should('be.visible')
+
+          // check that only metric is in table's top level
+          cy.get('tr').should('have.length', 1)
+        })
+    })
+  })
+
   // TODO: add and save (was having trouble with deletion)
 })
 
