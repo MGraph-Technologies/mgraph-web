@@ -482,6 +482,7 @@ export function GraphProvider({ children }: GraphProps) {
         dbtProjectMetricPath: null,
       },
       color: '#FFFFFF',
+      tablePosition: null,
       initialProperties: {},
       setNodeDataToChange: setNodeDataToChange,
       monitored: false,

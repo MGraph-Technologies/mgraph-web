@@ -35,6 +35,7 @@ export type MetricNodeProperties = {
   owner: string
   source: MetricNodeSource
   color: string
+  tablePosition: number | null
   // below not in postgres
   initialProperties: object
   setNodeDataToChange: (data: MetricNodeProperties) => void

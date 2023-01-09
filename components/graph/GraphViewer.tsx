@@ -419,7 +419,7 @@ const GraphViewer: FunctionComponent = () => {
         />
         <ControlPanel />
         <Controls showInteractive={false} />
-        <EditorDock />
+        <EditorDock parent="GraphViewer" />
         <MiniMap nodeColor="#AFADFF" nodeStrokeColor="#AFADFF" />
       </ReactFlow>
     </div>

@@ -101,6 +101,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 dbtProjectMetricPath: properties.source?.dbtProjectMetricPath,
               },
               color: properties.color,
+              tablePosition: properties.tablePosition,
               initialProperties: properties,
               setNodeDataToChange: () => {
                 return

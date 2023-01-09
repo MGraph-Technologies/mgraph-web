@@ -1,5 +1,6 @@
 import { Button } from 'primereact/button'
 import { InputSwitch } from 'primereact/inputswitch'
+import { InputText } from 'primereact/inputtext'
 import { Toolbar } from 'primereact/toolbar'
 import React, {
   FunctionComponent,
@@ -15,7 +16,10 @@ import { analytics } from '../../../utils/segmentClient'
 import FormulaEditor from './FormulaEditor'
 import UndoRedoSaveAndCancelGraphEditingButtons from './UndoRedoSaveAndCancelGraphEditingButtons'
 
-const _EditorDock: FunctionComponent = () => {
+type EditorDockProps = {
+  parent: 'GraphViewer' | 'GraphTable'
+}
+const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
   const { editingEnabled } = useEditability()
   const { graph, updateGraph, formMetricNode, formMissionNode } = useGraph()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
@@ -71,6 +75,44 @@ const _EditorDock: FunctionComponent = () => {
     updateGraph({ nodes: newNodes, edges: undefined }, true)
   }, [updateGraph, graph.nodes])
 
+  const [tablePositionFieldValue, setTablePositionFieldValue] = useState('')
+  useEffect(() => {
+    setTablePositionFieldValue(
+      graph.nodes
+        .filter((node) => node.type === 'metric' && node.data.tablePosition)
+        .map((node) => node.id)
+        .join(',')
+    )
+  }, [graph.nodes])
+  const processNewTablePositionFieldValue = useCallback(
+    (newTablePositionFieldValue: string) => {
+      if (!updateGraph) {
+        throw new Error('updateGraph is not defined')
+      }
+      const metricIds = newTablePositionFieldValue
+        .split(',')
+        .map((id) => id.trim())
+        .filter((id) => id !== '')
+      const newNodes = graph.nodes.map((node) => {
+        if (node.type === 'metric') {
+          const index = metricIds.indexOf(node.id) + 1 || null
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              tablePosition: index,
+            },
+          }
+        } else {
+          return node
+        }
+      })
+      analytics.track('set_table_positions')
+      updateGraph({ nodes: newNodes, edges: undefined }, true)
+    },
+    [updateGraph, graph.nodes]
+  )
+
   if (editingEnabled) {
     return (
       <div className={styles.editor_dock}>
@@ -80,37 +122,62 @@ const _EditorDock: FunctionComponent = () => {
           <Toolbar
             className={styles.editor_toolbar}
             left={
-              <>
-                <Button
-                  id="add-metric-button"
-                  label="+ Metric"
-                  onClick={addMetricNode}
-                  disabled={!formMetricNode || !updateGraph}
-                />
-                <Button
-                  id="add-formula-button"
-                  label="+ Formula"
-                  onClick={onFormulaAddition}
-                />
-                <label
-                  htmlFor="add-mission-toggle"
-                  className={styles.toggle_label}
-                >
-                  Show Mission
-                </label>
-                <InputSwitch
-                  id="add-mission-toggle"
-                  className={styles.toggle}
-                  checked={missionToggleChecked}
-                  onChange={(e) => {
-                    if (e.value) {
-                      addMissionNode()
-                    } else {
-                      deleteMissionNode()
-                    }
-                  }}
-                />
-              </>
+              parent === 'GraphViewer' ? (
+                <>
+                  <Button
+                    id="add-metric-button"
+                    label="+ Metric"
+                    onClick={addMetricNode}
+                    disabled={!formMetricNode || !updateGraph}
+                  />
+                  <Button
+                    id="add-formula-button"
+                    label="+ Formula"
+                    onClick={onFormulaAddition}
+                  />
+                  <label
+                    htmlFor="add-mission-toggle"
+                    className={styles.toggle_label}
+                  >
+                    Show Mission
+                  </label>
+                  <InputSwitch
+                    id="add-mission-toggle"
+                    className={styles.toggle}
+                    checked={missionToggleChecked}
+                    onChange={(e) => {
+                      if (e.value) {
+                        addMissionNode()
+                      } else {
+                        deleteMissionNode()
+                      }
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  <>
+                    <label htmlFor="table-position-field">
+                      Top-level Metrics:
+                    </label>
+                    <InputText
+                      id="table-position-field"
+                      className={styles.table_position_field}
+                      value={tablePositionFieldValue}
+                      onChange={(e) => {
+                        const newTablePositionFieldValue = e.target.value
+                        setTablePositionFieldValue(newTablePositionFieldValue)
+                      }}
+                      onBlur={() => {
+                        processNewTablePositionFieldValue(
+                          tablePositionFieldValue
+                        )
+                      }}
+                      tooltip="Enter a comma-separated list of metric IDs to show as the table's top-level metrics, or leave blank for smart ordering."
+                    />
+                  </>
+                </>
+              )
             }
             right={<UndoRedoSaveAndCancelGraphEditingButtons />}
           />
