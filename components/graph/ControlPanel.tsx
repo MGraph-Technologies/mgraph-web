@@ -1,9 +1,9 @@
 import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
+import { Checkbox } from 'primereact/checkbox'
 import { Dropdown } from 'primereact/dropdown'
 import { ListBox } from 'primereact/listbox'
-import { InputSwitch } from 'primereact/inputswitch'
 import { InputText } from 'primereact/inputtext'
 import { OverlayPanel, OverlayPanelEventType } from 'primereact/overlaypanel'
 import { SelectItemOptionsType } from 'primereact/selectitem'
@@ -166,12 +166,12 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
             <label htmlFor={snakeCaseName + '-field'}>{titleCaseName}</label>
           </b>
           {picker === 'boolean' ? (
-            <InputSwitch
+            <Checkbox
               id={snakeCaseName + '-field'}
               className={styles.query_parameter_field_picker_boolean}
               checked={userValue === 'TRUE'}
               onChange={(e) => {
-                setParameter(e.value ? 'TRUE' : 'FALSE')
+                setParameter(e.checked ? 'TRUE' : 'FALSE')
               }}
             />
           ) : (
