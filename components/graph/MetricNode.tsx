@@ -1,8 +1,10 @@
 import { Button } from 'primereact/button'
+import { OverlayPanel } from 'primereact/overlaypanel'
 import React, {
   FunctionComponent,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import { ColorResult, TwitterPicker } from 'react-color'
@@ -81,7 +83,6 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   useEffect(() => {
     setColor(data.color)
   }, [data.color])
-  const [displayColorPicker, setDisplayColorPicker] = useState(false)
   const saveColor = useCallback(
     (color: ColorResult) => {
       const newData = { ...data }
@@ -97,34 +98,6 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     },
     [setColor, saveColor]
   )
-
-  const ColorPicker: FunctionComponent = () => {
-    if (editingEnabled) {
-      return displayColorPicker ? (
-        <>
-          <TwitterPicker
-            color={color}
-            onChangeComplete={(color) => handleColorChangeComplete(color)}
-          />
-          <Button
-            id="close-node-coloring-button"
-            className="p-button-text p-button-lg"
-            icon="pi pi-times"
-            onClick={() => setDisplayColorPicker(false)}
-          />
-        </>
-      ) : (
-        <Button
-          id="expand-node-menu-button"
-          className="p-button-text p-button-lg"
-          icon="pi pi-palette"
-          onClick={() => setDisplayColorPicker(true)}
-        />
-      )
-    } else {
-      return null
-    }
-  }
 
   const [queryResult, setQueryResult] = useState<QueryResult>({
     status: 'processing',
@@ -184,7 +157,15 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
           onChange={(e) => setName(e.target.value)}
           onSave={saveName}
         />
-        <NodePanel nodeId={data.id} additions={<ColorPicker />} />
+        <NodePanel
+          nodeId={data.id}
+          additions={
+            <ColorPicker
+              color={color}
+              onChangeComplete={handleColorChangeComplete}
+            />
+          }
+        />
       </div>
       <div className={styles.chart_container}>
         <QueryRunner
@@ -252,6 +233,56 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
         style={formNodeHandleStyle!(data.id, 'target', Position.Left)}
       />
     </div>
+  )
+}
+
+type ColorPickerProps = {
+  color: string
+  onChangeComplete: (color: ColorResult) => void
+}
+const ColorPicker: FunctionComponent<ColorPickerProps> = ({
+  color,
+  onChangeComplete,
+}) => {
+  const { editingEnabled } = useEditability()
+  const [displayColorPicker, setDisplayColorPicker] = useState(false)
+  const pickerOverlayPanel = useRef<OverlayPanel>(null)
+  return (
+    <>
+      {editingEnabled && (
+        <>
+          <Button
+            id="toggle-color-picker-button"
+            className="p-button-text p-button-lg"
+            icon={displayColorPicker ? 'pi pi-times' : 'pi pi-palette'}
+            onClick={(e) => {
+              e.stopPropagation()
+              pickerOverlayPanel.current?.toggle(e)
+            }}
+          />
+          <OverlayPanel
+            id="node-coloring-overlay"
+            ref={pickerOverlayPanel}
+            onShow={() => setDisplayColorPicker(true)}
+            onHide={() => setDisplayColorPicker(false)}
+          >
+            <TwitterPicker
+              color={color}
+              onChangeComplete={onChangeComplete}
+              triangle="hide"
+              styles={{
+                default: {
+                  card: {
+                    boxShadow: 'none',
+                    border: 'none',
+                  },
+                },
+              }}
+            />
+          </OverlayPanel>
+        </>
+      )}
+    </>
   )
 }
 
