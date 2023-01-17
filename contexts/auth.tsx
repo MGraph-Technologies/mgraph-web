@@ -67,8 +67,7 @@ export function AuthProvider({ children }: AuthProps) {
   const [userCanView, setUserCanView] = useState(false)
   const [userOnMobile, setUserOnMobile] = useState(false)
   const populateAuthState = useCallback(async () => {
-    if (session === undefined) return
-    if (session?.user) {
+    if (session?.user?.id) {
       try {
         const { data, error, status } = await supabase
           .from('organization_members')
@@ -110,7 +109,7 @@ export function AuthProvider({ children }: AuthProps) {
         console.error(error)
       }
     }
-  }, [session])
+  }, [session?.user?.id, session?.user?.email])
   useEffect(() => {
     populateAuthState()
   }, [populateAuthState])
