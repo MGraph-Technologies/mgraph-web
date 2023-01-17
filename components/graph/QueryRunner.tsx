@@ -1,6 +1,7 @@
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../../contexts/auth'
+import { useGraph } from '../../contexts/graph'
 import { useQueries } from '../../contexts/queries'
 import { getLatestQueryId, parameterizeStatement } from '../../utils/queryUtils'
 import { supabase } from '../../utils/supabaseClient'
@@ -24,9 +25,10 @@ export type QueryResult = {
     | 'unexecuted'
     | 'success'
     | 'processing'
+    | 'parent_unsaved'
+    | 'parent_empty'
     | 'expired'
     | 'error'
-    | 'empty'
   data: QueryData | QueryError | null
 }
 
@@ -47,6 +49,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   setQueryResult,
 }) => {
   const { session } = useAuth()
+  const { initialGraph } = useGraph()
   const {
     globalQueryRefreshes,
     setGlobalQueryRefreshes,
@@ -170,9 +173,19 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
 
+    if (
+      !initialGraph.nodes.map((n) => n.id).includes(parentMetricNodeData.id)
+    ) {
+      setQueryResult({
+        status: 'parent_unsaved',
+        data: null,
+      })
+      return
+    }
+
     if (!shouldRunQuery()) {
       setQueryResult({
-        status: 'empty',
+        status: 'parent_empty',
         data: null,
       })
       return
@@ -234,6 +247,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   }, [
     getQueryResultComplete,
     parentMetricNodeData,
+    initialGraph.nodes,
     shouldRunQuery,
     session?.access_token,
     queryId,
