@@ -260,11 +260,17 @@ export function GraphProvider({ children }: GraphProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const [prevAccessToken, setPrevAccessToken] = useState<string | undefined>()
   const loadGraph = useCallback(async () => {
     const accessToken = session?.access_token
     if (!accessToken || !organizationId) {
       return
     }
+    // don't reload graph on access token change
+    if (accessToken !== prevAccessToken && prevAccessToken) {
+      return
+    }
+    setPrevAccessToken(accessToken)
     try {
       fetch(`/api/v1/graphs/${organizationId}`, {
         method: 'GET',
@@ -295,11 +301,9 @@ export function GraphProvider({ children }: GraphProps) {
     } catch (error: unknown) {
       console.error(error)
     }
-  }, [session?.access_token, organizationId, reset])
+  }, [session?.access_token, prevAccessToken, organizationId, reset])
   useEffect(() => {
-    if (loadGraph) {
-      loadGraph()
-    }
+    loadGraph()
   }, [loadGraph])
 
   const saveGraph = useCallback(async () => {
