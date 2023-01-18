@@ -180,6 +180,22 @@ const LineChart: FunctionComponent<LineChartProps> = ({
           )}
         </div>
       )
+    case 'parent_unsaved':
+      return (
+        <Message
+          severity="info"
+          text="Save metric and define source to view chart."
+          style={centerStyle}
+        />
+      )
+    case 'parent_empty':
+      return (
+        <Message
+          severity="info"
+          text="Define source to view chart."
+          style={centerStyle}
+        />
+      )
     case 'expired':
       return (
         <Message
@@ -201,14 +217,6 @@ const LineChart: FunctionComponent<LineChartProps> = ({
                 : JSON.stringify(queryError)
               : 'An error occurred.'
           }
-          style={centerStyle}
-        />
-      )
-    case 'empty':
-      return (
-        <Message
-          severity="info"
-          text="Define source to view chart."
           style={centerStyle}
         />
       )

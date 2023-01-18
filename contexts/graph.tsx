@@ -260,6 +260,7 @@ export function GraphProvider({ children }: GraphProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const [graphInitialized, setGraphInitialized] = useState(false)
   const loadGraph = useCallback(async () => {
     const accessToken = session?.access_token
     if (!accessToken || !organizationId) {
@@ -289,6 +290,7 @@ export function GraphProvider({ children }: GraphProps) {
               }),
             }
             setInitialGraph(_graph)
+            setGraphInitialized(true)
             reset(_graph)
           }
         })
@@ -297,10 +299,10 @@ export function GraphProvider({ children }: GraphProps) {
     }
   }, [session?.access_token, organizationId, reset])
   useEffect(() => {
-    if (loadGraph) {
+    if (!graphInitialized) {
       loadGraph()
     }
-  }, [loadGraph])
+  }, [loadGraph, graphInitialized])
 
   const saveGraph = useCallback(async () => {
     const accessToken = session?.access_token
