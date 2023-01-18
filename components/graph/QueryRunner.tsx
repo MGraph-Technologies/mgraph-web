@@ -64,6 +64,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
 
   const shouldRunQuery = useCallback(() => {
     return (
+      initialGraph.nodes.map((n) => n.id).includes(parentMetricNodeData?.id) &&
       parentMetricNodeData?.source?.databaseConnectionId &&
       parentMetricNodeData?.source?.query &&
       parentMetricNodeData?.source?.queryType &&
@@ -71,7 +72,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         parentMetricNodeData?.source?.dbtProjectMetricPath) ||
         parentMetricNodeData?.source?.queryType === 'freeform')
     )
-  }, [parentMetricNodeData])
+  }, [initialGraph.nodes, parentMetricNodeData])
 
   useEffect(() => {
     const parentNodeId = parentMetricNodeData?.id
