@@ -1,3 +1,4 @@
+import '@reactflow/node-resizer/dist/style.css'
 import moment from 'moment-timezone'
 import type { AppProps } from 'next/app'
 import { useRouter } from 'next/router'

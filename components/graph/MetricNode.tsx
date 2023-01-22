@@ -1,3 +1,4 @@
+import { NodeResizer } from '@reactflow/node-resizer'
 import { Button } from 'primereact/button'
 import { OverlayPanel } from 'primereact/overlaypanel'
 import React, {
@@ -58,8 +59,13 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
 }) => {
   const { userOnMobile } = useAuth()
   const { editingEnabled } = useEditability()
-  const { graph, reactFlowRenderer, reactFlowViewport, formNodeHandleStyle } =
-    useGraph()
+  const {
+    graph,
+    reactFlowRenderer,
+    reactFlowViewport,
+    updateGraph,
+    formNodeHandleStyle,
+  } = useGraph()
 
   const [thisNode, setThisNode] = useState<Node | undefined>(undefined)
   useEffect(() => {
@@ -134,10 +140,24 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     )
   }, [reactFlowViewport, reactFlowRenderer, thisNode, xPos, yPos, userOnMobile])
 
+  const onResizeStart = useCallback(() => {
+    // create update to undo to
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    updateGraph!(
+      {
+        nodes: undefined,
+        edges: undefined,
+      },
+      true
+    )
+  }, [updateGraph])
+
   return (
     <div
       className={styles.metric_node}
       style={{
+        height: `${thisNode?.height || 0}px`,
+        width: `${thisNode?.width || 0}px`,
         backgroundColor: color,
         border: selected ? '5px solid' : '1px solid',
       }}
@@ -231,6 +251,16 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
         position={Position.Left}
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'target', Position.Left)}
+      />
+      <NodeResizer
+        isVisible={editingEnabled}
+        handleStyle={{
+          width: '10px',
+          height: '10px',
+        }}
+        minHeight={288}
+        minWidth={512}
+        onResizeStart={onResizeStart}
       />
     </div>
   )
