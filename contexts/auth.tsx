@@ -17,6 +17,7 @@ type AuthContextType = {
   organizationEnabled: boolean
   organizationLogoStoragePath: string
   organizationName: string
+  userRole: string
   userIsAdmin: boolean
   userCanEdit: boolean
   userCanView: boolean
@@ -29,6 +30,7 @@ const authContextTypeValues: AuthContextType = {
   organizationEnabled: false,
   organizationLogoStoragePath: '',
   organizationName: '',
+  userRole: '',
   userIsAdmin: false,
   userCanEdit: false,
   userCanView: false,
@@ -62,6 +64,7 @@ export function AuthProvider({ children }: AuthProps) {
   const [organizationLogoStoragePath, setOrganizationLogoStoragePath] =
     useState('')
   const [organizationName, setOrganizationName] = useState('')
+  const [userRole, setUserRole] = useState('')
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [userCanEdit, setUserCanEdit] = useState(false)
   const [userCanView, setUserCanView] = useState(false)
@@ -87,11 +90,13 @@ export function AuthProvider({ children }: AuthProps) {
           setOrganizationEnabled(data.organizations.enabled)
           setOrganizationLogoStoragePath(data.organizations.logo_storage_path)
           setOrganizationName(data.organizations.name)
-          const _userIsAdmin = data.roles.name === 'admin'
+          const _userRole = data.roles.name
+          setUserRole(_userRole)
+          const _userIsAdmin = _userRole === 'admin'
           setUserIsAdmin(_userIsAdmin)
-          const _userCanEdit = _userIsAdmin || data.roles.name === 'editor'
+          const _userCanEdit = _userIsAdmin || _userRole === 'editor'
           setUserCanEdit(_userCanEdit)
-          const _userCanView = _userCanEdit || data.roles.name === 'viewer'
+          const _userCanView = _userCanEdit || _userRole === 'viewer'
           setUserCanView(_userCanView)
           setUserOnMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
 
@@ -120,6 +125,7 @@ export function AuthProvider({ children }: AuthProps) {
     organizationEnabled,
     organizationLogoStoragePath,
     organizationName,
+    userRole,
     userIsAdmin,
     userCanEdit,
     userCanView,
