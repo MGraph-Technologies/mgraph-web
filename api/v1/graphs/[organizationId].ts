@@ -7,7 +7,7 @@ import {
 } from '@supabase/supabase-js'
 import _ from 'lodash'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { Edge, Node } from 'react-flow-renderer'
+import { Edge, Node } from 'reactFlow'
 
 import { FunctionNodeProperties } from '../../../components/graph/FunctionNode'
 import { InputEdgeProperties } from '../../../components/graph/InputEdge'

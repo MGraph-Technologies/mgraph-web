@@ -10,7 +10,7 @@ import React, {
 import { ColorResult, TwitterPicker } from 'react-color'
 import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
-import { Handle, Node, Position } from 'react-flow-renderer'
+import { Handle, Node, Position } from 'reactFlow'
 
 import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
 import { useAuth } from '../../contexts/auth'
@@ -106,6 +106,9 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
 
   const [renderChart, setRenderChart] = useState(false)
   useEffect(() => {
+    console.log('reactFlowViewport', reactFlowViewport)
+    console.log('reactFlowRenderer', reactFlowRenderer)
+    console.log('thisNode', thisNode)
     if (!reactFlowViewport || !reactFlowRenderer || !thisNode) return
     const scale = 1 / reactFlowViewport.zoom
     const clientWidth = reactFlowRenderer.clientWidth

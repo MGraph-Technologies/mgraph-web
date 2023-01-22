@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { FunctionComponent, useEffect, useState } from 'react'
-import { ReactFlowProvider } from 'react-flow-renderer'
+import { ReactFlowProvider } from 'reactFlow'
 
 import { useAuth } from '../../contexts/auth'
 import GraphViewer from '../../components/graph/GraphViewer'

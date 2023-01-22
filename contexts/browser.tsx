@@ -89,7 +89,8 @@ export function BrowserProvider({ children }: BrowserProps) {
       if (
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
-        target.className.includes('ProseMirror tiptap-editor')
+        (target.className.includes &&
+          target.className.includes('ProseMirror tiptap-editor'))
       ) {
         if (e.type === 'focusin') {
           setInputInProgress(true)

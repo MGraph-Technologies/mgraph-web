@@ -20,7 +20,7 @@ import ReactFlow, {
   applyEdgeChanges,
   applyNodeChanges,
   useReactFlow,
-} from 'react-flow-renderer'
+} from 'reactFlow'
 
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
@@ -338,6 +338,17 @@ const GraphViewer: FunctionComponent = () => {
     ]
   )
 
+  const [reactFlowViewportInitialized, setReactFlowViewportInitialized] =
+    useState(false)
+  const onMove: OnMove = (_event, viewport) => {
+    // use to initialize reactFlowViewport
+    if (!reactFlowViewportInitialized) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      setReactFlowViewport!(viewport)
+      setReactFlowViewportInitialized(true)
+    }
+  }
+
   let lastMoveEndAt = 0
   const onMoveEnd: OnMove = (event, viewport) => {
     /* 
@@ -393,6 +404,7 @@ const GraphViewer: FunctionComponent = () => {
         onEdgeUpdateEnd={editingEnabled ? onEdgeUpdateEnd : undefined}
         onEdgesChange={onEdgesChange}
         onNodeDragStart={onNodeDragStart}
+        onMove={onMove}
         onMoveEnd={onMoveEnd}
         nodesDraggable={editingEnabled}
         nodesConnectable={edgeUpdateInProgress} // shows update preview while dragging

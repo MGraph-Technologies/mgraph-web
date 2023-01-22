@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from 'react'
-import { EdgeProps, getSmoothStepPath } from 'react-flow-renderer'
+import { EdgeProps, getSmoothStepPath } from 'reactFlow'
 
 export type InputEdgeProperties = {
   // TODO: figure out how to reference this in InputEdge's type
@@ -21,7 +21,7 @@ const InputEdge: FunctionComponent<EdgeProps> = ({
   targetPosition,
   style = { strokeWidth: 3 },
 }) => {
-  const edgePath = getSmoothStepPath({
+  const [path] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -32,12 +32,7 @@ const InputEdge: FunctionComponent<EdgeProps> = ({
 
   return (
     <>
-      <path
-        id={id}
-        style={style}
-        className="react-flow__edge-path"
-        d={edgePath}
-      />
+      <path id={id} style={style} className="react-flow__edge-path" d={path} />
     </>
   )
 }
