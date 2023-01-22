@@ -35,6 +35,9 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
   const { editingEnabled } = useEditability()
   const { graph, updateGraph, formNodeHandleStyle } = useGraph()
 
+  const INIT_HEIGHT = 144
+  const INIT_WIDTH = 1024
+
   const [thisNode, setThisNode] = useState<Node | undefined>(undefined)
   useEffect(() => {
     setThisNode(graph.nodes.find((node) => node.id === data.id))
@@ -83,8 +86,8 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
     <div
       className={styles.mission_node}
       style={{
-        height: `${thisNode?.height || 0}px`,
-        width: `${thisNode?.width || 0}px`,
+        height: `${thisNode?.height || INIT_HEIGHT}px`,
+        width: `${thisNode?.width || INIT_WIDTH}px`,
         backgroundColor: '#ffffff',
         border: selected ? '2px solid' : '1px solid',
       }}
@@ -178,8 +181,8 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
           width: '10px',
           height: '10px',
         }}
-        minHeight={288}
-        minWidth={512}
+        minHeight={INIT_HEIGHT}
+        minWidth={INIT_WIDTH}
         onResizeStart={onNodeResizeStart}
       />
     </div>

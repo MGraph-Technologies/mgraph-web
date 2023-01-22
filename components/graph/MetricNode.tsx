@@ -67,6 +67,9 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     formNodeHandleStyle,
   } = useGraph()
 
+  const INIT_HEIGHT = 288
+  const INIT_WIDTH = 512
+
   const [thisNode, setThisNode] = useState<Node | undefined>(undefined)
   useEffect(() => {
     setThisNode(graph.nodes.find((node) => node.id === data.id))
@@ -156,8 +159,8 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     <div
       className={styles.metric_node}
       style={{
-        height: `${thisNode?.height || 0}px`,
-        width: `${thisNode?.width || 0}px`,
+        height: `${thisNode?.height || INIT_HEIGHT}px`,
+        width: `${thisNode?.width || INIT_WIDTH}px`,
         backgroundColor: color,
         border: selected ? '5px solid' : '1px solid',
       }}
@@ -258,8 +261,8 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
           width: '10px',
           height: '10px',
         }}
-        minHeight={288}
-        minWidth={512}
+        minHeight={INIT_HEIGHT}
+        minWidth={INIT_WIDTH}
         onResizeStart={onResizeStart}
       />
     </div>
