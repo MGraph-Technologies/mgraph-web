@@ -59,13 +59,8 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
 }) => {
   const { userOnMobile } = useAuth()
   const { editingEnabled } = useEditability()
-  const {
-    graph,
-    reactFlowRenderer,
-    reactFlowViewport,
-    updateGraph,
-    formNodeHandleStyle,
-  } = useGraph()
+  const { graph, reactFlowRenderer, reactFlowViewport, formNodeHandleStyle } =
+    useGraph()
 
   const INIT_HEIGHT = 288
   const INIT_WIDTH = 512
@@ -144,16 +139,11 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   }, [reactFlowViewport, reactFlowRenderer, thisNode, xPos, yPos, userOnMobile])
 
   const onResizeStart = useCallback(() => {
-    // create update to undo to
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    updateGraph!(
-      {
-        nodes: undefined,
-        edges: undefined,
-      },
-      true
-    )
-  }, [updateGraph])
+    // a somewhat-hacky way to save node state so that resize can be undone;
+    // previous implementation (using updateGraph) was causing prior graph changes to be lost
+    const newData = { ...data }
+    data.setNodeDataToChange(newData)
+  }, [data])
 
   return (
     <div
