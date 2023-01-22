@@ -6,7 +6,7 @@ import React, {
 } from 'react'
 import { EditTextarea, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
-import { Handle, Position } from 'react-flow-renderer'
+import { Handle, Position } from 'reactflow'
 import useFitText from 'use-fit-text'
 
 import { useEditability } from '../../contexts/editability'

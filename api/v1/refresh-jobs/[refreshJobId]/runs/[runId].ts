@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
-import { Node } from 'react-flow-renderer'
+import { Node } from 'reactflow'
 
 import { Graph } from '../../../../../contexts/graph'
 import { SENTRY_CONFIG } from '../../../../../sentry.server.config.js'

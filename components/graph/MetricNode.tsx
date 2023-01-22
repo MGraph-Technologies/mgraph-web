@@ -10,7 +10,7 @@ import React, {
 import { ColorResult, TwitterPicker } from 'react-color'
 import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
-import { Handle, Node, Position } from 'react-flow-renderer'
+import { Handle, Node, Position } from 'reactflow'
 
 import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
 import { useAuth } from '../../contexts/auth'

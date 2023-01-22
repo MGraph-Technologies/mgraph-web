@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import 'react-edit-text/dist/index.css'
-import { Handle, Position } from 'react-flow-renderer'
+import { Handle, Position } from 'reactflow'
 
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/FunctionNode.module.css'

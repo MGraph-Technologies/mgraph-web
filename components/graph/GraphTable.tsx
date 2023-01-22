@@ -2,7 +2,7 @@ import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
-import { Node } from 'react-flow-renderer'
+import { Node } from 'reactflow'
 
 import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
 import { useGraph } from '../../contexts/graph'

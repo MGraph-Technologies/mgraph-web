@@ -12,7 +12,7 @@ import React, {
   useState,
 } from 'react'
 import { EditText } from 'react-edit-text'
-import { Edge, Node } from 'react-flow-renderer'
+import { Edge, Node } from 'reactflow'
 import Editor from 'react-simple-code-editor'
 import 'react-edit-text/dist/index.css'
 

@@ -16,7 +16,7 @@ import {
   ReactFlowInstance,
   Viewport,
   XYPosition,
-} from 'react-flow-renderer'
+} from 'reactflow'
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -401,7 +401,9 @@ export function GraphProvider({ children }: GraphProps) {
       const handleColor = handleType === 'source' ? 'green' : 'red'
       return {
         width: handleSize,
+        minWidth: handleSize,
         height: handleSize,
+        minHeight: handleSize,
         backgroundColor: handleColor,
       } as React.CSSProperties
     },

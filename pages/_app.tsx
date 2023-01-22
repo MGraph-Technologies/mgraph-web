@@ -5,6 +5,7 @@ import 'primeicons/primeicons.css' //icons
 import 'primereact/resources/primereact.min.css' //core css
 import 'primereact/resources/themes/lara-light-indigo/theme.css' //theme
 import { useEffect, useState } from 'react'
+import 'reactflow/dist/style.css'
 import { v4 as uuidv4 } from 'uuid'
 
 import { AuthProvider } from '../contexts/auth'
