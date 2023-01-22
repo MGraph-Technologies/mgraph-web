@@ -106,9 +106,6 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
 
   const [renderChart, setRenderChart] = useState(false)
   useEffect(() => {
-    console.log('reactFlowViewport', reactFlowViewport)
-    console.log('reactFlowRenderer', reactFlowRenderer)
-    console.log('thisNode', thisNode)
     if (!reactFlowViewport || !reactFlowRenderer || !thisNode) return
     const scale = 1 / reactFlowViewport.zoom
     const clientWidth = reactFlowRenderer.clientWidth
