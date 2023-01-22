@@ -1,6 +1,6 @@
 import { Button } from 'primereact/button'
 import { FunctionComponent } from 'react'
-import { Node } from 'reactFlow'
+import { Node } from 'reactflow'
 
 import { useAuth } from '../../../contexts/auth'
 import { useBrowser } from '../../../contexts/browser'

@@ -3,7 +3,7 @@ import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { OverlayPanel } from 'primereact/overlaypanel'
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
-import { Node } from 'reactFlow'
+import { Node } from 'reactflow'
 import { Comments, CommentsProvider } from 'supabase-comments-extension'
 
 import { useAuth } from '../../../contexts/auth'

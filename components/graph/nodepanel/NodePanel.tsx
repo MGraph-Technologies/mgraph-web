@@ -1,5 +1,5 @@
 import { FunctionComponent, ReactNode, useEffect, useState } from 'react'
-import { Node } from 'reactFlow'
+import { Node } from 'reactflow'
 
 import { useGraph } from '../../../contexts/graph'
 import styles from '../../../styles/NodePanel.module.css'

@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from 'react'
-import { EdgeProps, getSmoothStepPath } from 'reactFlow'
+import { EdgeProps, getSmoothStepPath } from 'reactflow'
 
 export type InputEdgeProperties = {
   // TODO: figure out how to reference this in InputEdge's type

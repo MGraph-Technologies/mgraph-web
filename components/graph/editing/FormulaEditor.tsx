@@ -1,7 +1,7 @@
 import { AutoComplete, AutoCompleteChangeParams } from 'primereact/autocomplete'
 import { Button } from 'primereact/button'
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
-import { Edge, Node } from 'reactFlow'
+import { Edge, Node } from 'reactflow'
 import { v4 as uuidv4 } from 'uuid'
 
 import { useGraph } from '../../../contexts/graph'

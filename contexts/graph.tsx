@@ -16,7 +16,7 @@ import {
   ReactFlowInstance,
   Viewport,
   XYPosition,
-} from 'reactFlow'
+} from 'reactflow'
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 

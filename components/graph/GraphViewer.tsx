@@ -20,7 +20,7 @@ import ReactFlow, {
   applyEdgeChanges,
   applyNodeChanges,
   useReactFlow,
-} from 'reactFlow'
+} from 'reactflow'
 
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
