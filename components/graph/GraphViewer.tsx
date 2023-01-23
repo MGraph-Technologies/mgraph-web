@@ -426,8 +426,8 @@ const GraphViewer: FunctionComponent = () => {
           variant={
             editingEnabled ? BackgroundVariant.Dots : BackgroundVariant.Lines
           }
-          gap={16}
-          size={1}
+          gap={32}
+          size={4}
         />
         <ControlPanel />
         <Controls showInteractive={false} />

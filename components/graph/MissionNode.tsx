@@ -1,3 +1,4 @@
+import { NodeResizer } from '@reactflow/node-resizer'
 import React, {
   FunctionComponent,
   useCallback,
@@ -6,7 +7,7 @@ import React, {
 } from 'react'
 import { EditTextarea, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
-import { Handle, Position } from 'reactflow'
+import { Handle, Node, Position } from 'reactflow'
 import useFitText from 'use-fit-text'
 
 import { useEditability } from '../../contexts/editability'
@@ -32,7 +33,15 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
   selected,
 }) => {
   const { editingEnabled } = useEditability()
-  const { formNodeHandleStyle } = useGraph()
+  const { graph, updateGraph, formNodeHandleStyle } = useGraph()
+
+  const INIT_HEIGHT = 144
+  const INIT_WIDTH = 1024
+
+  const [thisNode, setThisNode] = useState<Node | undefined>(undefined)
+  useEffect(() => {
+    setThisNode(graph.nodes.find((node) => node.id === data.id))
+  }, [graph.nodes, data.id])
 
   const [mission, setMission] = useState('')
   useEffect(() => {
@@ -41,7 +50,7 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
   }, [data.mission])
   const saveMission = useCallback(
     ({ value }: onSaveProps) => {
-      setResizeInProgress(true)
+      setFontResizeInProgress(true)
       const newData = { ...data }
       newData.mission = value
       data.setNodeDataToChange(newData)
@@ -49,22 +58,36 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
     [data]
   )
 
-  const [resizeInProgess, setResizeInProgress] = useState(true)
+  const [fontResizeInProgess, setFontResizeInProgress] = useState(true)
   const { fontSize, ref } = useFitText({
     maxFontSize: 10000,
     minFontSize: 0,
     onStart: () => {
-      setResizeInProgress(true)
+      setFontResizeInProgress(true)
     },
     onFinish: () => {
-      setResizeInProgress(false)
+      setFontResizeInProgress(false)
     },
   })
+
+  const onNodeResizeStart = useCallback(() => {
+    // create update to undo to
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    updateGraph!(
+      {
+        nodes: undefined,
+        edges: undefined,
+      },
+      true
+    )
+  }, [updateGraph])
 
   return (
     <div
       className={styles.mission_node}
       style={{
+        height: `${thisNode?.height || INIT_HEIGHT}px`,
+        width: `${thisNode?.width || INIT_WIDTH}px`,
         backgroundColor: '#ffffff',
         border: selected ? '2px solid' : '1px solid',
       }}
@@ -90,7 +113,7 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
             textAlign: 'center',
             fontWeight: 'bold',
             backgroundColor: editingEnabled ? '#f8f8f8' : '#ffffff',
-            visibility: resizeInProgess ? 'hidden' : 'visible',
+            visibility: fontResizeInProgess ? 'hidden' : 'visible',
           }}
           onChange={(e) => setMission(e.target.value)}
           onSave={saveMission}
@@ -151,6 +174,16 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
         position={Position.Left}
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         style={formNodeHandleStyle!(data.id, 'target', Position.Left)}
+      />
+      <NodeResizer
+        isVisible={editingEnabled}
+        handleStyle={{
+          width: '10px',
+          height: '10px',
+        }}
+        minHeight={INIT_HEIGHT}
+        minWidth={INIT_WIDTH}
+        onResizeStart={onNodeResizeStart}
       />
     </div>
   )

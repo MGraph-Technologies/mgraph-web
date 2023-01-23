@@ -243,6 +243,17 @@
     d3-zoom "^3.0.0"
     zustand "^4.3.1"
 
+"@reactflow/node-resizer@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@reactflow/node-resizer/-/node-resizer-1.2.2.tgz#d681d3bff5cc5279ac665308d963c538f3d4ee91"
+  integrity sha512-Mr/7BT6UkB11LifrDHzC7kwNR+eYi2T0k6tZtTJZuo7rgukGnGXp7+r2ERdB47vjqu71UZ3yTp1WGlOYxzTe0A==
+  dependencies:
+    "@reactflow/core" "11.4.2"
+    classcat "^5.0.4"
+    d3-drag "^3.0.0"
+    d3-selection "^3.0.0"
+    zustand "^4.3.1"
+
 "@reactflow/node-toolbar@1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@reactflow/node-toolbar/-/node-toolbar-1.1.2.tgz#577c63429526950083663dd869bc2c53eca9ea36"
@@ -2427,7 +2438,7 @@ ci-info@^3.2.0:
   resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-3.7.0.tgz#6d01b3696c59915b6ce057e4aa4adfc2fa25f5ef"
   integrity sha512-2CpRNYmImPx+RXKLq6jko/L07phmS9I02TyqkcNU20GCF/GgaWvc58hPtjxDX8lPpkdwc9sNh72V9k00S7ezog==
 
-classcat@^5.0.3:
+classcat@^5.0.3, classcat@^5.0.4:
   version "5.0.4"
   resolved "https://registry.yarnpkg.com/classcat/-/classcat-5.0.4.tgz#e12d1dfe6df6427f260f03b80dc63571a5107ba6"
   integrity sha512-sbpkOw6z413p+HDGcBENe498WM9woqWHiJxCq7nvmxe9WmrUmqfAcxpIwAiMtM5Q3AhYkzXcNQHqsWq0mND51g==

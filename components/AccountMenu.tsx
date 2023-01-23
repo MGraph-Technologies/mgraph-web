@@ -17,6 +17,7 @@ const AccountMenu: FunctionComponent = () => {
     organizationEnabled,
     organizationName,
     organizationLogoStoragePath,
+    userRole,
     userIsAdmin,
   } = useAuth()
   const { push } = useBrowser()
@@ -24,6 +25,7 @@ const AccountMenu: FunctionComponent = () => {
   const [userEmail, setUserEmail] = useState('')
   const [userName, setUserName] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
+  const [userDisplayRole, setUserDisplayRole] = useState('')
   useEffect(() => {
     setUserEmail(session?.user?.email || '')
   }, [session])
@@ -48,6 +50,11 @@ const AccountMenu: FunctionComponent = () => {
     }
     fetchAvatarUrl()
   }, [session])
+  useEffect(() => {
+    setUserDisplayRole(
+      userRole.replaceAll('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+    )
+  }, [userRole])
 
   const router = useRouter()
   async function handleSignOut() {
@@ -74,58 +81,58 @@ const AccountMenu: FunctionComponent = () => {
   }
 
   const overlayMenu = useRef<Menu>(null)
-  let overlayMenuItems = []
-  overlayMenuItems = [
-    {
-      label: userEmail,
+  const userSettingsSubMenuItems = []
+  if (organizationEnabled) {
+    userSettingsSubMenuItems.push({
+      label: userDisplayRole,
+      disabled: true,
+    })
+  }
+  userSettingsSubMenuItems.push({
+    label: 'Sign Out',
+    icon: 'pi pi-sign-out',
+    command: () => handleSignOut(),
+  })
+  const overlayMenuItems = []
+  overlayMenuItems.push({
+    label: userEmail,
+    items: userSettingsSubMenuItems,
+  })
+  if (userIsAdmin && organizationEnabled) {
+    overlayMenuItems.push({
+      label: 'Admin Settings',
       items: [
         {
-          label: 'Sign Out',
-          icon: 'pi pi-sign-out',
-          command: () => handleSignOut(),
+          label: 'Access Management',
+          icon: 'pi pi-users',
+          command: () =>
+            push('/' + organizationName + '/settings/access-management'),
+        },
+        {
+          label: 'Database Connections',
+          icon: 'pi pi-database',
+          command: () =>
+            push('/' + organizationName + '/settings/database-connections'),
+        },
+        {
+          label: 'Graph Syncs',
+          icon: 'pi pi-sync',
+          command: () => push('/' + organizationName + '/settings/graph-syncs'),
+        },
+        {
+          label: 'Query Parameters',
+          icon: 'pi pi-sliders-h',
+          command: () =>
+            push('/' + organizationName + '/settings/query-parameters'),
+        },
+        {
+          label: 'Refresh Jobs',
+          icon: 'pi pi-clock',
+          command: () =>
+            push('/' + organizationName + '/settings/refresh-jobs'),
         },
       ],
-    },
-  ]
-  if (userIsAdmin && organizationEnabled) {
-    overlayMenuItems = [
-      ...overlayMenuItems,
-      {
-        label: 'Admin Settings',
-        items: [
-          {
-            label: 'Access Management',
-            icon: 'pi pi-users',
-            command: () =>
-              push('/' + organizationName + '/settings/access-management'),
-          },
-          {
-            label: 'Database Connections',
-            icon: 'pi pi-database',
-            command: () =>
-              push('/' + organizationName + '/settings/database-connections'),
-          },
-          {
-            label: 'Graph Syncs',
-            icon: 'pi pi-sync',
-            command: () =>
-              push('/' + organizationName + '/settings/graph-syncs'),
-          },
-          {
-            label: 'Query Parameters',
-            icon: 'pi pi-sliders-h',
-            command: () =>
-              push('/' + organizationName + '/settings/query-parameters'),
-          },
-          {
-            label: 'Refresh Jobs',
-            icon: 'pi pi-clock',
-            command: () =>
-              push('/' + organizationName + '/settings/refresh-jobs'),
-          },
-        ],
-      },
-    ]
+    })
   }
 
   return (
