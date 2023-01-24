@@ -97,6 +97,14 @@ const LineChart: FunctionComponent<LineChartProps> = ({
           style={centerStyle}
         />
       )
+    case 'unauthorized':
+      return (
+        <Message
+          severity="error"
+          text="Unauthorized to view query result."
+          style={centerStyle}
+        />
+      )
     case 'success':
       // eslint-disable-next-line no-case-declarations
       const queryData = queryResult.data as QueryData

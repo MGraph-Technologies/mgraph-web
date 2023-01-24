@@ -1,6 +1,7 @@
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../../contexts/auth'
+import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import { useQueries } from '../../contexts/queries'
 import { getLatestQueryId, parameterizeStatement } from '../../utils/queryUtils'
@@ -23,6 +24,7 @@ export type QueryError = {
 export type QueryResult = {
   status:
     | 'unexecuted'
+    | 'unauthorized'
     | 'success'
     | 'processing'
     | 'parent_unsaved'
@@ -49,6 +51,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   setQueryResult,
 }) => {
   const { getValidAccessToken } = useAuth()
+  const { editingEnabled } = useEditability()
   const { initialGraph } = useGraph()
   const {
     globalQueryRefreshes,
@@ -60,9 +63,8 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   } = useQueries()
   const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
-  const [getQueryResultComplete, setGetQueryResultComplete] = useState(false)
 
-  const shouldRunQuery = useCallback(() => {
+  const parentPopulated = useCallback(() => {
     return (
       initialGraph.nodes.map((n) => n.id).includes(parentMetricNodeData?.id) &&
       parentMetricNodeData?.source?.databaseConnectionId &&
@@ -95,9 +97,9 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
     const accessToken = getValidAccessToken()
-    if (accessToken && shouldRunQuery()) {
+    if (accessToken && parentPopulated()) {
       try {
-        const queryId = await getLatestQueryId(
+        const _queryId = await getLatestQueryId(
           parameterizeStatement(
             parentMetricNodeData?.source?.query,
             queryParameters
@@ -106,15 +108,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           parentMetricNodeData?.id,
           supabase
         )
-        if (queryId) {
-          setQueryId(queryId)
-        } else {
-          setQueryResult({
-            status: 'unexecuted',
-            data: null,
-          })
-          setGetQueryResultComplete(true)
-        }
+        setQueryId(_queryId || 'unexecuted')
         setGetQueryIdComplete(true)
       } catch (error: unknown) {
         console.error(error)
@@ -123,21 +117,17 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   }, [
     getQueryIdComplete,
     getValidAccessToken,
-    shouldRunQuery,
+    parentPopulated,
     parentMetricNodeData?.source?.query,
     parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,
     queryParameters,
-    setQueryResult,
   ])
   useEffect(() => {
     getQueryId()
   }, [getQueryId])
 
   const cancelQuery = useCallback(async () => {
-    if (getQueryResultComplete) {
-      return
-    }
     const accessToken = getValidAccessToken()
     if (accessToken && queryId) {
       fetch('/api/v1/database-queries/' + queryId + '/cancel', {
@@ -147,7 +137,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         },
       })
     }
-  }, [getQueryResultComplete, getValidAccessToken, queryId])
+  }, [getValidAccessToken, queryId])
   useEffect(() => {
     const parentNodeId = parentMetricNodeData?.id
     if (queriesToCancel?.includes(parentNodeId)) {
@@ -163,10 +153,8 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   ])
 
   const getQueryResult = useCallback(async () => {
-    if (getQueryResultComplete) {
-      return
-    }
     if (!parentMetricNodeData) {
+      // show loading while initializing
       setQueryResult({
         status: 'processing',
         data: null,
@@ -174,8 +162,18 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
 
+    // special cases
+    const accessToken = getValidAccessToken()
+    if (!accessToken) {
+      setQueryResult({
+        status: 'unauthorized',
+        data: null,
+      })
+      return
+    }
+
     if (
-      !initialGraph.nodes.map((n) => n.id).includes(parentMetricNodeData.id)
+      !initialGraph.nodes.map((n) => n.id).includes(parentMetricNodeData?.id)
     ) {
       setQueryResult({
         status: 'parent_unsaved',
@@ -184,7 +182,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
 
-    if (!shouldRunQuery()) {
+    if (!parentPopulated()) {
       setQueryResult({
         status: 'parent_empty',
         data: null,
@@ -192,8 +190,16 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
 
-    const accessToken = getValidAccessToken()
-    if (!accessToken || !queryId) {
+    if (queryId === 'unexecuted') {
+      setQueryResult({
+        status: 'unexecuted',
+        data: null,
+      })
+      return
+    }
+
+    // normal loading
+    if (!queryId) {
       setQueryResult({
         status: 'processing',
         data: null,
@@ -214,7 +220,6 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
               status: 'success',
               data: data as QueryData,
             })
-            setGetQueryResultComplete(true)
           })
         } else if (response.status === 202) {
           setQueryResult({
@@ -229,7 +234,6 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
             status: 'expired',
             data: null,
           })
-          setGetQueryResultComplete(true)
         } else {
           response.json().then((data) => {
             setQueryResult({
@@ -238,7 +242,6 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
                 error: data.error,
               },
             })
-            setGetQueryResultComplete(true)
           })
         }
       })
@@ -246,11 +249,10 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         console.error(error)
       })
   }, [
-    getQueryResultComplete,
+    getValidAccessToken,
     parentMetricNodeData,
     initialGraph.nodes,
-    shouldRunQuery,
-    getValidAccessToken,
+    parentPopulated,
     queryId,
     setQueryResult,
   ])
@@ -261,7 +263,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
 
   const executeQuery = useCallback(async () => {
     const accessToken = getValidAccessToken()
-    if (accessToken && shouldRunQuery()) {
+    if (accessToken && parentPopulated()) {
       setQueryResult({
         status: 'processing',
         data: null,
@@ -286,7 +288,6 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
           if (response.status === 200) {
             response.json().then((data) => {
               setQueryId(data.queryId)
-              setGetQueryResultComplete(false)
             })
           } else {
             throw new Error(response.statusText)
@@ -303,7 +304,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
   }, [
     getValidAccessToken,
-    shouldRunQuery,
+    parentPopulated,
     parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,
     parentMetricNodeData?.source?.query,
@@ -328,7 +329,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
 
   useEffect(
     () => {
-      if (getQueryResultComplete) {
+      if (editingEnabled) {
         executeQuery()
       }
     },
