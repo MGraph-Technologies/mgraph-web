@@ -35,7 +35,6 @@ const GraphViewer: FunctionComponent = () => {
   const { organizationName } = useAuth()
   const { editingEnabled } = useEditability()
   const {
-    initialGraph,
     graph,
     setReactFlowInstance,
     reactFlowRenderer,
@@ -135,6 +134,8 @@ const GraphViewer: FunctionComponent = () => {
             reactFlowInstance!.fitView()
           }
         }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        setReactFlowViewport!(reactFlowInstance.getViewport())
       }
     }
     document.addEventListener('keydown', keyDownHandler)
@@ -151,6 +152,7 @@ const GraphViewer: FunctionComponent = () => {
     inputInProgress,
     reactFlowInstance,
     reactFlowViewport,
+    setReactFlowViewport,
   ])
 
   useEffect(() => {
@@ -159,15 +161,19 @@ const GraphViewer: FunctionComponent = () => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     setReactFlowRenderer!(document.querySelector('.react-flow__renderer')!)
   }, [reactFlowInstance, setReactFlowInstance, setReactFlowRenderer])
+
+  // fit on initial graph load
+  const [initialFitComplete, setInitialFitComplete] = useState(false)
   useEffect(() => {
-    if (reactFlowViewport) {
-      // persist viewport within a tab's page views
-      reactFlowInstance.setViewport(reactFlowViewport)
-    } else {
+    if (
+      !initialFitComplete &&
+      reactFlowInstance.viewportInitialized &&
+      graph.nodes.length > 0
+    ) {
       reactFlowInstance.fitView()
+      setInitialFitComplete(true)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reactFlowInstance.viewportInitialized, graph, initialGraph])
+  }, [initialFitComplete, reactFlowInstance, graph.nodes])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
