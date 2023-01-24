@@ -48,7 +48,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   queryResult,
   setQueryResult,
 }) => {
-  const { session } = useAuth()
+  const { getValidAccessToken } = useAuth()
   const { initialGraph } = useGraph()
   const {
     globalQueryRefreshes,
@@ -94,7 +94,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     if (getQueryIdComplete) {
       return
     }
-    const accessToken = session?.access_token
+    const accessToken = getValidAccessToken()
     if (accessToken && shouldRunQuery()) {
       try {
         const queryId = await getLatestQueryId(
@@ -122,7 +122,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     }
   }, [
     getQueryIdComplete,
-    session?.access_token,
+    getValidAccessToken,
     shouldRunQuery,
     parentMetricNodeData?.source?.query,
     parentMetricNodeData?.source?.databaseConnectionId,
@@ -138,7 +138,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     if (getQueryResultComplete) {
       return
     }
-    const accessToken = session?.access_token
+    const accessToken = getValidAccessToken()
     if (accessToken && queryId) {
       fetch('/api/v1/database-queries/' + queryId + '/cancel', {
         method: 'POST',
@@ -147,7 +147,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         },
       })
     }
-  }, [getQueryResultComplete, session?.access_token, queryId])
+  }, [getQueryResultComplete, getValidAccessToken, queryId])
   useEffect(() => {
     const parentNodeId = parentMetricNodeData?.id
     if (queriesToCancel?.includes(parentNodeId)) {
@@ -192,7 +192,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
 
-    const accessToken = session?.access_token
+    const accessToken = getValidAccessToken()
     if (!accessToken || !queryId) {
       setQueryResult({
         status: 'processing',
@@ -250,7 +250,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     parentMetricNodeData,
     initialGraph.nodes,
     shouldRunQuery,
-    session?.access_token,
+    getValidAccessToken,
     queryId,
     setQueryResult,
   ])
@@ -260,7 +260,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   }, [getQueryResult])
 
   const executeQuery = useCallback(async () => {
-    const accessToken = session?.access_token
+    const accessToken = getValidAccessToken()
     if (accessToken && shouldRunQuery()) {
       setQueryResult({
         status: 'processing',
@@ -302,7 +302,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         })
     }
   }, [
-    session?.access_token,
+    getValidAccessToken,
     shouldRunQuery,
     parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,

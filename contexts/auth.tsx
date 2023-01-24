@@ -13,6 +13,7 @@ import { supabase } from '../utils/supabaseClient'
 
 type AuthContextType = {
   session: Session | null | undefined
+  getValidAccessToken: () => string | null
   organizationId: string
   organizationEnabled: boolean
   organizationLogoStoragePath: string
@@ -26,6 +27,7 @@ type AuthContextType = {
 
 const authContextTypeValues: AuthContextType = {
   session: null,
+  getValidAccessToken: () => null,
   organizationId: '',
   organizationEnabled: false,
   organizationLogoStoragePath: '',
@@ -119,8 +121,19 @@ export function AuthProvider({ children }: AuthProps) {
     populateAuthState()
   }, [populateAuthState])
 
+  const getValidAccessToken = useCallback(() => {
+    const accessToken = session?.access_token
+    const expiresAt = (session?.expires_at || 0) * 1000
+    if (accessToken && expiresAt && new Date(expiresAt) > new Date()) {
+      return accessToken
+    } else {
+      return null
+    }
+  }, [session?.access_token, session?.expires_at])
+
   const value = {
     session,
+    getValidAccessToken,
     organizationId,
     organizationEnabled,
     organizationLogoStoragePath,
