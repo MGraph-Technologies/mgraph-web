@@ -41,7 +41,7 @@ type MetricDetailProps = {
   metricId: string
 }
 const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
-  const { session, organizationId, organizationName } = useAuth()
+  const { getValidAccessToken, organizationId, organizationName } = useAuth()
   const { editingEnabled } = useEditability()
   const { push } = useBrowser()
 
@@ -368,7 +368,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
       /* ^use this, rather than sourceDbtProjectMetricPath, so we don't 
       hit github on every keystroke */
     ) {
-      const accessToken = session?.access_token
+      const accessToken = getValidAccessToken()
       if (!accessToken) {
         return ''
       }
@@ -456,7 +456,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   }, [
     sourceDbtProjectGraphSync,
     metricNode?.data?.source?.dbtProjectMetricPath,
-    session,
+    getValidAccessToken,
   ])
   useEffect(() => {
     const f = async () => {

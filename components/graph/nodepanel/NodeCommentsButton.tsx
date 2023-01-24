@@ -2,7 +2,13 @@ import fetch from 'node-fetch'
 import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { OverlayPanel } from 'primereact/overlaypanel'
-import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { Node } from 'reactflow'
 import { Comments, CommentsProvider } from 'supabase-comments-extension'
 
@@ -19,7 +25,7 @@ type NodeCommentsButtonProps = {
 const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   node,
 }) => {
-  const { session } = useAuth()
+  const { getValidAccessToken } = useAuth()
   const commentsOverlay = useRef<OverlayPanel>(null)
   const [commentsOverlayVisible, setCommentsOverlayVisible] = useState(false)
 
@@ -89,12 +95,12 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   }, [commentsOverlayVisible, overlayDismissible])
 
   // TODO: move this to backend
-  const initiateNotifications = async () => {
+  const initiateNotifications = useCallback(async () => {
     if (!node) {
       console.error('No node to initiate notifications for')
       return
     }
-    const accessToken = session?.access_token
+    const accessToken = getValidAccessToken()
     if (!accessToken) {
       console.error('No access token to initiate notifications')
       return
@@ -111,7 +117,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
     if (notifResp.status !== 200) {
       console.error('Error initiating notifications', notifResp)
     }
-  }
+  }, [getValidAccessToken, node])
 
   if (node) {
     return (

@@ -23,7 +23,7 @@ import { SnowflakeCredentials } from '../../../utils/snowflakeCrypto'
 import { supabase } from '../../../utils/supabaseClient'
 
 const DatabaseConnections: FunctionComponent = () => {
-  const { organizationId, session } = useAuth()
+  const { getValidAccessToken, organizationId } = useAuth()
 
   const [databaseConnectionsTableLoading, setDatabaseConnectionsTableLoading] =
     useState(true)
@@ -301,7 +301,7 @@ const DatabaseConnections: FunctionComponent = () => {
                   id="save-database-connection-button"
                   label="Save"
                   onClick={async () => {
-                    const accessToken = session?.access_token
+                    const accessToken = getValidAccessToken()
                     if (organizationId && accessToken) {
                       try {
                         const {

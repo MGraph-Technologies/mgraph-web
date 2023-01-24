@@ -171,7 +171,7 @@ type GraphProps = {
 }
 
 export function GraphProvider({ children }: GraphProps) {
-  const { session, organizationId } = useAuth()
+  const { getValidAccessToken, organizationId } = useAuth()
   const { editingEnabled } = useEditability()
 
   const [initialGraph, setInitialGraph] = useState<Graph>({
@@ -262,7 +262,7 @@ export function GraphProvider({ children }: GraphProps) {
 
   const [graphInitialized, setGraphInitialized] = useState(false)
   const loadGraph = useCallback(async () => {
-    const accessToken = session?.access_token
+    const accessToken = getValidAccessToken()
     if (!accessToken || !organizationId) {
       return
     }
@@ -297,15 +297,25 @@ export function GraphProvider({ children }: GraphProps) {
     } catch (error: unknown) {
       console.error(error)
     }
-  }, [session?.access_token, organizationId, reset])
+  }, [getValidAccessToken, organizationId, reset])
   useEffect(() => {
     if (!graphInitialized) {
       loadGraph()
     }
   }, [loadGraph, graphInitialized])
 
+  // periodically reload graph if not editing
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!editingEnabled) {
+        loadGraph()
+      }
+    }, 1000 * 30)
+    return () => clearInterval(interval)
+  }, [editingEnabled, loadGraph])
+
   const saveGraph = useCallback(async () => {
-    const accessToken = session?.access_token
+    const accessToken = getValidAccessToken()
     if (!accessToken || !organizationId) {
       return
     }
@@ -323,7 +333,7 @@ export function GraphProvider({ children }: GraphProps) {
         'supabase-access-token': accessToken,
       },
     })
-  }, [session?.access_token, organizationId, graph, initialGraph])
+  }, [getValidAccessToken, organizationId, graph, initialGraph])
 
   const updateGraph = useCallback(
     (
