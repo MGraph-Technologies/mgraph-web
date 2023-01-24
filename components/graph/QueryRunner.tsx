@@ -64,15 +64,20 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
 
-  const parentPopulated = useCallback(() => {
-    return (
-      initialGraph.nodes.map((n) => n.id).includes(parentMetricNodeData?.id) &&
-      parentMetricNodeData?.source?.databaseConnectionId &&
-      parentMetricNodeData?.source?.query &&
-      parentMetricNodeData?.source?.queryType &&
-      ((parentMetricNodeData?.source?.dbtProjectGraphSyncId &&
-        parentMetricNodeData?.source?.dbtProjectMetricPath) ||
-        parentMetricNodeData?.source?.queryType === 'freeform')
+  const [parentPopulated, setParentPopulated] = useState(false)
+  useEffect(() => {
+    setParentPopulated(
+      Boolean(
+        initialGraph.nodes
+          .map((n) => n.id)
+          .includes(parentMetricNodeData?.id) &&
+          parentMetricNodeData?.source?.databaseConnectionId &&
+          parentMetricNodeData?.source?.query &&
+          parentMetricNodeData?.source?.queryType &&
+          ((parentMetricNodeData?.source?.dbtProjectGraphSyncId &&
+            parentMetricNodeData?.source?.dbtProjectMetricPath) ||
+            parentMetricNodeData?.source?.queryType === 'freeform')
+      )
     )
   }, [initialGraph.nodes, parentMetricNodeData])
 
@@ -97,7 +102,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
     const accessToken = getValidAccessToken()
-    if (accessToken && parentPopulated()) {
+    if (accessToken && parentPopulated) {
       try {
         const _queryId = await getLatestQueryId(
           parameterizeStatement(
@@ -164,7 +169,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   ])
 
   const getQueryResult = useCallback(async () => {
-    if (!parentMetricNodeData) {
+    if (!parentMetricNodeData?.id) {
       // show loading while initializing
       setQueryResult({
         status: 'processing',
@@ -193,7 +198,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
 
-    if (!parentPopulated()) {
+    if (!parentPopulated) {
       setQueryResult({
         status: 'parent_empty',
         data: null,
@@ -261,7 +266,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       })
   }, [
     getValidAccessToken,
-    parentMetricNodeData,
+    parentMetricNodeData?.id,
     initialGraph.nodes,
     parentPopulated,
     queryId,
@@ -274,11 +279,8 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
 
   const executeQuery = useCallback(async () => {
     const accessToken = getValidAccessToken()
-    if (accessToken && parentPopulated()) {
-      setQueryResult({
-        status: 'processing',
-        data: null,
-      })
+    if (accessToken && parentPopulated) {
+      setQueryId('')
       const queryBody = {
         databaseConnectionId:
           parentMetricNodeData?.source?.databaseConnectionId,
