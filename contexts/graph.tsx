@@ -304,6 +304,16 @@ export function GraphProvider({ children }: GraphProps) {
     }
   }, [loadGraph, graphInitialized])
 
+  // periodically reload graph if not editing
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!editingEnabled) {
+        loadGraph()
+      }
+    }, 1000 * 30)
+    return () => clearInterval(interval)
+  }, [editingEnabled, loadGraph])
+
   const saveGraph = useCallback(async () => {
     const accessToken = getValidAccessToken()
     if (!accessToken || !organizationId) {

@@ -123,9 +123,20 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     parentMetricNodeData?.id,
     queryParameters,
   ])
+
   useEffect(() => {
     getQueryId()
   }, [getQueryId])
+
+  // periodically check if reload available
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!editingEnabled) {
+        setGetQueryIdComplete(false)
+      }
+    }, 1000 * 30)
+    return () => clearInterval(interval)
+  }, [editingEnabled])
 
   const cancelQuery = useCallback(async () => {
     const accessToken = getValidAccessToken()
