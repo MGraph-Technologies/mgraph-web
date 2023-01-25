@@ -4,7 +4,11 @@ import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import { useQueries } from '../../contexts/queries'
-import { getLatestQueryId, parameterizeStatement } from '../../utils/queryUtils'
+import {
+  getLastUpdatedAt,
+  getLatestQueryId,
+  parameterizeStatement,
+} from '../../utils/queryUtils'
 import { supabase } from '../../utils/supabaseClient'
 import { MetricNodeProperties } from './MetricNode'
 
@@ -63,6 +67,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   } = useQueries()
   const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
+  const [queryUpdatedAt, setQueryUpdatedAt] = useState<Date | null>(null)
 
   const [parentPopulated, setParentPopulated] = useState(false)
   useEffect(() => {
@@ -133,15 +138,48 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     getQueryId()
   }, [getQueryId])
 
+  const checkForQueryUpdate = useCallback(async () => {
+    const accessToken = getValidAccessToken()
+    if (accessToken && queryId) {
+      try {
+        const _queryUpdatedAt = await getLastUpdatedAt(
+          'database_queries',
+          {
+            database_connection_id:
+              parentMetricNodeData?.source?.databaseConnectionId,
+            parent_node_id: parentMetricNodeData?.id,
+          },
+          supabase
+        )
+        if (
+          _queryUpdatedAt &&
+          queryUpdatedAt &&
+          _queryUpdatedAt > queryUpdatedAt
+        ) {
+          setGetQueryIdComplete(false)
+        }
+        setQueryUpdatedAt(_queryUpdatedAt)
+      } catch (error: unknown) {
+        console.error(error)
+      }
+    }
+  }, [
+    getValidAccessToken,
+    queryId,
+    parentMetricNodeData?.source?.databaseConnectionId,
+    parentMetricNodeData?.id,
+    queryUpdatedAt,
+  ])
+
   // periodically check if reload available
   useEffect(() => {
     const interval = setInterval(() => {
       if (!editingEnabled) {
-        setGetQueryIdComplete(false)
+        checkForQueryUpdate()
       }
-    }, 1000 * 30)
+    }, 1000 * 10)
     return () => clearInterval(interval)
-  }, [editingEnabled])
+  }, [editingEnabled, checkForQueryUpdate])
 
   const cancelQuery = useCallback(async () => {
     const accessToken = getValidAccessToken()
