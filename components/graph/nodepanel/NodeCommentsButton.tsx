@@ -33,7 +33,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   useEffect(() => {
     const recentCommentsCutoff = new Date(Date.now() - 86400000).toISOString()
     const fetchTopicRecentComments = async () => {
-      if (node) {
+      if (node?.id) {
         const { data, error } = await supabase
           .from('sce_comments')
           .select('id')
@@ -48,7 +48,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
       }
     }
     fetchTopicRecentComments()
-  }, [node])
+  }, [node?.id])
 
   // auto scroll top-level comments to bottom initially and on new comment
   // unfortunately there's no onCommment prop in SCE so we have to continuously check
