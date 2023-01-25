@@ -343,7 +343,11 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   useEffect(
     () => {
       if (editingEnabled) {
+        // user changed the query, execute it
         executeQuery()
+      } else {
+        // user canceled or someone else changed the query, reset
+        setGetQueryIdComplete(false)
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
