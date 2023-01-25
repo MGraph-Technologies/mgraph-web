@@ -48,6 +48,9 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
       }
     }
     fetchTopicRecentComments()
+    // continue to fetch periodically
+    const interval = setInterval(fetchTopicRecentComments, 1000 * 10)
+    return () => clearInterval(interval)
   }, [node?.id])
 
   // auto scroll top-level comments to bottom initially and on new comment

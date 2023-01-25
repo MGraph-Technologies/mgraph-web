@@ -283,9 +283,16 @@ export function GraphProvider({ children }: GraphProps) {
           { organization_id: organizationId },
           supabase
         )) || new Date(0)
+      const monitoringRuleEvalsUpdatedAt =
+        (await getLastUpdatedAt(
+          'latest_monitoring_rule_evaluations',
+          { organization_id: organizationId },
+          supabase
+        )) || new Date(0)
       if (
         nodesUpdatedAt < graphInitializedAt &&
-        edgesUpdatedAt < graphInitializedAt
+        edgesUpdatedAt < graphInitializedAt &&
+        monitoringRuleEvalsUpdatedAt < graphInitializedAt
       ) {
         reset(initialGraph)
         return
