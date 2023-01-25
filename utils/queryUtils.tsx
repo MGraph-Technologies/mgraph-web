@@ -3,6 +3,34 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { QueryData, QueryRow } from '../components/graph/QueryRunner'
 
+export const getLastUpdatedAt = async (
+  tableName: string,
+  match: Record<string, unknown>,
+  supabase: SupabaseClient
+) => {
+  let lastUpdatedAt: Date | null = null
+  try {
+    const { data, error, status } = await supabase
+      .from(tableName)
+      .select('updated_at')
+      .match(match)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+
+    if (error && status !== 406) {
+      throw error
+    }
+
+    if (data && data.length > 0) {
+      lastUpdatedAt = new Date(data[0].updated_at)
+    }
+  } catch (error: unknown) {
+    console.error(error)
+  }
+
+  return lastUpdatedAt
+}
+
 export const getLatestQueryId = async (
   statement: string,
   databaseConnectionId: string,

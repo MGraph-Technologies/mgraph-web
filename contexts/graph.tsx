@@ -30,6 +30,7 @@ import MetricNode, {
 import MissionNode, {
   MissionNodeProperties,
 } from '../components/graph/MissionNode'
+import { getLastUpdatedAt } from '../utils/queryUtils'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from './auth'
 import { useEditability } from './editability'
@@ -260,11 +261,42 @@ export function GraphProvider({ children }: GraphProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const [graphInitialized, setGraphInitialized] = useState(false)
+  const [graphInitializedAt, setGraphInitializedAt] = useState<
+    Date | undefined
+  >()
   const loadGraph = useCallback(async () => {
     const accessToken = getValidAccessToken()
     if (!accessToken || !organizationId) {
       return
+    }
+    // if graph not updated since last load, load from cache
+    if (graphInitializedAt) {
+      const nodesUpdatedAt =
+        (await getLastUpdatedAt(
+          'nodes',
+          { organization_id: organizationId },
+          supabase
+        )) || new Date(0)
+      const edgesUpdatedAt =
+        (await getLastUpdatedAt(
+          'edges',
+          { organization_id: organizationId },
+          supabase
+        )) || new Date(0)
+      const monitoringRuleEvalsUpdatedAt =
+        (await getLastUpdatedAt(
+          'latest_monitoring_rule_evaluations',
+          { organization_id: organizationId },
+          supabase
+        )) || new Date(0)
+      if (
+        nodesUpdatedAt < graphInitializedAt &&
+        edgesUpdatedAt < graphInitializedAt &&
+        monitoringRuleEvalsUpdatedAt < graphInitializedAt
+      ) {
+        reset(initialGraph)
+        return
+      }
     }
     try {
       fetch(`/api/v1/graphs/${organizationId}`, {
@@ -289,20 +321,26 @@ export function GraphProvider({ children }: GraphProps) {
                 }
               }),
             }
+            setGraphInitializedAt(new Date())
             setInitialGraph(_graph)
-            setGraphInitialized(true)
             reset(_graph)
           }
         })
     } catch (error: unknown) {
       console.error(error)
     }
-  }, [getValidAccessToken, organizationId, reset])
+  }, [
+    getValidAccessToken,
+    organizationId,
+    graphInitializedAt,
+    initialGraph,
+    reset,
+  ])
   useEffect(() => {
-    if (!graphInitialized) {
+    if (!graphInitializedAt) {
       loadGraph()
     }
-  }, [loadGraph, graphInitialized])
+  }, [loadGraph, graphInitializedAt])
 
   // periodically reload graph if not editing
   useEffect(() => {
@@ -310,7 +348,7 @@ export function GraphProvider({ children }: GraphProps) {
       if (!editingEnabled) {
         loadGraph()
       }
-    }, 1000 * 30)
+    }, 1000 * 10)
     return () => clearInterval(interval)
   }, [editingEnabled, loadGraph])
 

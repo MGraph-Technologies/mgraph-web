@@ -4,7 +4,11 @@ import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import { useQueries } from '../../contexts/queries'
-import { getLatestQueryId, parameterizeStatement } from '../../utils/queryUtils'
+import {
+  getLastUpdatedAt,
+  getLatestQueryId,
+  parameterizeStatement,
+} from '../../utils/queryUtils'
 import { supabase } from '../../utils/supabaseClient'
 import { MetricNodeProperties } from './MetricNode'
 
@@ -63,16 +67,22 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   } = useQueries()
   const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
+  const [queryUpdatedAt, setQueryUpdatedAt] = useState<Date | null>(null)
 
-  const parentPopulated = useCallback(() => {
-    return (
-      initialGraph.nodes.map((n) => n.id).includes(parentMetricNodeData?.id) &&
-      parentMetricNodeData?.source?.databaseConnectionId &&
-      parentMetricNodeData?.source?.query &&
-      parentMetricNodeData?.source?.queryType &&
-      ((parentMetricNodeData?.source?.dbtProjectGraphSyncId &&
-        parentMetricNodeData?.source?.dbtProjectMetricPath) ||
-        parentMetricNodeData?.source?.queryType === 'freeform')
+  const [parentPopulated, setParentPopulated] = useState(false)
+  useEffect(() => {
+    setParentPopulated(
+      Boolean(
+        initialGraph.nodes
+          .map((n) => n.id)
+          .includes(parentMetricNodeData?.id) &&
+          parentMetricNodeData?.source?.databaseConnectionId &&
+          parentMetricNodeData?.source?.query &&
+          parentMetricNodeData?.source?.queryType &&
+          ((parentMetricNodeData?.source?.dbtProjectGraphSyncId &&
+            parentMetricNodeData?.source?.dbtProjectMetricPath) ||
+            parentMetricNodeData?.source?.queryType === 'freeform')
+      )
     )
   }, [initialGraph.nodes, parentMetricNodeData])
 
@@ -97,7 +107,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
     const accessToken = getValidAccessToken()
-    if (accessToken && parentPopulated()) {
+    if (accessToken && parentPopulated) {
       try {
         const _queryId = await getLatestQueryId(
           parameterizeStatement(
@@ -128,15 +138,48 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     getQueryId()
   }, [getQueryId])
 
+  const checkForQueryUpdate = useCallback(async () => {
+    const accessToken = getValidAccessToken()
+    if (accessToken && queryId) {
+      try {
+        const _queryUpdatedAt = await getLastUpdatedAt(
+          'database_queries',
+          {
+            database_connection_id:
+              parentMetricNodeData?.source?.databaseConnectionId,
+            parent_node_id: parentMetricNodeData?.id,
+          },
+          supabase
+        )
+        if (
+          _queryUpdatedAt &&
+          queryUpdatedAt &&
+          _queryUpdatedAt > queryUpdatedAt
+        ) {
+          setGetQueryIdComplete(false)
+        }
+        setQueryUpdatedAt(_queryUpdatedAt)
+      } catch (error: unknown) {
+        console.error(error)
+      }
+    }
+  }, [
+    getValidAccessToken,
+    queryId,
+    parentMetricNodeData?.source?.databaseConnectionId,
+    parentMetricNodeData?.id,
+    queryUpdatedAt,
+  ])
+
   // periodically check if reload available
   useEffect(() => {
     const interval = setInterval(() => {
       if (!editingEnabled) {
-        setGetQueryIdComplete(false)
+        checkForQueryUpdate()
       }
-    }, 1000 * 30)
+    }, 1000 * 10)
     return () => clearInterval(interval)
-  }, [editingEnabled])
+  }, [editingEnabled, checkForQueryUpdate])
 
   const cancelQuery = useCallback(async () => {
     const accessToken = getValidAccessToken()
@@ -164,7 +207,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   ])
 
   const getQueryResult = useCallback(async () => {
-    if (!parentMetricNodeData) {
+    if (!parentMetricNodeData?.id) {
       // show loading while initializing
       setQueryResult({
         status: 'processing',
@@ -193,7 +236,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
 
-    if (!parentPopulated()) {
+    if (!parentPopulated) {
       setQueryResult({
         status: 'parent_empty',
         data: null,
@@ -261,7 +304,7 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       })
   }, [
     getValidAccessToken,
-    parentMetricNodeData,
+    parentMetricNodeData?.id,
     initialGraph.nodes,
     parentPopulated,
     queryId,
@@ -274,11 +317,8 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
 
   const executeQuery = useCallback(async () => {
     const accessToken = getValidAccessToken()
-    if (accessToken && parentPopulated()) {
-      setQueryResult({
-        status: 'processing',
-        data: null,
-      })
+    if (accessToken && parentPopulated) {
+      setQueryId('')
       const queryBody = {
         databaseConnectionId:
           parentMetricNodeData?.source?.databaseConnectionId,
@@ -341,7 +381,11 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   useEffect(
     () => {
       if (editingEnabled) {
+        // user changed the query, execute it
         executeQuery()
+      } else {
+        // user canceled or someone else changed the query, reset
+        setGetQueryIdComplete(false)
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
