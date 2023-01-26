@@ -16,26 +16,26 @@ import { Edge, Node } from 'reactflow'
 import Editor from 'react-simple-code-editor'
 import 'react-edit-text/dist/index.css'
 
-import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
-import SectionHeader from '../../components/SectionHeader'
-import { useAuth } from '../../contexts/auth'
-import { useEditability } from '../../contexts/editability'
-import { useGraph } from '../../contexts/graph'
-import { useBrowser } from '../../contexts/browser'
-import styles from '../../styles/MetricDetail.module.css'
-import { highlight } from '../../utils/codeHighlighter'
-import { supabase } from '../../utils/supabaseClient'
-import LineChart from '../LineChart'
-import ControlPanel from './ControlPanel'
-import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
+import { QueryResult, QueryRunner } from '../../../components/graph/QueryRunner'
+import SectionHeader from '../../../components/SectionHeader'
+import { useAuth } from '../../../contexts/auth'
+import { useEditability } from '../../../contexts/editability'
+import { useGraph } from '../../../contexts/graph'
+import { useBrowser } from '../../../contexts/browser'
+import styles from '../../../styles/MetricDetail.module.css'
+import { highlight } from '../../../utils/codeHighlighter'
+import { supabase } from '../../../utils/supabaseClient'
+import LineChart from '../../LineChart'
+import ControlPanel from './../ControlPanel'
+import UndoRedoSaveAndCancelGraphEditingButtons from './../editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import {
   MetricNodeProperties,
   MetricNodeSource,
   SourceQueryType,
-} from './MetricNode'
-import MonitoringRulesTable from '../MonitoringRulesTable'
-import NodePanel from './nodepanel/NodePanel'
-import UserAvatar from '../UserAvatar'
+} from './../MetricNode'
+import NodePanel from './../nodepanel/NodePanel'
+import UserAvatar from '../../UserAvatar'
+import MonitoringRulesTable from './MonitoringRulesTable'
 
 type MetricDetailProps = {
   metricId: string

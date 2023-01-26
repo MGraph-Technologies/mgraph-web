@@ -4,13 +4,13 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 
 import {
-  MonitoringRuleEvaluationStatus,
-  MonitoringRuleProperties,
-} from '../../../../../components/MonitoringRulesTable'
-import {
   QueryData,
   QueryRow,
 } from '../../../../../components/graph/QueryRunner'
+import {
+  MonitoringRuleEvaluationStatus,
+  MonitoringRuleProperties,
+} from '../../../../../components/graph/metric_detail/MonitoringRulesTable'
 import { SENTRY_CONFIG } from '../../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../../utils/appBaseUrl'
 import {
