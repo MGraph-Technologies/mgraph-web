@@ -733,6 +733,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           {editingEnabled && sourceQueryType === 'freeform' ? (
             <Editor
               id="source-query-field"
+              className={styles.editor}
               value={sourceQuery}
               onValueChange={(query) => setSourceQuery(query)}
               onBlur={() => {
