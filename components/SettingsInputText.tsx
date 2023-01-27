@@ -3,6 +3,7 @@ import { InputText } from 'primereact/inputtext'
 import React, { FunctionComponent } from 'react'
 
 import styles from '../styles/SettingsInputText.module.css'
+import MentionField from './MentionField'
 
 type SettingsInputTextProps = {
   label: string
@@ -28,20 +29,31 @@ const SettingsInputText: FunctionComponent<SettingsInputTextProps> = ({
   return (
     <div className={styles.settings_input_text_container}>
       <div>
-        <label htmlFor={id} style={{ display: 'block', fontWeight: 'bold' }}>
+        <label htmlFor={id} className={styles.settings_input_text_label}>
           {label}
         </label>
-        <InputText
-          id={id}
-          value={value}
-          onChange={(e) => {
-            setValue(e.target.value)
-          }}
-          type={type}
-          style={{ width: '300px', display: 'block', border: '1px solid #ccc' }}
-          placeholder={placeholder}
-          onClick={onClick}
-        />
+        {type === 'mentionableText' ? (
+          <MentionField
+            id={id}
+            className={styles.settings_input_text_field}
+            value={value}
+            setValue={setValue}
+            placeholder={placeholder}
+            onClick={onClick}
+          />
+        ) : (
+          <InputText
+            id={id}
+            className={styles.settings_input_text_field}
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value)
+            }}
+            type={type}
+            placeholder={placeholder}
+            onClick={onClick}
+          />
+        )}
       </div>
       {tooltip && (
         <Button

@@ -43,9 +43,11 @@ export type MonitoringRuleLatestEvaluation = {
 
 type MonitoringRulesTableProps = {
   parentNodeId: string
+  includeConfirmDialogFC?: boolean // avoid double dialogs if parent hosting multiple tables
 }
 const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   parentNodeId,
+  includeConfirmDialogFC = true,
 }) => {
   const { organizationId, userCanEdit } = useAuth()
   const { editingEnabled } = useEditability()
@@ -588,7 +590,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             />
           )}
         </DataTable>
-        <ConfirmDialog />
+        {includeConfirmDialogFC && <ConfirmDialog />}
       </div>
     </>
   )
