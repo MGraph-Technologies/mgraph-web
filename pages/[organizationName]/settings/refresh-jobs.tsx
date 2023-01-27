@@ -163,6 +163,11 @@ const RefreshJobs: FunctionComponent = () => {
     setUpsertJobIsNew(true)
   }, [])
 
+  const onDialogCancel = useCallback(() => {
+    setShowUpsertJobPopup(false)
+    clearFields()
+  }, [clearFields])
+
   return (
     <>
       <Head>
@@ -186,10 +191,7 @@ const RefreshJobs: FunctionComponent = () => {
               visible={showUpsertJobPopup}
               resizable={false}
               draggable={false}
-              closable={false} // use cancel button instead
-              onHide={() => {
-                return
-              }} // handled by buttons, but required
+              onHide={onDialogCancel}
             >
               <SettingsInputText
                 label="Name"
@@ -270,10 +272,7 @@ const RefreshJobs: FunctionComponent = () => {
                   id="cancel-refresh-job-button"
                   className="p-button-outlined"
                   label="Cancel"
-                  onClick={() => {
-                    setShowUpsertJobPopup(false)
-                    clearFields()
-                  }}
+                  onClick={onDialogCancel}
                 />
               </div>
             </Dialog>

@@ -322,6 +322,11 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
     setUpsertRuleIsNew(true)
   }, [])
 
+  const onDialogCancel = useCallback(() => {
+    setShowUpsertRulePopup(false)
+    clearFields()
+  }, [clearFields])
+
   return (
     <>
       {userCanEdit && editingEnabled && (
@@ -340,10 +345,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             visible={showUpsertRulePopup}
             resizable={false}
             draggable={false}
-            closable={false} // use cancel button instead
-            onHide={() => {
-              return
-            }} // handled by buttons, but required
+            onHide={onDialogCancel}
           >
             <SettingsInputText
               label="Rule Name"
@@ -527,10 +529,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                 id="cancel-monitoring-rule-button"
                 className="p-button-outlined"
                 label="Cancel"
-                onClick={() => {
-                  setShowUpsertRulePopup(false)
-                  clearFields()
-                }}
+                onClick={onDialogCancel}
               />
             </div>
           </Dialog>

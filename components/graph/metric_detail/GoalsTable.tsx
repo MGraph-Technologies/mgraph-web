@@ -221,6 +221,11 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
     setUpsertGoalIsNew(true)
   }, [])
 
+  const onDialogCancel = useCallback(() => {
+    setShowUpsertGoalPopup(false)
+    clearFields()
+  }, [clearFields])
+
   return (
     <>
       {userCanEdit && editingEnabled && (
@@ -239,10 +244,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
             visible={showUpsertGoalPopup}
             resizable={false}
             draggable={false}
-            closable={false} // use cancel button instead
-            onHide={() => {
-              return
-            }} // handled by buttons, but required
+            onHide={onDialogCancel}
           >
             <SettingsInputText
               label="Name"
@@ -437,10 +439,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
                 id="cancel-goal-button"
                 className="p-button-outlined"
                 label="Cancel"
-                onClick={() => {
-                  setShowUpsertGoalPopup(false)
-                  clearFields()
-                }}
+                onClick={onDialogCancel}
               />
             </div>
           </Dialog>
