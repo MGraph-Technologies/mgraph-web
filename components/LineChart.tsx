@@ -14,19 +14,14 @@ import { ProgressSpinner } from 'primereact/progressspinner'
 import { FunctionComponent, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 
-import {
-  QueryColumn,
-  QueryData,
-  QueryError,
-  QueryResult,
-  QueryRow,
-} from '../components/graph/QueryRunner'
+import { QueryError, QueryResult } from '../components/graph/QueryRunner'
 import styles from '../styles/LineChart.module.css'
 import { useAuth } from '../contexts/auth'
 import {
-  checkColumnsStructure,
-  sortQueryRowsByDate,
-  snowflakeDateToJsDate,
+  MetricData,
+  QueryData,
+  sortMetricRowsByDate,
+  verifyMetricData,
 } from '../utils/queryUtils'
 
 ChartJS.register(
@@ -50,7 +45,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   const { userOnMobile } = useAuth()
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
-  const makeChartJsDatasets = (columns: QueryColumn[], rows: QueryRow[]) => {
+  const makeChartJsDatasets = (metricData: MetricData) => {
+    const { rows } = metricData
     const datasets: {
       label: string
       data: { x: Date; y: number | null }[]
@@ -66,15 +62,15 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       '#E84855', // red
       '#787878', // grey
     ]
-    const dimensions = Array.from(new Set(rows.map((row: QueryRow) => row[1])))
+    const dimensions = Array.from(new Set(rows.map((row) => row[1])))
     dimensions.forEach((dimension, index) => {
-      let dimensionRows = rows.filter((row: QueryRow) => row[1] === dimension)
-      dimensionRows = sortQueryRowsByDate(dimensionRows)
+      let dimensionRows = rows.filter((row) => row[1] === dimension)
+      dimensionRows = sortMetricRowsByDate(dimensionRows)
       datasets.push({
         label: dimension,
-        data: dimensionRows.map((row: QueryRow) => ({
-          x: snowflakeDateToJsDate(row[0]),
-          y: row[2] !== 'None' ? parseFloat(row[2]) : null,
+        data: dimensionRows.map((row) => ({
+          x: row[0],
+          y: row[2],
         })),
         backgroundColor: SERIESCOLORS[index % SERIESCOLORS.length],
         borderColor: SERIESCOLORS[index % SERIESCOLORS.length],
@@ -107,13 +103,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       )
     case 'success':
       // eslint-disable-next-line no-case-declarations
-      const queryData = queryResult.data as QueryData
-      if (
-        !queryData ||
-        !queryData.columns ||
-        !queryData.rows ||
-        !checkColumnsStructure(queryData)
-      ) {
+      const metricData = verifyMetricData(queryResult.data as QueryData)
+      if (!metricData) {
         return (
           <Message
             severity="error"
@@ -122,7 +113,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
           />
         )
       } else {
-        const datasets = makeChartJsDatasets(queryData.columns, queryData.rows)
+        const datasets = makeChartJsDatasets(metricData)
         const numberToOverlay =
           datasets.length === 1
             ? // last non-null value
@@ -162,7 +153,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
                     plugins: {
                       subtitle: {
                         display: true,
-                        text: 'Last updated: ' + queryData.executedAt,
+                        text: 'Last updated: ' + metricData.executedAt,
                         position: 'bottom',
                         align: 'end',
                       },

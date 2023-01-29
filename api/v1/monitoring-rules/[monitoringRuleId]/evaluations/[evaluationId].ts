@@ -4,23 +4,19 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 
 import {
-  QueryData,
-  QueryRow,
-} from '../../../../../components/graph/QueryRunner'
-import {
   MonitoringRuleEvaluationStatus,
   MonitoringRuleProperties,
 } from '../../../../../components/graph/metric_detail/MonitoringRulesTable'
 import { SENTRY_CONFIG } from '../../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../../utils/appBaseUrl'
 import {
-  checkColumnsStructure,
+  QueryData,
   getLatestQueryId,
   getQueryParameters,
   overrideQueryParameters,
   parameterizeStatement,
-  snowflakeDateToJsDate,
-  sortQueryRowsByDate,
+  sortMetricRowsByDate,
+  verifyMetricData,
 } from '../../../../../utils/queryUtils'
 import { MetricNodeProperties } from '../../../../../components/graph/MetricNode'
 
@@ -215,27 +211,25 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               `Monitoring rule failed to evaluate: query status ${queryStatus}.`
             )
           } else {
-            const queryData = (await queryResultResp.json()) as QueryData
-            if (!checkColumnsStructure(queryData)) {
+            const metricData = verifyMetricData(
+              (await queryResultResp.json()) as QueryData
+            )
+            if (!metricData) {
               processAlert(
                 `Monitoring rule failed to evaluate: query result does not have the expected columns structure.`
               )
             } else {
-              const rows = sortQueryRowsByDate(queryData.rows)
-              const dimensions = Array.from(
-                new Set(rows.map((row: QueryRow) => row[1]))
-              )
+              const rows = sortMetricRowsByDate(metricData.rows)
+              const dimensions = Array.from(new Set(rows.map((row) => row[1])))
               dimensions.forEach((dimension: string) => {
-                const dimensionRows = rows.filter(
-                  (row: QueryRow) => row[1] === dimension
-                )
+                const dimensionRows = rows.filter((row) => row[1] === dimension)
                 const dimensionRowsToEval = dimensionRows.slice(
                   -lookbackPeriods
                 )
                 dimensionRowsToEval.forEach((row) => {
-                  const date = snowflakeDateToJsDate(row[0])
+                  const date = row[0]
                   const dimension = row[1]
-                  const value = parseFloat(row[2])
+                  const value = row[2]
                   if (
                     alertIfValue === 'insideRangeInclusive' &&
                     value >= rangeLowerBound &&

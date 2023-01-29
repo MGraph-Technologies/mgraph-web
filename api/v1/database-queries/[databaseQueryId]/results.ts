@@ -3,14 +3,15 @@ import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 
+import { QueryError } from '../../../../components/graph/QueryRunner'
+import { SENTRY_CONFIG } from '../../../../sentry.server.config.js'
+import { getBaseUrl } from '../../../../utils/appBaseUrl'
 import {
   QueryColumn,
   QueryData,
-  QueryError,
+  QueryDataType,
   QueryRow,
-} from '../../../../components/graph/QueryRunner'
-import { SENTRY_CONFIG } from '../../../../sentry.server.config.js'
-import { getBaseUrl } from '../../../../utils/appBaseUrl'
+} from '../../../../utils/queryUtils'
 import {
   decryptCredentials,
   formJdbcUrl,
@@ -20,6 +21,34 @@ Sentry.init(SENTRY_CONFIG)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+const SNOWFLAKE_DATE_TYPES = [
+  'DATE',
+  'TIMESTAMP',
+  'TIMESTAMPNTZ',
+  'TIMESTAMPLTZ',
+  'TIMESTAMPTZ',
+]
+const SNOWFLAKE_NUMBER_TYPES = [
+  'DECIMAL',
+  'DOUBLE',
+  'DOUBLE PRECISION',
+  'FIXED',
+  'FLOAT',
+  'FLOAT4',
+  'FLOAT8',
+  'INTEGER',
+  'NUMBER',
+  'NUMERIC',
+  'REAL',
+]
+
+const snowflakeDateToJsDate = (snowflakeDate: string) => {
+  // strip tz info
+  const _snowflakeDate = snowflakeDate.replace(/(Z|[-+]\d{2}:\d{2})$/, '')
+  const date = new Date(_snowflakeDate + 'Z')
+  return date
+}
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log(
@@ -92,16 +121,43 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const queryStatus = (await queryStatusResp.json()) as any
         if (queryStatusResp.status === 200) {
           console.log('\nQuery successful, relaying results...')
-          const columns = queryStatus.resultSetMetaData.rowType.map(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (col: any) => {
-              return {
-                name: col.name,
-                type: col.type,
-              } as QueryColumn
-            }
-          )
+          const columns: QueryColumn[] =
+            queryStatus.resultSetMetaData.rowType.map(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (col: any) => {
+                let colType: QueryDataType = 'string'
+                if (SNOWFLAKE_DATE_TYPES.includes(col.type)) {
+                  colType = 'date'
+                } else if (SNOWFLAKE_NUMBER_TYPES.includes(col.type)) {
+                  colType = 'number'
+                }
+                return {
+                  name: col.name,
+                  type: colType,
+                } as QueryColumn
+              }
+            )
           const rows = queryStatus.data as QueryRow[]
+          // Convert values
+          rows.forEach((row) => {
+            row.forEach((val, i) => {
+              let newVal = val
+              // Convert 'None' values to null (since it's written in Python, snowflake-jdbc-proxy returns 'None' for null values))
+              if (val === 'None') {
+                newVal = null
+              }
+              // Convert Snowflake date types
+              if (newVal && columns[i].type === 'date') {
+                newVal = snowflakeDateToJsDate(newVal as string)
+                // Convert Snowflake number types
+              } else if (newVal && columns[i].type === 'number') {
+                newVal = Number(newVal)
+              }
+              if (newVal !== val) {
+                row[i] = newVal
+              }
+            })
+          })
           const executedAt = new Date(data.created_at)
           res.setHeader('Cache-Control', 'max-age=31536000')
           return res.status(200).json({
