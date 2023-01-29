@@ -142,8 +142,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           rows.forEach((row) => {
             row.forEach((val, i) => {
               let newVal = val
-              // Convert 'None' values to null (since it's written in Python, snowflake-jdbc-proxy returns 'None' for null values))
-              if (val === 'None') {
+              // Convert null values
+              if (val === 'convert_to_null') {
                 newVal = null
               }
               // Convert Snowflake date types

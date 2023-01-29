@@ -67,7 +67,11 @@ class handler(BaseHTTPRequestHandler):
       while result_set.next():
         row = []
         for i in range(1, len(column_names) + 1):
-          row.append(str(result_set.getString(i)))
+          # encode Nones
+          if result_set.getObject(i) is None:
+            row.append('convert_to_null')
+          else:
+            row.append(str(result_set.getString(i)))
         data.append(row)
       
       result_body = {
