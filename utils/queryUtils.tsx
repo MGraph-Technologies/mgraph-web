@@ -1,12 +1,13 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
 
+/***** QUERY EXECUTION STUFF *****/
+// /results handles conversion from raw db formats to ones below
+// we only convert dates and numbers currently, other types left as strings
 export type QueryDataType = 'date' | 'number' | 'string'
 export type QueryColumn = {
   name: string
   type: QueryDataType
-  // /results handles conversion from raw db formats to ones below
-  // we only convert dates and numbers currently, other types left as strings
 }
 export type QueryRow = unknown[]
 export type QueryData = {
@@ -83,6 +84,32 @@ export const getLatestQueryId = async (
   return queryId
 }
 
+export const sortMetricRowsByDate = (rows: MetricRow[]) => {
+  return rows.sort((a, b) => {
+    // type check
+    const aDate = a[0]
+    const bDate = b[0]
+    return aDate.getTime() - bDate.getTime()
+  })
+}
+
+export const verifyMetricData = (queryData: QueryData): MetricData | null => {
+  if (queryData && queryData.columns && queryData.rows) {
+    const { columns } = queryData
+    if (
+      columns &&
+      columns.length === 3 &&
+      columns[0].type === 'date' &&
+      columns[1].type === 'string' &&
+      columns[2].type === 'number'
+    ) {
+      return queryData as MetricData
+    }
+  }
+  return null
+}
+
+/***** QUERY PARAMETER STUFF *****/
 /* On getQueryParameters, blank queryParameters values are initialized for the set of
   parameter keys which have either a user-specfic or org-default value in the
   database. These are then populated with database values to the extent possible.
@@ -104,20 +131,23 @@ export type QueryParameterOverrides = {
   [name: string]: string
 }
 
-export const verifyMetricData = (queryData: QueryData): MetricData | null => {
-  if (queryData && queryData.columns && queryData.rows) {
-    const { columns } = queryData
-    if (
-      columns &&
-      columns.length === 3 &&
-      columns[0].type === 'date' &&
-      columns[1].type === 'string' &&
-      columns[2].type === 'number'
-    ) {
-      return queryData as MetricData
+export const formQueryParametersScaffold = (
+  names: string[],
+  queryParameters: QueryParameters
+) => {
+  let newQueryParameters = { ...queryParameters }
+  names.forEach((name) => {
+    newQueryParameters = {
+      ...newQueryParameters,
+      [name]: {
+        userRecordId: uuidv4(),
+        userValue: '',
+        orgDefaultRecordId: uuidv4(),
+        orgDefaultValue: '',
+      },
     }
-  }
-  return null
+  })
+  return newQueryParameters
 }
 
 export const getQueryParameters = async (
@@ -194,25 +224,6 @@ export const getQueryParameters = async (
   return queryParameters
 }
 
-export const formQueryParametersScaffold = (
-  names: string[],
-  queryParameters: QueryParameters
-) => {
-  let newQueryParameters = { ...queryParameters }
-  names.forEach((name) => {
-    newQueryParameters = {
-      ...newQueryParameters,
-      [name]: {
-        userRecordId: uuidv4(),
-        userValue: '',
-        orgDefaultRecordId: uuidv4(),
-        orgDefaultValue: '',
-      },
-    }
-  })
-  return newQueryParameters
-}
-
 export const overrideQueryParameters = (
   queryParameters: QueryParameters,
   queryParameterOverrides: QueryParameterOverrides
@@ -241,14 +252,5 @@ export const parameterizeStatement = (
     } else {
       return ''
     }
-  })
-}
-
-export const sortMetricRowsByDate = (rows: MetricRow[]) => {
-  return rows.sort((a, b) => {
-    // type check
-    const aDate = a[0]
-    const bDate = b[0]
-    return aDate.getTime() - bDate.getTime()
   })
 }
