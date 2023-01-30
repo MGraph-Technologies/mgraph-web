@@ -4,8 +4,9 @@ import { Node } from 'reactflow'
 import { useGraph } from '../../../contexts/graph'
 import styles from '../../../styles/NodePanel.module.css'
 import NodeCommentsButton from './NodeCommentsButton'
+import NodeGoalsStatusButton from './NodeGoalsStatusButton'
 import NodeInfoButton from './NodeInfoButton'
-import NodeStatusButton from './NodeStatusButton'
+import NodeMonitoringRulesStatusButton from './NodeMonitoringRulesStatusButton'
 
 type NodePanelProps = {
   nodeId: string
@@ -25,7 +26,8 @@ const NodePanel: FunctionComponent<NodePanelProps> = ({
   return (
     <div className={styles.menu_container}>
       {additions}
-      <NodeStatusButton node={node} />
+      <NodeGoalsStatusButton node={node} />
+      <NodeMonitoringRulesStatusButton node={node} />
       <NodeCommentsButton node={node} />
       <NodeInfoButton node={node} />
     </div>

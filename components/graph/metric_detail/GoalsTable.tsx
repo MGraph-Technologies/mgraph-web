@@ -132,47 +132,10 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
   const statusCellBodyTemplate: ColumnBodyType = (rowData: Goal) => {
     const goalStatus =
       goalStatusMap?.[parentNodeId]?.[rowData.id] ?? 'unevaluated'
-    let buttonIcon: string | undefined
-    let buttonClassExtension: string
-    let buttonTooltip: string
-    switch (goalStatus) {
-      case 'achieved':
-        buttonIcon = 'pi pi-check-circle'
-        buttonClassExtension = 'p-button-success'
-        buttonTooltip =
-          'Goal achieved: final goal value was met or exceeded by immediately-preceding actual value'
-        break
-      case 'missed':
-        buttonIcon = 'pi pi-times-circle'
-        buttonClassExtension = 'p-button-danger'
-        buttonTooltip =
-          'Goal missed: final goal value was not met or exceeded by immediately-preceding actual value'
-        break
-      case 'ahead':
-        buttonIcon = 'pi pi-circle'
-        buttonClassExtension = 'p-button-success'
-        buttonTooltip =
-          'Goal ahead: most recent actual value meets or exceeds goal line'
-        break
-      case 'behind':
-        buttonIcon = 'pi pi-circle'
-        buttonClassExtension = 'p-button-warning'
-        buttonTooltip =
-          'Goal behind: most recent actual value does not meet or exceed goal line'
-        break
-      case 'unevaluated':
-        buttonIcon = 'pi pi-question-circle'
-        buttonClassExtension = 'p-button-secondary'
-        buttonTooltip =
-          'Goal not evaluated: change query parameters to evaluate'
-        break
-    }
     return (
-      <Button
-        id={`${rowData.id}-status-button`}
-        className={`p-button-lg p-button-text ${buttonClassExtension}`}
-        icon={buttonIcon}
-        tooltip={buttonTooltip}
+      <GoalStatusIndicator
+        id={`${rowData.id}-goal-status-indicator`}
+        goalStatus={goalStatus}
       />
     )
   }
@@ -550,6 +513,62 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
         {includeConfirmDialogFC && <ConfirmDialog />}
       </div>
     </>
+  )
+}
+
+type GoalStatusIndicatorProps = {
+  id: string
+  goalStatus: GoalStatus
+  onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
+}
+export const GoalStatusIndicator: FunctionComponent<
+  GoalStatusIndicatorProps
+> = ({ id, goalStatus, onClick = undefined }) => {
+  let buttonIcon: string
+  let buttonClassExtension: string
+  let buttonTooltip: string
+  switch (goalStatus) {
+    case 'achieved':
+      buttonIcon = 'pi pi-check-circle'
+      buttonClassExtension = 'p-button-success'
+      buttonTooltip =
+        'Goal achieved: final goal value was met or exceeded by immediately-preceding actual value'
+      break
+    case 'missed':
+      buttonIcon = 'pi pi-times-circle'
+      buttonClassExtension = 'p-button-danger'
+      buttonTooltip =
+        'Goal missed: final goal value was not met or exceeded by immediately-preceding actual value'
+      break
+    case 'ahead':
+      buttonIcon = 'pi pi-circle'
+      buttonClassExtension = 'p-button-success'
+      buttonTooltip =
+        'Goal ahead: most recent actual value meets or exceeds goal line'
+      break
+    case 'behind':
+      buttonIcon = 'pi pi-circle'
+      buttonClassExtension = 'p-button-warning'
+      buttonTooltip =
+        'Goal behind: most recent actual value does not meet or exceed goal line'
+      break
+    case 'unevaluated':
+      buttonIcon = 'pi pi-question-circle'
+      buttonClassExtension = 'p-button-secondary'
+      buttonTooltip = 'Goal not evaluated: change query parameters to evaluate'
+      break
+  }
+  return (
+    <Button
+      id={id}
+      className={`p-button-lg p-button-text ${buttonClassExtension}`}
+      icon={buttonIcon}
+      tooltip={buttonTooltip}
+      tooltipOptions={{
+        style: { width: '300px' },
+      }}
+      onClick={onClick}
+    />
   )
 }
 

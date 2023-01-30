@@ -6,12 +6,12 @@ import { useAuth } from '../../../contexts/auth'
 import { useBrowser } from '../../../contexts/browser'
 import { analytics } from '../../../utils/segmentClient'
 
-type NodeStatusButtonProps = {
+type NodeMonitoringRulesStatusButtonProps = {
   node: Node | undefined
 }
-const NodeStatusButton: FunctionComponent<NodeStatusButtonProps> = ({
-  node,
-}) => {
+const NodeMonitoringRulesStatusButton: FunctionComponent<
+  NodeMonitoringRulesStatusButtonProps
+> = ({ node }) => {
   const { organizationName } = useAuth()
   const { push } = useBrowser()
 
@@ -70,4 +70,4 @@ const NodeStatusButton: FunctionComponent<NodeStatusButtonProps> = ({
   }
 }
 
-export default NodeStatusButton
+export default NodeMonitoringRulesStatusButton
