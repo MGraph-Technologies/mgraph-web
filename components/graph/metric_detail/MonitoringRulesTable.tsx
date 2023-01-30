@@ -269,16 +269,16 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   const alertCellBodyTemplate: ColumnBodyType = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
-      return ['alert', 'timed_out'].includes(
-        rowData.latestEvaluation?.status
-      ) ? (
-        <Button
-          id="alert-button"
-          className="p-button-text p-button-lg p-button-danger"
-          icon="pi pi-flag-fill"
-          tooltip="This rule's last evaluation resulted in an alert."
+      return (
+        <MonitoringStatusIndicator
+          id={`${rowData.id}-monitoring-status-indicator`}
+          alert={
+            rowData.latestEvaluation
+              ? ['alert', 'timed_out'].includes(rowData.latestEvaluation.status)
+              : undefined
+          }
         />
-      ) : null
+      )
     },
     []
   )
@@ -592,6 +592,49 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
         {includeConfirmDialogFC && <ConfirmDialog />}
       </div>
     </>
+  )
+}
+
+type MonitoringStatusIndicatorProps = {
+  id: string
+  alert: boolean | undefined
+  onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
+}
+export const MonitoringStatusIndicator: FunctionComponent<
+  MonitoringStatusIndicatorProps
+> = ({ id, alert, onClick = undefined }) => {
+  let buttonIcon: string
+  let buttonClassExtension: string
+  let buttonTooltip: string
+  switch (alert) {
+    case undefined:
+      buttonIcon = 'pi pi-question-circle'
+      buttonClassExtension = 'p-button-secondary'
+      buttonTooltip =
+        'Monitoring is enabled, but evaluation has not yet occurred.'
+      break
+    case false:
+      buttonIcon = 'pi pi-check-circle'
+      buttonClassExtension = 'p-button-success'
+      buttonTooltip = 'Monitoring is enabled and ok.'
+      break
+    case true:
+      buttonIcon = 'pi pi-exclamation-circle'
+      buttonClassExtension = 'p-button-danger'
+      buttonTooltip = 'Monitoring is enabled and an alert has been triggered.'
+      break
+  }
+  return (
+    <Button
+      id={id}
+      className={`p-button-lg p-button-text ${buttonClassExtension}`}
+      icon={buttonIcon}
+      tooltip={buttonTooltip}
+      tooltipOptions={{
+        style: { width: '300px' },
+      }}
+      onClick={onClick}
+    />
   )
 }
 
