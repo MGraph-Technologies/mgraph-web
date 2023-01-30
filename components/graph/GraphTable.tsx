@@ -186,7 +186,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
           queryResult={queryResult}
           setQueryResult={setQueryResult}
         />
-        <LineChart queryResult={queryResult} />
+        <LineChart parentMetricNodeId={rowData.id} queryResult={queryResult} />
       </div>
     )
   }

@@ -25,7 +25,7 @@ type GoalDimension = {
   name: string
   value: string
 }
-type GoalValue = {
+export type GoalValue = {
   date: Date
   value: number
 }

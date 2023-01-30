@@ -187,7 +187,11 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
           queryResult={queryResult}
           setQueryResult={setQueryResult}
         />
-        <LineChart queryResult={queryResult} renderChart={renderChart} />
+        <LineChart
+          parentMetricNodeId={data.id}
+          queryResult={queryResult}
+          renderChart={renderChart}
+        />
       </div>
       <Handle
         type="source"

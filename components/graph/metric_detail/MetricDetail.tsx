@@ -550,7 +550,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             queryResult={queryResult}
             setQueryResult={setQueryResult}
           />
-          <LineChart queryResult={queryResult} />
+          <LineChart parentMetricNodeId={metricId} queryResult={queryResult} />
           {editingEnabled && (
             <div className={styles.refresh_chart_button_container}>
               <Button
