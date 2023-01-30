@@ -18,6 +18,7 @@ import { Line } from 'react-chartjs-2'
 import { QueryError, QueryResult } from '../components/graph/QueryRunner'
 import styles from '../styles/LineChart.module.css'
 import { useAuth } from '../contexts/auth'
+import { useGraph } from '../contexts/graph'
 import { useQueries } from '../contexts/queries'
 import {
   MetricData,
@@ -26,7 +27,11 @@ import {
   verifyMetricData,
 } from '../utils/queryUtils'
 import { supabase } from '../utils/supabaseClient'
-import { GoalValue } from './graph/metric_detail/GoalsTable'
+import {
+  GoalStatus,
+  GoalType,
+  GoalValue,
+} from './graph/metric_detail/GoalsTable'
 
 ChartJS.register(
   Legend,
@@ -48,6 +53,10 @@ type ChartJSDataset = {
   borderColor: string
   borderDash: number[]
   borderWidth: number
+  goalInfo: {
+    id: string
+    type: GoalType
+  } | null
 }
 
 type LineChartProps = {
@@ -61,6 +70,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   renderChart = true,
 }) => {
   const { organizationId, userOnMobile } = useAuth()
+  const { setGoalStatusMap } = useGraph()
   const { queryParameters } = useQueries()
   const [metricData, setMetricData] = useState<MetricData | null>(null)
   const [chartJSDatasets, setChartJSDatasets] = useState<ChartJSDataset[]>([])
@@ -92,6 +102,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         borderColor: SERIESCOLORS[index % SERIESCOLORS.length],
         borderDash: [],
         borderWidth: 1,
+        goalInfo: null,
       })
     })
     return datasets
@@ -108,6 +119,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     setChartJSDatasetsEnriched(false)
   }, [queryResult])
 
+  /***** Plot Goals On Chart *****/
   const enrichChartJSDatasets = useCallback(async () => {
     if (chartJSDatasets.length === 0) return
     const frequency = queryParameters.frequency?.userValue
@@ -136,7 +148,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     ) {
       const { data: goalsData, error: goalsError } = await supabase
         .from('columnar_goals')
-        .select('dimension_value, values')
+        .select('id, dimension_value, values, type')
         // match organization, parent node, freqency
         .match({
           organization_id: organizationId,
@@ -184,6 +196,10 @@ const LineChart: FunctionComponent<LineChartProps> = ({
                 borderColor: correspondingChartJSDataset.backgroundColor,
                 borderDash: [5, 5],
                 borderWidth: 1,
+                goalInfo: {
+                  id: goalData.id,
+                  type: goalData.type,
+                },
               }
               return goalDataset
             }
@@ -218,6 +234,163 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       setChartJSDatasetsEnriched(true)
     }
   }, [chartJSDatasets, chartJSDatasetsEnriched, enrichChartJSDatasets])
+
+  /***** Evaluate Plotted Goals *****/
+  const [goalStatusMapUpdated, setGoalStatusesUpdated] = useState(false)
+  useEffect(() => {
+    setGoalStatusesUpdated(false)
+  }, [chartJSDatasets])
+  const updateGoalStatusMap: () => void = useCallback(() => {
+    // only evaluate in case of 1 actual and 1+ goal datasets
+    const actualDatasets = chartJSDatasets.filter((dataset) => {
+      return dataset.goalInfo === null
+    })
+    const goalDatasets = chartJSDatasets.filter((dataset) => {
+      return dataset.goalInfo !== null
+    })
+    if (actualDatasets.length !== 1 || goalDatasets.length === 0) {
+      return
+    }
+
+    // only evaluate if actual dataset has at least 1 non-null data point
+    const actualDataset = actualDatasets[0]
+    const mostRecentActualDataPoint = actualDataset.data
+      .filter((dataPoint) => {
+        return dataPoint.y !== null
+      })
+      .slice()
+      .sort((a, b) => {
+        return b.x.getTime() - a.x.getTime()
+      })[0] as { x: Date; y: number } | undefined
+    if (!mostRecentActualDataPoint) {
+      return
+    }
+
+    // evaluate each goal dataset
+    const localGoalStatusMap: { [goalId: string]: GoalStatus } = {}
+    const goalSuccess = (
+      goalType: GoalType,
+      goalValue: number,
+      actualValue: number
+    ): boolean => {
+      switch (goalType) {
+        case 'increase':
+          return actualValue >= goalValue
+        case 'decrease':
+          return actualValue <= goalValue
+      }
+    }
+    goalDatasets.forEach((goalDataset) => {
+      const goalInfo = goalDataset.goalInfo
+      if (!goalInfo) return
+      const goalId = goalInfo.id
+      const goalType = goalInfo.type
+      const goalData = goalDataset.data
+      const firstGoalDate = goalData[0].x
+      const lastGoalDate = goalData[goalData.length - 1].x
+
+      // if goal is in the future, move on
+      if (firstGoalDate > mostRecentActualDataPoint.x) {
+        return
+      }
+
+      // if goal is ongoing, compare most recent actual datapoint to goal line
+      if (lastGoalDate > mostRecentActualDataPoint.x) {
+        const closestLTEGoalDataPoint = goalData
+          .filter((dataPoint) => {
+            return (
+              dataPoint.y !== null && dataPoint.x <= mostRecentActualDataPoint.x
+            )
+          })
+          .slice()
+          .sort((a, b) => {
+            return b.x.getTime() - a.x.getTime()
+          })[0] as { x: Date; y: number } | undefined
+        const closestGTEGoalDataPoint = goalData
+          .filter((dataPoint) => {
+            return (
+              dataPoint.y !== null && dataPoint.x >= mostRecentActualDataPoint.x
+            )
+          })
+          .slice()
+          .sort((a, b) => {
+            return a.x.getTime() - b.x.getTime()
+          })[0] as { x: Date; y: number } | undefined
+        if (!closestLTEGoalDataPoint || !closestGTEGoalDataPoint) {
+          return
+        }
+
+        // compare
+        const comparisonGoalValue =
+          closestLTEGoalDataPoint.y +
+          (closestLTEGoalDataPoint.x === closestGTEGoalDataPoint.x
+            ? 0
+            : (closestGTEGoalDataPoint.y - closestLTEGoalDataPoint.y) *
+              ((mostRecentActualDataPoint.x.getTime() -
+                closestLTEGoalDataPoint.x.getTime()) /
+                (closestGTEGoalDataPoint.x.getTime() -
+                  closestLTEGoalDataPoint.x.getTime())))
+        localGoalStatusMap[goalId] = goalSuccess(
+          goalType,
+          comparisonGoalValue,
+          mostRecentActualDataPoint.y
+        )
+          ? 'ahead'
+          : 'behind'
+        return
+      }
+
+      // if goal has concluded, compare last goal datapoint to on-or-before actual datapoint
+      if (lastGoalDate <= mostRecentActualDataPoint.x) {
+        const lastGoalDataPoint = goalData
+          .filter((dataPoint) => {
+            return dataPoint.y !== null
+          })
+          .slice()
+          .sort((a, b) => {
+            return b.x.getTime() - a.x.getTime()
+          })[0] as { x: Date; y: number } | undefined
+        if (!lastGoalDataPoint) {
+          return
+        }
+
+        const comparisonActualValue = actualDataset.data
+          .filter((dataPoint) => {
+            return (
+              dataPoint.y !== null &&
+              dataPoint.x.getTime() <= lastGoalDataPoint.x.getTime()
+            )
+          })
+          .slice()
+          .sort((a, b) => {
+            return b.x.getTime() - a.x.getTime()
+          })[0] as { x: Date; y: number } | undefined
+        if (!comparisonActualValue) {
+          return
+        }
+        localGoalStatusMap[goalId] = goalSuccess(
+          goalType,
+          lastGoalDataPoint.y,
+          comparisonActualValue.y
+        )
+          ? 'achieved'
+          : 'missed'
+        return
+      }
+    })
+    setGoalStatusMap?.((prevGSM) => {
+      return {
+        ...prevGSM,
+        [parentMetricNodeId]: localGoalStatusMap,
+      }
+    })
+    setGoalStatusesUpdated(true)
+  }, [chartJSDatasets, setGoalStatusMap, parentMetricNodeId])
+  useEffect(() => {
+    if (!goalStatusMapUpdated) {
+      updateGoalStatusMap()
+    }
+  }, [goalStatusMapUpdated, updateGoalStatusMap])
 
   const centerStyle = {
     margin: 'auto',

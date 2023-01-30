@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import SettingsInputText from '../../SettingsInputText'
 import { useAuth } from '../../../contexts/auth'
+import { useGraph } from '../../../contexts/graph'
 import { useEditability } from '../../../contexts/editability'
 import styles from '../../../styles/GoalsTable.module.css'
 import { objectToBullets } from '../../../utils/objectToBullets'
@@ -29,7 +30,13 @@ export type GoalValue = {
   date: Date
   value: number
 }
-type GoalType = 'increase' | 'decrease'
+export type GoalType = 'increase' | 'decrease'
+export type GoalStatus =
+  | 'achieved'
+  | 'missed'
+  | 'ahead'
+  | 'behind'
+  | 'unevaluated'
 type GoalProperties = {
   owner: string
   description: string
@@ -48,6 +55,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
 }) => {
   const { organizationId, userCanEdit } = useAuth()
   const { editingEnabled } = useEditability()
+  const { goalStatusMap } = useGraph()
 
   const [goalsTableLoading, setGoalsTableLoading] = useState(true)
   type Goal = {
@@ -61,12 +69,12 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
       setGoalsTableLoading(true)
       try {
         const { data, error, status } = await supabase
-          .from('goals')
+          .from('columnar_goals')
           .select('id, name, properties')
           .is('deleted_at', null)
           .eq('organization_id', organizationId)
           .eq('parent_node_id', parentNodeId)
-          .order('created_at', { ascending: false })
+          .order('last_date', { ascending: false })
 
         if (error && status !== 406) {
           throw error
@@ -119,6 +127,54 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
       ...rowData.properties,
     }
     return objectToBullets(properties)
+  }
+
+  const statusCellBodyTemplate: ColumnBodyType = (rowData: Goal) => {
+    const goalStatus =
+      goalStatusMap?.[parentNodeId]?.[rowData.id] ?? 'unevaluated'
+    let buttonIcon: string | undefined
+    let buttonClassExtension: string
+    let buttonTooltip: string
+    switch (goalStatus) {
+      case 'achieved':
+        buttonIcon = 'pi pi-check-circle'
+        buttonClassExtension = 'p-button-success'
+        buttonTooltip =
+          'Goal achieved: final goal value was met or exceeded by immediately-preceding actual value'
+        break
+      case 'missed':
+        buttonIcon = 'pi pi-times-circle'
+        buttonClassExtension = 'p-button-danger'
+        buttonTooltip =
+          'Goal missed: final goal value was not met or exceeded by immediately-preceding actual value'
+        break
+      case 'ahead':
+        buttonIcon = 'pi pi-circle'
+        buttonClassExtension = 'p-button-success'
+        buttonTooltip =
+          'Goal ahead: most recent actual value meets or exceeds goal line'
+        break
+      case 'behind':
+        buttonIcon = 'pi pi-circle'
+        buttonClassExtension = 'p-button-warning'
+        buttonTooltip =
+          'Goal behind: most recent actual value does not meet or exceed goal line'
+        break
+      case 'unevaluated':
+        buttonIcon = 'pi pi-question-circle'
+        buttonClassExtension = 'p-button-secondary'
+        buttonTooltip =
+          'Goal not evaluated: change query parameters to evaluate'
+        break
+    }
+    return (
+      <Button
+        id={`${rowData.id}-status-button`}
+        className={`p-button-lg p-button-text ${buttonClassExtension}`}
+        icon={buttonIcon}
+        tooltip={buttonTooltip}
+      />
+    )
   }
 
   const editCellBodyTemplate: ColumnBodyType = useCallback(
@@ -477,6 +533,11 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
               ...columnStyle,
               minWidth: '250px',
             }}
+          />
+          <Column
+            body={statusCellBodyTemplate}
+            align="center"
+            style={columnStyle}
           />
           {userCanEdit && editingEnabled && (
             <Column

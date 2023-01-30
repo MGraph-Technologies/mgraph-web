@@ -27,6 +27,7 @@ import InputEdge, { InputEdgeProperties } from '../components/graph/InputEdge'
 import MetricNode, {
   MetricNodeProperties,
 } from '../components/graph/MetricNode'
+import { GoalStatus } from '../components/graph/metric_detail/GoalsTable'
 import MissionNode, {
   MissionNodeProperties,
 } from '../components/graph/MissionNode'
@@ -50,9 +51,15 @@ export type Graph = {
 }
 type TypeIdMap = { [key: string]: string }
 
+type GoalStatusMap = {
+  [metricNodeId: string]: { [goalId: string]: GoalStatus }
+}
+
 type GraphContextType = {
   initialGraph: Graph
   graph: Graph
+  goalStatusMap: GoalStatusMap
+  setGoalStatusMap: Dispatch<SetStateAction<GoalStatusMap>> | undefined
   /* reactFlowInstance is produced by useReactFlow(), which must be called
     in a component that is wrapped in a ReactFlowProvider. Thus, we can't
     instantiate it directly here but instead pass it back from GraphViewer. */
@@ -137,6 +144,8 @@ const graphContextDefaultValues: GraphContextType = {
     nodes: [],
     edges: [],
   },
+  goalStatusMap: {},
+  setGoalStatusMap: undefined,
   reactFlowInstance: undefined,
   setReactFlowInstance: undefined,
   reactFlowRenderer: undefined,
@@ -184,6 +193,8 @@ export function GraphProvider({ children }: GraphProps) {
       behavior: 'destroyFuture',
       ignoreIdenticalMutations: false,
     })
+
+  const [goalStatusMap, setGoalStatusMap] = useState<GoalStatusMap>({})
 
   const [reactFlowInstance, setReactFlowInstance] = useState<
     ReactFlowInstance | undefined
@@ -880,6 +891,8 @@ export function GraphProvider({ children }: GraphProps) {
   const value = {
     initialGraph: initialGraph,
     graph: graph,
+    goalStatusMap: goalStatusMap,
+    setGoalStatusMap: setGoalStatusMap,
     reactFlowInstance: reactFlowInstance,
     setReactFlowInstance: setReactFlowInstance,
     reactFlowRenderer: reactFlowRenderer,
