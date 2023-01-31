@@ -16,6 +16,7 @@ import { v4 as uuidv4 } from 'uuid'
 import SettingsInputText from '../../SettingsInputText'
 import { useAuth } from '../../../contexts/auth'
 import { useGraph } from '../../../contexts/graph'
+import { useQueries } from '../../../contexts/queries'
 import { useEditability } from '../../../contexts/editability'
 import styles from '../../../styles/GoalsTable.module.css'
 import { objectToBullets } from '../../../utils/objectToBullets'
@@ -56,6 +57,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
   const { organizationId, userCanEdit } = useAuth()
   const { editingEnabled } = useEditability()
   const { goalStatusMap } = useGraph()
+  const { setGlobalQueryRefreshes } = useQueries()
 
   const [goalsTableLoading, setGoalsTableLoading] = useState(true)
   type Goal = {
@@ -446,6 +448,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
                         populateGoals()
                         setShowUpsertGoalPopup(false)
                         clearFields()
+                        setGlobalQueryRefreshes?.((prev) => prev + 1)
                       }
                     } catch (error: unknown) {
                       console.error(error)
