@@ -268,24 +268,24 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
             onHide={onDialogCancel}
           >
             <SettingsInputText
-              label="Name"
+              label="Goal Name"
               value={upsertGoalName}
               setValue={setUpsertGoalName}
             />
             <SettingsInputText
-              label="Owner"
+              label="Goal Owner"
               value={upsertGoalOwner}
               setValue={setUpsertGoalOwner}
               type="mentionableText"
             />
             <SettingsInputText
-              label="Description"
+              label="Goal Description"
               value={upsertGoalDescription}
               setValue={setUpsertGoalDescription}
               type="mentionableText"
             />
             <SettingsInputText
-              label="Dimension"
+              label="Goal Dimension"
               value={upsertGoalDimensionStr}
               setValue={setUpsertGoalDimensionStr}
               tooltip={
@@ -295,7 +295,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
               }
             />
             <SettingsInputText
-              label="Frequency"
+              label="Goal Frequency"
               value={upsertGoalFrequency}
               setValue={setUpsertGoalFrequency}
               tooltip={
@@ -307,7 +307,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
               htmlFor="goal-type-dropdown"
               style={{ display: 'block', fontWeight: 'bold' }}
             >
-              Type
+              Goal Type
             </label>
             <Dropdown
               id="goal-type-dropdown"
@@ -320,7 +320,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
               style={{ marginBottom: '1rem' }}
             />
             <SettingsInputText
-              label="Values"
+              label="Goal Values"
               value={upsertGoalValuesStr}
               setValue={setUpsertGoalValuesStr}
               tooltip={

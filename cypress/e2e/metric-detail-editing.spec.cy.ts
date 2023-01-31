@@ -203,6 +203,180 @@ describe('Metric detail editing', () => {
 
   // TODO: test processing and expired states
 
+  it('Visits a metric detail page, then adds, evals, edits, and deletes a couple goals', () => {
+    // visit page
+    cy.visit('/mgraph')
+    cy.get('[id=link-to-detail-button]').first().click()
+    cy.wait(2000)
+
+    // add query to compare goals to
+    cy.get('[id=edit-button]').click()
+    cy.get('[id=source-database-connection-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]')
+      .contains('snowflake direct')
+      .first()
+      .click()
+    const newQuery = `
+      SELECT '2023-01-01'::date, NULL, 100
+      UNION ALL
+      SELECT '2023-02-01'::date, NULL, 200
+      UNION ALL
+      SELECT '2023-02-15'::date, NULL, 300
+    `
+    cy.get('[id=source-query-field]').click()
+    cy.get('[id=source-query-field]').clear().type(newQuery)
+    cy.get('[class*=Header]').first().click()
+    cy.get('[id=save-button]').click()
+
+    cy.wait(2000).reload()
+    cy.get('[class*=LineChart_chart_container]').contains('300').should('exist')
+
+    // add achieved goal
+    const randomString = Math.random().toString(36)
+    const newGoalName = 'test name ' + randomString
+    cy.get('[id=edit-button]').click()
+    cy.get('[id=new-goal-button]').click()
+    cy.get('[id=goal-name-field]').type(newGoalName)
+    cy.get('[id=goal-owner-field]').type('test owner')
+    cy.get('[id=goal-description-field]').type('test description')
+    cy.get('[id=goal-dimension-field]').type('{"name":null,"value":null}', {
+      parseSpecialCharSequences: false,
+    })
+    cy.get('[id=goal-frequency-field]').type('DAY')
+    cy.get('[id=goal-type-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('increase').first().click()
+    cy.get('[id=goal-values-field]').type(
+      '{"date":"2023-01-01","value":100},{"date":"2023-02-01","value":100}',
+      { parseSpecialCharSequences: false }
+    )
+    cy.get('[id=save-goal-button]').click()
+
+    // check change + evaluation
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=goals-table]')
+      .contains(newGoalName)
+      .parent('tr')
+      .find('[class*=pi-check-circle]')
+      .should('exist')
+
+    // edit goal to just achieved
+    cy.get('[id=edit-button]').click()
+    cy.get('[id=goals-table]')
+      .contains(newGoalName)
+      .parent('tr')
+      .find('[id=edit-goal-button]')
+      .click()
+    cy.get('[id=goal-values-field]')
+      .clear()
+      .type(
+        '{"date":"2023-01-01","value":100},{"date":"2023-02-01","value":200}',
+        { parseSpecialCharSequences: false }
+      )
+    cy.get('[id=save-goal-button]').click()
+
+    // check change + evaluation
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=goals-table]')
+      .contains(newGoalName)
+      .parent('tr')
+      .find('[class*=pi-check-circle]')
+
+    // edit goal to not achieved
+    cy.get('[id=edit-button]').click()
+    cy.get('[id=goals-table]')
+      .contains(newGoalName)
+      .parent('tr')
+      .find('[id=edit-goal-button]')
+      .click()
+    cy.get('[id=goal-values-field]')
+      .clear()
+      .type(
+        '{"date":"2023-01-01","value":100},{"date":"2023-02-01","value":300}',
+        { parseSpecialCharSequences: false }
+      )
+    cy.get('[id=save-goal-button]').click()
+
+    // check change + evaluation
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=goals-table]')
+      .contains(newGoalName)
+      .parent('tr')
+      .find('[class*=pi-times-circle]')
+      .should('exist')
+
+    // add on track in-progress goal
+    cy.get('[id=edit-button]').click()
+    cy.get('[id=new-goal-button]').click()
+    cy.get('[id=goal-name-field]').type(newGoalName + '2')
+    cy.get('[id=goal-owner-field]').type('test owner')
+    cy.get('[id=goal-description-field]').type('test description')
+    cy.get('[id=goal-dimension-field]').type('{"name":null,"value":null}', {
+      parseSpecialCharSequences: false,
+    })
+    cy.get('[id=goal-frequency-field]').type('DAY')
+    cy.get('[id=goal-type-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('increase').first().click()
+    cy.get('[id=goal-values-field]').type(
+      '{"date":"2023-02-01","value":200},{"date":"2023-03-01","value":300}',
+      { parseSpecialCharSequences: false }
+    )
+    cy.get('[id=save-goal-button]').click()
+
+    // check change + evaluation
+    cy.wait(2000)
+    cy.reload()
+    cy.get('[id=goals-table]')
+      .contains(newGoalName + '2')
+      .parent('tr')
+      .find('[class*=p-button-success]')
+      .find('[class*=pi-circle]')
+      .should('exist')
+
+    // edit goal to be off track
+    cy.get('[id=edit-button]').click()
+    cy.get('[id=goals-table]')
+      .contains(newGoalName + '2')
+      .parent('tr')
+      .find('[id=edit-goal-button]')
+      .click()
+    cy.get('[id=goal-values-field]')
+      .clear()
+      .type(
+        '{"date":"2023-02-01","value":200},{"date":"2023-03-01","value":500}',
+        { parseSpecialCharSequences: false }
+      )
+    cy.get('[id=save-goal-button]').click()
+
+    // check change + evaluation
+    cy.wait(2000) // no reload this time
+    cy.get('[id=goals-table]')
+      .contains(newGoalName + '2')
+      .parent('tr')
+      .find('[class*=p-button-warning]')
+      .find('[class*=pi-circle]')
+      .should('exist')
+
+    // delete goals
+    cy.get('[id=goals-table]')
+      .contains(newGoalName)
+      .parent('tr')
+      .find('[id=delete-goal-button]')
+      .click()
+    cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
+    cy.get('[id=goals-table]')
+      .contains(newGoalName + '2')
+      .parent('tr')
+      .find('[id=delete-goal-button]')
+      .click()
+    cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
+    cy.get('[id=goals-table]')
+      .contains(newGoalName + '2')
+      .should('not.exist')
+  })
+
   it('Visits a metric detail page and tests dbt query generation', () => {
     cy.visit('/mgraph')
     cy.get('[id=link-to-detail-button]').first().click()

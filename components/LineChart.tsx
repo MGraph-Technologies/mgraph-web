@@ -74,6 +74,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   const { queryParameters } = useQueries()
   const [metricData, setMetricData] = useState<MetricData | null>(null)
   const [chartJSDatasets, setChartJSDatasets] = useState<ChartJSDataset[]>([])
+  const [numberToOverlay, setNumberToOverlay] = useState<number | null>(null)
   const [chartJSDatasetsEnriched, setChartJSDatasetsEnriched] = useState(false)
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
@@ -112,9 +113,19 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     const _metricData = verifyMetricData(queryResult.data as QueryData)
     setMetricData(_metricData)
     if (_metricData) {
-      setChartJSDatasets(makeChartJSDatasets(_metricData))
+      const _chartJSDatasets = makeChartJSDatasets(_metricData)
+      setChartJSDatasets(_chartJSDatasets)
+      const _numberToOverlay =
+        _chartJSDatasets.length === 1
+          ? // last non-null value
+            Number(
+              _chartJSDatasets[0].data.reverse().find((d) => d.y !== null)?.y
+            )
+          : null
+      setNumberToOverlay(_numberToOverlay)
     } else {
       setChartJSDatasets([])
+      setNumberToOverlay(null)
     }
     setChartJSDatasetsEnriched(false)
   }, [queryResult])
@@ -127,16 +138,20 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     // first date across all datasets
     const firstPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
-        const firstPlottedDate = dataset.data[0].x
-        return firstPlottedDate < acc ? firstPlottedDate : acc
-      }, new Date())
+        const _firstPlottedDate = dataset.data.sort(
+          (a, b) => a.x.getTime() - b.x.getTime()
+        )[0].x
+        return _firstPlottedDate < acc ? _firstPlottedDate : acc
+      }, new Date(9999, 11, 31))
       .toISOString()
     // last date across all datasets
     const lastPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
-        const lastPlottedDate = dataset.data[dataset.data.length - 1].x
-        return lastPlottedDate > acc ? lastPlottedDate : acc
-      }, new Date(0))
+        const _lastPlottedDate = dataset.data.sort(
+          (a, b) => b.x.getTime() - a.x.getTime()
+        )[0].x
+        return _lastPlottedDate > acc ? _lastPlottedDate : acc
+      }, new Date(0, 1, 1))
       .toISOString()
     if (
       organizationId &&
@@ -165,6 +180,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         // goal date range overlaps with chart date range
         .gte('last_date', firstPlottedDate)
         .lte('first_date', lastPlottedDate)
+        // goal is not deleted
+        .is('deleted_at', null)
 
       if (goalsError) {
         console.error(goalsError)
@@ -423,16 +440,6 @@ const LineChart: FunctionComponent<LineChartProps> = ({
           />
         )
       } else {
-        const numberToOverlay =
-          chartJSDatasets.filter((dataset) => {
-            const label = dataset.label || ''
-            return !label.endsWith('goal')
-          }).length === 1
-            ? // last non-null value
-              Number(
-                chartJSDatasets[0].data.reverse().find((d) => d.y !== null)?.y
-              )
-            : null
         const numberToOverlayString =
           numberToOverlay !== null
             ? numberToOverlay >= 1000 || numberToOverlay <= -1000
