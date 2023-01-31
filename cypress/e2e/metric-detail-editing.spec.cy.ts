@@ -209,6 +209,16 @@ describe('Metric detail editing', () => {
     cy.get('[id=link-to-detail-button]').first().click()
     cy.wait(2000)
 
+    // set group by to null
+    cy.get('[id=query-settings-button]').click().wait(100)
+    cy.get('[id=group_by-field]').click()
+    cy.get('[id=group_by-field]')
+      .clear()
+      .type('NULL')
+      .parent()
+      .click()
+      .wait(100)
+
     // add query to compare goals to
     cy.get('[id=edit-button]').click()
     cy.get('[id=source-database-connection-dropdown]').click()
