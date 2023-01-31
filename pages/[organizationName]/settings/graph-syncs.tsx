@@ -39,6 +39,7 @@ type DbtProjectGraphSyncFormProps = {
   setShowUpsertGraphSyncPopup: Dispatch<SetStateAction<boolean>>
   populateGraphSyncs: () => void
   clearFields: () => void
+  onDialogCancel: () => void
 }
 const DbtProjectGraphSyncForm: FunctionComponent<
   DbtProjectGraphSyncFormProps
@@ -51,6 +52,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
   setShowUpsertGraphSyncPopup,
   populateGraphSyncs,
   clearFields,
+  onDialogCancel,
 }) => {
   const appUrl = `https://github.com/apps/mgraph-dbt-sync${
     process.env.NEXT_PUBLIC_ENV === 'production' ? '' : '-dev'
@@ -256,6 +258,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
                         .from('nodes')
                         .update({
                           properties: newProperties,
+                          updated_at: new Date(),
                         })
                         .eq('id', node.id)
 
@@ -305,10 +308,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
           id="cancel-graph-sync-button"
           className="p-button-outlined"
           label="Cancel"
-          onClick={() => {
-            setShowUpsertGraphSyncPopup(false)
-            clearFields()
-          }}
+          onClick={onDialogCancel}
         />
       </div>
     </>
@@ -431,6 +431,11 @@ const GraphSyncs: FunctionComponent = () => {
     setUpsertGraphSyncIsNew(true)
   }, [])
 
+  const onDialogCancel = useCallback(() => {
+    setShowUpsertGraphSyncPopup(false)
+    clearFields()
+  }, [clearFields])
+
   return (
     <>
       <Head>
@@ -454,10 +459,7 @@ const GraphSyncs: FunctionComponent = () => {
               visible={showUpsertGraphSyncPopup}
               resizable={false}
               draggable={false}
-              closable={false} // use cancel button instead
-              onHide={() => {
-                return
-              }} // handled by buttons, but required
+              onHide={onDialogCancel}
             >
               <b>
                 <label htmlFor="graph-sync-type-dropdown">Type: </label>
@@ -483,6 +485,7 @@ const GraphSyncs: FunctionComponent = () => {
                   setShowUpsertGraphSyncPopup={setShowUpsertGraphSyncPopup}
                   populateGraphSyncs={populateGraphSyncs}
                   clearFields={clearFields}
+                  onDialogCancel={onDialogCancel}
                 />
               )}
               {/* subsequent types TBA */}
@@ -502,7 +505,6 @@ const GraphSyncs: FunctionComponent = () => {
               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
               first={graphSyncsTableFirst}
               onPage={graphSyncsTableOnPage}
-              filterDisplay="row"
               emptyMessage="No graph syncs configured"
             >
               <Column field="name" header="Name" style={columnStyle} />

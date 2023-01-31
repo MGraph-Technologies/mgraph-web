@@ -1,7 +1,26 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
 
-import { QueryData, QueryRow } from '../components/graph/QueryRunner'
+/***** QUERY EXECUTION STUFF *****/
+// /results handles conversion from raw db formats to ones below
+// we only convert dates and numbers currently, other types left as strings
+export type QueryDataType = 'date' | 'number' | 'string'
+export type QueryColumn = {
+  name: string
+  type: QueryDataType
+}
+export type QueryRow = unknown[]
+export type QueryData = {
+  columns: QueryColumn[]
+  rows: QueryRow[]
+  executedAt: Date
+}
+export type MetricRow = [Date, string, number]
+export type MetricData = {
+  columns: QueryColumn[]
+  rows: MetricRow[]
+  executedAt: Date
+}
 
 export const getLastUpdatedAt = async (
   tableName: string,
@@ -65,6 +84,32 @@ export const getLatestQueryId = async (
   return queryId
 }
 
+export const sortMetricRowsByDate = (rows: MetricRow[]) => {
+  return rows.sort((a, b) => {
+    // type check
+    const aDate = a[0]
+    const bDate = b[0]
+    return aDate.getTime() - bDate.getTime()
+  })
+}
+
+export const verifyMetricData = (queryData: QueryData): MetricData | null => {
+  if (queryData && queryData.columns && queryData.rows) {
+    const { columns } = queryData
+    if (
+      columns &&
+      columns.length === 3 &&
+      columns[0].type === 'date' &&
+      columns[1].type === 'string' &&
+      columns[2].type === 'number'
+    ) {
+      return queryData as MetricData
+    }
+  }
+  return null
+}
+
+/***** QUERY PARAMETER STUFF *****/
 /* On getQueryParameters, blank queryParameters values are initialized for the set of
   parameter keys which have either a user-specfic or org-default value in the
   database. These are then populated with database values to the extent possible.
@@ -86,42 +131,23 @@ export type QueryParameterOverrides = {
   [name: string]: string
 }
 
-export const checkColumnsStructure = (queryData: QueryData) => {
-  const snowflakeDateTypes = [
-    'DATE',
-    'TIMESTAMP',
-    'TIMESTAMPNTZ',
-    'TIMESTAMPLTZ',
-    'TIMESTAMPTZ',
-  ]
-  const snowflakeStringTypes = [
-    'CHAR',
-    'CHARACTER',
-    'STRING',
-    'TEXT',
-    'VARCHAR',
-  ]
-  const snowflakeNumberTypes = [
-    'DECIMAL',
-    'DOUBLE',
-    'DOUBLE PRECISION',
-    'FIXED',
-    'FLOAT',
-    'FLOAT4',
-    'FLOAT8',
-    'INTEGER',
-    'NUMBER',
-    'NUMERIC',
-    'REAL',
-  ]
-  const columns = queryData.columns
-  return (
-    columns &&
-    columns.length === 3 &&
-    snowflakeDateTypes.includes(columns[0].type.toUpperCase()) &&
-    snowflakeStringTypes.includes(columns[1].type.toUpperCase()) &&
-    snowflakeNumberTypes.includes(columns[2].type.toUpperCase())
-  )
+export const formQueryParametersScaffold = (
+  names: string[],
+  queryParameters: QueryParameters
+) => {
+  let newQueryParameters = { ...queryParameters }
+  names.forEach((name) => {
+    newQueryParameters = {
+      ...newQueryParameters,
+      [name]: {
+        userRecordId: uuidv4(),
+        userValue: '',
+        orgDefaultRecordId: uuidv4(),
+        orgDefaultValue: '',
+      },
+    }
+  })
+  return newQueryParameters
 }
 
 export const getQueryParameters = async (
@@ -198,25 +224,6 @@ export const getQueryParameters = async (
   return queryParameters
 }
 
-export const formQueryParametersScaffold = (
-  names: string[],
-  queryParameters: QueryParameters
-) => {
-  let newQueryParameters = { ...queryParameters }
-  names.forEach((name) => {
-    newQueryParameters = {
-      ...newQueryParameters,
-      [name]: {
-        userRecordId: uuidv4(),
-        userValue: '',
-        orgDefaultRecordId: uuidv4(),
-        orgDefaultValue: '',
-      },
-    }
-  })
-  return newQueryParameters
-}
-
 export const overrideQueryParameters = (
   queryParameters: QueryParameters,
   queryParameterOverrides: QueryParameterOverrides
@@ -245,20 +252,5 @@ export const parameterizeStatement = (
     } else {
       return ''
     }
-  })
-}
-
-export const snowflakeDateToJsDate = (snowflakeDate: string) => {
-  // strip tz info
-  const _snowflakeDate = snowflakeDate.replace(/(Z|[-+]\d{2}:\d{2})$/, '')
-  const date = new Date(_snowflakeDate + 'Z')
-  return date
-}
-
-export const sortQueryRowsByDate = (rows: QueryRow[]) => {
-  return rows.sort((a: QueryRow, b: QueryRow) => {
-    const aDate = snowflakeDateToJsDate(a[0])
-    const bDate = snowflakeDateToJsDate(b[0])
-    return aDate.getTime() - bDate.getTime()
   })
 }

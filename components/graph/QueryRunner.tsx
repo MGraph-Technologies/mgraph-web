@@ -5,6 +5,7 @@ import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import { useQueries } from '../../contexts/queries'
 import {
+  QueryData,
   getLastUpdatedAt,
   getLatestQueryId,
   parameterizeStatement,
@@ -12,16 +13,6 @@ import {
 import { supabase } from '../../utils/supabaseClient'
 import { MetricNodeProperties } from './MetricNode'
 
-export type QueryColumn = {
-  name: string
-  type: string
-}
-export type QueryRow = string[]
-export type QueryData = {
-  columns: QueryColumn[]
-  rows: QueryRow[]
-  executedAt: Date
-}
 export type QueryError = {
   error: string
 }
@@ -269,10 +260,20 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     })
       .then((response) => {
         if (response.status === 200) {
-          response.json().then((data) => {
+          response.json().then((data: QueryData) => {
+            // convert any date columns since serialization loses type
+            data.columns.forEach((column, columnIndex) => {
+              if (column.type === 'date') {
+                data.rows.forEach((row, rowIndex) => {
+                  data.rows[rowIndex][columnIndex] = new Date(
+                    row[columnIndex] as string
+                  )
+                })
+              }
+            })
             setQueryResult({
               status: 'success',
-              data: data as QueryData,
+              data: data,
             })
           })
         } else if (response.status === 202) {

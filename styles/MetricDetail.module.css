@@ -58,19 +58,23 @@
   font-size: 1rem;
 }
 
-.metric_detail .body .detail_field_editable .at_mention {
-  /* match supabase-comments-extension style */
-  border: 1px solid #c2c2c2;
-  border-radius: 5px;
-  padding: 0 3px;
-}
-
 .metric_detail .body .detail_field_code {
   background-color: #f8f8fe;
   border-radius: 5px;
   width: 100%;
   font-family: monospace;
   font-size: 0.8rem;
+}
+
+/* match primereact behaviors */
+.metric_detail .body .detail_field_code .editor {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.metric_detail .body .detail_field_code .editor:hover {
+  border: 1px solid #6366f1;
+  border-radius: 5px;
 }
 
 .metric_detail .body .connection_config_block {

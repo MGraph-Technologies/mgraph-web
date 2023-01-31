@@ -80,7 +80,10 @@ const Field: FunctionComponent<FieldProps> = ({ name, example }) => {
           const colName = `query_${name}`
           const { error, status } = await supabase
             .from('organizations')
-            .update({ [colName]: newValue })
+            .update({
+              [colName]: newValue,
+              updated_at: new Date(),
+            })
             .is('deleted_at', null)
             .eq('id', organizationId)
             .single()

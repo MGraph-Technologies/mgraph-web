@@ -4,3 +4,13 @@
   justify-content: left;
   padding-bottom: 1rem;
 }
+
+.settings_input_text_container .settings_input_text_label {
+  display: block;
+  font-weight: bold;
+}
+
+.settings_input_text_container .settings_input_text_field {
+  width: 300px;
+  display: block;
+}

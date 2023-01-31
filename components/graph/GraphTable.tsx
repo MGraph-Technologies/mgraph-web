@@ -186,7 +186,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
           queryResult={queryResult}
           setQueryResult={setQueryResult}
         />
-        <LineChart queryResult={queryResult} />
+        <LineChart parentMetricNodeId={rowData.id} queryResult={queryResult} />
       </div>
     )
   }
@@ -238,7 +238,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
           field="data.name"
           header="Metric"
           align="left"
-          style={{ width: '20%' }}
+          style={{ width: '15%' }}
         />
         <Column
           body={trendCellBodyTemplate}
@@ -248,7 +248,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
         <Column
           body={nodePanelCellBodyTemplate}
           align="right"
-          style={{ width: '15%' }}
+          style={{ width: '20%' }}
         />
       </DataTable>
     </div>

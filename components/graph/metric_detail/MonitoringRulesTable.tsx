@@ -14,15 +14,15 @@ import React, {
 } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-import SettingsInputText from './SettingsInputText'
-import { useAuth } from '../contexts/auth'
-import { useEditability } from '../contexts/editability'
-import { useGraph } from '../contexts/graph'
-import styles from '../styles/MonitoringRulesTable.module.css'
-import { objectToBullets } from '../utils/objectToBullets'
-import { analytics } from '../utils/segmentClient'
-import { supabase } from '../utils/supabaseClient'
-import { QueryParameterOverrides } from '../utils/queryUtils'
+import SettingsInputText from '../../SettingsInputText'
+import { useAuth } from '../../../contexts/auth'
+import { useEditability } from '../../../contexts/editability'
+import { useGraph } from '../../../contexts/graph'
+import styles from '../../../styles/MonitoringRulesTable.module.css'
+import { objectToBullets } from '../../../utils/objectToBullets'
+import { analytics } from '../../../utils/segmentClient'
+import { supabase } from '../../../utils/supabaseClient'
+import { QueryParameterOverrides } from '../../../utils/queryUtils'
 
 export type AlertIfValueOption =
   | 'insideRangeInclusive'
@@ -43,9 +43,11 @@ export type MonitoringRuleLatestEvaluation = {
 
 type MonitoringRulesTableProps = {
   parentNodeId: string
+  includeConfirmDialogFC?: boolean // avoid double dialogs if parent hosting multiple tables
 }
 const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   parentNodeId,
+  includeConfirmDialogFC = true,
 }) => {
   const { organizationId, userCanEdit } = useAuth()
   const { editingEnabled } = useEditability()
@@ -65,7 +67,6 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   const populateMonitoringRules = useCallback(
     async (updateNode = false) => {
       if (organizationId) {
-        setMonitoringRulesTableLoading(true)
         try {
           const { data, error, status } = await supabase
             .from('monitoring_rules')
@@ -206,6 +207,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             analytics.track('delete_monitoring_rule', {
               id: rowData.id,
             })
+            setMonitoringRulesTableLoading(true)
             populateMonitoringRules(true)
           }
         } catch (error: unknown) {
@@ -267,16 +269,16 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   const alertCellBodyTemplate: ColumnBodyType = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (rowData: any) => {
-      return ['alert', 'timed_out'].includes(
-        rowData.latestEvaluation?.status
-      ) ? (
-        <Button
-          id="alert-button"
-          className="p-button-text p-button-lg p-button-danger"
-          icon="pi pi-flag-fill"
-          tooltip="This rule's last evaluation resulted in an alert."
+      return (
+        <MonitoringStatusIndicator
+          id={`${rowData.id}-monitoring-status-indicator`}
+          alert={
+            rowData.latestEvaluation
+              ? ['alert', 'timed_out'].includes(rowData.latestEvaluation.status)
+              : undefined
+          }
         />
-      ) : null
+      )
     },
     []
   )
@@ -320,6 +322,11 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
     setUpsertRuleIsNew(true)
   }, [])
 
+  const onDialogCancel = useCallback(() => {
+    setShowUpsertRulePopup(false)
+    clearFields()
+  }, [clearFields])
+
   return (
     <>
       {userCanEdit && editingEnabled && (
@@ -338,10 +345,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             visible={showUpsertRulePopup}
             resizable={false}
             draggable={false}
-            closable={false} // use cancel button instead
-            onHide={() => {
-              return
-            }} // handled by buttons, but required
+            onHide={onDialogCancel}
           >
             <SettingsInputText
               label="Rule Name"
@@ -510,6 +514,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                             id: data[0].id,
                           }
                         )
+                        setMonitoringRulesTableLoading(true)
                         populateMonitoringRules(true)
                         setShowUpsertRulePopup(false)
                         clearFields()
@@ -525,10 +530,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                 id="cancel-monitoring-rule-button"
                 className="p-button-outlined"
                 label="Cancel"
-                onClick={() => {
-                  setShowUpsertRulePopup(false)
-                  clearFields()
-                }}
+                onClick={onDialogCancel}
               />
             </div>
           </Dialog>
@@ -548,7 +550,6 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
           first={monitoringRulesTableFirst}
           onPage={monitoringRulesTableOnPage}
-          filterDisplay="row"
           emptyMessage="No monitoring rules found"
         >
           <Column
@@ -576,6 +577,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             }}
           />
           <Column
+            header="Status"
             body={alertCellBodyTemplate}
             align="center"
             style={columnStyle}
@@ -588,9 +590,52 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             />
           )}
         </DataTable>
-        <ConfirmDialog />
+        {includeConfirmDialogFC && <ConfirmDialog />}
       </div>
     </>
+  )
+}
+
+type MonitoringStatusIndicatorProps = {
+  id: string
+  alert: boolean | undefined
+  onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
+}
+export const MonitoringStatusIndicator: FunctionComponent<
+  MonitoringStatusIndicatorProps
+> = ({ id, alert, onClick = undefined }) => {
+  let buttonIcon: string
+  let buttonClassExtension: string
+  let buttonTooltip: string
+  switch (alert) {
+    case undefined:
+      buttonIcon = 'pi pi-question-circle'
+      buttonClassExtension = 'p-button-secondary'
+      buttonTooltip =
+        'Monitoring is enabled, but evaluation has not yet occurred.'
+      break
+    case false:
+      buttonIcon = 'pi pi-check-circle'
+      buttonClassExtension = 'p-button-success'
+      buttonTooltip = 'Monitoring is enabled and ok.'
+      break
+    case true:
+      buttonIcon = 'pi pi-exclamation-circle'
+      buttonClassExtension = 'p-button-danger'
+      buttonTooltip = 'Monitoring is enabled and an alert has been triggered.'
+      break
+  }
+  return (
+    <Button
+      id={id}
+      className={`p-button-lg p-button-text ${buttonClassExtension}`}
+      icon={buttonIcon}
+      tooltip={buttonTooltip}
+      tooltipOptions={{
+        style: { width: '300px' },
+      }}
+      onClick={onClick}
+    />
   )
 }
 

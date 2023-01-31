@@ -192,6 +192,11 @@ const DatabaseConnections: FunctionComponent = () => {
     setUpsertDatabaseConnectionPlaceholder('')
   }, [])
 
+  const onDialogCancel = useCallback(() => {
+    setShowUpsertDatabaseConnectionPopup(false)
+    clearFields()
+  }, [clearFields])
+
   return (
     <>
       <Head>
@@ -220,10 +225,7 @@ const DatabaseConnections: FunctionComponent = () => {
               visible={showUpsertDatabaseConnectionPopup}
               resizable={false}
               draggable={false}
-              closable={false} // use cancel button instead
-              onHide={() => {
-                return
-              }} // handled by buttons, but required
+              onHide={onDialogCancel}
             >
               <b>
                 <label htmlFor="database-connection-type-dropdown">
@@ -397,10 +399,7 @@ const DatabaseConnections: FunctionComponent = () => {
                   id="cancel-database-connection-button"
                   className="p-button-outlined"
                   label="Cancel"
-                  onClick={() => {
-                    setShowUpsertDatabaseConnectionPopup(false)
-                    clearFields()
-                  }}
+                  onClick={onDialogCancel}
                 />
               </div>
             </Dialog>
@@ -419,7 +418,6 @@ const DatabaseConnections: FunctionComponent = () => {
               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
               first={databaseConnectionsTableFirst}
               onPage={databaseConnectionsTableOnPage}
-              filterDisplay="row"
               emptyMessage="No database connections configured"
             >
               <Column field="name" header="Name" style={columnStyle} />

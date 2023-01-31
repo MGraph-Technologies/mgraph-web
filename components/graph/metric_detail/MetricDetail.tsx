@@ -1,9 +1,9 @@
 import jsYaml from 'js-yaml'
 import Head from 'next/head'
 import { Button } from 'primereact/button'
+import { ConfirmDialog } from 'primereact/confirmdialog'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
-import { Mention, MentionItemTemplateType } from 'primereact/mention'
 import { Toolbar } from 'primereact/toolbar'
 import React, {
   FunctionComponent,
@@ -16,26 +16,27 @@ import { Edge, Node } from 'reactflow'
 import Editor from 'react-simple-code-editor'
 import 'react-edit-text/dist/index.css'
 
-import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
-import SectionHeader from '../../components/SectionHeader'
-import { useAuth } from '../../contexts/auth'
-import { useEditability } from '../../contexts/editability'
-import { useGraph } from '../../contexts/graph'
-import { useBrowser } from '../../contexts/browser'
-import styles from '../../styles/MetricDetail.module.css'
-import { highlight } from '../../utils/codeHighlighter'
-import { supabase } from '../../utils/supabaseClient'
-import LineChart from '../LineChart'
-import ControlPanel from './ControlPanel'
-import UndoRedoSaveAndCancelGraphEditingButtons from './editing/UndoRedoSaveAndCancelGraphEditingButtons'
+import { QueryResult, QueryRunner } from '../../../components/graph/QueryRunner'
+import SectionHeader from '../../../components/SectionHeader'
+import { useAuth } from '../../../contexts/auth'
+import { useEditability } from '../../../contexts/editability'
+import { useGraph } from '../../../contexts/graph'
+import { useBrowser } from '../../../contexts/browser'
+import styles from '../../../styles/MetricDetail.module.css'
+import { highlight } from '../../../utils/codeHighlighter'
+import { supabase } from '../../../utils/supabaseClient'
+import LineChart from '../../LineChart'
+import ControlPanel from './../ControlPanel'
+import UndoRedoSaveAndCancelGraphEditingButtons from './../editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import {
   MetricNodeProperties,
   MetricNodeSource,
   SourceQueryType,
-} from './MetricNode'
-import MonitoringRulesTable from '../MonitoringRulesTable'
-import NodePanel from './nodepanel/NodePanel'
-import UserAvatar from '../UserAvatar'
+} from './../MetricNode'
+import NodePanel from './../nodepanel/NodePanel'
+import GoalsTable from './GoalsTable'
+import MonitoringRulesTable from './MonitoringRulesTable'
+import MentionField from '../../MentionField'
 
 type MetricDetailProps = {
   metricId: string
@@ -549,7 +550,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             queryResult={queryResult}
             setQueryResult={setQueryResult}
           />
-          <LineChart queryResult={queryResult} />
+          <LineChart parentMetricNodeId={metricId} queryResult={queryResult} />
           {editingEnabled && (
             <div className={styles.refresh_chart_button_container}>
               <Button
@@ -564,19 +565,25 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           )}
         </div>
         <SectionHeader title="Owner" size="h2" />
-        <MentionableDetailField
-          valueName="owner"
+        <MentionField
+          id="owner-field"
+          className={styles.detail_field_editable}
           value={owner}
           setValue={setOwner}
-          saveDetail={saveDetail}
+          placeholder={editingEnabled ? 'Add...' : '-'}
+          onBlur={() => saveDetail('owner', owner)}
         />
         <SectionHeader title="Description" size="h2" />
-        <MentionableDetailField
-          valueName="description"
+        <MentionField
+          id="description-field"
+          className={styles.detail_field_editable}
           value={description}
           setValue={setDescription}
-          saveDetail={saveDetail}
+          placeholder={editingEnabled ? 'Add...' : '-'}
+          onBlur={() => saveDetail('description', description)}
         />
+        <SectionHeader title="Goals" size="h2" />
+        <GoalsTable parentNodeId={metricId} includeConfirmDialogFC={false} />
         <SectionHeader title="Inputs" size="h2" />
         <pre className={styles.detail_field}>
           {inputs.match(functionTypeIdRegex) ? '' : inputs.trim()}
@@ -586,7 +593,10 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           {outputs.match(functionTypeIdRegex) ? '' : outputs.trim()}
         </pre>
         <SectionHeader title="Monitoring Rules" size="h2" />
-        <MonitoringRulesTable parentNodeId={metricId} />
+        <MonitoringRulesTable
+          parentNodeId={metricId}
+          includeConfirmDialogFC={false}
+        />
         <SectionHeader title="Source" size="h2" />
         <SectionHeader title="Database" size="h3" />
         <div className={styles.connection_config_block}>
@@ -723,6 +733,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           {editingEnabled && sourceQueryType === 'freeform' ? (
             <Editor
               id="source-query-field"
+              className={styles.editor}
               value={sourceQuery}
               onValueChange={(query) => setSourceQuery(query)}
               onBlur={() => {
@@ -744,133 +755,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
         </div>
       )}
+      <ConfirmDialog />
     </div>
-  )
-}
-
-type MentionFieldProps = {
-  valueName: keyof MetricNodeProperties
-  value: string
-  setValue: (value: string) => void
-  saveDetail: (
-    name: keyof MetricNodeProperties,
-    value: string | MetricNodeSource
-  ) => void
-}
-const MentionableDetailField: FunctionComponent<MentionFieldProps> = ({
-  valueName,
-  value,
-  setValue,
-  saveDetail,
-}) => {
-  const { editingEnabled } = useEditability()
-  type Mention = {
-    id: string
-    name: string
-    email: string
-    username: string
-    avatarUrl: string
-  }
-  const [mentionSuggestions, setMentionSuggestions] = useState<Mention[]>([])
-  const [mentionQuery, setMentionQuery] = useState('')
-  const suggestMentions = async (event: { query: string }) => {
-    const { query } = event
-    if (!query) return
-    setMentionQuery(query)
-    const { data, error } = await supabase
-      .from('sce_display_users')
-      .select('id, name, email, avatar')
-      .or(
-        `email.ilike.${query.toLowerCase()}%,name.ilike.${query.toLowerCase()}%`
-      )
-      .limit(10)
-
-    if (error) {
-      console.error(error)
-      return
-    }
-
-    if (data) {
-      setMentionSuggestions(
-        data.map((owner) => ({
-          id: owner.id,
-          name: owner.name,
-          email: owner.email,
-          username: owner.email.split('@')[0],
-          avatarUrl: owner.avatar,
-        }))
-      )
-    } else {
-      setMentionSuggestions([])
-    }
-  }
-  const mentionSuggestionTemplate: MentionItemTemplateType = (suggestion) => {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <div style={{ width: '32px' }}>
-          <UserAvatar
-            user={{
-              name: suggestion.name as string,
-              email: suggestion.email as string,
-              avatarUrl: suggestion.avatarUrl as string,
-            }}
-          />
-        </div>
-        <div style={{ marginLeft: '.5rem' }}>
-          <p>{suggestion.name}</p>
-          <small
-            style={{ fontSize: '.75rem', color: 'var(--text-secondary-color)' }}
-          >
-            {suggestion.username}
-          </small>
-        </div>
-      </div>
-    )
-  }
-
-  return editingEnabled ? (
-    <Mention
-      id={`${valueName}-field`}
-      autoResize
-      className={styles.detail_field_editable}
-      inputClassName={styles.detail_field_editable}
-      inputStyle={{ border: 'none', height: 'auto' }}
-      value={value}
-      placeholder={editingEnabled ? 'Add...' : '-'}
-      suggestions={mentionSuggestions}
-      itemTemplate={mentionSuggestionTemplate}
-      field="username"
-      delay={300}
-      onSearch={suggestMentions}
-      onSelect={(e) => {
-        // Manual insertion, since default leaves divergent query text after selection
-        const usernameToInsert = e.suggestion.username
-        const newValue = value.replace(
-          `@${mentionQuery}`,
-          `@${usernameToInsert} `
-        )
-        setValue(newValue)
-      }}
-      onChange={(e) => {
-        const target = e.target as HTMLInputElement
-        setValue(target.value)
-      }}
-      onBlur={(e) => {
-        const target = e.target as HTMLInputElement
-        saveDetail(valueName, target.value)
-      }}
-    />
-  ) : (
-    <div
-      className={styles.detail_field_editable}
-      dangerouslySetInnerHTML={{
-        __html: value.replaceAll(
-          /@[a-zA-Z0-9_.+-]+/g,
-          (match) =>
-            `<span class='at_mention' style='border: 1px solid #c2c2c2; border-radius: 5px; padding: 0 3px'>${match}</span>`
-        ),
-      }}
-    />
   )
 }
 
