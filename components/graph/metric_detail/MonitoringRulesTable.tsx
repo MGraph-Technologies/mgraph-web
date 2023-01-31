@@ -67,7 +67,6 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   const populateMonitoringRules = useCallback(
     async (updateNode = false) => {
       if (organizationId) {
-        setMonitoringRulesTableLoading(true)
         try {
           const { data, error, status } = await supabase
             .from('monitoring_rules')
@@ -208,6 +207,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             analytics.track('delete_monitoring_rule', {
               id: rowData.id,
             })
+            setMonitoringRulesTableLoading(true)
             populateMonitoringRules(true)
           }
         } catch (error: unknown) {
@@ -514,6 +514,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                             id: data[0].id,
                           }
                         )
+                        setMonitoringRulesTableLoading(true)
                         populateMonitoringRules(true)
                         setShowUpsertRulePopup(false)
                         clearFields()
