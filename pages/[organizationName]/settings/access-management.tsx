@@ -108,6 +108,7 @@ const AccessManagement: FunctionComponent = () => {
           .from('organization_members')
           .update({
             role_id: roleId,
+            updated_at: new Date(),
           })
           .match({
             organization_id: organizationId,
@@ -198,6 +199,7 @@ const AccessManagement: FunctionComponent = () => {
           .from('organizations')
           .update({
             default_role_id: roleId,
+            updated_at: new Date(),
           })
           .match({
             id: organizationId,

@@ -258,6 +258,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
                         .from('nodes')
                         .update({
                           properties: newProperties,
+                          updated_at: new Date(),
                         })
                         .eq('id', node.id)
 
