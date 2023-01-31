@@ -500,6 +500,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
             }}
           />
           <Column
+            header="Status"
             body={statusCellBodyTemplate}
             align="center"
             style={columnStyle}

@@ -576,6 +576,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             }}
           />
           <Column
+            header="Status"
             body={alertCellBodyTemplate}
             align="center"
             style={columnStyle}
