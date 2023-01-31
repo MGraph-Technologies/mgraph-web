@@ -574,11 +574,11 @@ describe('Metric detail editing', () => {
     cy.get('li').contains('MONTH').click().wait(1000)
 
     cy.get('[id=group_by-field]').click()
-    cy.get('li').contains('test').click().wait(1000)
+    cy.get('li').contains('test_dimension').click().wait(1000)
 
     cy.get('[id=conditions-field]').click()
     cy.get('[id*=condition-dimension-picker]').click()
-    cy.get('li').contains('test').click().wait(1000)
+    cy.get('li').contains('test_dimension').click().wait(1000)
     cy.get('[id*=condition-operator-picker]').click()
     cy.get('li').contains('=').click().wait(1000)
     cy.get('[id*=condition-value-field]')
@@ -594,9 +594,9 @@ describe('Metric detail editing', () => {
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=beginning_date-field]').contains('2022-01-10')
     cy.get('[id=ending_date-field]').contains('2022-01-12')
-    cy.get('[id=group_by-field]').contains('test')
+    cy.get('[id=group_by-field]').contains('test_dimension')
     cy.get('[id=frequency-field]').contains('MONTH')
-    cy.get('[id=conditions-field]').contains('test')
+    cy.get('[id=conditions-field]').contains('test_dimension')
 
     // reset all
     cy.get('[id*=reset-button]').each(() => {
