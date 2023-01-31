@@ -481,7 +481,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
           first={goalsTableFirst}
           onPage={goalsTableOnPage}
-          emptyMessage="No goals found"
+          emptyMessage="No goals added"
         >
           <Column
             field="name"

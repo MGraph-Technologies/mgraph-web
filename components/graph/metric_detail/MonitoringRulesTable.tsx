@@ -550,7 +550,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
           first={monitoringRulesTableFirst}
           onPage={monitoringRulesTableOnPage}
-          emptyMessage="No monitoring rules found"
+          emptyMessage="No monitoring added"
         >
           <Column
             field="name"
