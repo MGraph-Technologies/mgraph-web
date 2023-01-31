@@ -59,8 +59,13 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
 }) => {
   const { userOnMobile } = useAuth()
   const { editingEnabled } = useEditability()
-  const { graph, reactFlowRenderer, reactFlowViewport, formNodeHandleStyle } =
-    useGraph()
+  const {
+    graph,
+    goalStatusMap,
+    reactFlowRenderer,
+    reactFlowViewport,
+    formNodeHandleStyle,
+  } = useGraph()
 
   const INIT_HEIGHT = 288
   const INIT_WIDTH = 512
@@ -69,6 +74,22 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   useEffect(() => {
     setThisNode(graph.nodes.find((node) => node.id === data.id))
   }, [graph.nodes, data.id])
+
+  const [boxShadow, setBoxShadow] = useState('0px 0px 0px 0px #000000')
+  useEffect(() => {
+    const alert = data.alert
+    const goalStatuses =
+      goalStatusMap && goalStatusMap[data.id]
+        ? Object.values(goalStatusMap[data.id])
+        : []
+    if (alert === true) {
+      setBoxShadow('0px 0px 10px 5px #FF5757') // red if alert
+    } else if (goalStatuses.includes('behind')) {
+      setBoxShadow('0px 0px 10px 5px #F59E0B') // yellow if behind goal
+    } else if (alert === false || goalStatuses.includes('ahead')) {
+      setBoxShadow('0px 0px 10px 5px #3ECA6A') // green otherwise if monitoring or goal in effect
+    }
+  }, [data.alert, goalStatusMap, data.id])
 
   const [name, setName] = useState('')
   useEffect(() => {
@@ -153,6 +174,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
         width: `${thisNode?.width || INIT_WIDTH}px`,
         backgroundColor: color,
         border: selected ? '5px solid' : '1px solid',
+        boxShadow: boxShadow,
       }}
     >
       <div className={styles.header}>
