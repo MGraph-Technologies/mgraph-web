@@ -291,7 +291,6 @@ const RefreshJobs: FunctionComponent = () => {
               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
               first={refreshJobsTableFirst}
               onPage={refreshJobsTableOnPage}
-              filterDisplay="row"
               emptyMessage="No refresh jobs configured"
             >
               <Column field="name" header="Name" style={columnStyle} />

@@ -549,7 +549,6 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
           first={monitoringRulesTableFirst}
           onPage={monitoringRulesTableOnPage}
-          filterDisplay="row"
           emptyMessage="No monitoring rules found"
         >
           <Column

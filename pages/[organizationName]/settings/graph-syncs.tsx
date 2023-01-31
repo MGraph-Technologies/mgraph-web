@@ -505,7 +505,6 @@ const GraphSyncs: FunctionComponent = () => {
               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
               first={graphSyncsTableFirst}
               onPage={graphSyncsTableOnPage}
-              filterDisplay="row"
               emptyMessage="No graph syncs configured"
             >
               <Column field="name" header="Name" style={columnStyle} />
