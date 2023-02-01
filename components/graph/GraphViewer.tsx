@@ -48,7 +48,6 @@ const GraphViewer: FunctionComponent = () => {
     getConnectedObjects,
   } = useGraph()
   const {
-    actionKey,
     actionKeyPressed,
     altKeyPressed,
     inputInProgress,
@@ -193,17 +192,20 @@ const GraphViewer: FunctionComponent = () => {
       if (!updateGraph) {
         throw new Error('updateGraph not defined')
       }
-      updateGraph(
-        {
-          nodes: graph.nodes.map((n) =>
-            n.id === node.id
-              ? { ...node, selected: true }
-              : { ...n, selected: actionKeyPressed ? n.selected : false }
-          ),
-          edges: undefined,
-        },
-        true
-      )
+      // multiselection
+      if (actionKeyPressed) {
+        updateGraph(
+          {
+            nodes: graph.nodes.map((n) =>
+              n.id === node.id
+                ? { ...node, selected: true }
+                : { ...n, selected: n.selected }
+            ),
+            edges: undefined,
+          },
+          true
+        )
+      }
     },
     [updateGraph, graph, actionKeyPressed]
   )
@@ -424,7 +426,7 @@ const GraphViewer: FunctionComponent = () => {
         minZoom={0.01}
         maxZoom={10}
         deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
-        multiSelectionKeyCode={editingEnabled ? actionKey : null}
+        multiSelectionKeyCode={null}
         selectionKeyCode={editingEnabled ? 'Shift' : null}
         onlyRenderVisibleElements={false}
         proOptions={{
