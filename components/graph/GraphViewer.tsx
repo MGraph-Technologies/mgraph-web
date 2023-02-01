@@ -176,6 +176,10 @@ const GraphViewer: FunctionComponent = () => {
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
+      // handle deletes via onNodesDelete
+      if (changes.find((c) => c.type === 'remove')) {
+        return
+      }
       if (!updateGraph) {
         throw new Error('updateGraph not defined')
       }
@@ -185,6 +189,36 @@ const GraphViewer: FunctionComponent = () => {
       )
     },
     [updateGraph, graph.nodes]
+  )
+
+  const onNodesDelete = useCallback(
+    (nodes: Node[]) => {
+      if (!updateGraph) {
+        throw new Error('updateGraph not defined')
+      }
+      if (!getConnectedObjects) {
+        throw new Error('getConnectedObjects not defined')
+      }
+      // delete node + connected input edges and function nodes
+      const toDelete: string[] = []
+      nodes.forEach((node) => {
+        toDelete.push(node.id)
+        const connectedObjects = getConnectedObjects(node, 1)
+        connectedObjects.forEach((o) => {
+          if (o.type === 'input' || o.type === 'function') {
+            toDelete.push(o.id)
+          }
+        })
+      })
+      updateGraph(
+        {
+          nodes: graph.nodes.filter((n) => !toDelete.includes(n.id)),
+          edges: graph.edges.filter((e) => !toDelete.includes(e.id)),
+        },
+        true
+      )
+    },
+    [getConnectedObjects, updateGraph, graph.nodes, graph.edges]
   )
 
   const onNodeDragStart = useCallback(
@@ -212,6 +246,10 @@ const GraphViewer: FunctionComponent = () => {
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
+      // handle deletes via onNodesDelete
+      if (changes.find((c) => c.type === 'remove')) {
+        return
+      }
       if (!updateGraph) {
         throw new Error('updateGraph not defined')
       }
@@ -288,7 +326,6 @@ const GraphViewer: FunctionComponent = () => {
         }
       }
       // selecting any function node or input edge highlights all connected others
-      // right now this essentially insures that an editor can't partially delete a formula
       if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {
         if (!getConnectedObjects) {
           throw new Error('getConnectedObjects not defined')
@@ -410,6 +447,7 @@ const GraphViewer: FunctionComponent = () => {
         edgeTypes={edgeTypes}
         onNodeClick={(_event, node) => onSelect(node)}
         onNodesChange={onNodesChange}
+        onNodesDelete={onNodesDelete}
         onEdgeClick={(_event, edge) => onSelect(edge)}
         onEdgeUpdate={editingEnabled ? onEdgeUpdate : undefined}
         onEdgeUpdateStart={editingEnabled ? onEdgeUpdateStart : undefined}
