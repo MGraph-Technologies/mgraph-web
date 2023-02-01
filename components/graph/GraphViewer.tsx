@@ -307,7 +307,11 @@ const GraphViewer: FunctionComponent = () => {
               ) {
                 return {
                   ...node,
-                  selected: true,
+                  selected:
+                    node.type === 'function'
+                      ? true
+                      : // select function nodes only on double click
+                        !node.selected,
                 }
               } else {
                 return node
