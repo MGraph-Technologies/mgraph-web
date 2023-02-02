@@ -133,12 +133,15 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   /***** Plot Goals On Chart *****/
   const enrichChartJSDatasets = useCallback(async () => {
     if (chartJSDatasets.length === 0) return
+    if (chartJSDatasetsEnriched) return
     const frequency = queryParameters.frequency?.userValue
     const dimensionName = queryParameters.group_by?.userValue
     // first date across all datasets
     const firstPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
-        const _firstPlottedDate = dataset.data.sort(
+        // avoid inplace sort triggering chart rerender
+        const data = dataset.data.slice()
+        const _firstPlottedDate = data.sort(
           (a, b) => a.x.getTime() - b.x.getTime()
         )[0].x
         return _firstPlottedDate < acc ? _firstPlottedDate : acc
@@ -147,7 +150,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     // last date across all datasets
     const lastPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
-        const _lastPlottedDate = dataset.data.sort(
+        const data = dataset.data.slice()
+        const _lastPlottedDate = data.sort(
           (a, b) => b.x.getTime() - a.x.getTime()
         )[0].x
         return _lastPlottedDate > acc ? _lastPlottedDate : acc
@@ -241,16 +245,20 @@ const LineChart: FunctionComponent<LineChartProps> = ({
           goalsDatasets[0].label = 'goal'
         }
         setChartJSDatasets([...actualDatasets, ...goalsDatasets])
+        setChartJSDatasetsEnriched(true)
       }
     }
-  }, [chartJSDatasets, queryParameters, organizationId, parentMetricNodeId])
+  }, [
+    chartJSDatasets,
+    chartJSDatasetsEnriched,
+    queryParameters,
+    organizationId,
+    parentMetricNodeId,
+  ])
 
   useEffect(() => {
-    if (chartJSDatasets.length > 0 && !chartJSDatasetsEnriched) {
-      enrichChartJSDatasets()
-      setChartJSDatasetsEnriched(true)
-    }
-  }, [chartJSDatasets, chartJSDatasetsEnriched, enrichChartJSDatasets])
+    enrichChartJSDatasets()
+  }, [enrichChartJSDatasets])
 
   /***** Evaluate Plotted Goals *****/
   const [goalStatusMapUpdated, setGoalStatusesUpdated] = useState(false)
