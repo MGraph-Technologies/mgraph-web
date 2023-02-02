@@ -133,6 +133,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   /***** Plot Goals On Chart *****/
   const enrichChartJSDatasets = useCallback(async () => {
     if (chartJSDatasets.length === 0) return
+    if (chartJSDatasetsEnriched) return
     const frequency = queryParameters.frequency?.userValue
     const dimensionName = queryParameters.group_by?.userValue
     // first date across all datasets
@@ -241,16 +242,20 @@ const LineChart: FunctionComponent<LineChartProps> = ({
           goalsDatasets[0].label = 'goal'
         }
         setChartJSDatasets([...actualDatasets, ...goalsDatasets])
+        setChartJSDatasetsEnriched(true)
       }
     }
-  }, [chartJSDatasets, queryParameters, organizationId, parentMetricNodeId])
+  }, [
+    chartJSDatasets,
+    chartJSDatasetsEnriched,
+    queryParameters,
+    organizationId,
+    parentMetricNodeId,
+  ])
 
   useEffect(() => {
-    if (chartJSDatasets.length > 0 && !chartJSDatasetsEnriched) {
-      enrichChartJSDatasets()
-      setChartJSDatasetsEnriched(true)
-    }
-  }, [chartJSDatasets, chartJSDatasetsEnriched, enrichChartJSDatasets])
+    enrichChartJSDatasets()
+  }, [enrichChartJSDatasets])
 
   /***** Evaluate Plotted Goals *****/
   const [goalStatusMapUpdated, setGoalStatusesUpdated] = useState(false)
