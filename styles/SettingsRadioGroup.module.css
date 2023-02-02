@@ -1,0 +1,22 @@
+.radio_group {
+  display: flex;
+  flex-direction: row;
+}
+
+.radio_group .radio_group_item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-right: 1rem;
+}
+
+.radio_group .radio_group_item .radio_group_item_input {
+  /* align style with primereact */
+  height: 24px;
+  width: 24px;
+  accent-color: #6366f1;
+}
+
+.radio_group .radio_group_item .radio_group_item_label {
+  margin-left: 0.5rem;
+}

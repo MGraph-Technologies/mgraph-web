@@ -18,6 +18,7 @@ import 'react-edit-text/dist/index.css'
 
 import { QueryResult, QueryRunner } from '../../../components/graph/QueryRunner'
 import SectionHeader from '../../../components/SectionHeader'
+import SettingsRadioGroup from '../../../components/SettingsRadioGroup'
 import { useAuth } from '../../../contexts/auth'
 import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
@@ -37,6 +38,11 @@ import NodePanel from './../nodepanel/NodePanel'
 import GoalsTable from './GoalsTable'
 import MonitoringRulesTable from './MonitoringRulesTable'
 import MentionField from '../../MentionField'
+
+const DROPDOWN_EMPTY_OPTION = {
+  id: '',
+  name: '(None)',
+}
 
 type MetricDetailProps = {
   metricId: string
@@ -81,14 +87,18 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const [sourceDbtMetricYaml, setSourceDbtMetricYaml] = useState('')
   const [sourceQueryType, setSourceQueryType] =
     useState<SourceQueryType>('freeform')
-  const sourceQueryTypes = [
+  type SourceQueryTypeOption = {
+    label: SourceQueryType
+    value: SourceQueryType
+  }
+  const sourceQueryTypeOptions: SourceQueryTypeOption[] = [
     {
-      label: 'freeform' as SourceQueryType,
-      value: 'freeform' as SourceQueryType,
+      label: 'freeform',
+      value: 'freeform',
     },
     {
-      label: 'generated' as SourceQueryType,
-      value: 'generated' as SourceQueryType,
+      label: 'generated',
+      value: 'generated',
     },
   ]
   const [sourceQuery, setSourceQuery] = useState('')
@@ -135,6 +145,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             }
             return 0
           })
+          data.unshift(DROPDOWN_EMPTY_OPTION)
           setDatabaseConnections(data)
         }
       } catch (error: unknown) {
@@ -172,18 +183,14 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             }
             return 0
           })
-          setGraphSyncs(
-            [
-              {
-                id: '',
-                name: '(none)',
-                properties: {},
-                graph_sync_types: {
-                  name: '',
-                },
-              },
-            ].concat(data)
-          )
+          data.unshift({
+            ...DROPDOWN_EMPTY_OPTION,
+            properties: {},
+            graph_sync_types: {
+              name: '',
+            },
+          })
+          setGraphSyncs(data)
         }
       } catch (error: unknown) {
         console.error(error)
@@ -605,13 +612,21 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           includeConfirmDialogFC={false}
         />
         <SectionHeader title="Source" size="h2" />
-        <SectionHeader title="Database" size="h3" />
+        {/***** Source Database Connection *****/}
         <div className={styles.connection_config_block}>
           <div className={styles.connection_config}>
+            <label
+              htmlFor="source-database-connection-dropdown"
+              className={styles.connection_config_label}
+            >
+              Database Connection
+            </label>
             <Dropdown
               id="source-database-connection-dropdown"
               className={styles.connection_config_value}
-              value={sourceDatabaseConnection?.name || ''}
+              value={
+                sourceDatabaseConnection?.name || DROPDOWN_EMPTY_OPTION.name
+              }
               options={databaseConnections.map((dc) => dc.name)}
               onChange={(e) => {
                 const newSourceDatabaseConnection = databaseConnections.find(
@@ -630,132 +645,164 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             />
           </div>
         </div>
-        {(editingEnabled || sourceDbtProjectGraphSync?.id) && (
+        {/* Only show subsequent source fields if database connection chosen */}
+        {sourceDatabaseConnection?.id && (
           <>
-            <SectionHeader title="dbt" size="h3" />
-            <div className={styles.connection_config_block}>
-              <div className={styles.connection_config}>
-                <label
-                  htmlFor="source-dbt-project-graph-sync-dropdown"
-                  className={styles.connection_config_label}
-                >
-                  Project
-                </label>
-                <Dropdown
-                  id="source-dbt-project-graph-sync-dropdown"
-                  className={styles.connection_config_value}
-                  value={sourceDbtProjectGraphSync?.name || ''}
-                  options={graphSyncs.map((gc) => gc.name)}
-                  onChange={(e) => {
-                    const newSourceDbtProjectGraphSync = graphSyncs.find(
-                      (gs) => gs.name === e.value
-                    )
-                    if (newSourceDbtProjectGraphSync) {
-                      saveDetail('source', {
-                        ...metricNode?.data?.source,
-                        dbtProjectGraphSyncId: newSourceDbtProjectGraphSync.id,
-                      })
-                    }
-                  }}
-                  disabled={!editingEnabled}
-                  emptyMessage="No dbt project graph syncs configured"
-                  tooltip="The dbt project graph sync from which to draw metric definition"
-                />
-              </div>
-              {sourceDbtProjectGraphSync?.id && (
-                <div className={styles.connection_config}>
-                  <label
-                    htmlFor="source-dbt-project-path-field"
-                    className={styles.connection_config_label}
-                  >
-                    Path
-                  </label>
-                  <InputText
-                    id="source-dbt-project-path-field"
-                    className={styles.connection_config_value}
-                    value={sourceDbtProjectMetricPath || ''}
-                    onChange={(e) => {
-                      setSourceDbtProjectMetricPath(e.target.value)
-                    }}
-                    onBlur={() => {
-                      saveDetail('source', {
-                        ...metricNode?.data?.source,
-                        dbtProjectMetricPath: sourceDbtProjectMetricPath,
-                      })
-                    }}
-                    disabled={!editingEnabled}
-                    tooltip="Path to dbt metric definition within project; e.g., models/marts/schema.yml:new_users"
-                  />
-                </div>
-              )}
-            </div>
-            {sourceDbtProjectGraphSync?.id && (
+            {/***** Source dbt Sync *****/}
+            {/* Only show if 1+ syncs have been configured */}
+            {graphSyncs.length > 0 && (
               <>
-                <br />
-                <div>Definition</div>
-                <pre className={styles.detail_field_code}>
-                  {highlight(
-                    sourceDbtMetricYaml || '(metric not found)',
-                    'yaml'
+                <div className={styles.connection_config_block}>
+                  <div className={styles.connection_config}>
+                    <label
+                      htmlFor="source-dbt-project-graph-sync-dropdown"
+                      className={styles.connection_config_label}
+                    >
+                      dbt Sync
+                    </label>
+                    <Dropdown
+                      id="source-dbt-project-graph-sync-dropdown"
+                      className={styles.connection_config_value}
+                      value={
+                        sourceDbtProjectGraphSync?.name ||
+                        DROPDOWN_EMPTY_OPTION.name
+                      }
+                      options={graphSyncs.map((gc) => gc.name)}
+                      onChange={(e) => {
+                        const newSourceDbtProjectGraphSync = graphSyncs.find(
+                          (gs) => gs.name === e.value
+                        )
+                        if (newSourceDbtProjectGraphSync) {
+                          const newSource = {
+                            ...metricNode?.data?.source,
+                            dbtProjectGraphSyncId:
+                              newSourceDbtProjectGraphSync.id,
+                          }
+                          if (newSourceDbtProjectGraphSync.id === '') {
+                            // reset dbt project path and query type if None selected
+                            setSourceDbtProjectMetricPath('')
+                            newSource.dbtProjectMetricPath = ''
+                            setSourceQueryType('freeform')
+                            newSource.queryType = 'freeform'
+                          }
+                          saveDetail('source', newSource)
+                        }
+                      }}
+                      disabled={!editingEnabled}
+                      emptyMessage="No dbt project graph syncs configured"
+                      tooltip="The dbt project graph sync from which to draw metric definition"
+                    />
+                  </div>
+                  {sourceDbtProjectGraphSync?.id && (
+                    <div className={styles.connection_config}>
+                      <label
+                        htmlFor="source-dbt-project-path-field"
+                        className={styles.connection_config_label}
+                      >
+                        dbt Path
+                      </label>
+                      <InputText
+                        id="source-dbt-project-path-field"
+                        className={styles.connection_config_value}
+                        value={sourceDbtProjectMetricPath || ''}
+                        onChange={(e) => {
+                          setSourceDbtProjectMetricPath(e.target.value)
+                        }}
+                        onBlur={() => {
+                          saveDetail('source', {
+                            ...metricNode?.data?.source,
+                            dbtProjectMetricPath: sourceDbtProjectMetricPath,
+                          })
+                        }}
+                        disabled={!editingEnabled}
+                        tooltip="Path to dbt metric definition within project; e.g., models/marts/schema.yml:new_users"
+                      />
+                    </div>
                   )}
-                </pre>
+                </div>
+                {/* Only show if a sync has been chosen */}
+                {sourceDbtProjectGraphSync?.id && (
+                  <>
+                    <div className={styles.connection_config_block}>
+                      <div className={styles.connection_config}>
+                        <label
+                          htmlFor="source-dbt-definition"
+                          className={styles.connection_config_label}
+                        >
+                          dbt Definition
+                        </label>
+                      </div>
+                    </div>
+                    <pre
+                      id="source-dbt-definition"
+                      className={styles.detail_field_code}
+                    >
+                      {highlight(
+                        sourceDbtMetricYaml || '(metric not found)',
+                        'yaml'
+                      )}
+                    </pre>
+                    <div className={styles.connection_config_block}>
+                      <div className={styles.connection_config}>
+                        <label
+                          htmlFor="source-query-type-radio-group"
+                          className={styles.connection_config_label}
+                        >
+                          Query Type
+                        </label>
+                        <SettingsRadioGroup
+                          id="source-query-type-radio-group"
+                          value={sourceQueryType}
+                          options={sourceQueryTypeOptions}
+                          onChange={(newValue) => {
+                            const newSQT = newValue as SourceQueryType
+                            setSourceQueryType(newSQT)
+                            saveDetail('source', {
+                              ...metricNode?.data?.source,
+                              queryType: newSQT,
+                            })
+                          }}
+                          disabled={!editingEnabled}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
-          </>
-        )}
-        <SectionHeader title="Query" size="h3" />
-        {(editingEnabled || sourceDbtProjectGraphSync?.id) && (
-          <>
+            {/***** Source Query *****/}
             <div className={styles.connection_config_block}>
               <div className={styles.connection_config}>
                 <label
-                  htmlFor="source-query-type-dropdown"
+                  htmlFor="source-query-field"
                   className={styles.connection_config_label}
                 >
-                  Type
+                  Query
                 </label>
-                <Dropdown
-                  id="source-query-type-dropdown"
-                  className={styles.connection_config_value}
-                  value={sourceQueryType}
-                  options={sourceQueryTypes}
-                  onChange={(e) => {
-                    const newSQT = e.value as SourceQueryType
-                    setSourceQueryType(newSQT)
-                    saveDetail('source', {
-                      ...metricNode?.data?.source,
-                      queryType: newSQT,
-                    })
-                  }}
-                  style={{ marginBottom: '1em' }}
-                  disabled={!editingEnabled}
-                  tooltip="Whether query will be user-inputted or auto-generated from a dbt metric"
-                />
               </div>
             </div>
-            {sourceQueryType === 'generated' && <div>Generated SQL</div>}
+            <pre className={styles.detail_field_code}>
+              {editingEnabled && sourceQueryType === 'freeform' ? (
+                <Editor
+                  id="source-query-field"
+                  className={styles.editor}
+                  value={sourceQuery}
+                  onValueChange={(query) => setSourceQuery(query)}
+                  onBlur={() => {
+                    saveDetail('source', {
+                      ...metricNode?.data?.source,
+                      query: sourceQuery,
+                    })
+                  }}
+                  highlight={(query) => highlight(query, 'sql')}
+                  textareaClassName="react-simple-code-editor-textarea"
+                />
+              ) : (
+                highlight(sourceQuery, 'sql')
+              )}
+            </pre>
           </>
         )}
-        <pre className={styles.detail_field_code}>
-          {editingEnabled && sourceQueryType === 'freeform' ? (
-            <Editor
-              id="source-query-field"
-              className={styles.editor}
-              value={sourceQuery}
-              onValueChange={(query) => setSourceQuery(query)}
-              onBlur={() => {
-                saveDetail('source', {
-                  ...metricNode?.data?.source,
-                  query: sourceQuery,
-                })
-              }}
-              highlight={(query) => highlight(query, 'sql')}
-              textareaClassName="react-simple-code-editor-textarea"
-            />
-          ) : (
-            highlight(sourceQuery, 'sql')
-          )}
-        </pre>
       </div>
       {editingEnabled && (
         <div className={styles.editor_dock}>
