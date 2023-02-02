@@ -161,18 +161,20 @@ const GraphViewer: FunctionComponent = () => {
     setReactFlowRenderer!(document.querySelector('.react-flow__renderer')!)
   }, [reactFlowInstance, setReactFlowInstance, setReactFlowRenderer])
 
-  // fit on initial graph load
   const [initialFitComplete, setInitialFitComplete] = useState(false)
   useEffect(() => {
-    if (
-      !initialFitComplete &&
-      reactFlowInstance.viewportInitialized &&
-      graph.nodes.length > 0
-    ) {
+    if (!reactFlowInstance.viewportInitialized || initialFitComplete) {
+      return
+    } else if (reactFlowViewport) {
+      // persist viewport within a tab's page views
+      reactFlowInstance.setViewport(reactFlowViewport)
+      setInitialFitComplete(true)
+    } else if (graph.nodes.length > 0) {
+      // fit to view on initial load
       reactFlowInstance.fitView()
       setInitialFitComplete(true)
     }
-  }, [initialFitComplete, reactFlowInstance, graph.nodes])
+  }, [reactFlowInstance, initialFitComplete, reactFlowViewport, graph.nodes])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
