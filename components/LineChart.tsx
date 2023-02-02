@@ -139,7 +139,9 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     // first date across all datasets
     const firstPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
-        const _firstPlottedDate = dataset.data.sort(
+        // avoid inplace sort triggering chart rerender
+        const data = dataset.data.slice()
+        const _firstPlottedDate = data.sort(
           (a, b) => a.x.getTime() - b.x.getTime()
         )[0].x
         return _firstPlottedDate < acc ? _firstPlottedDate : acc
@@ -148,7 +150,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     // last date across all datasets
     const lastPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
-        const _lastPlottedDate = dataset.data.sort(
+        const data = dataset.data.slice()
+        const _lastPlottedDate = data.sort(
           (a, b) => b.x.getTime() - a.x.getTime()
         )[0].x
         return _lastPlottedDate > acc ? _lastPlottedDate : acc
