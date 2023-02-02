@@ -317,8 +317,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     }
     setInputs(newInputs)
     setOutputs(newOutputs)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metricNode, graph, getConnectedObjects])
+  }, [metricNode, getConnectedObjects, graph.edges, metricId])
   useEffect(() => {
     populateInputsAndOutputs()
   }, [populateInputsAndOutputs])
@@ -339,14 +338,22 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     [functionTypeIdRegex, getFunctionSymbol]
   )
   useEffect(() => {
-    if (inputs) {
-      replaceFunctionTypeIdWithSymbol(inputs).then(setInputs)
+    const populateInputs = async () => {
+      const _inputs = await replaceFunctionTypeIdWithSymbol(inputs)
+      if (_inputs !== inputs) {
+        setInputs(_inputs)
+      }
     }
+    populateInputs()
   }, [inputs, replaceFunctionTypeIdWithSymbol])
   useEffect(() => {
-    if (outputs) {
-      replaceFunctionTypeIdWithSymbol(outputs).then(setOutputs)
+    const populateOutputs = async () => {
+      const _outputs = await replaceFunctionTypeIdWithSymbol(outputs)
+      if (_outputs !== outputs) {
+        setOutputs(_outputs)
+      }
     }
+    populateOutputs()
   }, [outputs, replaceFunctionTypeIdWithSymbol])
 
   const saveDetail = useCallback(
