@@ -16,7 +16,7 @@ import { Edge, Node } from 'reactflow'
 import Editor from 'react-simple-code-editor'
 import 'react-edit-text/dist/index.css'
 
-import { QueryResult, QueryRunner } from '../../../components/graph/QueryRunner'
+import QueryRunner, { QueryResult } from '../../../components/graph/QueryRunner'
 import SectionHeader from '../../../components/SectionHeader'
 import SettingsRadioGroup from '../../../components/SettingsRadioGroup'
 import { useAuth } from '../../../contexts/auth'

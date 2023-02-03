@@ -39,7 +39,7 @@ type QueryRunnerProps = {
   queryResult: QueryResult
   setQueryResult: (queryResult: QueryResult) => void
 }
-export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
+const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   parentMetricNodeData,
   refreshes,
   queryResult,
@@ -400,3 +400,5 @@ export const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   )
   return <></>
 }
+
+export default QueryRunner
