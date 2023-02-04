@@ -75,6 +75,8 @@ type GraphContextType = {
   setReactFlowViewport:
     | Dispatch<SetStateAction<Viewport | undefined>>
     | undefined
+  initialGraphFitComplete: boolean
+  setInitialGraphFitComplete: Dispatch<SetStateAction<boolean>> | undefined
   undo: (() => void) | undefined
   redo: (() => void) | undefined
   canUndo: boolean
@@ -152,6 +154,8 @@ const graphContextDefaultValues: GraphContextType = {
   setReactFlowRenderer: undefined,
   reactFlowViewport: undefined,
   setReactFlowViewport: undefined,
+  initialGraphFitComplete: false,
+  setInitialGraphFitComplete: undefined,
   undo: undefined,
   redo: undefined,
   canUndo: false,
@@ -201,6 +205,8 @@ export function GraphProvider({ children }: GraphProps) {
   >()
   const [reactFlowRenderer, setReactFlowRenderer] = useState<Element>()
   const [reactFlowViewport, setReactFlowViewport] = useState<Viewport>()
+  const [initialGraphFitComplete, setInitialGraphFitComplete] =
+    useState<boolean>(false)
 
   const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
     Object.fromEntries(Object.keys(nodeTypes).map((key) => [key, '']))
@@ -899,6 +905,8 @@ export function GraphProvider({ children }: GraphProps) {
     setReactFlowRenderer: setReactFlowRenderer,
     reactFlowViewport: reactFlowViewport,
     setReactFlowViewport: setReactFlowViewport,
+    initialGraphFitComplete: initialGraphFitComplete,
+    setInitialGraphFitComplete: setInitialGraphFitComplete,
     undo: undo,
     redo: redo,
     canUndo: canUndo,
