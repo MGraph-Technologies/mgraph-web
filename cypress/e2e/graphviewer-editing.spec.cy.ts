@@ -39,7 +39,8 @@ describe('Graphviewer editing', () => {
       .should('be.visible')
 
     // add formula
-    cy.get('[id=add-formula-button]').click()
+    cy.get('[id=add-relationship-button]').click()
+    cy.get('[class*=p-listbox-item]').contains('Formula').click()
     cy.get('[id=formula-field]')
       .click()
       .type(newMetricName)

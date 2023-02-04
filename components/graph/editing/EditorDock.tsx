@@ -27,6 +27,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
 
   const newNodeMenuOverlayPanel = useRef<OverlayPanel>(null)
+  const newRelationshipMenuOverlayPanel = useRef<OverlayPanel>(null)
 
   const addCustomNode = useCallback(() => {
     if (!formCustomNode) {
@@ -157,10 +158,34 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
                     />
                   </OverlayPanel>
                   <Button
-                    id="add-formula-button"
-                    label="+ Formula"
-                    onClick={onFormulaAddition}
+                    id="add-relationship-button"
+                    label="+ Relationship"
+                    onClick={(e) =>
+                      newRelationshipMenuOverlayPanel.current?.toggle(e)
+                    }
                   />
+                  <OverlayPanel
+                    ref={newRelationshipMenuOverlayPanel}
+                    showCloseIcon={false}
+                  >
+                    <ListBox
+                      value={null}
+                      options={[
+                        {
+                          label: '+ Formula',
+                          value: 'formula',
+                        },
+                      ]}
+                      onChange={(e) => {
+                        if (e.value === 'formula') {
+                          onFormulaAddition()
+                        }
+                        // TODO: add simple / indefinite relationship
+                        newNodeMenuOverlayPanel.current?.hide()
+                      }}
+                      style={{ border: 'none', fontWeight: 'bold' }}
+                    />
+                  </OverlayPanel>
                 </>
               ) : (
                 <>
