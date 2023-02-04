@@ -13,7 +13,7 @@ import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Node, Position } from 'reactflow'
 
-import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
+import QueryRunner, { QueryResult } from '../../components/graph/QueryRunner'
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'

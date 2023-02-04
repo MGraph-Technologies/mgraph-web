@@ -4,7 +4,7 @@ import { DataTable } from 'primereact/datatable'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { Node } from 'reactflow'
 
-import { QueryResult, QueryRunner } from '../../components/graph/QueryRunner'
+import QueryRunner, { QueryResult } from '../../components/graph/QueryRunner'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/GraphTable.module.css'
 import { analytics } from '../../utils/segmentClient'

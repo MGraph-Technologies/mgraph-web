@@ -419,8 +419,7 @@ describe('Metric detail editing', () => {
       .should('exist')
 
     // test query generation
-    cy.get('[id=source-query-type-dropdown]').click()
-    cy.get('[class*=p-dropdown-item]').contains('generated').first().click()
+    cy.get('[id=source-query-type-radio-group-generated]').click()
     cy.get('body').contains('metrics.calculate(').should('exist')
 
     // enter incorrect path

@@ -88,6 +88,7 @@
 
 .metric_detail .body .connection_config_block .connection_config_label {
   display: block;
+  padding-top: 10px;
   padding-bottom: 10px;
 }
 
