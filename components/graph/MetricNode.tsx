@@ -14,6 +14,7 @@ import 'react-edit-text/dist/index.css'
 import { Handle, Node, Position } from 'reactflow'
 
 import QueryRunner, { QueryResult } from '../../components/graph/QueryRunner'
+import { UserInputTableRow } from '../../components/UserInputTable'
 import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
@@ -21,13 +22,16 @@ import styles from '../../styles/MetricNode.module.css'
 import LineChart from '../LineChart'
 import NodePanel from './nodepanel/NodePanel'
 
+export type SourceType = 'databaseQuery' | 'userInput'
 export type SourceQueryType = 'freeform' | 'generated'
 export type MetricNodeSource = {
+  type: SourceType
   databaseConnectionId: string
   query: string
   queryType: SourceQueryType
   dbtProjectGraphSyncId: string | null
   dbtProjectMetricPath: string | null
+  userInputRows: UserInputTableRow[] | null
 }
 export type MetricNodeProperties = {
   id: string

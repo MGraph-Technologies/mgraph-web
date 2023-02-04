@@ -12,6 +12,7 @@ import {
 } from '../../utils/queryUtils'
 import { supabase } from '../../utils/supabaseClient'
 import { MetricNodeProperties } from './MetricNode'
+import { SOURCE_USER_INPUT_COLUMNS } from './metric_detail/MetricDetail'
 
 export type QueryError = {
   error: string
@@ -227,6 +228,23 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
 
+    if (parentMetricNodeData?.source?.type === 'userInput') {
+      setQueryResult({
+        status: 'success',
+        data: {
+          columns: SOURCE_USER_INPUT_COLUMNS.slice(0, 3),
+          rows:
+            parentMetricNodeData?.source?.userInputRows?.map((d) => [
+              new Date(d.date || 'x'),
+              d.dimension === '' || d.dimension === 'null' ? null : d.dimension,
+              d.value,
+            ]) || [],
+          executedAt: new Date(),
+        },
+      })
+      return
+    }
+
     if (!parentPopulated) {
       setQueryResult({
         status: 'parent_empty',
@@ -306,6 +324,8 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   }, [
     getValidAccessToken,
     parentMetricNodeData?.id,
+    parentMetricNodeData?.source?.type,
+    parentMetricNodeData?.source?.userInputRows,
     initialGraph.nodes,
     parentPopulated,
     queryId,

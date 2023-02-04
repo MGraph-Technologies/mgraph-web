@@ -94,11 +94,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               description: properties.description,
               owner: properties.owner,
               source: {
+                type: properties.source?.type,
                 databaseConnectionId: properties.source?.databaseConnectionId,
                 query: properties.source?.query,
                 queryType: properties.source?.queryType,
                 dbtProjectGraphSyncId: properties.source?.dbtProjectGraphSyncId,
                 dbtProjectMetricPath: properties.source?.dbtProjectMetricPath,
+                userInputRows: properties.source?.userInputRows,
               },
               color: properties.color,
               tablePosition: properties.tablePosition,

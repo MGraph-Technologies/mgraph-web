@@ -77,22 +77,30 @@
   border-radius: 5px;
 }
 
-.metric_detail .body .connection_config_block {
+.metric_detail .body .source_config_block {
   display: flex;
   flex-direction: row;
 }
 
-.metric_detail .body .connection_config_block .connection_config {
+.metric_detail .body .source_config_block .source_config_item {
   padding-right: 20px;
 }
 
-.metric_detail .body .connection_config_block .connection_config_label {
+.metric_detail
+  .body
+  .source_config_block
+  .source_config_item
+  .source_config_label {
   display: block;
-  padding-top: 10px;
+  padding-top: 20px;
   padding-bottom: 10px;
 }
 
-.metric_detail .body .connection_config_block .connection_config_value {
+.metric_detail
+  .body
+  .source_config_block
+  .source_config_item
+  .source_config_value {
   background-color: #f8f8fe;
 }
 

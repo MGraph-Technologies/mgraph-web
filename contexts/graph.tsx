@@ -538,11 +538,13 @@ export function GraphProvider({ children }: GraphProps) {
       description: '',
       owner: '',
       source: {
+        type: 'databaseQuery',
         databaseConnectionId: '',
         query: '',
         queryType: 'freeform',
         dbtProjectGraphSyncId: null,
         dbtProjectMetricPath: null,
+        userInputRows: null,
       },
       color: '#FFFFFF',
       tablePosition: null,
