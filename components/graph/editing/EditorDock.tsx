@@ -1,5 +1,4 @@
 import { Button } from 'primereact/button'
-import { InputSwitch } from 'primereact/inputswitch'
 import { InputText } from 'primereact/inputtext'
 import { ListBox } from 'primereact/listbox'
 import { OverlayPanel } from 'primereact/overlaypanel'
@@ -24,10 +23,27 @@ type EditorDockProps = {
 }
 const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
   const { editingEnabled } = useEditability()
-  const { graph, updateGraph, formMetricNode, formMissionNode } = useGraph()
+  const { graph, updateGraph, formCustomNode, formMetricNode } = useGraph()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
 
   const newNodeMenuOverlayPanel = useRef<OverlayPanel>(null)
+
+  const addCustomNode = useCallback(() => {
+    if (!formCustomNode) {
+      throw new Error('formMetricNode is not defined')
+    }
+    if (!updateGraph) {
+      throw new Error('updateGraph is not defined')
+    }
+    const newNode = formCustomNode()
+    if (newNode) {
+      analytics.track('add_custom_node')
+      updateGraph(
+        { nodes: graph.nodes.concat(newNode), edges: undefined },
+        true
+      )
+    }
+  }, [formCustomNode, updateGraph, graph.nodes])
 
   const addMetricNode = useCallback(() => {
     if (!formMetricNode) {
@@ -50,35 +66,6 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
     analytics.track('add_formula')
     setShowFormulaEditor(true)
   }, [])
-
-  const [missionToggleChecked, setMissionToggleChecked] = useState(false)
-  useEffect(() => {
-    setMissionToggleChecked(graph.nodes.some((node) => node.type === 'mission'))
-  }, [graph.nodes])
-  const addMissionNode = useCallback(() => {
-    if (!formMissionNode) {
-      throw new Error('formMetricNode is not defined')
-    }
-    if (!updateGraph) {
-      throw new Error('updateGraph is not defined')
-    }
-    const newNode = formMissionNode()
-    if (newNode) {
-      analytics.track('add_mission_node')
-      updateGraph(
-        { nodes: graph.nodes.concat(newNode), edges: undefined },
-        true
-      )
-    }
-  }, [formMissionNode, updateGraph, graph.nodes])
-  const deleteMissionNode = useCallback(() => {
-    if (!updateGraph) {
-      throw new Error('updateGraph is not defined')
-    }
-    const newNodes = graph.nodes.filter((node) => node.type !== 'mission')
-    analytics.track('delete_mission_node')
-    updateGraph({ nodes: newNodes, edges: undefined }, true)
-  }, [updateGraph, graph.nodes])
 
   const [tablePositionFieldValue, setTablePositionFieldValue] = useState('')
   useEffect(() => {
@@ -162,7 +149,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
                         if (e.value === 'metric') {
                           addMetricNode()
                         } else if (e.value === 'custom') {
-                          // TODO
+                          addCustomNode()
                         }
                         newNodeMenuOverlayPanel.current?.hide()
                       }}
@@ -173,24 +160,6 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
                     id="add-formula-button"
                     label="+ Formula"
                     onClick={onFormulaAddition}
-                  />
-                  <label
-                    htmlFor="add-mission-toggle"
-                    className={styles.toggle_label}
-                  >
-                    Show Mission
-                  </label>
-                  <InputSwitch
-                    id="add-mission-toggle"
-                    className={styles.toggle}
-                    checked={missionToggleChecked}
-                    onChange={(e) => {
-                      if (e.value) {
-                        addMissionNode()
-                      } else {
-                        deleteMissionNode()
-                      }
-                    }}
                   />
                 </>
               ) : (

@@ -9,10 +9,10 @@ import _ from 'lodash'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Edge, Node } from 'reactflow'
 
+import { CustomNodeProperties } from '../../../components/graph/CustomNode'
 import { FunctionNodeProperties } from '../../../components/graph/FunctionNode'
 import { InputEdgeProperties } from '../../../components/graph/InputEdge'
 import { MetricNodeProperties } from '../../../components/graph/MetricNode'
-import { MissionNodeProperties } from '../../../components/graph/MissionNode'
 import { MonitoringRuleEvaluationStatus } from '../../../components/graph/metric_detail/MonitoringRulesTable'
 import { SENTRY_CONFIG } from '../../../sentry.server.config.js'
 
@@ -64,19 +64,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const nodes = nodesData.map((n) => {
           const node = n.react_flow_meta
           const properties = n.properties
-          if (node.type === 'mission') {
+          if (node.type === 'custom') {
             node.data = {
               // explicit construction so properties added outside of react flow don't break it
               id: properties.id,
               organizationId: properties.organizationId,
               typeId: properties.typeId,
+              name: properties.name,
               color: properties.color,
-              mission: properties.mission,
               initialProperties: properties,
               setNodeDataToChange: () => {
                 return
               },
-            } as MissionNodeProperties
+            } as CustomNodeProperties
           }
           if (node.type === 'metric') {
             type MR = {

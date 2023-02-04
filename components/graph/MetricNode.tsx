@@ -1,14 +1,11 @@
 import { NodeResizer } from '@reactflow/node-resizer'
-import { Button } from 'primereact/button'
-import { OverlayPanel } from 'primereact/overlaypanel'
 import React, {
   FunctionComponent,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from 'react'
-import { ColorResult, TwitterPicker } from 'react-color'
+import { ColorResult } from 'react-color'
 import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Node, Position } from 'reactflow'
@@ -19,6 +16,7 @@ import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
 import LineChart from '../LineChart'
+import ColorPicker from './nodepanel/ColorPicker'
 import NodePanel from './nodepanel/NodePanel'
 
 export type SourceQueryType = 'freeform' | 'generated'
@@ -282,56 +280,6 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
         onResizeStart={onResizeStart}
       />
     </div>
-  )
-}
-
-type ColorPickerProps = {
-  color: string
-  onChangeComplete: (color: ColorResult) => void
-}
-const ColorPicker: FunctionComponent<ColorPickerProps> = ({
-  color,
-  onChangeComplete,
-}) => {
-  const { editingEnabled } = useEditability()
-  const [displayColorPicker, setDisplayColorPicker] = useState(false)
-  const pickerOverlayPanel = useRef<OverlayPanel>(null)
-  return (
-    <>
-      {editingEnabled && (
-        <>
-          <Button
-            id="toggle-color-picker-button"
-            className="p-button-text p-button-lg"
-            icon={displayColorPicker ? 'pi pi-times' : 'pi pi-palette'}
-            onClick={(e) => {
-              e.stopPropagation()
-              pickerOverlayPanel.current?.toggle(e)
-            }}
-          />
-          <OverlayPanel
-            id="node-coloring-overlay"
-            ref={pickerOverlayPanel}
-            onShow={() => setDisplayColorPicker(true)}
-            onHide={() => setDisplayColorPicker(false)}
-          >
-            <TwitterPicker
-              color={color}
-              onChangeComplete={onChangeComplete}
-              triangle="hide"
-              styles={{
-                default: {
-                  card: {
-                    boxShadow: 'none',
-                    border: 'none',
-                  },
-                },
-              }}
-            />
-          </OverlayPanel>
-        </>
-      )}
-    </>
   )
 }
 

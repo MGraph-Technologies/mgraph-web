@@ -20,6 +20,9 @@ import {
 import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
+import CustomNode, {
+  CustomNodeProperties,
+} from '../components/graph/CustomNode'
 import FunctionNode, {
   FunctionNodeProperties,
 } from '../components/graph/FunctionNode'
@@ -28,16 +31,13 @@ import MetricNode, {
   MetricNodeProperties,
 } from '../components/graph/MetricNode'
 import { GoalStatus } from '../components/graph/metric_detail/GoalsTable'
-import MissionNode, {
-  MissionNodeProperties,
-} from '../components/graph/MissionNode'
 import { getLastUpdatedAt } from '../utils/queryUtils'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from './auth'
 import { useEditability } from './editability'
 
 export const nodeTypes = {
-  mission: MissionNode,
+  custom: CustomNode,
   metric: MetricNode,
   function: FunctionNode,
 }
@@ -92,7 +92,7 @@ type GraphContextType = {
   setNodeDataToChange:
     | Dispatch<
         SetStateAction<
-          | MissionNodeProperties
+          | CustomNodeProperties
           | MetricNodeProperties
           | FunctionNodeProperties
           | undefined
@@ -109,7 +109,7 @@ type GraphContextType = {
         handlePosition: Position
       ) => React.CSSProperties)
     | undefined
-  formMissionNode: (() => Node) | undefined
+  formCustomNode: (() => Node) | undefined
   formMetricNode: (() => Node) | undefined
   formFunctionNode:
     | ((
@@ -166,7 +166,7 @@ const graphContextDefaultValues: GraphContextType = {
   setNodeDataToChange: undefined,
   setEdgeBeingUpdated: undefined,
   formNodeHandleStyle: undefined,
-  formMissionNode: undefined,
+  formCustomNode: undefined,
   formMetricNode: undefined,
   formFunctionNode: undefined,
   getFunctionSymbol: undefined,
@@ -415,7 +415,7 @@ export function GraphProvider({ children }: GraphProps) {
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
   const [nodeDataToChange, setNodeDataToChange] = useState<
-    MissionNodeProperties | MetricNodeProperties | FunctionNodeProperties
+    CustomNodeProperties | MetricNodeProperties | FunctionNodeProperties
   >()
   useEffect(() => {
     if (nodeDataToChange) {
@@ -475,8 +475,8 @@ export function GraphProvider({ children }: GraphProps) {
     [editingEnabled, edgeBeingUpdated, graph.edges]
   )
 
-  const formMissionNode = useCallback(() => {
-    const newNodeType = 'mission'
+  const formCustomNode = useCallback(() => {
+    const newNodeType = 'custom'
     const newNodeTypeId = nodeTypeIds[newNodeType]
     if (!newNodeTypeId) {
       throw new Error(`Could not find node type id for ${newNodeType}`)
@@ -492,12 +492,12 @@ export function GraphProvider({ children }: GraphProps) {
           })
         : { x: 0, y: 0 }
     const newNodeId = uuidv4()
-    const newNodeData: MissionNodeProperties = {
+    const newNodeData: CustomNodeProperties = {
       id: newNodeId, // needed for setNodeDataToChange
       organizationId: organizationId,
       typeId: newNodeTypeId,
+      name: 'New Custom Node',
       color: '#FFFFFF',
-      mission: '',
       initialProperties: {},
       setNodeDataToChange: setNodeDataToChange,
     }
@@ -540,7 +540,7 @@ export function GraphProvider({ children }: GraphProps) {
       id: newNodeId, // needed for setNodeDataToChange
       organizationId: organizationId,
       typeId: newNodeTypeId,
-      name: 'New Metric',
+      name: 'New Metric Node',
       description: '',
       owner: '',
       source: {
@@ -917,7 +917,7 @@ export function GraphProvider({ children }: GraphProps) {
     setNodeDataToChange: setNodeDataToChange,
     setEdgeBeingUpdated: setEdgeBeingUpdated,
     formNodeHandleStyle: formNodeHandleStyle,
-    formMissionNode: formMissionNode,
+    formCustomNode: formCustomNode,
     formMetricNode: formMetricNode,
     formFunctionNode: formFunctionNode,
     getFunctionSymbol: getFunctionSymbol,

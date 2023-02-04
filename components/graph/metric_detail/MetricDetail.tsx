@@ -248,8 +248,8 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         // add output
         const output = formulaObjects.find(
           (formulaObject) =>
-            (formulaObject.type === 'metric' ||
-              formulaObject.type === 'mission') &&
+            (formulaObject.type === 'custom' ||
+              formulaObject.type === 'metric') &&
             graph.edges.find(
               (edge) =>
                 edge.data.targetId === formulaObject.id &&
@@ -268,7 +268,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             formulaObjectsSorted[formulaObjectsSorted.length - 1]!
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          if (['function', 'metric', 'mission'].includes(lastObject.type!)) {
+          if (['custom', 'function', 'metric'].includes(lastObject.type!)) {
             const nextObject = formulaObjects.find(
               (formulaObject) =>
                 formulaObject.type === 'input' &&
@@ -300,9 +300,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             inputsOrOutputs.length > 0 ? '\n\n' : '',
             formulaObjectsSorted
               .map((formulaObject) => {
-                if (formulaObject.type === 'mission') {
-                  return 'Mission'
-                } else if (formulaObject.type === 'metric') {
+                if (['custom', 'metric'].includes(formulaObject.type || '')) {
                   return formulaObject.data.name
                 } else if (formulaObject.type === 'function') {
                   // subsequently replaced by replaceFunctionTypeIdWithSymbol

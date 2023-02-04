@@ -5,70 +5,75 @@ import React, {
   useEffect,
   useState,
 } from 'react'
-import { EditTextarea, onSaveProps } from 'react-edit-text'
+import { ColorResult } from 'react-color'
+import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Node, Position } from 'reactflow'
-import useFitText from 'use-fit-text'
 
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
-import styles from '../../styles/MissionNode.module.css'
+import styles from '../../styles/CustomNode.module.css'
+import ColorPicker from './nodepanel/ColorPicker'
+import NodePanel from './nodepanel/NodePanel'
 
-export type MissionNodeProperties = {
+export type CustomNodeProperties = {
   id: string
   organizationId: string
   typeId: string
+  name: string
   color: string
-  mission: string
   // below not in postgres
   initialProperties: object
-  setNodeDataToChange: (data: MissionNodeProperties) => void
+  setNodeDataToChange: (data: CustomNodeProperties) => void
 }
-type MissionNodeProps = {
-  data: MissionNodeProperties
+type CustomNodeProps = {
+  data: CustomNodeProperties
   selected: boolean
 }
-const MissionNode: FunctionComponent<MissionNodeProps> = ({
-  data,
-  selected,
-}) => {
+const CustomNode: FunctionComponent<CustomNodeProps> = ({ data, selected }) => {
   const { editingEnabled } = useEditability()
   const { graph, updateGraph, formNodeHandleStyle } = useGraph()
 
-  const INIT_HEIGHT = 144
-  const INIT_WIDTH = 1024
+  const INIT_HEIGHT = 288
+  const INIT_WIDTH = 512
 
   const [thisNode, setThisNode] = useState<Node | undefined>(undefined)
   useEffect(() => {
     setThisNode(graph.nodes.find((node) => node.id === data.id))
   }, [graph.nodes, data.id])
 
-  const [mission, setMission] = useState('')
+  const [name, setName] = useState('')
   useEffect(() => {
-    const _mission = data.mission
-    setMission(_mission)
-  }, [data.mission])
-  const saveMission = useCallback(
+    setName(data.name)
+  }, [data.name])
+  const saveName = useCallback(
     ({ value }: onSaveProps) => {
-      setFontResizeInProgress(true)
       const newData = { ...data }
-      newData.mission = value
+      newData.name = value
       data.setNodeDataToChange(newData)
     },
     [data]
   )
 
-  const [fontResizeInProgess, setFontResizeInProgress] = useState(true)
-  const { fontSize, ref } = useFitText({
-    maxFontSize: 10000,
-    minFontSize: 0,
-    onStart: () => {
-      setFontResizeInProgress(true)
+  const [color, setColor] = useState('#FFFFFF')
+  useEffect(() => {
+    setColor(data.color)
+  }, [data.color])
+  const saveColor = useCallback(
+    (color: ColorResult) => {
+      const newData = { ...data }
+      newData.color = color.hex
+      data.setNodeDataToChange(newData)
     },
-    onFinish: () => {
-      setFontResizeInProgress(false)
+    [data]
+  )
+  const handleColorChangeComplete = useCallback(
+    (color: ColorResult) => {
+      setColor(color.hex)
+      saveColor(color)
     },
-  })
+    [setColor, saveColor]
+  )
 
   const onNodeResizeStart = useCallback(() => {
     // create update to undo to
@@ -84,7 +89,7 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
 
   return (
     <div
-      className={styles.mission_node}
+      className={styles.custom_node}
       style={{
         height: `${thisNode?.height || INIT_HEIGHT}px`,
         width: `${thisNode?.width || INIT_WIDTH}px`,
@@ -92,31 +97,29 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
         border: selected ? '2px solid' : '1px solid',
       }}
     >
-      <div
-        className={styles.mission_container}
-        ref={ref}
-        style={{ fontSize: editingEnabled ? 48 : fontSize }}
-      >
-        <EditTextarea
-          id="mission-field"
-          value={mission}
-          placeholder="Our mission is..."
+      <div className={styles.header}>
+        <EditText
+          value={name}
           readonly={!editingEnabled}
           style={{
-            height: '100%',
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            overflow: 'visible',
-            overflowWrap: 'break-word',
-            textAlign: 'center',
+            backgroundColor: editingEnabled ? '#eee' : 'transparent',
+            fontSize: '2em',
             fontWeight: 'bold',
-            backgroundColor: editingEnabled ? '#f8f8f8' : '#ffffff',
-            visibility: fontResizeInProgess ? 'hidden' : 'visible',
+            // remove spacing
+            margin: 0,
+            padding: 0,
           }}
-          onChange={(e) => setMission(e.target.value)}
-          onSave={saveMission}
+          onChange={(e) => setName(e.target.value)}
+          onSave={saveName}
+        />
+        <NodePanel
+          nodeId={data.id}
+          additions={
+            <ColorPicker
+              color={color}
+              onChangeComplete={handleColorChangeComplete}
+            />
+          }
         />
       </div>
       <Handle
@@ -189,4 +192,4 @@ const MissionNode: FunctionComponent<MissionNodeProps> = ({
   )
 }
 
-export default MissionNode
+export default CustomNode
