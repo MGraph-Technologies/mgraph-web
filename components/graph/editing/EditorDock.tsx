@@ -1,11 +1,14 @@
 import { Button } from 'primereact/button'
 import { InputSwitch } from 'primereact/inputswitch'
 import { InputText } from 'primereact/inputtext'
+import { ListBox } from 'primereact/listbox'
+import { OverlayPanel } from 'primereact/overlaypanel'
 import { Toolbar } from 'primereact/toolbar'
 import React, {
   FunctionComponent,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react'
 
@@ -24,10 +27,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
   const { graph, updateGraph, formMetricNode, formMissionNode } = useGraph()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
 
-  const onFormulaAddition = useCallback(() => {
-    analytics.track('add_formula')
-    setShowFormulaEditor(true)
-  }, [])
+  const newNodeMenuOverlayPanel = useRef<OverlayPanel>(null)
 
   const addMetricNode = useCallback(() => {
     if (!formMetricNode) {
@@ -45,6 +45,11 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
       )
     }
   }, [formMetricNode, updateGraph, graph.nodes])
+
+  const onFormulaAddition = useCallback(() => {
+    analytics.track('add_formula')
+    setShowFormulaEditor(true)
+  }, [])
 
   const [missionToggleChecked, setMissionToggleChecked] = useState(false)
   useEffect(() => {
@@ -125,11 +130,45 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
               parent === 'GraphViewer' ? (
                 <>
                   <Button
-                    id="add-metric-button"
-                    label="+ Metric"
-                    onClick={addMetricNode}
+                    id="add-node-button"
+                    label="+ Node"
+                    onClick={(e) => newNodeMenuOverlayPanel.current?.toggle(e)}
                     disabled={!formMetricNode || !updateGraph}
                   />
+                  <style jsx>
+                    {`
+                      .p-overlaypanel-content {
+                        padding: 0 !important;
+                      }
+                    `}
+                  </style>
+                  <OverlayPanel
+                    ref={newNodeMenuOverlayPanel}
+                    showCloseIcon={false}
+                  >
+                    <ListBox
+                      value={null}
+                      options={[
+                        {
+                          label: '+ Metric Node',
+                          value: 'metric',
+                        },
+                        {
+                          label: '+ Custom Node',
+                          value: 'custom',
+                        },
+                      ]}
+                      onChange={(e) => {
+                        if (e.value === 'metric') {
+                          addMetricNode()
+                        } else if (e.value === 'custom') {
+                          // TODO
+                        }
+                        newNodeMenuOverlayPanel.current?.hide()
+                      }}
+                      style={{ border: 'none', fontWeight: 'bold' }}
+                    />
+                  </OverlayPanel>
                   <Button
                     id="add-formula-button"
                     label="+ Formula"

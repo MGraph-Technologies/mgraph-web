@@ -17,7 +17,8 @@ describe('Graphviewer editing', () => {
 
     // add and rename metric
     const newMetricName = Math.random().toString(36)
-    cy.get('[id=add-metric-button]').click()
+    cy.get('[id=add-node-button]').click()
+    cy.get('[class*=p-listbox-item]').contains('Metric').click()
     cy.get('.react-flow__controls-fitview').click()
     cy.get('.react-flow__node-metric').contains('New Metric').click()
     cy.get('input').first().clear().type(newMetricName).type('{enter}')
