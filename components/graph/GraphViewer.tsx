@@ -41,6 +41,8 @@ const GraphViewer: FunctionComponent = () => {
     setReactFlowRenderer,
     reactFlowViewport,
     setReactFlowViewport,
+    initialGraphFitComplete,
+    setInitialGraphFitComplete,
     undo,
     redo,
     updateGraph,
@@ -161,20 +163,29 @@ const GraphViewer: FunctionComponent = () => {
     setReactFlowRenderer!(document.querySelector('.react-flow__renderer')!)
   }, [reactFlowInstance, setReactFlowInstance, setReactFlowRenderer])
 
-  const [initialFitComplete, setInitialFitComplete] = useState(false)
+  const [graphViewInitialized, setGraphViewInitialized] = useState(false)
   useEffect(() => {
-    if (!reactFlowInstance.viewportInitialized || initialFitComplete) {
+    if (!reactFlowInstance.viewportInitialized || graphViewInitialized) {
       return
-    } else if (reactFlowViewport) {
-      // persist viewport within a tab's page views
-      reactFlowInstance.setViewport(reactFlowViewport)
-      setInitialFitComplete(true)
     } else if (graph.nodes.length > 0) {
-      // fit to view on initial load
-      reactFlowInstance.fitView()
-      setInitialFitComplete(true)
+      if (!initialGraphFitComplete) {
+        // fit to view on initial load
+        reactFlowInstance.fitView()
+        setInitialGraphFitComplete?.(true)
+      } else if (reactFlowViewport) {
+        // persist viewport within a tab's page views
+        reactFlowInstance.setViewport(reactFlowViewport)
+      }
+      setGraphViewInitialized(true)
     }
-  }, [reactFlowInstance, initialFitComplete, reactFlowViewport, graph.nodes])
+  }, [
+    reactFlowInstance,
+    graphViewInitialized,
+    graph.nodes,
+    initialGraphFitComplete,
+    setInitialGraphFitComplete,
+    reactFlowViewport,
+  ])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
