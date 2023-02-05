@@ -67,7 +67,7 @@ describe('Graphviewer editing', () => {
     cy.visit('/mgraph')
 
     // go to metric page
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     // wait for page to load
     cy.get('[id=name-field]').contains(/^Metric: .+/)
     // get a metric id + name

@@ -27,7 +27,7 @@ describe('Graphviewer viewing as admin', () => {
 
   it('Clicks through to a metric detail page, and back', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.url().should('include', '/nodes/')
     cy.get('[id=back-to-graphviewer-button]').click()
     cy.url().should('include', '/mgraph')

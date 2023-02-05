@@ -8,7 +8,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, edits description, tests undo and redo, then cancels', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -36,7 +36,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, edits description, then saves', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -57,7 +57,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, successfully mentions a user as owner, then sees the mention', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -81,7 +81,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a working SQL query, then sees results', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -111,7 +111,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a working SQL query, saves it, then sees results', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -147,7 +147,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a failing SQL query, then sees error', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -174,7 +174,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a working but wrong-format SQL query using dbt connection and syntax, then sees error', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -206,7 +206,7 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, then adds, evals, edits, and deletes a couple goals', () => {
     // visit page
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // set group by to null
@@ -389,7 +389,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page and tests dbt query generation', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -437,7 +437,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page and tests persistence of query parameters via keyboard', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
     cy.wait(2000)
@@ -550,7 +550,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page and tests persistence of query parameters via mouse', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
     cy.wait(2000)
@@ -616,7 +616,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, sets parameters, enters a SQL query that uses them, then sees results', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
     cy.wait(2000)
@@ -704,7 +704,7 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, then adds, edits, and deletes a monitoring rule', () => {
     // visit page
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // add monitoring rule
