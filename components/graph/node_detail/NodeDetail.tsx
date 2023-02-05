@@ -18,7 +18,7 @@ import { useAuth } from '../../../contexts/auth'
 import { useEditability } from '../../../contexts/editability'
 import { useGraph } from '../../../contexts/graph'
 import { useBrowser } from '../../../contexts/browser'
-import styles from '../../../styles/MetricDetail.module.css'
+import styles from '../../../styles/NodeDetail.module.css'
 import LineChart from '../../LineChart'
 import ControlPanel from './../ControlPanel'
 import UndoRedoSaveAndCancelGraphEditingButtons from './../editing/UndoRedoSaveAndCancelGraphEditingButtons'
@@ -29,16 +29,16 @@ import MonitoringRulesTable from './MonitoringRulesTable'
 import MentionField from '../../MentionField'
 import MetricNodeSourceFields from './MetricNodeSourceFields'
 
-type MetricDetailProps = {
-  metricId: string
+type NodeDetailProps = {
+  nodeId: string
 }
-const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
+const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
   const { organizationName } = useAuth()
   const { push } = useBrowser()
   const { editingEnabled } = useEditability()
   const { graph, getFunctionSymbol, getConnectedObjects } = useGraph()
 
-  const [metricNode, setMetricNode] = useState<Node | undefined>(undefined)
+  const [node, setNode] = useState<Node | undefined>(undefined)
   const [name, setName] = useState('')
   const [owner, setOwner] = useState('')
   const [description, setDescription] = useState('')
@@ -51,25 +51,25 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     data: null,
   })
 
-  const populateMetricNode = useCallback(() => {
-    if (metricId && graph.nodes.length > 0) {
-      const _metricNode = graph.nodes.find((node) => node.id === metricId)
-      if (_metricNode) {
-        setMetricNode(_metricNode)
+  const populateNode = useCallback(() => {
+    if (nodeId && graph.nodes.length > 0) {
+      const _node = graph.nodes.find((node) => node.id === nodeId)
+      if (_node) {
+        setNode(_node)
       } else {
         push('/')
       }
     }
-  }, [graph, metricId, push])
+  }, [graph, nodeId, push])
   useEffect(() => {
-    populateMetricNode()
-  }, [populateMetricNode, editingEnabled])
+    populateNode()
+  }, [populateNode, editingEnabled])
 
   const populateDetails = useCallback(() => {
-    setName(metricNode?.data.name || '')
-    setOwner(metricNode?.data.owner || '')
-    setDescription(metricNode?.data.description || '')
-  }, [metricNode])
+    setName(node?.data.name || '')
+    setOwner(node?.data.owner || '')
+    setDescription(node?.data.description || '')
+  }, [node])
   useEffect(() => {
     populateDetails()
   }, [populateDetails])
@@ -78,18 +78,18 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   const populateInputsAndOutputs = useCallback(() => {
     let newInputs = ''
     let newOutputs = ''
-    if (metricNode && getConnectedObjects) {
-      const metricConnectedObjects = getConnectedObjects(metricNode, 1)
-      const metricConnectedIdentities = metricConnectedObjects.filter(
-        (metricConnectedObject) =>
-          metricConnectedObject.type === 'function' &&
+    if (node && getConnectedObjects) {
+      const nodeConnectedObjects = getConnectedObjects(node, 1)
+      const nodeConnectedIdentities = nodeConnectedObjects.filter(
+        (nodeConnectedObject) =>
+          nodeConnectedObject.type === 'function' &&
           graph.edges.filter(
-            (edge) => edge.data.targetId === metricConnectedObject.id
+            (edge) => edge.data.targetId === nodeConnectedObject.id
           ).length === 1
       )
-      metricConnectedIdentities.forEach((metricConnectedIdentity) => {
-        const formulaObjects = [metricConnectedIdentity].concat(
-          getConnectedObjects(metricConnectedIdentity, 1)
+      nodeConnectedIdentities.forEach((nodeConnectedIdentity) => {
+        const formulaObjects = [nodeConnectedIdentity].concat(
+          getConnectedObjects(nodeConnectedIdentity, 1)
         )
         let formulaObjectsSorted: (Node | Edge)[] = []
         // add output
@@ -100,7 +100,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
             graph.edges.find(
               (edge) =>
                 edge.data.targetId === formulaObject.id &&
-                edge.data.sourceId === metricConnectedIdentity.id
+                edge.data.sourceId === nodeConnectedIdentity.id
             )
         )
         if (output) {
@@ -160,7 +160,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
               .join(' ')
           )
         }
-        if (formulaObjectsSorted[0].id === metricId) {
+        if (formulaObjectsSorted[0].id === nodeId) {
           newInputs = expand(newInputs)
         } else {
           newOutputs = expand(newOutputs)
@@ -169,7 +169,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
     }
     setInputs(newInputs)
     setOutputs(newOutputs)
-  }, [metricNode, getConnectedObjects, graph.edges, metricId])
+  }, [node, getConnectedObjects, graph.edges, nodeId])
   useEffect(() => {
     populateInputsAndOutputs()
   }, [populateInputsAndOutputs])
@@ -210,15 +210,15 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
 
   const saveDetail = useCallback(
     (name: keyof MetricNodeProperties, value: string | MetricNodeSource) => {
-      if (metricNode) {
+      if (node) {
         const newData = {
-          ...metricNode.data,
+          ...node.data,
           [name]: value,
         }
-        metricNode.data.setNodeDataToChange(newData)
+        node.data.setNodeDataToChange(newData)
       }
     },
-    [metricNode]
+    [node]
   )
 
   // scroll to hash upon page load
@@ -230,7 +230,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   }, [])
 
   return (
-    <div className={styles.metric_detail}>
+    <div className={styles.node_detail}>
       <Head>
         <title>{name ? `Metric: ${name}` : 'Metric'} — MGraph</title>
       </Head>
@@ -259,18 +259,18 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onChange={(e) => setName(e.target.value)}
           onSave={({ value }) => saveDetail('name', value)}
         />
-        <NodePanel nodeId={metricId} />
+        <NodePanel nodeId={nodeId} />
         <ControlPanel />
       </div>
       <div className={styles.body}>
         <div className={styles.chart_container}>
           <QueryRunner
-            parentMetricNodeData={metricNode?.data}
+            parentMetricNodeData={node?.data}
             refreshes={queryRunnerRefreshes}
             queryResult={queryResult}
             setQueryResult={setQueryResult}
           />
-          <LineChart parentMetricNodeId={metricId} queryResult={queryResult} />
+          <LineChart parentMetricNodeId={nodeId} queryResult={queryResult} />
           {editingEnabled && (
             <div className={styles.refresh_chart_button_container}>
               <Button
@@ -303,7 +303,7 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
           onBlur={() => saveDetail('description', description)}
         />
         <SectionHeader title="Goals" size="h2" />
-        <GoalsTable parentNodeId={metricId} includeConfirmDialogFC={false} />
+        <GoalsTable parentNodeId={nodeId} includeConfirmDialogFC={false} />
         <SectionHeader title="Inputs" size="h2" />
         <pre className={styles.detail_field}>
           {inputs.match(functionTypeIdRegex) ? '' : inputs.trim()}
@@ -314,14 +314,11 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
         </pre>
         <SectionHeader title="Monitoring Rules" size="h2" />
         <MonitoringRulesTable
-          parentNodeId={metricId}
+          parentNodeId={nodeId}
           includeConfirmDialogFC={false}
         />
         <SectionHeader title="Source" size="h2" />
-        <MetricNodeSourceFields
-          metricNode={metricNode}
-          saveDetail={saveDetail}
-        />
+        <MetricNodeSourceFields metricNode={node} saveDetail={saveDetail} />
       </div>
       {editingEnabled && (
         <div className={styles.editor_dock}>
@@ -333,4 +330,4 @@ const MetricDetail: FunctionComponent<MetricDetailProps> = ({ metricId }) => {
   )
 }
 
-export default MetricDetail
+export default NodeDetail

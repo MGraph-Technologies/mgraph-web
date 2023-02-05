@@ -167,7 +167,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
-    cy.get('[class*=MetricDetail_chart_container]')
+    cy.get('[class*=NodeDetail_chart_container]')
       .contains('invalid identifier')
       .should('exist')
   })
@@ -196,7 +196,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
-    cy.get('[class*=MetricDetail_chart_container]')
+    cy.get('[class*=NodeDetail_chart_container]')
       .contains('format')
       .should('exist')
   })

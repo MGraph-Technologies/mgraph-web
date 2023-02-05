@@ -4,7 +4,7 @@ import { Node } from 'reactflow'
 import { useAuth } from '../../../contexts/auth'
 import { useBrowser } from '../../../contexts/browser'
 import { analytics } from '../../../utils/segmentClient'
-import { MonitoringStatusIndicator } from '../metric_detail/MonitoringRulesTable'
+import { MonitoringStatusIndicator } from '../node_detail/MonitoringRulesTable'
 
 type NodeMonitoringRulesStatusButtonProps = {
   node: Node | undefined

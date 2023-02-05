@@ -30,7 +30,7 @@ import InputEdge, { InputEdgeProperties } from '../components/graph/InputEdge'
 import MetricNode, {
   MetricNodeProperties,
 } from '../components/graph/MetricNode'
-import { GoalStatus } from '../components/graph/metric_detail/GoalsTable'
+import { GoalStatus } from '../components/graph/node_detail/GoalsTable'
 import { getLastUpdatedAt } from '../utils/queryUtils'
 import { supabase } from '../utils/supabaseClient'
 import { useAuth } from './auth'

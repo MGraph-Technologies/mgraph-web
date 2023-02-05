@@ -13,7 +13,7 @@ import { CustomNodeProperties } from '../../../components/graph/CustomNode'
 import { FunctionNodeProperties } from '../../../components/graph/FunctionNode'
 import { InputEdgeProperties } from '../../../components/graph/InputEdge'
 import { MetricNodeProperties } from '../../../components/graph/MetricNode'
-import { MonitoringRuleEvaluationStatus } from '../../../components/graph/metric_detail/MonitoringRulesTable'
+import { MonitoringRuleEvaluationStatus } from '../../../components/graph/node_detail/MonitoringRulesTable'
 import { SENTRY_CONFIG } from '../../../sentry.server.config.js'
 
 Sentry.init(SENTRY_CONFIG)

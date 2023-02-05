@@ -27,11 +27,7 @@ import {
   verifyMetricData,
 } from '../utils/queryUtils'
 import { supabase } from '../utils/supabaseClient'
-import {
-  GoalStatus,
-  GoalType,
-  GoalValue,
-} from './graph/metric_detail/GoalsTable'
+import { GoalStatus, GoalType, GoalValue } from './graph/node_detail/GoalsTable'
 
 ChartJS.register(
   Legend,

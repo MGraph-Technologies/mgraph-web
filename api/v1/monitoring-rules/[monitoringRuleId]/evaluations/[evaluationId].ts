@@ -6,7 +6,7 @@ import fetch from 'node-fetch'
 import {
   MonitoringRuleEvaluationStatus,
   MonitoringRuleProperties,
-} from '../../../../../components/graph/metric_detail/MonitoringRulesTable'
+} from '../../../../../components/graph/node_detail/MonitoringRulesTable'
 import { SENTRY_CONFIG } from '../../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../../utils/appBaseUrl'
 import {

@@ -13,7 +13,7 @@ import { Node } from 'reactflow'
 import SettingsRadioGroup from '../../SettingsRadioGroup'
 import { useAuth } from '../../../contexts/auth'
 import { useEditability } from '../../../contexts/editability'
-import styles from '../../../styles/MetricDetail.module.css'
+import styles from '../../../styles/NodeDetail.module.css'
 import { highlight } from '../../../utils/codeHighlighter'
 import { supabase } from '../../../utils/supabaseClient'
 import {
