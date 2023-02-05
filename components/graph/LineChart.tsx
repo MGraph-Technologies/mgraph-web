@@ -15,19 +15,19 @@ import { ProgressSpinner } from 'primereact/progressspinner'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 
-import { QueryError, QueryResult } from '../components/graph/QueryRunner'
-import styles from '../styles/LineChart.module.css'
-import { useAuth } from '../contexts/auth'
-import { useGraph } from '../contexts/graph'
-import { useQueries } from '../contexts/queries'
+import styles from '../../styles/LineChart.module.css'
+import { useAuth } from '../../contexts/auth'
+import { useGraph } from '../../contexts/graph'
+import { useQueries } from '../../contexts/queries'
 import {
   MetricData,
   QueryData,
   sortMetricRowsByDate,
   verifyMetricData,
-} from '../utils/queryUtils'
-import { supabase } from '../utils/supabaseClient'
-import { GoalStatus, GoalType, GoalValue } from './graph/node_detail/GoalsTable'
+} from '../../utils/queryUtils'
+import { supabase } from '../../utils/supabaseClient'
+import { GoalStatus, GoalType, GoalValue } from './node_detail/GoalsTable'
+import { QueryError, QueryResult } from './QueryRunner'
 
 ChartJS.register(
   Legend,

@@ -15,7 +15,7 @@ import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
-import LineChart from '../LineChart'
+import LineChart from './LineChart'
 import ColorPicker from './nodepanel/ColorPicker'
 import NodePanel from './nodepanel/NodePanel'
 
