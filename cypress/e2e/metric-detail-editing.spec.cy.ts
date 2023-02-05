@@ -8,7 +8,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, edits description, tests undo and redo, then cancels', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -36,7 +36,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, edits description, then saves', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -57,7 +57,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, successfully mentions a user as owner, then sees the mention', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -81,7 +81,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a working SQL query, then sees results', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -111,7 +111,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a working SQL query, saves it, then sees results', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -147,7 +147,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, enters a failing SQL query, then sees error', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -167,14 +167,14 @@ describe('Metric detail editing', () => {
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
-    cy.get('[class*=MetricDetail_chart_container]')
+    cy.get('[class*=NodeDetail_chart_container]')
       .contains('invalid identifier')
       .should('exist')
   })
 
   it('Visits a metric detail page, enters a working but wrong-format SQL query using dbt connection and syntax, then sees error', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -196,7 +196,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=refresh-query-button]').first().click()
 
     // see results
-    cy.get('[class*=MetricDetail_chart_container]')
+    cy.get('[class*=NodeDetail_chart_container]')
       .contains('format')
       .should('exist')
   })
@@ -206,11 +206,18 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, then adds, evals, edits, and deletes a couple goals', () => {
     // visit page
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
-    // set group by to null
-    cy.get('[id=query-settings-button]').click().wait(100)
+    // set frequency to DAY, group by to null
+    cy.get('[id=query-settings-button]').click()
+    cy.get('[id=frequency-field]').click()
+    cy.get('[id=frequency-field]')
+      .clear()
+      .type('DAY')
+      .parent()
+      .click()
+      .wait(100)
     cy.get('[id=group_by-field]').click()
     cy.get('[id=group_by-field]')
       .clear()
@@ -369,27 +376,17 @@ describe('Metric detail editing', () => {
       .find('[class*=pi-circle]')
       .should('exist')
 
-    // delete goals
-    cy.get('[id=goals-table]')
-      .contains(newGoalName)
-      .parent('tr')
-      .find('[id=delete-goal-button]')
-      .click()
-    cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
-    cy.get('[id=goals-table]')
-      .contains(newGoalName + '2')
-      .parent('tr')
-      .find('[id=delete-goal-button]')
-      .click()
-    cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
-    cy.get('[id=goals-table]')
-      .contains(newGoalName + '2')
-      .should('not.exist')
+    // delete all goals
+    cy.get('[id=delete-goal-button]').each(() => {
+      // avoid dom detached error
+      cy.get('[id=delete-goal-button]').first().click()
+      cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
+    })
   })
 
   it('Visits a metric detail page and tests dbt query generation', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -437,7 +434,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page and tests persistence of query parameters via keyboard', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
     cy.wait(2000)
@@ -550,7 +547,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page and tests persistence of query parameters via mouse', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
     cy.wait(2000)
@@ -616,7 +613,7 @@ describe('Metric detail editing', () => {
 
   it('Visits a metric detail page, sets parameters, enters a SQL query that uses them, then sees results', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     /* wait for page to load
      (otherwise the query settings menu will be closed on transition) */
     cy.wait(2000)
@@ -704,7 +701,7 @@ describe('Metric detail editing', () => {
   it('Visits a metric detail page, then adds, edits, and deletes a monitoring rule', () => {
     // visit page
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // add monitoring rule
@@ -759,17 +756,13 @@ describe('Metric detail editing', () => {
         cy.get('td').contains('0 14 * * *').should('exist')
       })
 
-    // delete rule
+    // delete all monitoring rules
     cy.get('[id=edit-button]').click()
-    cy.get('[id=monitoring-rules-table]')
-      .contains(newRuleName)
-      .parent('tr')
-      .find('[id=delete-monitoring-rule-button]')
-      .click()
-    cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
-    cy.get('[id=monitoring-rules-table]')
-      .contains(newRuleSlackTo)
-      .should('not.exist')
+    cy.get('[id=delete-monitoring-rule-button]').each(() => {
+      // avoid dom detached error
+      cy.get('[id=delete-monitoring-rule-button]').first().click()
+      cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
+    })
   })
 })
 

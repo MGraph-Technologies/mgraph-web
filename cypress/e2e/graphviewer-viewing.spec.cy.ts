@@ -27,8 +27,8 @@ describe('Graphviewer viewing as admin', () => {
 
   it('Clicks through to a metric detail page, and back', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
-    cy.url().should('include', '/metrics/')
+    cy.get('[class*=metric_node]').first().click()
+    cy.url().should('include', '/nodes/')
     cy.get('[id=back-to-graphviewer-button]').click()
     cy.url().should('include', '/mgraph')
   })
@@ -47,7 +47,7 @@ describe('Graphviewer viewing as admin', () => {
       .find('[id=link-to-detail-button]')
       .first()
       .click({ force: true })
-    cy.url().should('include', '/metrics/')
+    cy.url().should('include', '/nodes/')
     // reset to graphviewer, since toggle choice is sticky
     cy.visit('/mgraph')
     cy.get('[class*=pi-sitemap]').click()

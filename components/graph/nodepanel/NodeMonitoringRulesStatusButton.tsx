@@ -4,7 +4,7 @@ import { Node } from 'reactflow'
 import { useAuth } from '../../../contexts/auth'
 import { useBrowser } from '../../../contexts/browser'
 import { analytics } from '../../../utils/segmentClient'
-import { MonitoringStatusIndicator } from '../metric_detail/MonitoringRulesTable'
+import { MonitoringStatusIndicator } from '../node_detail/MonitoringRulesTable'
 
 type NodeMonitoringRulesStatusButtonProps = {
   node: Node | undefined
@@ -25,7 +25,7 @@ const NodeMonitoringRulesStatusButton: FunctionComponent<
             nodeId: node.data.id,
             type: 'monitoring',
           })
-          push(`/${organizationName}/metrics/${node.data.id}#monitoring-rules`)
+          push(`/${organizationName}/nodes/${node.data.id}#monitoring-rules`)
         }}
       />
     )

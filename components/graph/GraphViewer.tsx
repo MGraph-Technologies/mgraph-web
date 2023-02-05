@@ -335,7 +335,7 @@ const GraphViewer: FunctionComponent = () => {
             node_id: metricNode.id,
           })
         } else {
-          push(`${organizationName}/metrics/${nodeOrEdge.id}`)
+          push(`${organizationName}/nodes/${nodeOrEdge.id}`)
         }
       }
       // selecting any function node or input edge highlights all connected others

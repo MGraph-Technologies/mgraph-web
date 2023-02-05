@@ -5,7 +5,7 @@ import { useAuth } from '../../../contexts/auth'
 import { useBrowser } from '../../../contexts/browser'
 import { useGraph } from '../../../contexts/graph'
 import { analytics } from '../../../utils/segmentClient'
-import { GoalStatus, GoalStatusIndicator } from '../metric_detail/GoalsTable'
+import { GoalStatus, GoalStatusIndicator } from '../node_detail/GoalsTable'
 
 type NodeGoalsStatusButtonProps = {
   node: Node | undefined
@@ -50,7 +50,7 @@ const NodeGoalsStatusButton: FunctionComponent<NodeGoalsStatusButtonProps> = ({
             nodeId: node?.data?.id,
             type: 'goal',
           })
-          push(`/${organizationName}/metrics/${node.data.id}#goals`)
+          push(`/${organizationName}/nodes/${node.data.id}#goals`)
         }}
       />
     )

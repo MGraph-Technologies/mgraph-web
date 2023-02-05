@@ -17,7 +17,8 @@ describe('Graphviewer editing', () => {
 
     // add and rename metric
     const newMetricName = Math.random().toString(36)
-    cy.get('[id=add-metric-button]').click()
+    cy.get('[id=add-node-button]').click()
+    cy.get('[class*=p-listbox-item]').contains('Metric').click()
     cy.get('.react-flow__controls-fitview').click()
     cy.get('.react-flow__node-metric').contains('New Metric').click()
     cy.get('input').first().clear().type(newMetricName).type('{enter}')
@@ -38,7 +39,8 @@ describe('Graphviewer editing', () => {
       .should('be.visible')
 
     // add formula
-    cy.get('[id=add-formula-button]').click()
+    cy.get('[id=add-relationship-button]').click()
+    cy.get('[class*=p-listbox-item]').contains('Formula').click()
     cy.get('[id=formula-field]')
       .click()
       .type(newMetricName)
@@ -61,46 +63,11 @@ describe('Graphviewer editing', () => {
       .should('not.exist')
   })
 
-  it('Adds mission, connects it with a formula, then cancels addition', () => {
-    cy.visit('/mgraph')
-    /* wait for graph to load before editing
-    (otherwise, added nodes are overwritten by graph load) */
-    cy.wait(2000)
-
-    // begin editing
-    cy.get('[id=edit-button]').click()
-
-    // add and rename mission
-    const newMission = Math.random().toString(36)
-    cy.get('[id=add-mission-toggle]').click().click() // reset toggle
-    cy.get('.react-flow__controls-fitview').click()
-    cy.get('.react-flow__node-mission').click()
-    cy.get('textarea').clear().type(newMission).type('{enter}')
-    cy.get('.react-flow__node-mission')
-      .contains(newMission)
-      .should('be.visible')
-
-    // add formula
-    cy.get('[id=add-formula-button]').click()
-    cy.get('[id=formula-field]')
-      .click()
-      .type('mission')
-      .wait(2000)
-      .type('{enter}') // wait for suggestion to load
-      .type('f')
-      .wait(2000)
-      .type('{enter}')
-      .type('Active Users')
-      .wait(2000)
-      .type('{enter}')
-    cy.get('[id=save-formula-button]').click()
-  })
-
   it('Edits table view order', () => {
     cy.visit('/mgraph')
 
     // go to metric page
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     // wait for page to load
     cy.get('[id=name-field]').contains(/^Metric: .+/)
     // get a metric id + name

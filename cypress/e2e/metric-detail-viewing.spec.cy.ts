@@ -8,7 +8,7 @@ describe('Metric detail viewing', () => {
 
   it('Visits and sees expected content on a metric detail page', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.get('body').contains('Description')
     cy.get('body').contains('Inputs')
     cy.get('body').contains('Outputs')
@@ -19,7 +19,7 @@ describe('Metric detail viewing', () => {
 
   it('Views comments, then adds and deletes a comment', () => {
     cy.visit('/mgraph')
-    cy.get('[id=link-to-detail-button]').first().click()
+    cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
 
     // view comments

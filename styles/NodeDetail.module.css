@@ -1,4 +1,4 @@
-.metric_detail {
+.node_detail {
   position: absolute;
   top: 0;
   left: 0;
@@ -8,7 +8,7 @@
   flex-direction: column;
 }
 
-.metric_detail .header {
+.node_detail .header {
   padding-left: calc((100% - 50em) / 2);
   padding-right: calc((100% - 50em) / 2);
   display: flex;
@@ -16,7 +16,7 @@
   margin-bottom: 1rem;
 }
 
-.metric_detail .body {
+.node_detail .body {
   padding-left: calc((100% - 50em) / 2);
   padding-right: calc((100% - 50em) / 2);
   padding-bottom: 8em; /* ensure final module can be seen under editor dock */
@@ -25,24 +25,32 @@
   scrollbar-width: none; /* Firefox */
 }
 
-.metric_detail .body::-webkit-scrollbar {
+.node_detail .body::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }
 
-.metric_detail .body .chart_container {
+.node_detail .body .chart_container {
   position: relative;
   height: 20em;
   width: 80%;
   margin: auto;
 }
 
-.metric_detail .body .chart_container .refresh_chart_button_container {
+.node_detail .body .chart_container .refresh_chart_button_container {
   position: absolute;
   top: 0;
   right: 0;
 }
 
-.metric_detail .body .detail_field {
+.node_detail .body .html_container {
+  position: relative;
+  width: 80%;
+  /* expand height to content */
+  height: auto;
+  margin: auto;
+}
+
+.node_detail .body .detail_field {
   background-color: #ffffff;
   border-radius: 5px;
   width: 100%;
@@ -50,7 +58,7 @@
   font-size: 1rem;
 }
 
-.metric_detail .body .detail_field_editable {
+.node_detail .body .detail_field_editable {
   background-color: #f8f8fe;
   border-radius: 5px;
   width: 100%;
@@ -58,7 +66,7 @@
   font-size: 1rem;
 }
 
-.metric_detail .body .detail_field_code {
+.node_detail .body .detail_field_code {
   background-color: #f8f8fe;
   border-radius: 5px;
   width: 100%;
@@ -67,36 +75,36 @@
 }
 
 /* match primereact behaviors */
-.metric_detail .body .detail_field_code .editor {
+.node_detail .body .detail_field_code .editor {
   border: 1px solid #ccc;
   border-radius: 5px;
 }
 
-.metric_detail .body .detail_field_code .editor:hover {
+.node_detail .body .detail_field_code .editor:hover {
   border: 1px solid #6366f1;
   border-radius: 5px;
 }
 
-.metric_detail .body .connection_config_block {
+.node_detail .body .connection_config_block {
   display: flex;
   flex-direction: row;
 }
 
-.metric_detail .body .connection_config_block .connection_config {
+.node_detail .body .connection_config_block .connection_config {
   padding-right: 20px;
 }
 
-.metric_detail .body .connection_config_block .connection_config_label {
+.node_detail .body .connection_config_block .connection_config_label {
   display: block;
   padding-top: 10px;
   padding-bottom: 10px;
 }
 
-.metric_detail .body .connection_config_block .connection_config_value {
+.node_detail .body .connection_config_block .connection_config_value {
   background-color: #f8f8fe;
 }
 
-.metric_detail .editor_dock {
+.node_detail .editor_dock {
   position: fixed;
   bottom: 10px;
   left: 25%;

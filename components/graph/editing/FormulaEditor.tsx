@@ -26,11 +26,11 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
   const [suggestions, setSuggestions] = useState<NodeSymbol[]>([])
 
   const variables: NodeSymbol[] = graph.nodes
-    .filter((node) => node.type === 'metric' || node.type === 'mission')
+    .filter((node) => ['custom', 'metric'].includes(node.type || ''))
     .map((node) => {
       return {
         id: node.data.id,
-        display: node.type === 'mission' ? 'Mission' : node.data.name,
+        display: node.data.name,
         functionTypeId: null,
       }
     })

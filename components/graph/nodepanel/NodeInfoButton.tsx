@@ -15,8 +15,12 @@ const NodeInfoButton: FunctionComponent<NodeInfoButtonProps> = ({ node }) => {
   const [linkTo, setLinkTo] = useState('')
   useEffect(() => {
     let _linkTo = ''
-    if (organizationName && node !== undefined && node.type === 'metric') {
-      _linkTo = '/' + organizationName + '/metrics/' + node.id
+    if (
+      organizationName &&
+      node !== undefined &&
+      ['custom', 'metric'].includes(node.type || '')
+    ) {
+      _linkTo = '/' + organizationName + '/nodes/' + node.id
     }
     setLinkTo(_linkTo)
   }, [organizationName, node])

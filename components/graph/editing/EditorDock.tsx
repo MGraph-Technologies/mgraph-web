@@ -1,11 +1,13 @@
 import { Button } from 'primereact/button'
-import { InputSwitch } from 'primereact/inputswitch'
 import { InputText } from 'primereact/inputtext'
+import { ListBox } from 'primereact/listbox'
+import { OverlayPanel } from 'primereact/overlaypanel'
 import { Toolbar } from 'primereact/toolbar'
 import React, {
   FunctionComponent,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react'
 
@@ -21,13 +23,28 @@ type EditorDockProps = {
 }
 const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
   const { editingEnabled } = useEditability()
-  const { graph, updateGraph, formMetricNode, formMissionNode } = useGraph()
+  const { graph, updateGraph, formCustomNode, formMetricNode } = useGraph()
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
 
-  const onFormulaAddition = useCallback(() => {
-    analytics.track('add_formula')
-    setShowFormulaEditor(true)
-  }, [])
+  const newNodeMenuOverlayPanel = useRef<OverlayPanel>(null)
+  const newRelationshipMenuOverlayPanel = useRef<OverlayPanel>(null)
+
+  const addCustomNode = useCallback(() => {
+    if (!formCustomNode) {
+      throw new Error('formMetricNode is not defined')
+    }
+    if (!updateGraph) {
+      throw new Error('updateGraph is not defined')
+    }
+    const newNode = formCustomNode()
+    if (newNode) {
+      analytics.track('add_custom_node')
+      updateGraph(
+        { nodes: graph.nodes.concat(newNode), edges: undefined },
+        true
+      )
+    }
+  }, [formCustomNode, updateGraph, graph.nodes])
 
   const addMetricNode = useCallback(() => {
     if (!formMetricNode) {
@@ -46,34 +63,10 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
     }
   }, [formMetricNode, updateGraph, graph.nodes])
 
-  const [missionToggleChecked, setMissionToggleChecked] = useState(false)
-  useEffect(() => {
-    setMissionToggleChecked(graph.nodes.some((node) => node.type === 'mission'))
-  }, [graph.nodes])
-  const addMissionNode = useCallback(() => {
-    if (!formMissionNode) {
-      throw new Error('formMetricNode is not defined')
-    }
-    if (!updateGraph) {
-      throw new Error('updateGraph is not defined')
-    }
-    const newNode = formMissionNode()
-    if (newNode) {
-      analytics.track('add_mission_node')
-      updateGraph(
-        { nodes: graph.nodes.concat(newNode), edges: undefined },
-        true
-      )
-    }
-  }, [formMissionNode, updateGraph, graph.nodes])
-  const deleteMissionNode = useCallback(() => {
-    if (!updateGraph) {
-      throw new Error('updateGraph is not defined')
-    }
-    const newNodes = graph.nodes.filter((node) => node.type !== 'mission')
-    analytics.track('delete_mission_node')
-    updateGraph({ nodes: newNodes, edges: undefined }, true)
-  }, [updateGraph, graph.nodes])
+  const onFormulaAddition = useCallback(() => {
+    analytics.track('add_formula')
+    setShowFormulaEditor(true)
+  }, [])
 
   const [tablePositionFieldValue, setTablePositionFieldValue] = useState('')
   useEffect(() => {
@@ -125,34 +118,74 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
               parent === 'GraphViewer' ? (
                 <>
                   <Button
-                    id="add-metric-button"
-                    label="+ Metric"
-                    onClick={addMetricNode}
+                    id="add-node-button"
+                    label="+ Node"
+                    onClick={(e) => newNodeMenuOverlayPanel.current?.toggle(e)}
                     disabled={!formMetricNode || !updateGraph}
                   />
-                  <Button
-                    id="add-formula-button"
-                    label="+ Formula"
-                    onClick={onFormulaAddition}
-                  />
-                  <label
-                    htmlFor="add-mission-toggle"
-                    className={styles.toggle_label}
-                  >
-                    Show Mission
-                  </label>
-                  <InputSwitch
-                    id="add-mission-toggle"
-                    className={styles.toggle}
-                    checked={missionToggleChecked}
-                    onChange={(e) => {
-                      if (e.value) {
-                        addMissionNode()
-                      } else {
-                        deleteMissionNode()
+                  <style jsx>
+                    {`
+                      .p-overlaypanel-content {
+                        padding: 0 !important;
                       }
-                    }}
+                    `}
+                  </style>
+                  <OverlayPanel
+                    ref={newNodeMenuOverlayPanel}
+                    showCloseIcon={false}
+                  >
+                    <ListBox
+                      value={null}
+                      options={[
+                        {
+                          label: '+ Metric Node',
+                          value: 'metric',
+                        },
+                        {
+                          label: '+ Custom Node',
+                          value: 'custom',
+                        },
+                      ]}
+                      onChange={(e) => {
+                        if (e.value === 'metric') {
+                          addMetricNode()
+                        } else if (e.value === 'custom') {
+                          addCustomNode()
+                        }
+                        newNodeMenuOverlayPanel.current?.hide()
+                      }}
+                      style={{ border: 'none' }}
+                    />
+                  </OverlayPanel>
+                  <Button
+                    id="add-relationship-button"
+                    label="+ Relationship"
+                    onClick={(e) =>
+                      newRelationshipMenuOverlayPanel.current?.toggle(e)
+                    }
                   />
+                  <OverlayPanel
+                    ref={newRelationshipMenuOverlayPanel}
+                    showCloseIcon={false}
+                  >
+                    <ListBox
+                      value={null}
+                      options={[
+                        {
+                          label: '+ Formula',
+                          value: 'formula',
+                        },
+                      ]}
+                      onChange={(e) => {
+                        if (e.value === 'formula') {
+                          onFormulaAddition()
+                        }
+                        // TODO: add simple / indefinite relationship
+                        newNodeMenuOverlayPanel.current?.hide()
+                      }}
+                      style={{ border: 'none' }}
+                    />
+                  </OverlayPanel>
                 </>
               ) : (
                 <>
