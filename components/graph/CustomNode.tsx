@@ -13,14 +13,22 @@ import { Handle, Node, Position } from 'reactflow'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/CustomNode.module.css'
+import CustomNodeRenderer from './CustomNodeRenderer'
 import ColorPicker from './nodepanel/ColorPicker'
 import NodePanel from './nodepanel/NodePanel'
 
+export type CustomNodeSource = {
+  html: string
+  css: string
+}
 export type CustomNodeProperties = {
   id: string
   organizationId: string
   typeId: string
   name: string
+  description: string
+  owner: string
+  source: CustomNodeSource
   color: string
   // below not in postgres
   initialProperties: object
@@ -29,10 +37,18 @@ export type CustomNodeProperties = {
 type CustomNodeProps = {
   data: CustomNodeProperties
   selected: boolean
+  xPos: number
+  yPos: number
 }
-const CustomNode: FunctionComponent<CustomNodeProps> = ({ data, selected }) => {
+const CustomNode: FunctionComponent<CustomNodeProps> = ({
+  data,
+  selected,
+  xPos,
+  yPos,
+}) => {
   const { editingEnabled } = useEditability()
-  const { graph, updateGraph, formNodeHandleStyle } = useGraph()
+  const { graph, nodeShouldRender, updateGraph, formNodeHandleStyle } =
+    useGraph()
 
   const INIT_HEIGHT = 288
   const INIT_WIDTH = 512
@@ -74,6 +90,15 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({ data, selected }) => {
     },
     [setColor, saveColor]
   )
+
+  const [shouldRender, setShouldRender] = useState(true)
+  useEffect(() => {
+    if (thisNode && nodeShouldRender) {
+      setShouldRender(nodeShouldRender(thisNode, xPos, yPos))
+    } else {
+      setShouldRender(false)
+    }
+  }, [thisNode, xPos, yPos, nodeShouldRender])
 
   const onNodeResizeStart = useCallback(() => {
     // create update to undo to
@@ -120,6 +145,12 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({ data, selected }) => {
               onChangeComplete={handleColorChangeComplete}
             />
           }
+        />
+      </div>
+      <div className={styles.body}>
+        <CustomNodeRenderer
+          parentCustomNodeId={data.id}
+          shouldRender={shouldRender}
         />
       </div>
       <Handle

@@ -42,6 +42,14 @@
   right: 0;
 }
 
+.node_detail .body .html_container {
+  position: relative;
+  width: 80%;
+  /* expand height to content */
+  height: auto;
+  margin: auto;
+}
+
 .node_detail .body .detail_field {
   background-color: #ffffff;
   border-radius: 5px;

@@ -22,6 +22,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import CustomNode, {
   CustomNodeProperties,
+  CustomNodeSource,
 } from '../components/graph/CustomNode'
 import FunctionNode, {
   FunctionNodeProperties,
@@ -77,6 +78,9 @@ type GraphContextType = {
     | undefined
   initialGraphFitComplete: boolean
   setInitialGraphFitComplete: Dispatch<SetStateAction<boolean>> | undefined
+  nodeShouldRender:
+    | ((node: Node, xPos: number, yPos: number) => boolean)
+    | undefined
   undo: (() => void) | undefined
   redo: (() => void) | undefined
   canUndo: boolean
@@ -156,6 +160,7 @@ const graphContextDefaultValues: GraphContextType = {
   setReactFlowViewport: undefined,
   initialGraphFitComplete: false,
   setInitialGraphFitComplete: undefined,
+  nodeShouldRender: undefined,
   undo: undefined,
   redo: undefined,
   canUndo: false,
@@ -185,7 +190,7 @@ type GraphProps = {
 }
 
 export function GraphProvider({ children }: GraphProps) {
-  const { getValidAccessToken, organizationId } = useAuth()
+  const { getValidAccessToken, organizationId, userOnMobile } = useAuth()
   const { editingEnabled } = useEditability()
 
   const [initialGraph, setInitialGraph] = useState<Graph>({
@@ -207,6 +212,38 @@ export function GraphProvider({ children }: GraphProps) {
   const [reactFlowViewport, setReactFlowViewport] = useState<Viewport>()
   const [initialGraphFitComplete, setInitialGraphFitComplete] =
     useState<boolean>(false)
+
+  const nodeShouldRender = useCallback(
+    (node: Node, xPos: number, yPos: number) => {
+      if (!reactFlowViewport || !reactFlowRenderer || !node) return false
+      const scale = 1 / reactFlowViewport.zoom
+      const clientWidth = reactFlowRenderer.clientWidth
+      const clientHeight = reactFlowRenderer.clientHeight
+      const clientWidthScaled = clientWidth * scale
+      const clientHeightScaled = clientHeight * scale
+      const rendererXLower = -reactFlowViewport.x * scale
+      const rendererXUpper = rendererXLower + clientWidthScaled
+      const rendererYLower = -reactFlowViewport.y * scale
+      const rendererYUpper = rendererYLower + clientHeightScaled
+      const nodeXLower = xPos
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const nodeXUpper = xPos + node.width!
+      const nodeYLower = yPos
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const nodeYUpper = yPos + node.height!
+      const xBuffer = userOnMobile ? 0 : clientWidth
+      const yBuffer = userOnMobile ? 0 : clientHeight
+      const minZoom = userOnMobile ? 0.2 : 0.1
+      return Boolean(
+        nodeXLower < rendererXUpper + xBuffer &&
+          nodeXUpper > rendererXLower - xBuffer &&
+          nodeYLower < rendererYUpper + yBuffer &&
+          nodeYUpper > rendererYLower - yBuffer &&
+          reactFlowViewport.zoom > minZoom
+      )
+    },
+    [reactFlowViewport, reactFlowRenderer, userOnMobile]
+  )
 
   const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
     Object.fromEntries(Object.keys(nodeTypes).map((key) => [key, '']))
@@ -497,6 +534,12 @@ export function GraphProvider({ children }: GraphProps) {
       organizationId: organizationId,
       typeId: newNodeTypeId,
       name: 'New Custom Node',
+      description: '',
+      owner: '',
+      source: {
+        html: '',
+        css: '',
+      } as CustomNodeSource,
       color: '#FFFFFF',
       initialProperties: {},
       setNodeDataToChange: setNodeDataToChange,
@@ -907,6 +950,7 @@ export function GraphProvider({ children }: GraphProps) {
     setReactFlowViewport: setReactFlowViewport,
     initialGraphFitComplete: initialGraphFitComplete,
     setInitialGraphFitComplete: setInitialGraphFitComplete,
+    nodeShouldRender: nodeShouldRender,
     undo: undo,
     redo: redo,
     canUndo: canUndo,

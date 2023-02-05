@@ -154,7 +154,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
                         }
                         newNodeMenuOverlayPanel.current?.hide()
                       }}
-                      style={{ border: 'none', fontWeight: 'bold' }}
+                      style={{ border: 'none' }}
                     />
                   </OverlayPanel>
                   <Button
@@ -183,7 +183,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
                         // TODO: add simple / indefinite relationship
                         newNodeMenuOverlayPanel.current?.hide()
                       }}
-                      style={{ border: 'none', fontWeight: 'bold' }}
+                      style={{ border: 'none' }}
                     />
                   </OverlayPanel>
                 </>

@@ -9,7 +9,10 @@ import _ from 'lodash'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Edge, Node } from 'reactflow'
 
-import { CustomNodeProperties } from '../../../components/graph/CustomNode'
+import {
+  CustomNodeProperties,
+  CustomNodeSource,
+} from '../../../components/graph/CustomNode'
 import { FunctionNodeProperties } from '../../../components/graph/FunctionNode'
 import { InputEdgeProperties } from '../../../components/graph/InputEdge'
 import { MetricNodeProperties } from '../../../components/graph/MetricNode'
@@ -71,6 +74,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               organizationId: properties.organizationId,
               typeId: properties.typeId,
               name: properties.name,
+              description: properties.description,
+              owner: properties.owner,
+              source: {
+                html: properties.source?.html,
+                css: properties.source?.css,
+              } as CustomNodeSource,
               color: properties.color,
               initialProperties: properties,
               setNodeDataToChange: () => {

@@ -14,7 +14,7 @@
   justify-content: space-between;
 }
 
-.metric_node .chart_container {
+.metric_node .body {
   height: auto;
   width: auto;
   position: absolute;

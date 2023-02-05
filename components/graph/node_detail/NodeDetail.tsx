@@ -22,11 +22,14 @@ import styles from '../../../styles/NodeDetail.module.css'
 import MentionField from '../../MentionField'
 import ControlPanel from '../ControlPanel'
 import LineChart from '../LineChart'
+import { CustomNodeProperties, CustomNodeSource } from '../CustomNode'
+import CustomNodeRenderer from '../CustomNodeRenderer'
 import { MetricNodeProperties, MetricNodeSource } from '../MetricNode'
 import UndoRedoSaveAndCancelGraphEditingButtons from '../editing/UndoRedoSaveAndCancelGraphEditingButtons'
 import NodePanel from '../nodepanel/NodePanel'
 import GoalsTable from './GoalsTable'
 import MonitoringRulesTable from './MonitoringRulesTable'
+import CustomNodeSourceFields from './CustomNodeSourceFields'
 import MetricNodeSourceFields from './MetricNodeSourceFields'
 
 type NodeDetailProps = {
@@ -39,6 +42,9 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
   const { graph, getFunctionSymbol, getConnectedObjects } = useGraph()
 
   const [node, setNode] = useState<Node | undefined>(undefined)
+  const [nodeTypeTitleCase, setNodeTypeTitleCase] = useState<
+    string | undefined
+  >(undefined)
   const [name, setName] = useState('')
   const [owner, setOwner] = useState('')
   const [description, setDescription] = useState('')
@@ -66,6 +72,11 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
   }, [populateNode, editingEnabled])
 
   const populateDetails = useCallback(() => {
+    setNodeTypeTitleCase(
+      node?.type
+        ? node.type.charAt(0).toUpperCase() + node.type.slice(1)
+        : undefined
+    )
     setName(node?.data.name || '')
     setOwner(node?.data.owner || '')
     setDescription(node?.data.description || '')
@@ -209,7 +220,10 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
   }, [outputs, replaceFunctionTypeIdWithSymbol])
 
   const saveDetail = useCallback(
-    (name: keyof MetricNodeProperties, value: string | MetricNodeSource) => {
+    (
+      name: keyof CustomNodeProperties | keyof MetricNodeProperties,
+      value: string | CustomNodeSource | MetricNodeSource
+    ) => {
       if (node) {
         const newData = {
           ...node.data,
@@ -232,7 +246,10 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
   return (
     <div className={styles.node_detail}>
       <Head>
-        <title>{name ? `Metric: ${name}` : 'Metric'} — MGraph</title>
+        <title>
+          {nodeTypeTitleCase && name ? `${nodeTypeTitleCase}: ${name}` : 'Node'}{' '}
+          — MGraph
+        </title>
       </Head>
       <div className={styles.header}>
         <Button
@@ -250,7 +267,9 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
           value={name}
           readonly={!editingEnabled}
           formatDisplayText={(value) => {
-            return editingEnabled ? value : `Metric: ${value}`
+            return editingEnabled
+              ? value
+              : `${nodeTypeTitleCase ? nodeTypeTitleCase : 'Node'}: ${value}`
           }}
           style={{
             fontSize: '2em',
@@ -263,27 +282,42 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
         <ControlPanel />
       </div>
       <div className={styles.body}>
-        <div className={styles.chart_container}>
-          <QueryRunner
-            parentMetricNodeData={node?.data}
-            refreshes={queryRunnerRefreshes}
-            queryResult={queryResult}
-            setQueryResult={setQueryResult}
-          />
-          <LineChart parentMetricNodeId={nodeId} queryResult={queryResult} />
-          {editingEnabled && (
-            <div className={styles.refresh_chart_button_container}>
-              <Button
-                id="refresh-query-button"
-                className="p-button-text"
-                icon="pi pi-refresh"
-                onClick={() => {
-                  setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-                }}
+        {nodeTypeTitleCase === 'Custom' && (
+          <div className={styles.html_container}>
+            <CustomNodeRenderer
+              parentCustomNodeId={nodeId}
+              expandHeight={true}
+            />
+          </div>
+        )}
+        {nodeTypeTitleCase === 'Metric' && (
+          <div className={styles.chart_container}>
+            <>
+              <QueryRunner
+                parentMetricNodeData={node?.data}
+                refreshes={queryRunnerRefreshes}
+                queryResult={queryResult}
+                setQueryResult={setQueryResult}
               />
-            </div>
-          )}
-        </div>
+              <LineChart
+                parentMetricNodeId={nodeId}
+                queryResult={queryResult}
+              />
+              {editingEnabled && (
+                <div className={styles.refresh_chart_button_container}>
+                  <Button
+                    id="refresh-query-button"
+                    className="p-button-text"
+                    icon="pi pi-refresh"
+                    onClick={() => {
+                      setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+                    }}
+                  />
+                </div>
+              )}
+            </>
+          </div>
+        )}
         <SectionHeader title="Owner" size="h2" />
         <MentionField
           id="owner-field"
@@ -302,8 +336,6 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
           placeholder={editingEnabled ? 'Add...' : '-'}
           onBlur={() => saveDetail('description', description)}
         />
-        <SectionHeader title="Goals" size="h2" />
-        <GoalsTable parentNodeId={nodeId} includeConfirmDialogFC={false} />
         <SectionHeader title="Inputs" size="h2" />
         <pre className={styles.detail_field}>
           {inputs.match(functionTypeIdRegex) ? '' : inputs.trim()}
@@ -312,13 +344,25 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
         <pre className={styles.detail_field}>
           {outputs.match(functionTypeIdRegex) ? '' : outputs.trim()}
         </pre>
-        <SectionHeader title="Monitoring Rules" size="h2" />
-        <MonitoringRulesTable
-          parentNodeId={nodeId}
-          includeConfirmDialogFC={false}
-        />
-        <SectionHeader title="Source" size="h2" />
-        <MetricNodeSourceFields metricNode={node} saveDetail={saveDetail} />
+        {nodeTypeTitleCase === 'Custom' && (
+          <>
+            <SectionHeader title="Source" size="h2" />
+            <CustomNodeSourceFields customNode={node} saveDetail={saveDetail} />
+          </>
+        )}
+        {nodeTypeTitleCase === 'Metric' && (
+          <>
+            <SectionHeader title="Goals" size="h2" />
+            <GoalsTable parentNodeId={nodeId} includeConfirmDialogFC={false} />
+            <SectionHeader title="Monitoring Rules" size="h2" />
+            <MonitoringRulesTable
+              parentNodeId={nodeId}
+              includeConfirmDialogFC={false}
+            />
+            <SectionHeader title="Source" size="h2" />
+            <MetricNodeSourceFields metricNode={node} saveDetail={saveDetail} />
+          </>
+        )}
       </div>
       {editingEnabled && (
         <div className={styles.editor_dock}>

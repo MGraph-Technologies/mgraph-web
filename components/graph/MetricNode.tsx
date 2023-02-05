@@ -11,7 +11,6 @@ import 'react-edit-text/dist/index.css'
 import { Handle, Node, Position } from 'reactflow'
 
 import QueryRunner, { QueryResult } from '../../components/graph/QueryRunner'
-import { useAuth } from '../../contexts/auth'
 import { useEditability } from '../../contexts/editability'
 import { useGraph } from '../../contexts/graph'
 import styles from '../../styles/MetricNode.module.css'
@@ -55,15 +54,9 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   xPos,
   yPos,
 }) => {
-  const { userOnMobile } = useAuth()
   const { editingEnabled } = useEditability()
-  const {
-    graph,
-    goalStatusMap,
-    reactFlowRenderer,
-    reactFlowViewport,
-    formNodeHandleStyle,
-  } = useGraph()
+  const { graph, goalStatusMap, nodeShouldRender, formNodeHandleStyle } =
+    useGraph()
 
   const INIT_HEIGHT = 288
   const INIT_WIDTH = 512
@@ -129,33 +122,12 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
 
   const [renderChart, setRenderChart] = useState(false)
   useEffect(() => {
-    if (!reactFlowViewport || !reactFlowRenderer || !thisNode) return
-    const scale = 1 / reactFlowViewport.zoom
-    const clientWidth = reactFlowRenderer.clientWidth
-    const clientHeight = reactFlowRenderer.clientHeight
-    const clientWidthScaled = clientWidth * scale
-    const clientHeightScaled = clientHeight * scale
-    const rendererXLower = -reactFlowViewport.x * scale
-    const rendererXUpper = rendererXLower + clientWidthScaled
-    const rendererYLower = -reactFlowViewport.y * scale
-    const rendererYUpper = rendererYLower + clientHeightScaled
-    const nodeXLower = xPos
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const nodeXUpper = xPos + thisNode.width!
-    const nodeYLower = yPos
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const nodeYUpper = yPos + thisNode.height!
-    const xBuffer = userOnMobile ? 0 : clientWidth
-    const yBuffer = userOnMobile ? 0 : clientHeight
-    const minZoom = userOnMobile ? 0.2 : 0.1
-    setRenderChart(
-      nodeXLower < rendererXUpper + xBuffer &&
-        nodeXUpper > rendererXLower - xBuffer &&
-        nodeYLower < rendererYUpper + yBuffer &&
-        nodeYUpper > rendererYLower - yBuffer &&
-        reactFlowViewport.zoom > minZoom
-    )
-  }, [reactFlowViewport, reactFlowRenderer, thisNode, xPos, yPos, userOnMobile])
+    if (thisNode && nodeShouldRender) {
+      setRenderChart(nodeShouldRender(thisNode, xPos, yPos))
+    } else {
+      setRenderChart(false)
+    }
+  }, [thisNode, xPos, yPos, nodeShouldRender])
 
   const onResizeStart = useCallback(() => {
     // a somewhat-hacky way to save node state so that resize can be undone;
@@ -200,7 +172,7 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
           }
         />
       </div>
-      <div className={styles.chart_container}>
+      <div className={styles.body}>
         <QueryRunner
           parentMetricNodeData={data}
           refreshes={0}
