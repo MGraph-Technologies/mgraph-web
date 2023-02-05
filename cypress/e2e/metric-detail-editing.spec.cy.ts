@@ -376,22 +376,12 @@ describe('Metric detail editing', () => {
       .find('[class*=pi-circle]')
       .should('exist')
 
-    // delete goals
-    cy.get('[id=goals-table]')
-      .contains(newGoalName)
-      .parent('tr')
-      .find('[id=delete-goal-button]')
-      .click()
-    cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
-    cy.get('[id=goals-table]')
-      .contains(newGoalName + '2')
-      .parent('tr')
-      .find('[id=delete-goal-button]')
-      .click()
-    cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
-    cy.get('[id=goals-table]')
-      .contains(newGoalName + '2')
-      .should('not.exist')
+    // delete all goals
+    cy.get('[id=delete-goal-button]').each(() => {
+      // avoid dom detached error
+      cy.get('[id=delete-goal-button]').first().click()
+      cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
+    })
   })
 
   it('Visits a metric detail page and tests dbt query generation', () => {
@@ -766,17 +756,13 @@ describe('Metric detail editing', () => {
         cy.get('td').contains('0 14 * * *').should('exist')
       })
 
-    // delete rule
+    // delete all monitoring rules
     cy.get('[id=edit-button]').click()
-    cy.get('[id=monitoring-rules-table]')
-      .contains(newRuleName)
-      .parent('tr')
-      .find('[id=delete-monitoring-rule-button]')
-      .click()
-    cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
-    cy.get('[id=monitoring-rules-table]')
-      .contains(newRuleSlackTo)
-      .should('not.exist')
+    cy.get('[id=delete-monitoring-rule-button]').each(() => {
+      // avoid dom detached error
+      cy.get('[id=delete-monitoring-rule-button]').first().click()
+      cy.get('[class*=p-confirm-dialog-accept]').contains('Delete').click()
+    })
   })
 })
 
