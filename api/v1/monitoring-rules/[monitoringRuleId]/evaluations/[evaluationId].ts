@@ -337,7 +337,7 @@ const sendSlackAlerts = async (
           fields: [
             {
               type: 'mrkdwn',
-              text: `${getBaseUrl()}/${organizationNameEncoded}/metrics/${
+              text: `${getBaseUrl()}/${organizationNameEncoded}/nodes/${
                 metricNodeProperties.id
               }#monitoring-rules`,
             },

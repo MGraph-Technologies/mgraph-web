@@ -50,7 +50,7 @@ const NodeGoalsStatusButton: FunctionComponent<NodeGoalsStatusButtonProps> = ({
             nodeId: node?.data?.id,
             type: 'goal',
           })
-          push(`/${organizationName}/metrics/${node.data.id}#goals`)
+          push(`/${organizationName}/nodes/${node.data.id}#goals`)
         }}
       />
     )

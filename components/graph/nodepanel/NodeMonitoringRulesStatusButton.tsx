@@ -25,7 +25,7 @@ const NodeMonitoringRulesStatusButton: FunctionComponent<
             nodeId: node.data.id,
             type: 'monitoring',
           })
-          push(`/${organizationName}/metrics/${node.data.id}#monitoring-rules`)
+          push(`/${organizationName}/nodes/${node.data.id}#monitoring-rules`)
         }}
       />
     )
