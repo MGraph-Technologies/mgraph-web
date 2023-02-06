@@ -87,7 +87,7 @@ export function QueriesProvider({ children }: QueriesProps) {
       if (ip) {
         try {
           await supabase
-            .from('database_input_parameters')
+            .from('input_parameters')
             .upsert({
               id: ip.userRecordId,
               organization_id: organizationId,
@@ -124,7 +124,7 @@ export function QueriesProvider({ children }: QueriesProps) {
         } else {
           try {
             await supabase
-              .from('database_input_parameters')
+              .from('input_parameters')
               .upsert({
                 id: ip.userRecordId,
                 organization_id: organizationId,
@@ -159,7 +159,7 @@ export function QueriesProvider({ children }: QueriesProps) {
       if (ip) {
         try {
           await supabase
-            .from('database_input_parameters')
+            .from('input_parameters')
             .upsert([
               {
                 id: ip.orgDefaultRecordId,

@@ -158,7 +158,7 @@ export const getInputParameters = async (
   let inputParameters: InputParameters = {}
   try {
     const { data, error, status } = await supabase
-      .from('database_input_parameters')
+      .from('input_parameters')
       .select('id, user_id, name, value, deleted_at')
       /* in frontend use, rls also limits to records from user's org where
         user_id is user's or null */
