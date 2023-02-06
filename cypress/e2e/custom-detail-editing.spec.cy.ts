@@ -79,12 +79,12 @@ describe('Custom detail editing', () => {
       .should('exist')
   })
 
-  it('Visits a metric detail page, enters working HTML via query parameter, then sees results', () => {
+  it('Visits a metric detail page, enters working HTML via input parameter, then sees results', () => {
     cy.visit('/mgraph')
     cy.get('[class*=custom_node]').first().click()
     cy.wait(2000)
 
-    // set query parameter
+    // set input parameter
     const currentTimeString = new Date().toISOString()
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=beginning_date-field]').click()
@@ -134,7 +134,7 @@ describe('Custom detail editing', () => {
         cy.wrap($body).contains(currentTimeString)
       })
 
-    // reset query parameter
+    // reset input parameter
     cy.get('[id=query-settings-button]').click().wait(100)
     cy.get('[id=beginning_date-reset-button]').click().wait(100)
     cy.wait(2000) // wait for reset to process

@@ -11,19 +11,19 @@ import { EditText } from 'react-edit-text'
 import SectionHeader from 'components/SectionHeader'
 import Workspace from 'components/Workspace'
 import { useAuth } from 'contexts/auth'
-import styles from 'styles/QueryParameters.module.css'
+import styles from 'styles/InputParameters.module.css'
 import { analytics } from 'utils/segmentClient'
 import { supabase } from 'utils/supabaseClient'
 
-const QueryParameters: FunctionComponent = () => {
+const InputParameters: FunctionComponent = () => {
   return (
     <>
       <Head>
-        <title>Query Parameters — MGraph</title>
+        <title>Input Parameters — MGraph</title>
       </Head>
       <Workspace>
-        <div className={styles.query_parameters_container}>
-          <div className={styles.query_parameters_title}>Query Parameters</div>
+        <div className={styles.input_parameters_container}>
+          <div className={styles.input_parameters_title}>Input Parameters</div>
           <SectionHeader title="Dimensions" size="h2" />
           <Field name="dimensions" example="NULL,market" />
           <SectionHeader title="Frequencies" size="h2" />
@@ -133,4 +133,4 @@ const Field: FunctionComponent<FieldProps> = ({ name, example }) => {
   )
 }
 
-export default QueryParameters
+export default InputParameters

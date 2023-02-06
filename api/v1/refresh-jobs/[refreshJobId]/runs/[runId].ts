@@ -8,8 +8,8 @@ import { Graph } from '../../../../../contexts/graph'
 import { SENTRY_CONFIG } from '../../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../../utils/appBaseUrl'
 import {
+  getInputParameters,
   getLatestQueryId,
-  getQueryParameters,
   parameterizeStatement,
 } from '../../../../../utils/queryUtils'
 
@@ -100,8 +100,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           (node: Node) => node.data.source?.query
         )
 
-        // get organization's query parameters
-        const queryParameters = await getQueryParameters(
+        // get organization's input parameters
+        const inputParameters = await getInputParameters(
           refreshJobData.organization_id,
           supabase
         )
@@ -116,7 +116,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           if (statement && databaseConnectionId) {
             const parameterizedStatement = parameterizeStatement(
               statement,
-              queryParameters
+              inputParameters
             )
             console.log(
               `\nGetting latest query id for node ${node.id} and statement ${parameterizedStatement}`

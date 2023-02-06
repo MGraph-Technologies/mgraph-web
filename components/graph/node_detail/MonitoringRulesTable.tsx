@@ -20,7 +20,7 @@ import { useEditability } from 'contexts/editability'
 import { useGraph } from 'contexts/graph'
 import styles from 'styles/MonitoringRulesTable.module.css'
 import { objectToBullets } from 'utils/objectToBullets'
-import { QueryParameterOverrides } from 'utils/queryUtils'
+import { InputParameterOverrides } from 'utils/queryUtils'
 import { analytics } from 'utils/segmentClient'
 import { supabase } from 'utils/supabaseClient'
 
@@ -32,7 +32,7 @@ export type MonitoringRuleProperties = {
   rangeLowerBound: number
   rangeUpperBound: number
   lookbackPeriods: number
-  queryParameterOverrides: QueryParameterOverrides
+  inputParameterOverrides: InputParameterOverrides
 }
 export type MonitoringRuleEvaluationStatus = 'alert' | 'ok' | 'timed_out'
 export type MonitoringRuleLatestEvaluation = {
@@ -93,8 +93,8 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                     rangeLowerBound: mr.properties.rangeLowerBound,
                     rangeUpperBound: mr.properties.rangeUpperBound,
                     lookbackPeriods: mr.properties.lookbackPeriods,
-                    queryParameterOverrides:
-                      mr.properties.queryParameterOverrides,
+                    inputParameterOverrides:
+                      mr.properties.inputParameterOverrides,
                   } as MonitoringRuleProperties,
                   schedule: mr.schedule,
                   slackTo: mr.slack_to,
@@ -243,8 +243,8 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
               setUpsertRuleLookbackPeriodsStr(
                 rowData.properties.lookbackPeriods
               )
-              setUpsertRuleQueryParameterOverridesStr(
-                Object.entries(rowData.properties.queryParameterOverrides)
+              setUpsertRuleInputParameterOverridesStr(
+                Object.entries(rowData.properties.inputParameterOverrides)
                   .map(([key, value]) => `${key}:${value}`)
                   .join(',')
               )
@@ -302,8 +302,8 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   const [upsertRuleLookbackPeriodsStr, setUpsertRuleLookbackPeriodsStr] =
     useState('')
   const [
-    upsertRuleQueryParameterOverridesStr,
-    setUpsertRuleQueryParameterOverridesStr,
+    upsertRuleInputParameterOverridesStr,
+    setUpsertRuleInputParameterOverridesStr,
   ] = useState('')
   const [upsertRuleSchedule, setUpsertRuleSchedule] = useState<string>('')
   const [upsertRuleSlackTo, setUpsertRuleSlackTo] = useState<string>('')
@@ -316,7 +316,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
     setUpsertRuleRangeLowerBoundStr('')
     setUpsertRuleRangeUpperBoundStr('')
     setUpsertRuleLookbackPeriodsStr('')
-    setUpsertRuleQueryParameterOverridesStr('')
+    setUpsertRuleInputParameterOverridesStr('')
     setUpsertRuleSchedule('')
     setUpsertRuleSlackTo('')
     setUpsertRuleIsNew(true)
@@ -394,10 +394,10 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
               tooltip="The n most-recent source query result values to evaluate for each dimension (e.g., 1 or 24)"
             />
             <SettingsInputText
-              label="Query Parameter Overrides"
-              value={upsertRuleQueryParameterOverridesStr}
-              setValue={setUpsertRuleQueryParameterOverridesStr}
-              tooltip="(optional) Parameter:Value pairs to override default query parameters (comma-separated without added quotes; e.g., beginning_date:2021-01-01,ending_date:2021-01-31)"
+              label="Input Parameter Overrides"
+              value={upsertRuleInputParameterOverridesStr}
+              setValue={setUpsertRuleInputParameterOverridesStr}
+              tooltip="(optional) Parameter:Value pairs to override default input parameters (comma-separated without added quotes; e.g., beginning_date:2021-01-01,ending_date:2021-01-31)"
             />
             <SettingsInputText
               label="Schedule"
@@ -438,22 +438,22 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                     alert('Lookback Periods must be an integer')
                     return
                   }
-                  const upsertRuleQueryParameterOverrides: QueryParameterOverrides =
+                  const upsertRuleInputParameterOverrides: InputParameterOverrides =
                     {}
-                  for (const overridePair of upsertRuleQueryParameterOverridesStr.split(
+                  for (const overridePair of upsertRuleInputParameterOverridesStr.split(
                     ','
                   )) {
                     if (overridePair) {
                       const overridePairSplit = overridePair.split(':')
                       if (!(overridePairSplit.length === 2)) {
                         alert(
-                          'Query Parameter Overrides must be in the format parameter:value'
+                          'Input Parameter Overrides must be in the format parameter:value'
                         )
                         return
                       }
                       const key = overridePairSplit[0].trim()
                       const value = overridePairSplit[1].trim()
-                      upsertRuleQueryParameterOverrides[key] = value
+                      upsertRuleInputParameterOverrides[key] = value
                     }
                   }
                   const upsertRuleProperties = {
@@ -467,7 +467,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                         ? upsertRuleRangeUpperBound.toString()
                         : upsertRuleRangeUpperBound,
                     lookbackPeriods: upsertRuleLookbackPeriods,
-                    queryParameterOverrides: upsertRuleQueryParameterOverrides,
+                    inputParameterOverrides: upsertRuleInputParameterOverrides,
                   }
 
                   // validate schedule

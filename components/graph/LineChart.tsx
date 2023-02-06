@@ -71,7 +71,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
 }) => {
   const { organizationId, userOnMobile } = useAuth()
   const { setGoalStatusMap } = useGraph()
-  const { queryParameters } = useQueries()
+  const { inputParameters } = useQueries()
   const [metricData, setMetricData] = useState<MetricData | null>(null)
   const [chartJSDatasets, setChartJSDatasets] = useState<ChartJSDataset[]>([])
   const [numberToOverlay, setNumberToOverlay] = useState<number | null>(null)
@@ -134,8 +134,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   const enrichChartJSDatasets = useCallback(async () => {
     if (chartJSDatasets.length === 0) return
     if (chartJSDatasetsEnriched) return
-    const frequency = queryParameters.frequency?.userValue
-    const dimensionName = queryParameters.group_by?.userValue
+    const frequency = inputParameters.frequency?.userValue
+    const dimensionName = inputParameters.group_by?.userValue
     // first date across all datasets
     const firstPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
@@ -177,7 +177,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         // match dimension name
         // the or filter is, as far as I know, the only way to pass a conditionally-written condition
         .or(
-          dimensionName.toLowerCase() === 'null' // query parameters aren't case-sensitive
+          dimensionName.toLowerCase() === 'null' // input parameters aren't case-sensitive
             ? 'dimension_name.is.null'
             : `dimension_name.eq.${dimensionName}`
         )
@@ -251,7 +251,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   }, [
     chartJSDatasets,
     chartJSDatasetsEnriched,
-    queryParameters,
+    inputParameters,
     organizationId,
     parentMetricNodeId,
   ])

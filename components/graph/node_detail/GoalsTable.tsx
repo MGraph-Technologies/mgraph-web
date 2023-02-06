@@ -290,7 +290,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
               setValue={setUpsertGoalDimensionStr}
               tooltip={
                 'A {"name":...,"value":...} object describing the dimension that the goal corresponds to (e.g., ' +
-                '{"name":"country","value":"US"} or {"name":null,"value":null}); the Group By query parameter must be set to ' +
+                '{"name":"country","value":"US"} or {"name":null,"value":null}); the Group By input parameter must be set to ' +
                 'the value of "name" and the value of "value" must be within query results for goal to be displayed and tracked;'
               }
             />
@@ -299,7 +299,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
               value={upsertGoalFrequency}
               setValue={setUpsertGoalFrequency}
               tooltip={
-                'The frequency value that the goal corresponds to (e.g., DAY or WEEK); the Frequency query parameter must ' +
+                'The frequency value that the goal corresponds to (e.g., DAY or WEEK); the Frequency input parameter must ' +
                 'be set to this value for goal to be displayed and tracked'
               }
             />
@@ -558,7 +558,7 @@ export const GoalStatusIndicator: FunctionComponent<
     case 'unevaluated':
       buttonIcon = 'pi pi-question-circle'
       buttonClassExtension = 'p-button-secondary'
-      buttonTooltip = 'Goal not evaluated: change query parameters to evaluate'
+      buttonTooltip = 'Goal not evaluated: change input parameters to evaluate'
       break
   }
   return (

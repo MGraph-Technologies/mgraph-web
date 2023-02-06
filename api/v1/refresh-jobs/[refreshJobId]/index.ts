@@ -7,7 +7,7 @@ import { Node } from 'reactflow'
 import { SENTRY_CONFIG } from '../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../utils/appBaseUrl'
 import {
-  getQueryParameters,
+  getInputParameters,
   parameterizeStatement,
 } from '../../../../utils/queryUtils'
 
@@ -65,8 +65,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         (node: Node) => node.data.source?.query
       )
 
-      // get organization's query parameters
-      const queryParameters = await getQueryParameters(
+      // get organization's input parameters
+      const inputParameters = await getInputParameters(
         refreshJobData.organization_id,
         supabase
       )
@@ -81,7 +81,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (statement && databaseConnectionId) {
           const parameterizedStatement = parameterizeStatement(
             statement,
-            queryParameters
+            inputParameters
           )
           console.log(`\nExecuting query for node ${node.id}...`)
           refreshRequests++
