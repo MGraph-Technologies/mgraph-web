@@ -25,7 +25,19 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   const [node, setNode] = useState<Node | undefined>(undefined)
   const [html, setHtml] = useState('')
   const [css, setCss] = useState('')
+  const [globalFontFamily, setGlobalFontFamily] = useState('')
   const [iframeHeight, setIframeHeight] = useState(0)
+
+  const populateGlobalFontFamily = useCallback(() => {
+    // inject page font family into iframe by default
+    const _globalFontFamily = window
+      .getComputedStyle(document.body)
+      .getPropertyValue('font-family')
+    setGlobalFontFamily(_globalFontFamily)
+  }, [])
+  useEffect(() => {
+    populateGlobalFontFamily()
+  }, [populateGlobalFontFamily])
 
   const handleIframeMessage = useCallback((event) => {
     if (event.data.type === 'setIframeHeight') {
@@ -80,11 +92,14 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
                     body {
                       padding: 0;
                       margin: 0;
-                      font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-                        Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
                       display: flex;
                       flex-direction: column;
                       align-items: center;
+                      ${
+                        globalFontFamily
+                          ? `font-family: ${globalFontFamily};`
+                          : ''
+                      }
                     }
                     a {
                       color: inherit;
