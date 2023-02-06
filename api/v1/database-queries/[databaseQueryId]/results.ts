@@ -158,6 +158,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               }
             })
           })
+          // sort rows equivalent to ORDER BY columns.length, columns.length - 1, ..., 1
+          for (let i = columns.length - 1; i >= 0; i--) {
+            rows.sort((a, b) => {
+              const aStr = a[i] ? JSON.stringify(a[i]) : ''
+              const bStr = b[i] ? JSON.stringify(b[i]) : ''
+              return aStr.localeCompare(bStr)
+            })
+          }
           const executedAt = new Date(data.created_at)
           res.setHeader('Cache-Control', 'max-age=31536000')
           return res.status(200).json({
