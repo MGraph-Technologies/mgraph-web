@@ -47,8 +47,7 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
   yPos,
 }) => {
   const { editingEnabled } = useEditability()
-  const { graph, nodeShouldRender, updateGraph, formNodeHandleStyle } =
-    useGraph()
+  const { graph, nodeShouldRender, formNodeHandleStyle } = useGraph()
 
   const INIT_HEIGHT = 288
   const INIT_WIDTH = 512
@@ -100,17 +99,12 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
     }
   }, [thisNode, xPos, yPos, nodeShouldRender])
 
-  const onNodeResizeStart = useCallback(() => {
-    // create update to undo to
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    updateGraph!(
-      {
-        nodes: undefined,
-        edges: undefined,
-      },
-      true
-    )
-  }, [updateGraph])
+  const onResizeStart = useCallback(() => {
+    // a somewhat-hacky way to save node state so that resize can be undone;
+    // previous implementation (using updateGraph) was causing prior graph changes to be lost
+    const newData = { ...data }
+    data.setNodeDataToChange(newData)
+  }, [data])
 
   return (
     <div
@@ -217,7 +211,7 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
         }}
         minHeight={INIT_HEIGHT}
         minWidth={INIT_WIDTH}
-        onResizeStart={onNodeResizeStart}
+        onResizeStart={onResizeStart}
       />
     </div>
   )
