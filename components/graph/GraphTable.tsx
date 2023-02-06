@@ -4,14 +4,14 @@ import { DataTable } from 'primereact/datatable'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { Node } from 'reactflow'
 
-import QueryRunner, { QueryResult } from '../../components/graph/QueryRunner'
-import { useGraph } from '../../contexts/graph'
-import styles from '../../styles/GraphTable.module.css'
-import { analytics } from '../../utils/segmentClient'
-import ControlPanel from './ControlPanel'
-import LineChart from './LineChart'
-import EditorDock from './editing/EditorDock'
-import NodePanel from './nodepanel/NodePanel'
+import ControlPanel from 'components/graph/ControlPanel'
+import LineChart from 'components/graph/LineChart'
+import EditorDock from 'components/graph/editing/EditorDock'
+import NodePanel from 'components/graph/nodepanel/NodePanel'
+import QueryRunner, { QueryResult } from 'components/graph/QueryRunner'
+import { useGraph } from 'contexts/graph'
+import styles from 'styles/GraphTable.module.css'
+import { analytics } from 'utils/segmentClient'
 
 type GraphTableProps = {
   metricNodes: Node[]

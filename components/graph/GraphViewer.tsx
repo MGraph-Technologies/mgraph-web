@@ -22,14 +22,14 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow'
 
-import { useAuth } from '../../contexts/auth'
-import { useEditability } from '../../contexts/editability'
-import { nodeTypes, edgeTypes, useGraph } from '../../contexts/graph'
-import { useBrowser } from '../../contexts/browser'
-import styles from '../../styles/GraphViewer.module.css'
-import { analytics } from '../../utils/segmentClient'
-import ControlPanel from './ControlPanel'
-import EditorDock from './editing/EditorDock'
+import ControlPanel from 'components/graph/ControlPanel'
+import EditorDock from 'components/graph/editing/EditorDock'
+import { useAuth } from 'contexts/auth'
+import { useBrowser } from 'contexts/browser'
+import { useEditability } from 'contexts/editability'
+import { nodeTypes, edgeTypes, useGraph } from 'contexts/graph'
+import styles from 'styles/GraphViewer.module.css'
+import { analytics } from 'utils/segmentClient'
 
 const GraphViewer: FunctionComponent = () => {
   const { organizationName } = useAuth()

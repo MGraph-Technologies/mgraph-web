@@ -2,12 +2,12 @@ import Head from 'next/head'
 import { FunctionComponent, useEffect, useState } from 'react'
 import { ReactFlowProvider } from 'reactflow'
 
-import { useAuth } from '../../contexts/auth'
-import GraphViewer from '../../components/graph/GraphViewer'
-import GraphTableViewer from '../../components/graph/GraphTable'
-import GraphTableToggleDock from '../../components/graph/GraphTableToggleDock'
-import Workspace from '../../components/Workspace'
-import styles from '../../styles/OrganizationHome.module.css'
+import GraphViewer from 'components/graph/GraphViewer'
+import GraphTableViewer from 'components/graph/GraphTable'
+import GraphTableToggleDock from 'components/graph/GraphTableToggleDock'
+import Workspace from 'components/Workspace'
+import { useAuth } from 'contexts/auth'
+import styles from 'styles/OrganizationHome.module.css'
 
 const OrganizationHome: FunctionComponent = () => {
   const { userCanView } = useAuth()

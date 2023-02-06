@@ -14,13 +14,13 @@ import React, {
 } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-import SettingsInputText from '../../../components/SettingsInputText'
-import Workspace from '../../../components/Workspace'
-import { useAuth } from '../../../contexts/auth'
-import styles from '../../../styles/DatabaseConnections.module.css'
-import { analytics } from '../../../utils/segmentClient'
-import { SnowflakeCredentials } from '../../../utils/snowflakeCrypto'
-import { supabase } from '../../../utils/supabaseClient'
+import SettingsInputText from 'components/SettingsInputText'
+import Workspace from 'components/Workspace'
+import { useAuth } from 'contexts/auth'
+import styles from 'styles/DatabaseConnections.module.css'
+import { analytics } from 'utils/segmentClient'
+import { SnowflakeCredentials } from 'utils/snowflakeCrypto'
+import { supabase } from 'utils/supabaseClient'
 
 const DatabaseConnections: FunctionComponent = () => {
   const { getValidAccessToken, organizationId } = useAuth()

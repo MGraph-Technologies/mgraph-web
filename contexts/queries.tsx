@@ -9,9 +9,9 @@ import {
   useContext,
 } from 'react'
 
-import { QueryParameters, getQueryParameters } from '../utils/queryUtils'
-import { supabase } from '../utils/supabaseClient'
-import { useAuth } from './auth'
+import { useAuth } from 'contexts/auth'
+import { QueryParameters, getQueryParameters } from 'utils/queryUtils'
+import { supabase } from 'utils/supabaseClient'
 
 type QueriesContextType = {
   globalQueryRefreshes: number

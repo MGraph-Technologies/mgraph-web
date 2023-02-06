@@ -16,17 +16,14 @@ import React, {
 } from 'react'
 import { EditText } from 'react-edit-text'
 
-import { useAuth } from '../../contexts/auth'
-import { useEditability } from '../../contexts/editability'
-import { useGraph } from '../../contexts/graph'
-import { useQueries } from '../../contexts/queries'
-import styles from '../../styles/ControlPanel.module.css'
-import { analytics } from '../../utils/segmentClient'
-import {
-  QueryParameters,
-  formQueryParametersScaffold,
-} from '../../utils/queryUtils'
-import { supabase } from '../../utils/supabaseClient'
+import { useAuth } from 'contexts/auth'
+import { useEditability } from 'contexts/editability'
+import { useGraph } from 'contexts/graph'
+import { useQueries } from 'contexts/queries'
+import styles from 'styles/ControlPanel.module.css'
+import { QueryParameters, formQueryParametersScaffold } from 'utils/queryUtils'
+import { analytics } from 'utils/segmentClient'
+import { supabase } from 'utils/supabaseClient'
 
 type ControlPanelProps = {
   hideEditButton?: boolean

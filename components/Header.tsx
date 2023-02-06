@@ -1,11 +1,11 @@
 import Image from 'next/image'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
-import { useAuth } from '../contexts/auth'
-import { useBrowser } from '../contexts/browser'
-import styles from '../styles/Header.module.css'
-import { storagePathToSignedUrl } from '../utils/supabaseClient'
-import AccountMenu from './AccountMenu'
+import AccountMenu from 'components/AccountMenu'
+import { useAuth } from 'contexts/auth'
+import { useBrowser } from 'contexts/browser'
+import styles from 'styles/Header.module.css'
+import { storagePathToSignedUrl } from 'utils/supabaseClient'
 
 const Header: FunctionComponent = () => {
   const { organizationLogoStoragePath } = useAuth()

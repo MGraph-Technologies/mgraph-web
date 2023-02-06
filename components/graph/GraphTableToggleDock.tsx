@@ -1,8 +1,8 @@
 import { TabPanel, TabView } from 'primereact/tabview'
 import React, { FunctionComponent, useEffect, useState } from 'react'
 
-import styles from '../../styles/GraphTableToggleDock.module.css'
-import { analytics } from '../../utils/segmentClient'
+import styles from 'styles/GraphTableToggleDock.module.css'
+import { analytics } from 'utils/segmentClient'
 
 type GraphTableToggleDockProps = {
   showGraphTable: boolean

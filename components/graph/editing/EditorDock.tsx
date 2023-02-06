@@ -11,12 +11,12 @@ import React, {
   useState,
 } from 'react'
 
-import { useEditability } from '../../../contexts/editability'
-import { useGraph } from '../../../contexts/graph'
-import styles from '../../../styles/EditorDock.module.css'
-import { analytics } from '../../../utils/segmentClient'
-import FormulaEditor from './FormulaEditor'
-import UndoRedoSaveAndCancelGraphEditingButtons from './UndoRedoSaveAndCancelGraphEditingButtons'
+import FormulaEditor from 'components/graph/editing/FormulaEditor'
+import UndoRedoSaveAndCancelGraphEditingButtons from 'components/graph/editing/UndoRedoSaveAndCancelGraphEditingButtons'
+import { useEditability } from 'contexts/editability'
+import { useGraph } from 'contexts/graph'
+import styles from 'styles/EditorDock.module.css'
+import { analytics } from 'utils/segmentClient'
 
 type EditorDockProps = {
   parent: 'GraphViewer' | 'GraphTable'

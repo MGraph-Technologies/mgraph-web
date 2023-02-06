@@ -1,11 +1,14 @@
 import { FunctionComponent, useEffect, useState } from 'react'
 import { Node } from 'reactflow'
 
-import { useAuth } from '../../../contexts/auth'
-import { useBrowser } from '../../../contexts/browser'
-import { useGraph } from '../../../contexts/graph'
-import { analytics } from '../../../utils/segmentClient'
-import { GoalStatus, GoalStatusIndicator } from '../node_detail/GoalsTable'
+import {
+  GoalStatus,
+  GoalStatusIndicator,
+} from 'components/graph/node_detail/GoalsTable'
+import { useAuth } from 'contexts/auth'
+import { useBrowser } from 'contexts/browser'
+import { useGraph } from 'contexts/graph'
+import { analytics } from 'utils/segmentClient'
 
 type NodeGoalsStatusButtonProps = {
   node: Node | undefined

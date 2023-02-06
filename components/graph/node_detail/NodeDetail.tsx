@@ -12,25 +12,31 @@ import { EditText } from 'react-edit-text'
 import { Edge, Node } from 'reactflow'
 import 'react-edit-text/dist/index.css'
 
-import QueryRunner, { QueryResult } from '../../../components/graph/QueryRunner'
-import SectionHeader from '../../../components/SectionHeader'
-import { useAuth } from '../../../contexts/auth'
-import { useBrowser } from '../../../contexts/browser'
-import { useEditability } from '../../../contexts/editability'
-import { useGraph } from '../../../contexts/graph'
-import styles from '../../../styles/NodeDetail.module.css'
-import MentionField from '../../MentionField'
-import ControlPanel from '../ControlPanel'
-import LineChart from '../LineChart'
-import { CustomNodeProperties, CustomNodeSource } from '../CustomNode'
-import CustomNodeRenderer from '../CustomNodeRenderer'
-import { MetricNodeProperties, MetricNodeSource } from '../MetricNode'
-import UndoRedoSaveAndCancelGraphEditingButtons from '../editing/UndoRedoSaveAndCancelGraphEditingButtons'
-import NodePanel from '../nodepanel/NodePanel'
-import GoalsTable from './GoalsTable'
-import MonitoringRulesTable from './MonitoringRulesTable'
-import CustomNodeSourceFields from './CustomNodeSourceFields'
-import MetricNodeSourceFields from './MetricNodeSourceFields'
+import MentionField from 'components/MentionField'
+import SectionHeader from 'components/SectionHeader'
+import ControlPanel from 'components/graph/ControlPanel'
+import {
+  CustomNodeProperties,
+  CustomNodeSource,
+} from 'components/graph/CustomNode'
+import CustomNodeRenderer from 'components/graph/CustomNodeRenderer'
+import LineChart from 'components/graph/LineChart'
+import {
+  MetricNodeProperties,
+  MetricNodeSource,
+} from 'components/graph/MetricNode'
+import QueryRunner, { QueryResult } from 'components/graph/QueryRunner'
+import UndoRedoSaveAndCancelGraphEditingButtons from 'components/graph/editing/UndoRedoSaveAndCancelGraphEditingButtons'
+import GoalsTable from 'components/graph/node_detail/GoalsTable'
+import MonitoringRulesTable from 'components/graph/node_detail/MonitoringRulesTable'
+import CustomNodeSourceFields from 'components/graph/node_detail/CustomNodeSourceFields'
+import MetricNodeSourceFields from 'components/graph/node_detail/MetricNodeSourceFields'
+import NodePanel from 'components/graph/nodepanel/NodePanel'
+import { useAuth } from 'contexts/auth'
+import { useBrowser } from 'contexts/browser'
+import { useEditability } from 'contexts/editability'
+import { useGraph } from 'contexts/graph'
+import styles from 'styles/NodeDetail.module.css'
 
 type NodeDetailProps = {
   nodeId: string

@@ -10,17 +10,17 @@ import React, {
 import Editor from 'react-simple-code-editor'
 import { Node } from 'reactflow'
 
-import SettingsRadioGroup from '../../SettingsRadioGroup'
-import { useAuth } from '../../../contexts/auth'
-import { useEditability } from '../../../contexts/editability'
-import styles from '../../../styles/NodeDetail.module.css'
-import { highlight } from '../../../utils/codeHighlighter'
-import { supabase } from '../../../utils/supabaseClient'
+import SettingsRadioGroup from 'components/SettingsRadioGroup'
 import {
   MetricNodeProperties,
   MetricNodeSource,
   SourceQueryType,
-} from '../MetricNode'
+} from 'components/graph/MetricNode'
+import { useAuth } from 'contexts/auth'
+import { useEditability } from 'contexts/editability'
+import styles from 'styles/NodeDetail.module.css'
+import { highlight } from 'utils/codeHighlighter'
+import { supabase } from 'utils/supabaseClient'
 
 const DROPDOWN_EMPTY_OPTION = {
   id: '',

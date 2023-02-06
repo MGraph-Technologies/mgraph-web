@@ -7,13 +7,13 @@ import React, {
   useState,
 } from 'react'
 import { EditText } from 'react-edit-text'
-import SectionHeader from '../../../components/SectionHeader'
 
-import Workspace from '../../../components/Workspace'
-import { useAuth } from '../../../contexts/auth'
-import styles from '../../../styles/QueryParameters.module.css'
-import { analytics } from '../../../utils/segmentClient'
-import { supabase } from '../../../utils/supabaseClient'
+import SectionHeader from 'components/SectionHeader'
+import Workspace from 'components/Workspace'
+import { useAuth } from 'contexts/auth'
+import styles from 'styles/QueryParameters.module.css'
+import { analytics } from 'utils/segmentClient'
+import { supabase } from 'utils/supabaseClient'
 
 const QueryParameters: FunctionComponent = () => {
   return (

@@ -2,10 +2,10 @@ import Image from 'next/image'
 import type { NextPage } from 'next'
 import Head from 'next/head'
 
-import AuthedUserRouter from '../components/AuthedUserRouter'
-import SignInButton from '../components/SignInButton'
-import { useAuth } from '../contexts/auth'
-import styles from '../styles/Home.module.css'
+import AuthedUserRouter from 'components/AuthedUserRouter'
+import SignInButton from 'components/SignInButton'
+import { useAuth } from 'contexts/auth'
+import styles from 'styles/Home.module.css'
 
 const Home: NextPage = () => {
   const { session } = useAuth()

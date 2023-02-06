@@ -13,15 +13,15 @@ import React, {
 } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-import SettingsInputText from '../../SettingsInputText'
-import { useAuth } from '../../../contexts/auth'
-import { useGraph } from '../../../contexts/graph'
-import { useQueries } from '../../../contexts/queries'
-import { useEditability } from '../../../contexts/editability'
-import styles from '../../../styles/GoalsTable.module.css'
-import { objectToBullets } from '../../../utils/objectToBullets'
-import { analytics } from '../../../utils/segmentClient'
-import { supabase } from '../../../utils/supabaseClient'
+import SettingsInputText from 'components/SettingsInputText'
+import { useAuth } from 'contexts/auth'
+import { useEditability } from 'contexts/editability'
+import { useGraph } from 'contexts/graph'
+import { useQueries } from 'contexts/queries'
+import styles from 'styles/GoalsTable.module.css'
+import { objectToBullets } from 'utils/objectToBullets'
+import { analytics } from 'utils/segmentClient'
+import { supabase } from 'utils/supabaseClient'
 
 type GoalDimension = {
   name: string

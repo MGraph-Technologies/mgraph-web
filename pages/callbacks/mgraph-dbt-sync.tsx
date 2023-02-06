@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router'
 import { FunctionComponent, useEffect } from 'react'
 
-import { useAuth } from '../../contexts/auth'
-import { analytics } from '../../utils/segmentClient'
-import { supabase } from '../../utils/supabaseClient'
+import { useAuth } from 'contexts/auth'
+import { analytics } from 'utils/segmentClient'
+import { supabase } from 'utils/supabaseClient'
 
 const MGraphDbtSync: FunctionComponent = () => {
   const { organizationId, organizationName } = useAuth()

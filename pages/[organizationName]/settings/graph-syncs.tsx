@@ -17,16 +17,16 @@ import React, {
 import Editor from 'react-simple-code-editor'
 import { v4 as uuidv4 } from 'uuid'
 
-import SettingsInputText from '../../../components/SettingsInputText'
-import Workspace from '../../../components/Workspace'
-import { useAuth } from '../../../contexts/auth'
-import { useEditability } from '../../../contexts/editability'
-import { useGraph } from '../../../contexts/graph'
-import styles from '../../../styles/GraphSyncs.module.css'
-import { highlight } from '../../../utils/codeHighlighter'
-import { objectToBullets } from '../../../utils/objectToBullets'
-import { analytics } from '../../../utils/segmentClient'
-import { supabase } from '../../../utils/supabaseClient'
+import SettingsInputText from 'components/SettingsInputText'
+import Workspace from 'components/Workspace'
+import { useAuth } from 'contexts/auth'
+import { useEditability } from 'contexts/editability'
+import { useGraph } from 'contexts/graph'
+import styles from 'styles/GraphSyncs.module.css'
+import { highlight } from 'utils/codeHighlighter'
+import { objectToBullets } from 'utils/objectToBullets'
+import { analytics } from 'utils/segmentClient'
+import { supabase } from 'utils/supabaseClient'
 
 type DbtProjectGraphSyncFormProps = {
   upsertGraphSyncId: string

@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import React, { FunctionComponent } from 'react'
 
-import Header from '../components/Header'
+import Header from 'components/Header'
 
 const ComingSoon: FunctionComponent = () => {
   return (
