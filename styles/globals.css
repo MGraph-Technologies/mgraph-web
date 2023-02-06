@@ -19,7 +19,6 @@ a {
 .react-simple-code-editor-textarea {
   padding: 1em !important;
   font-size: 1em !important;
-  font-family: monospace !important;
 }
 
 @keyframes p-progress-spinner-color {

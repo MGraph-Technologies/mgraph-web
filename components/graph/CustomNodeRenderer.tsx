@@ -1,3 +1,4 @@
+import { Message } from 'primereact/message'
 import React, {
   FunctionComponent,
   useCallback,
@@ -6,8 +7,10 @@ import React, {
 } from 'react'
 import { Node } from 'reactflow'
 
+import { useQueries } from 'contexts/queries'
 import { useGraph } from 'contexts/graph'
 import styles from 'styles/CustomNodeRenderer.module.css'
+import { parameterizeStatement } from 'utils/queryUtils'
 
 type CustomNodeRendererProps = {
   parentCustomNodeId: string
@@ -20,11 +23,40 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   expandHeight = false,
 }) => {
   const { graph } = useGraph()
+  const { queryParameters } = useQueries()
 
   const [node, setNode] = useState<Node | undefined>(undefined)
   const [html, setHtml] = useState('')
   const [css, setCss] = useState('')
+  const [parameterizedHtml, setParameterizedHtml] = useState('')
+  const [parameterizedCss, setParameterizedCss] = useState('')
+  const [globalFontFamily, setGlobalFontFamily] = useState('')
   const [iframeHeight, setIframeHeight] = useState(0)
+
+  const populateParameterizedHtml = useCallback(() => {
+    setParameterizedHtml(parameterizeStatement(html, queryParameters))
+  }, [html, queryParameters])
+  useEffect(() => {
+    populateParameterizedHtml()
+  }, [populateParameterizedHtml])
+
+  const populateParameterizedCss = useCallback(() => {
+    setParameterizedCss(parameterizeStatement(css, queryParameters))
+  }, [css, queryParameters])
+  useEffect(() => {
+    populateParameterizedCss()
+  }, [populateParameterizedCss])
+
+  const populateGlobalFontFamily = useCallback(() => {
+    // inject page font family into iframe by default
+    const _globalFontFamily = window
+      .getComputedStyle(document.body)
+      .getPropertyValue('font-family')
+    setGlobalFontFamily(_globalFontFamily)
+  }, [])
+  useEffect(() => {
+    populateGlobalFontFamily()
+  }, [populateGlobalFontFamily])
 
   const handleIframeMessage = useCallback((event) => {
     if (event.data.type === 'setIframeHeight') {
@@ -63,46 +95,56 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   if (!shouldRender) {
     return null
   } else {
-    return (
-      // render html and css securely within an iframe
-      <iframe
-        className={styles.renderer_container}
-        style={expandHeight ? { height: `${iframeHeight}px` } : {}}
-        srcDoc={`
-          <html>
-            <head>
-              <style>
-                ${
-                  css
-                    ? css
-                    : // css with fallback to default styles if not provided
-                      // TODO: import below
-                      `
-                      html,
-                      body {
-                        padding: 0;
-                        margin: 0;
-                        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-                          Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
+    if (html) {
+      return (
+        // render html and css securely within an iframe
+        <iframe
+          className={styles.renderer_container}
+          style={expandHeight ? { height: `${iframeHeight}px` } : {}}
+          srcDoc={`
+            <html>
+              <head>
+                <style>
+                  ${`
+                    ${parameterizedCss}
+                    html,
+                    body {
+                      padding: 0;
+                      margin: 0;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      ${
+                        globalFontFamily
+                          ? `font-family: ${globalFontFamily};`
+                          : ''
                       }
-                      a {
-                        color: inherit;
-                        text-decoration: none;
-                      }
-                      `
-                }
-              </style>
-            </head>
-            <body onload="window.parent.postMessage({ type: 'setIframeHeight', height: document.body.scrollHeight }, '*')">
-              ${html}
-            </body>
-          </html>
-        `}
-      />
-    )
+                    }
+                    a {
+                      color: inherit;
+                      text-decoration: none;
+                    }
+                    `}
+                </style>
+              </head>
+              <body onload="window.parent.postMessage({ type: 'setIframeHeight', height: document.body.scrollHeight }, '*')">
+                ${parameterizedHtml}
+              </body>
+            </html>
+          `}
+        />
+      )
+    } else {
+      return (
+        <div className={styles.renderer_container}>
+          <Message
+            className={styles.renderer_message}
+            severity="info"
+            text="Define source to render content"
+          />
+        </div>
+      )
+    }
   }
 }
 
