@@ -476,8 +476,9 @@ const LineChart: FunctionComponent<LineChartProps> = ({
                     datasets: chartJSDatasets,
                   }}
                   options={{
-                    responsive: true,
+                    animation: false,
                     maintainAspectRatio: false,
+                    responsive: true,
                     scales: {
                       x: {
                         type: 'time',
