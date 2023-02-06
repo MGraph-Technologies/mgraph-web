@@ -7,8 +7,10 @@ import React, {
 } from 'react'
 import { Node } from 'reactflow'
 
+import { useQueries } from 'contexts/queries'
 import { useGraph } from 'contexts/graph'
 import styles from 'styles/CustomNodeRenderer.module.css'
+import { parameterizeStatement } from 'utils/queryUtils'
 
 type CustomNodeRendererProps = {
   parentCustomNodeId: string
@@ -21,12 +23,29 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   expandHeight = false,
 }) => {
   const { graph } = useGraph()
+  const { queryParameters } = useQueries()
 
   const [node, setNode] = useState<Node | undefined>(undefined)
   const [html, setHtml] = useState('')
   const [css, setCss] = useState('')
+  const [parameterizedHtml, setParameterizedHtml] = useState('')
+  const [parameterizedCss, setParameterizedCss] = useState('')
   const [globalFontFamily, setGlobalFontFamily] = useState('')
   const [iframeHeight, setIframeHeight] = useState(0)
+
+  const populateParameterizedHtml = useCallback(() => {
+    setParameterizedHtml(parameterizeStatement(html, queryParameters))
+  }, [html, queryParameters])
+  useEffect(() => {
+    populateParameterizedHtml()
+  }, [populateParameterizedHtml])
+
+  const populateParameterizedCss = useCallback(() => {
+    setParameterizedCss(parameterizeStatement(css, queryParameters))
+  }, [css, queryParameters])
+  useEffect(() => {
+    populateParameterizedCss()
+  }, [populateParameterizedCss])
 
   const populateGlobalFontFamily = useCallback(() => {
     // inject page font family into iframe by default
@@ -87,7 +106,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
               <head>
                 <style>
                   ${`
-                    ${css}
+                    ${parameterizedCss}
                     html,
                     body {
                       padding: 0;
@@ -109,7 +128,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
                 </style>
               </head>
               <body onload="window.parent.postMessage({ type: 'setIframeHeight', height: document.body.scrollHeight }, '*')">
-                ${html}
+                ${parameterizedHtml}
               </body>
             </html>
           `}
