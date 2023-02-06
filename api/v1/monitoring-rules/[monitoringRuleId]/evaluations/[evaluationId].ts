@@ -11,9 +11,9 @@ import { SENTRY_CONFIG } from '../../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../../utils/appBaseUrl'
 import {
   QueryData,
+  getInputParameters,
   getLatestQueryId,
-  getQueryParameters,
-  overrideQueryParameters,
+  overrideInputParameters,
   parameterizeStatement,
   sortMetricRowsByDate,
   verifyMetricData,
@@ -96,7 +96,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         rangeLowerBound,
         rangeUpperBound,
         lookbackPeriods,
-        queryParameterOverrides,
+        inputParameterOverrides,
       } = monitoringRuleProperties
 
       // get parent metric node
@@ -152,22 +152,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         evaluationStatus = 'timed_out' // override processAlert
       } else {
         // try to evaluate monitoring rule
-        // get organization's query parameters
-        let queryParameters = await getQueryParameters(
+        // get organization's input parameters
+        let inputParameters = await getInputParameters(
           monitoringRuleData.organization_id,
           supabase
         )
 
-        // queryParameterOverrides
-        queryParameters = overrideQueryParameters(
-          queryParameters,
-          queryParameterOverrides
+        // inputParameterOverrides
+        inputParameters = overrideInputParameters(
+          inputParameters,
+          inputParameterOverrides
         )
 
         // get query results
         const parameterizedStatement = parameterizeStatement(
           metricNodeProperties.source?.query,
-          queryParameters
+          inputParameters
         )
         console.log(
           `\nGetting latest query id for node ${parentNodeId} and statement: ${parameterizedStatement}`

@@ -1,4 +1,4 @@
-.query_parameters_container {
+.input_parameters_container {
   width: 100%;
   padding-left: 1rem;
   padding-right: 1rem;
@@ -6,7 +6,7 @@
   overflow: auto;
 }
 
-.query_parameters_container .query_parameters_title {
+.input_parameters_container .input_parameters_title {
   font-size: 2rem;
   font-weight: bold;
   padding: 1rem;

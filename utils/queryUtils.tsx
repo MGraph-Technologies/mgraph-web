@@ -109,36 +109,36 @@ export const verifyMetricData = (queryData: QueryData): MetricData | null => {
   return null
 }
 
-/***** QUERY PARAMETER STUFF *****/
-/* On getQueryParameters, blank queryParameters values are initialized for the set of
+/***** INPUT PARAMETER STUFF *****/
+/* On getInputParameters, blank inputParameters values are initialized for the set of
   parameter keys which have either a user-specfic or org-default value in the
   database. These are then populated with database values to the extent possible.
   Parameters which have neither a user nor org default value are added to the
-  queryParameters object at ControlPanel render time. Parameters compile as blank
+  inputParameters object at ControlPanel render time. Parameters compile as blank
   within queries until a saved value is in effect. */
-type QueryParameterValues = {
+type InputParameterValues = {
   userRecordId: string
   userValue: string // what is in effect for the user and injected into queries
   orgDefaultRecordId: string
   orgDefaultValue: string // used if no overriding user-specific record
 }
 
-export type QueryParameters = {
-  [name: string]: QueryParameterValues
+export type InputParameters = {
+  [name: string]: InputParameterValues
 }
 
-export type QueryParameterOverrides = {
+export type InputParameterOverrides = {
   [name: string]: string
 }
 
-export const formQueryParametersScaffold = (
+export const formInputParametersScaffold = (
   names: string[],
-  queryParameters: QueryParameters
+  inputParameters: InputParameters
 ) => {
-  let newQueryParameters = { ...queryParameters }
+  let newInputParameters = { ...inputParameters }
   names.forEach((name) => {
-    newQueryParameters = {
-      ...newQueryParameters,
+    newInputParameters = {
+      ...newInputParameters,
       [name]: {
         userRecordId: uuidv4(),
         userValue: '',
@@ -147,18 +147,18 @@ export const formQueryParametersScaffold = (
       },
     }
   })
-  return newQueryParameters
+  return newInputParameters
 }
 
-export const getQueryParameters = async (
+export const getInputParameters = async (
   organizationId: string,
   supabase: SupabaseClient,
   userId?: string
 ) => {
-  let queryParameters: QueryParameters = {}
+  let inputParameters: InputParameters = {}
   try {
     const { data, error, status } = await supabase
-      .from('database_query_parameters')
+      .from('input_parameters')
       .select('id, user_id, name, value, deleted_at')
       /* in frontend use, rls also limits to records from user's org where
         user_id is user's or null */
@@ -176,9 +176,9 @@ export const getQueryParameters = async (
 
     if (data) {
       const names = new Set(data.map((row) => row.name))
-      queryParameters = formQueryParametersScaffold(
+      inputParameters = formInputParametersScaffold(
         Array.from(names),
-        queryParameters
+        inputParameters
       )
       // dedupe data
       data
@@ -188,14 +188,14 @@ export const getQueryParameters = async (
             self.findIndex(
               (r) => r.name === row.name && r.user_id === row.user_id
             )
-          // set queryParameters
+          // set inputParameters
         )
         .forEach((row) => {
           if (row.user_id) {
-            queryParameters = {
-              ...queryParameters,
+            inputParameters = {
+              ...inputParameters,
               [row.name]: {
-                ...queryParameters[row.name],
+                ...inputParameters[row.name],
                 userRecordId: row.id,
                 userValue: row.deleted_at === null ? row.value : '',
               },
@@ -204,12 +204,12 @@ export const getQueryParameters = async (
             const userValueExists = data.some(
               (r) => r.name === row.name && r.user_id && r.deleted_at === null
             )
-            queryParameters = {
-              ...queryParameters,
+            inputParameters = {
+              ...inputParameters,
               [row.name]: {
-                userRecordId: queryParameters[row.name].userRecordId,
+                userRecordId: inputParameters[row.name].userRecordId,
                 userValue: userValueExists
-                  ? queryParameters[row.name].userValue
+                  ? inputParameters[row.name].userValue
                   : row.value,
                 orgDefaultRecordId: row.id,
                 orgDefaultValue: row.value,
@@ -221,34 +221,34 @@ export const getQueryParameters = async (
   } catch (error: unknown) {
     console.error(error)
   }
-  return queryParameters
+  return inputParameters
 }
 
-export const overrideQueryParameters = (
-  queryParameters: QueryParameters,
-  queryParameterOverrides: QueryParameterOverrides
+export const overrideInputParameters = (
+  inputParameters: InputParameters,
+  inputParameterOverrides: InputParameterOverrides
 ) => {
-  let newQueryParameters = { ...queryParameters }
-  Object.entries(queryParameterOverrides).forEach(([name, value]) => {
-    if (!Object.keys(newQueryParameters).includes(name)) {
-      newQueryParameters = formQueryParametersScaffold(
+  let newInputParameters = { ...inputParameters }
+  Object.entries(inputParameterOverrides).forEach(([name, value]) => {
+    if (!Object.keys(newInputParameters).includes(name)) {
+      newInputParameters = formInputParametersScaffold(
         [name],
-        newQueryParameters
+        newInputParameters
       )
     }
-    newQueryParameters[name].userValue = value
+    newInputParameters[name].userValue = value
   })
-  return newQueryParameters
+  return newInputParameters
 }
 
 export const parameterizeStatement = (
   statement: string,
-  queryParameters: QueryParameters
+  inputParameters: InputParameters
 ) => {
   return statement.replace(/{{(\w+)}}/g, (_match, p1) => {
     const snakeCaseName = p1.toLowerCase().replace(/ /g, '_')
-    if (queryParameters[snakeCaseName]) {
-      return queryParameters[snakeCaseName].userValue
+    if (inputParameters[snakeCaseName]) {
+      return inputParameters[snakeCaseName].userValue
     } else {
       return ''
     }

@@ -120,10 +120,10 @@ const AccountMenu: FunctionComponent = () => {
           command: () => push('/' + organizationName + '/settings/graph-syncs'),
         },
         {
-          label: 'Query Parameters',
+          label: 'Input Parameters',
           icon: 'pi pi-sliders-h',
           command: () =>
-            push('/' + organizationName + '/settings/query-parameters'),
+            push('/' + organizationName + '/settings/input-parameters'),
         },
         {
           label: 'Refresh Jobs',

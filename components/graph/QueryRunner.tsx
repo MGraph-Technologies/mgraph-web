@@ -54,7 +54,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     setQueriesLoading,
     queriesToCancel,
     setQueriesToCancel,
-    queryParameters,
+    inputParameters,
   } = useQueries()
   const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
@@ -103,7 +103,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         const _queryId = await getLatestQueryId(
           parameterizeStatement(
             parentMetricNodeData?.source?.query,
-            queryParameters
+            inputParameters
           ),
           parentMetricNodeData?.source?.databaseConnectionId,
           parentMetricNodeData?.id,
@@ -122,7 +122,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     parentMetricNodeData?.source?.query,
     parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,
-    queryParameters,
+    inputParameters,
   ])
 
   useEffect(() => {
@@ -326,7 +326,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
         parentNodeId: parentMetricNodeData?.id,
         statement: parameterizeStatement(
           parentMetricNodeData?.source?.query,
-          queryParameters
+          inputParameters
         ),
       }
       fetch('/api/v1/database-queries', {
@@ -360,7 +360,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,
     parentMetricNodeData?.source?.query,
-    queryParameters,
+    inputParameters,
     setQueryResult,
   ])
 

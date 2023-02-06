@@ -23,7 +23,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   expandHeight = false,
 }) => {
   const { graph } = useGraph()
-  const { queryParameters } = useQueries()
+  const { inputParameters } = useQueries()
 
   const [node, setNode] = useState<Node | undefined>(undefined)
   const [html, setHtml] = useState('')
@@ -34,15 +34,15 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   const [iframeHeight, setIframeHeight] = useState(0)
 
   const populateParameterizedHtml = useCallback(() => {
-    setParameterizedHtml(parameterizeStatement(html, queryParameters))
-  }, [html, queryParameters])
+    setParameterizedHtml(parameterizeStatement(html, inputParameters))
+  }, [html, inputParameters])
   useEffect(() => {
     populateParameterizedHtml()
   }, [populateParameterizedHtml])
 
   const populateParameterizedCss = useCallback(() => {
-    setParameterizedCss(parameterizeStatement(css, queryParameters))
-  }, [css, queryParameters])
+    setParameterizedCss(parameterizeStatement(css, inputParameters))
+  }, [css, inputParameters])
   useEffect(() => {
     populateParameterizedCss()
   }, [populateParameterizedCss])

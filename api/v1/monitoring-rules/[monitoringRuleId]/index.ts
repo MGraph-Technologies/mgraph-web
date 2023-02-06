@@ -6,9 +6,9 @@ import fetch from 'node-fetch'
 import { SENTRY_CONFIG } from '../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../utils/appBaseUrl'
 import {
-  QueryParameterOverrides,
-  getQueryParameters,
-  overrideQueryParameters,
+  InputParameterOverrides,
+  getInputParameters,
+  overrideInputParameters,
   parameterizeStatement,
 } from '../../../../utils/queryUtils'
 
@@ -70,24 +70,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw new Error('Parent metric node not found.')
       }
 
-      // get organization's query parameters
-      let queryParameters = await getQueryParameters(
+      // get organization's input parameters
+      let inputParameters = await getInputParameters(
         monitoringRuleData.organization_id,
         supabase
       )
 
-      // queryParameterOverrides
-      const queryParameterOverrides = monitoringRuleData.properties
-        ?.queryParameterOverrides as QueryParameterOverrides
-      queryParameters = overrideQueryParameters(
-        queryParameters,
-        queryParameterOverrides
+      // inputParameterOverrides
+      const inputParameterOverrides = monitoringRuleData.properties
+        ?.inputParameterOverrides as InputParameterOverrides
+      inputParameters = overrideInputParameters(
+        inputParameters,
+        inputParameterOverrides
       )
 
       // parameterize metric node query and send to query runner
       const parameterizedStatement = parameterizeStatement(
         metricNodeData.properties?.source?.query,
-        queryParameters
+        inputParameters
       )
       console.log(`\nExecuting query for node ${parentNodeId}...`)
       fetch(getBaseUrl() + '/api/v1/database-queries', {

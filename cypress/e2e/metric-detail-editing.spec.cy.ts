@@ -432,7 +432,7 @@ describe('Metric detail editing', () => {
     cy.get('body').contains('metric not found').should('exist')
   })
 
-  it('Visits a metric detail page and tests persistence of query parameters via keyboard', () => {
+  it('Visits a metric detail page and tests persistence of input parameters via keyboard', () => {
     cy.visit('/mgraph')
     cy.get('[class*=metric_node]').first().click()
     /* wait for page to load
@@ -545,7 +545,7 @@ describe('Metric detail editing', () => {
     cy.wait(2000) // wait for reset to process
   })
 
-  it('Visits a metric detail page and tests persistence of query parameters via mouse', () => {
+  it('Visits a metric detail page and tests persistence of input parameters via mouse', () => {
     cy.visit('/mgraph')
     cy.get('[class*=metric_node]').first().click()
     /* wait for page to load
@@ -714,7 +714,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=range-lower-bound-field]').type('-Infinity')
     cy.get('[id=range-upper-bound-field]').type('0.0')
     cy.get('[id=lookback-periods-field]').type('1')
-    cy.get('[id=query-parameter-overrides-field]').type(
+    cy.get('[id=input-parameter-overrides-field]').type(
       'frequency:DAY,conditions:FALSE'
     )
     cy.get('[id=schedule-field]').type('0 13 * * *')

@@ -21,7 +21,7 @@ import { useEditability } from 'contexts/editability'
 import { useGraph } from 'contexts/graph'
 import { useQueries } from 'contexts/queries'
 import styles from 'styles/ControlPanel.module.css'
-import { QueryParameters, formQueryParametersScaffold } from 'utils/queryUtils'
+import { InputParameters, formInputParametersScaffold } from 'utils/queryUtils'
 import { analytics } from 'utils/segmentClient'
 import { supabase } from 'utils/supabaseClient'
 
@@ -40,7 +40,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     setGlobalQueryRefreshes,
     queriesLoading,
     setQueriesToCancel,
-    queryParameters,
+    inputParameters,
   } = useQueries()
 
   const [graphLoading, setGraphloading] = useState(true)
@@ -53,44 +53,44 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     }
   }, [graph])
 
-  const [queryParameterUserValueInEffect, setQueryParameterUserValueInEffect] =
+  const [inputParameterUserValueInEffect, setInputParameterUserValueInEffect] =
     useState(false)
   useEffect(() => {
-    setQueryParameterUserValueInEffect(
-      Object.keys(queryParameters).some(
+    setInputParameterUserValueInEffect(
+      Object.keys(inputParameters).some(
         (key) =>
-          queryParameters[key].userValue !==
-          queryParameters[key].orgDefaultValue
+          inputParameters[key].userValue !==
+          inputParameters[key].orgDefaultValue
       )
     )
-  }, [queryParameters])
+  }, [inputParameters])
 
-  const queryParametersOverlayPanel = useRef<OverlayPanel>(null)
+  const inputParametersOverlayPanel = useRef<OverlayPanel>(null)
   const [
-    queryParametersOverlayPanelVisible,
-    setQueryParametersOverlayPanelVisible,
+    inputParametersOverlayPanelVisible,
+    setInputParametersOverlayPanelVisible,
   ] = useState(false)
-  const [initialQueryParameters, setInitialQueryParameters] =
-    useState<QueryParameters>({})
+  const [initialInputParameters, setInitialInputParameters] =
+    useState<InputParameters>({})
   const refreshQueryIfParametersChanged = useCallback(() => {
-    const parameterChanged = Object.keys(queryParameters).some((key) => {
+    const parameterChanged = Object.keys(inputParameters).some((key) => {
       return (
-        Object.keys(initialQueryParameters).length > 0 &&
-        queryParameters[key]?.userValue !==
-          initialQueryParameters[key]?.userValue
+        Object.keys(initialInputParameters).length > 0 &&
+        inputParameters[key]?.userValue !==
+          initialInputParameters[key]?.userValue
       )
     })
     if (parameterChanged) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       setGlobalQueryRefreshes!((prev) => prev + 1)
-      setInitialQueryParameters(queryParameters)
+      setInitialInputParameters(inputParameters)
     }
-  }, [queryParameters, initialQueryParameters, setGlobalQueryRefreshes])
+  }, [inputParameters, initialInputParameters, setGlobalQueryRefreshes])
   useEffect(() => {
-    if (!queryParametersOverlayPanelVisible) {
+    if (!inputParametersOverlayPanelVisible) {
       refreshQueryIfParametersChanged()
     }
-  }, [queryParametersOverlayPanelVisible, refreshQueryIfParametersChanged])
+  }, [inputParametersOverlayPanelVisible, refreshQueryIfParametersChanged])
 
   if (editingEnabled) {
     return null
@@ -131,10 +131,10 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                 icon="pi pi-sliders-h"
                 onClick={(event) => {
                   analytics.track('view_query_settings')
-                  queryParametersOverlayPanel.current?.toggle(event)
+                  inputParametersOverlayPanel.current?.toggle(event)
                 }}
               >
-                {queryParameterUserValueInEffect && <Badge severity="danger" />}
+                {inputParameterUserValueInEffect && <Badge severity="danger" />}
               </Button>
               <Button
                 id="global-query-refresh-button"
@@ -162,26 +162,26 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
           />
         ) : null}
         <OverlayPanel
-          id="query-parameters-overlay"
-          ref={queryParametersOverlayPanel}
+          id="input-parameters-overlay"
+          ref={inputParametersOverlayPanel}
           onShow={() => {
-            setInitialQueryParameters(queryParameters)
-            setQueryParametersOverlayPanelVisible(true)
+            setInitialInputParameters(inputParameters)
+            setInputParametersOverlayPanelVisible(true)
           }}
           onHide={() => {
-            setQueryParametersOverlayPanelVisible(false)
+            setInputParametersOverlayPanelVisible(false)
           }}
         >
-          <div className={styles.query_parameters_container}>
-            <QueryParameterField titleCaseName="Beginning Date" picker="date" />
-            <QueryParameterField titleCaseName="Ending Date" picker="date" />
-            <QueryParameterField titleCaseName="Frequency" picker="frequency" />
-            <QueryParameterField titleCaseName="Group By" picker="dimension" />
-            <QueryParameterField
+          <div className={styles.input_parameters_container}>
+            <InputParameterField titleCaseName="Beginning Date" picker="date" />
+            <InputParameterField titleCaseName="Ending Date" picker="date" />
+            <InputParameterField titleCaseName="Frequency" picker="frequency" />
+            <InputParameterField titleCaseName="Group By" picker="dimension" />
+            <InputParameterField
               titleCaseName="Conditions"
               picker="conditions"
             />
-            <QueryParameterField
+            <InputParameterField
               titleCaseName="Show Unfinished Values"
               picker="boolean"
             />
@@ -192,21 +192,21 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   }
 }
 
-type QueryParameterFieldProps = {
+type InputParameterFieldProps = {
   titleCaseName: string
   picker?: 'boolean' | 'conditions' | 'date' | 'dimension' | 'frequency'
 }
-const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
+const InputParameterField: FunctionComponent<InputParameterFieldProps> = ({
   titleCaseName,
   picker,
 }) => {
   const { organizationId, userIsAdmin } = useAuth()
   const {
-    queryParameters,
-    setQueryParameters,
-    resetQueryParameterUserValue,
-    setQueryParameterUserValue,
-    setQueryParameterOrgDefaultValue,
+    inputParameters,
+    setInputParameters,
+    resetInputParameterUserValue,
+    setInputParameterUserValue,
+    setInputParameterOrgDefaultValue,
   } = useQueries()
 
   const snakeCaseName = titleCaseName.toLowerCase().replace(/ /g, '_')
@@ -224,31 +224,31 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
   })
 
   const populateParameter = useCallback(() => {
-    if (queryParameters[snakeCaseName]) {
-      setUserValue(queryParameters[snakeCaseName].userValue)
-      setOrgDefaultValue(queryParameters[snakeCaseName].orgDefaultValue)
+    if (inputParameters[snakeCaseName]) {
+      setUserValue(inputParameters[snakeCaseName].userValue)
+      setOrgDefaultValue(inputParameters[snakeCaseName].orgDefaultValue)
     } else {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      setQueryParameters!(
-        formQueryParametersScaffold([snakeCaseName], queryParameters)
+      setInputParameters!(
+        formInputParametersScaffold([snakeCaseName], inputParameters)
       )
     }
-  }, [snakeCaseName, queryParameters, setQueryParameters])
+  }, [snakeCaseName, inputParameters, setInputParameters])
   useEffect(() => {
     populateParameter()
   }, [populateParameter])
 
   const setParameter = useCallback(
     (value: string) => {
-      analytics.track('set_query_parameter', {
+      analytics.track('set_input_parameter', {
         parameter: snakeCaseName,
         value: value,
       })
       setUserValue(value)
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      setQueryParameterUserValue!(snakeCaseName, value)
+      setInputParameterUserValue!(snakeCaseName, value)
     },
-    [snakeCaseName, setQueryParameterUserValue]
+    [snakeCaseName, setInputParameterUserValue]
   )
 
   const populatePickerOptions = useCallback(async () => {
@@ -281,18 +281,18 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
     populatePickerOptions()
   }, [populatePickerOptions])
 
-  // close pickerOverlayPanel if queryParametersOverlayPanel is clicked
+  // close pickerOverlayPanel if inputParametersOverlayPanel is clicked
   useEffect(() => {
-    const queryParametersOverlay = document.getElementById(
-      'query-parameters-overlay'
+    const inputParametersOverlay = document.getElementById(
+      'input-parameters-overlay'
     )
-    if (queryParametersOverlay) {
+    if (inputParametersOverlay) {
       const hideOverlayPanel = () => {
         pickerOverlayPanel.current?.hide()
       }
-      queryParametersOverlay.addEventListener('click', hideOverlayPanel)
+      inputParametersOverlay.addEventListener('click', hideOverlayPanel)
       return () => {
-        queryParametersOverlay.removeEventListener('click', hideOverlayPanel)
+        inputParametersOverlay.removeEventListener('click', hideOverlayPanel)
       }
     }
   }, [])
@@ -300,7 +300,7 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
   return (
     <div
       id={snakeCaseName + '-field-container'}
-      className={styles.query_parameter_field_container}
+      className={styles.input_parameter_field_container}
     >
       <span>
         <b>
@@ -309,7 +309,7 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
         {picker === 'boolean' ? (
           <Checkbox
             id={snakeCaseName + '-field'}
-            className={styles.query_parameter_field_picker_boolean}
+            className={styles.input_parameter_field_picker_boolean}
             checked={userValue === 'TRUE'}
             onChange={(e) => {
               setParameter(e.checked ? 'TRUE' : 'FALSE')
@@ -318,7 +318,7 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
         ) : (
           <EditText
             id={snakeCaseName + '-field'}
-            className={styles.query_parameter_field}
+            className={styles.input_parameter_field}
             value={userValue}
             onEditMode={() => {
               pickerOverlayPanel.current?.show(
@@ -345,11 +345,11 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
             label="Reset"
             className="p-button-rounded p-button-text p-button-sm"
             onClick={() => {
-              analytics.track('reset_query_parameter', {
+              analytics.track('reset_input_parameter', {
                 parameter: snakeCaseName,
               })
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              resetQueryParameterUserValue!(snakeCaseName)
+              resetInputParameterUserValue!(snakeCaseName)
             }}
           />
           {userIsAdmin && (
@@ -358,12 +358,12 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
               label="Set Default"
               className="p-button-rounded p-button-text p-button-sm"
               onClick={() => {
-                analytics.track('set_query_parameter_org_default', {
+                analytics.track('set_input_parameter_org_default', {
                   parameter: snakeCaseName,
                   value: userValue,
                 })
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                setQueryParameterOrgDefaultValue!(snakeCaseName, userValue)
+                setInputParameterOrgDefaultValue!(snakeCaseName, userValue)
               }}
             />
           )}
@@ -379,7 +379,7 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
               {userValue && (
                 <Dropdown
                   id={snakeCaseName + '-condition-conjunction-picker'}
-                  className={styles.query_parameter_field_picker}
+                  className={styles.input_parameter_field_picker}
                   value={wipCondition.conjunction}
                   options={[
                     { label: 'AND', value: 'AND' },
@@ -393,7 +393,7 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
               )}
               <Dropdown
                 id={snakeCaseName + '-condition-dimension-picker'}
-                className={styles.query_parameter_field_picker}
+                className={styles.input_parameter_field_picker}
                 value={wipCondition.dimension}
                 options={pickerOptions}
                 onChange={(e) => {
@@ -403,7 +403,7 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
               />
               <Dropdown
                 id={snakeCaseName + '-condition-operator-picker'}
-                className={styles.query_parameter_field_picker}
+                className={styles.input_parameter_field_picker}
                 value={wipCondition.operator}
                 options={[
                   { label: '=', value: '=' },
@@ -424,7 +424,7 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
               />
               <InputText
                 id={snakeCaseName + '-condition-value-field'}
-                className={styles.query_parameter_field_picker}
+                className={styles.input_parameter_field_picker}
                 value={wipCondition.value}
                 onChange={(e) => {
                   setWipCondition({ ...wipCondition, value: e.target.value })
@@ -460,7 +460,7 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
             </>
           )}
           {picker === 'date' && (
-            <div className={styles.query_parameter_field_picker_calendar}>
+            <div className={styles.input_parameter_field_picker_calendar}>
               <Calendar
                 inline
                 value={new Date(userValue)}
@@ -472,7 +472,7 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
                 }}
                 panelStyle={{ border: '0px' }}
               />
-              <div className={styles.query_parameter_picker_calendar_tip}>
+              <div className={styles.input_parameter_picker_calendar_tip}>
                 Pro tip: you can also type values above, including relative ones
                 like CURRENT_DATE - INTERVAL &apos;90 DAY&apos;
               </div>
@@ -480,7 +480,7 @@ const QueryParameterField: FunctionComponent<QueryParameterFieldProps> = ({
           )}
           {(picker === 'dimension' || picker === 'frequency') && (
             <ListBox
-              className={styles.query_parameter_field_picker}
+              className={styles.input_parameter_field_picker}
               options={pickerOptions}
               onChange={(e) => {
                 setParameter(e.value)

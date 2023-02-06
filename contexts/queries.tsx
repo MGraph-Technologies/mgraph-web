@@ -10,7 +10,7 @@ import {
 } from 'react'
 
 import { useAuth } from 'contexts/auth'
-import { QueryParameters, getQueryParameters } from 'utils/queryUtils'
+import { InputParameters, getInputParameters } from 'utils/queryUtils'
 import { supabase } from 'utils/supabaseClient'
 
 type QueriesContextType = {
@@ -22,13 +22,13 @@ type QueriesContextType = {
   setQueriesLoading: Dispatch<SetStateAction<Array<string>>> | undefined
   queriesToCancel: Array<string>
   setQueriesToCancel: Dispatch<SetStateAction<Array<string>>> | undefined
-  queryParameters: QueryParameters
-  setQueryParameters: Dispatch<SetStateAction<QueryParameters>> | undefined
-  resetQueryParameterUserValue: ((name: string) => Promise<void>) | undefined
-  setQueryParameterUserValue:
+  inputParameters: InputParameters
+  setInputParameters: Dispatch<SetStateAction<InputParameters>> | undefined
+  resetInputParameterUserValue: ((name: string) => Promise<void>) | undefined
+  setInputParameterUserValue:
     | ((name: string, value: string) => Promise<void>)
     | undefined
-  setQueryParameterOrgDefaultValue:
+  setInputParameterOrgDefaultValue:
     | ((name: string, value: string) => Promise<void>)
     | undefined
 }
@@ -40,11 +40,11 @@ const queriesContextDefaultValues: QueriesContextType = {
   setQueriesLoading: undefined,
   queriesToCancel: [] as string[],
   setQueriesToCancel: undefined,
-  queryParameters: {},
-  setQueryParameters: undefined,
-  resetQueryParameterUserValue: undefined,
-  setQueryParameterUserValue: undefined,
-  setQueryParameterOrgDefaultValue: undefined,
+  inputParameters: {},
+  setInputParameters: undefined,
+  resetInputParameterUserValue: undefined,
+  setInputParameterUserValue: undefined,
+  setInputParameterOrgDefaultValue: undefined,
 }
 const QueriesContext = createContext<QueriesContextType>(
   queriesContextDefaultValues
@@ -65,46 +65,46 @@ export function QueriesProvider({ children }: QueriesProps) {
   const [queriesLoading, setQueriesLoading] = useState([] as string[])
   const [queriesToCancel, setQueriesToCancel] = useState([] as string[])
 
-  const [queryParameters, setQueryParameters] = useState<QueryParameters>({})
+  const [inputParameters, setInputParameters] = useState<InputParameters>({})
 
-  const populateQueryParameters = useCallback(async () => {
+  const populateInputParameters = useCallback(async () => {
     if (organizationId && session?.user) {
-      const queryParameters = await getQueryParameters(
+      const inputParameters = await getInputParameters(
         organizationId,
         supabase,
         session.user.id
       )
-      setQueryParameters(queryParameters)
+      setInputParameters(inputParameters)
     }
   }, [organizationId, session])
   useEffect(() => {
-    populateQueryParameters()
-  }, [populateQueryParameters])
+    populateInputParameters()
+  }, [populateInputParameters])
 
-  const resetQueryParameterUserValue = useCallback(
+  const resetInputParameterUserValue = useCallback(
     async (name: string) => {
-      let qp = queryParameters[name]
-      if (qp) {
+      let ip = inputParameters[name]
+      if (ip) {
         try {
           await supabase
-            .from('database_query_parameters')
+            .from('input_parameters')
             .upsert({
-              id: qp.userRecordId,
+              id: ip.userRecordId,
               organization_id: organizationId,
               user_id: session?.user?.id,
               name: name,
-              value: qp.userValue,
+              value: ip.userValue,
               updated_at: new Date(),
               deleted_at: new Date(),
             })
             .then(() => {
-              qp = {
-                ...qp,
-                userValue: qp.orgDefaultValue,
+              ip = {
+                ...ip,
+                userValue: ip.orgDefaultValue,
               }
-              setQueryParameters((prev) => ({
+              setInputParameters((prev) => ({
                 ...prev,
-                [name]: qp,
+                [name]: ip,
               }))
             })
         } catch (error: unknown) {
@@ -112,21 +112,21 @@ export function QueriesProvider({ children }: QueriesProps) {
         }
       }
     },
-    [queryParameters, organizationId, session]
+    [inputParameters, organizationId, session]
   )
 
-  const setQueryParameterUserValue = useCallback(
+  const setInputParameterUserValue = useCallback(
     async (name: string, value: string) => {
-      let qp = queryParameters[name]
-      if (qp) {
-        if (value === qp.orgDefaultValue) {
-          resetQueryParameterUserValue(name)
+      let ip = inputParameters[name]
+      if (ip) {
+        if (value === ip.orgDefaultValue) {
+          resetInputParameterUserValue(name)
         } else {
           try {
             await supabase
-              .from('database_query_parameters')
+              .from('input_parameters')
               .upsert({
-                id: qp.userRecordId,
+                id: ip.userRecordId,
                 organization_id: organizationId,
                 user_id: session?.user?.id,
                 name: name,
@@ -135,13 +135,13 @@ export function QueriesProvider({ children }: QueriesProps) {
                 deleted_at: null,
               })
               .then(() => {
-                qp = {
-                  ...qp,
+                ip = {
+                  ...ip,
                   userValue: value,
                 }
-                setQueryParameters((prev) => ({
+                setInputParameters((prev) => ({
                   ...prev,
-                  [name]: qp,
+                  [name]: ip,
                 }))
               })
           } catch (error: unknown) {
@@ -150,19 +150,19 @@ export function QueriesProvider({ children }: QueriesProps) {
         }
       }
     },
-    [queryParameters, resetQueryParameterUserValue, organizationId, session]
+    [inputParameters, resetInputParameterUserValue, organizationId, session]
   )
 
-  const setQueryParameterOrgDefaultValue = useCallback(
+  const setInputParameterOrgDefaultValue = useCallback(
     async (name: string, value: string) => {
-      let qp = queryParameters[name]
-      if (qp) {
+      let ip = inputParameters[name]
+      if (ip) {
         try {
           await supabase
-            .from('database_query_parameters')
+            .from('input_parameters')
             .upsert([
               {
-                id: qp.orgDefaultRecordId,
+                id: ip.orgDefaultRecordId,
                 organization_id: organizationId,
                 user_id: null,
                 name: name,
@@ -171,24 +171,24 @@ export function QueriesProvider({ children }: QueriesProps) {
                 deleted_at: null,
               },
               {
-                id: qp.userRecordId,
+                id: ip.userRecordId,
                 organization_id: organizationId,
                 user_id: session?.user?.id,
                 name: name,
-                value: qp.userValue,
+                value: ip.userValue,
                 updated_at: new Date(),
                 deleted_at: new Date(),
               },
             ])
             .then(() => {
-              qp = {
-                ...qp,
+              ip = {
+                ...ip,
                 orgDefaultValue: value,
                 userValue: value,
               }
-              setQueryParameters((prev) => ({
+              setInputParameters((prev) => ({
                 ...prev,
-                [name]: qp,
+                [name]: ip,
               }))
             })
         } catch (error: unknown) {
@@ -196,7 +196,7 @@ export function QueriesProvider({ children }: QueriesProps) {
         }
       }
     },
-    [queryParameters, organizationId, session]
+    [inputParameters, organizationId, session]
   )
 
   const value = {
@@ -206,11 +206,11 @@ export function QueriesProvider({ children }: QueriesProps) {
     setQueriesLoading: setQueriesLoading,
     queriesToCancel: queriesToCancel,
     setQueriesToCancel: setQueriesToCancel,
-    queryParameters: queryParameters,
-    setQueryParameters: setQueryParameters,
-    resetQueryParameterUserValue: resetQueryParameterUserValue,
-    setQueryParameterUserValue: setQueryParameterUserValue,
-    setQueryParameterOrgDefaultValue: setQueryParameterOrgDefaultValue,
+    inputParameters: inputParameters,
+    setInputParameters: setInputParameters,
+    resetInputParameterUserValue: resetInputParameterUserValue,
+    setInputParameterUserValue: setInputParameterUserValue,
+    setInputParameterOrgDefaultValue: setInputParameterOrgDefaultValue,
   }
   return (
     <>

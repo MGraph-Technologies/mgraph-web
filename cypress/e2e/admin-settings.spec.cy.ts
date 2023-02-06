@@ -138,9 +138,9 @@ describe('Admin settings', () => {
     cy.get('[id=graph-syncs-table]').contains(randomString)
   })
 
-  it('Visits query parameters page, edits then resets dimensions', () => {
+  it('Visits input parameters page, edits then resets dimensions', () => {
     // visit page
-    cy.visit('/mgraph/settings/query-parameters')
+    cy.visit('/mgraph/settings/input-parameters')
 
     // add dimension
     const randomString = 'randomDimension_' + Math.random().toString(36)
@@ -163,9 +163,9 @@ describe('Admin settings', () => {
     cy.get('[id=dimensions-field]').contains(resetString)
   })
 
-  it('Visits query parameters page, edits then resets frequencies', () => {
+  it('Visits input parameters page, edits then resets frequencies', () => {
     // visit page
-    cy.visit('/mgraph/settings/query-parameters')
+    cy.visit('/mgraph/settings/input-parameters')
 
     // add frequency
     const randomString = 'randomFrequency_' + Math.random().toString(36)
