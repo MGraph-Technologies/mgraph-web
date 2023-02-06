@@ -74,28 +74,23 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
             <html>
               <head>
                 <style>
-                  ${
-                    css
-                      ? css
-                      : // css with fallback to default styles if not provided
-                        // TODO: import below
-                        `
-                        html,
-                        body {
-                          padding: 0;
-                          margin: 0;
-                          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-                            Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-                          display: flex;
-                          flex-direction: column;
-                          align-items: center;
-                        }
-                        a {
-                          color: inherit;
-                          text-decoration: none;
-                        }
-                        `
-                  }
+                  ${`
+                    ${css}
+                    html,
+                    body {
+                      padding: 0;
+                      margin: 0;
+                      font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+                        Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                    }
+                    a {
+                      color: inherit;
+                      text-decoration: none;
+                    }
+                    `}
                 </style>
               </head>
               <body onload="window.parent.postMessage({ type: 'setIframeHeight', height: document.body.scrollHeight }, '*')">
