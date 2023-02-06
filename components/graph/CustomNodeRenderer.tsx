@@ -1,3 +1,4 @@
+import { Message } from 'primereact/message'
 import React, {
   FunctionComponent,
   useCallback,
@@ -63,46 +64,58 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   if (!shouldRender) {
     return null
   } else {
-    return (
-      // render html and css securely within an iframe
-      <iframe
-        className={styles.renderer_container}
-        style={expandHeight ? { height: `${iframeHeight}px` } : {}}
-        srcDoc={`
-          <html>
-            <head>
-              <style>
-                ${
-                  css
-                    ? css
-                    : // css with fallback to default styles if not provided
-                      // TODO: import below
-                      `
-                      html,
-                      body {
-                        padding: 0;
-                        margin: 0;
-                        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-                          Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                      }
-                      a {
-                        color: inherit;
-                        text-decoration: none;
-                      }
-                      `
-                }
-              </style>
-            </head>
-            <body onload="window.parent.postMessage({ type: 'setIframeHeight', height: document.body.scrollHeight }, '*')">
-              ${html}
-            </body>
-          </html>
-        `}
-      />
-    )
+    if (html) {
+      return (
+        // render html and css securely within an iframe
+        <iframe
+          className={styles.renderer_container}
+          style={expandHeight ? { height: `${iframeHeight}px` } : {}}
+          srcDoc={`
+            <html>
+              <head>
+                <style>
+                  ${
+                    css
+                      ? css
+                      : // css with fallback to default styles if not provided
+                        // TODO: import below
+                        `
+                        html,
+                        body {
+                          padding: 0;
+                          margin: 0;
+                          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+                            Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+                          display: flex;
+                          flex-direction: column;
+                          align-items: center;
+                        }
+                        a {
+                          color: inherit;
+                          text-decoration: none;
+                        }
+                        `
+                  }
+                </style>
+              </head>
+              <body onload="window.parent.postMessage({ type: 'setIframeHeight', height: document.body.scrollHeight }, '*')">
+                ${html}
+              </body>
+            </html>
+          `}
+        />
+      )
+    } else {
+      return (
+        <div className={styles.renderer_container}>
+          <Message
+            className={styles.renderer_message}
+            severity="info"
+            text="Define source to render content"
+          />
+        </div>
+      )
+    }
   }
 }
 
