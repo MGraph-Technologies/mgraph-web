@@ -15,7 +15,6 @@ import {
   getLatestQueryId,
   overrideInputParameters,
   parameterizeStatement,
-  sortMetricRowsByDate,
   verifyMetricData,
 } from '../../../../../utils/queryUtils'
 import { MetricNodeProperties } from '../../../../../components/graph/MetricNode'
@@ -219,7 +218,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 `Monitoring rule failed to evaluate: query result does not have the expected columns structure.`
               )
             } else {
-              const rows = sortMetricRowsByDate(metricData.rows)
+              const rows = metricData.rows // rows are sorted from right to left
               const dimensions = Array.from(new Set(rows.map((row) => row[1])))
               dimensions.forEach((dimension: string) => {
                 const dimensionRows = rows.filter((row) => row[1] === dimension)

@@ -84,15 +84,6 @@ export const getLatestQueryId = async (
   return queryId
 }
 
-export const sortMetricRowsByDate = (rows: MetricRow[]) => {
-  return rows.sort((a, b) => {
-    // type check
-    const aDate = a[0]
-    const bDate = b[0]
-    return aDate.getTime() - bDate.getTime()
-  })
-}
-
 export const verifyMetricData = (queryData: QueryData): MetricData | null => {
   if (queryData && queryData.columns && queryData.rows) {
     const { columns } = queryData
