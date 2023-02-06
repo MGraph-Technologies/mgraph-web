@@ -4,9 +4,9 @@ import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
 import { Edge, Node } from 'reactflow'
 import { v4 as uuidv4 } from 'uuid'
 
-import { useGraph } from '../../../contexts/graph'
-import { analytics } from '../../../utils/segmentClient'
-import { supabase } from '../../../utils/supabaseClient'
+import { useGraph } from 'contexts/graph'
+import { analytics } from 'utils/segmentClient'
+import { supabase } from 'utils/supabaseClient'
 
 type FormulaEditorProps = {
   setShowFormulaEditor: (value: React.SetStateAction<boolean>) => void

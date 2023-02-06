@@ -1,17 +1,17 @@
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
-import { useAuth } from '../../contexts/auth'
-import { useEditability } from '../../contexts/editability'
-import { useGraph } from '../../contexts/graph'
-import { useQueries } from '../../contexts/queries'
+import { MetricNodeProperties } from 'components/graph/MetricNode'
+import { useAuth } from 'contexts/auth'
+import { useEditability } from 'contexts/editability'
+import { useGraph } from 'contexts/graph'
+import { useQueries } from 'contexts/queries'
 import {
   QueryData,
   getLastUpdatedAt,
   getLatestQueryId,
   parameterizeStatement,
-} from '../../utils/queryUtils'
-import { supabase } from '../../utils/supabaseClient'
-import { MetricNodeProperties } from './MetricNode'
+} from 'utils/queryUtils'
+import { supabase } from 'utils/supabaseClient'
 
 export type QueryError = {
   error: string

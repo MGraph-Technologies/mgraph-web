@@ -12,10 +12,10 @@ import React, {
 import { Node } from 'reactflow'
 import { Comments, CommentsProvider } from 'supabase-comments-extension'
 
-import { useAuth } from '../../../contexts/auth'
-import styles from '../../../styles/NodeCommentsButton.module.css'
-import { analytics } from '../../../utils/segmentClient'
-import { supabase } from '../../../utils/supabaseClient'
+import { useAuth } from 'contexts/auth'
+import styles from 'styles/NodeCommentsButton.module.css'
+import { analytics } from 'utils/segmentClient'
+import { supabase } from 'utils/supabaseClient'
 
 export const GRAPH_COMMENTS_TOPIC_ID = 'graph'
 

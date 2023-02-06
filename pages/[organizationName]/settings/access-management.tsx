@@ -10,13 +10,13 @@ import {
 } from 'primereact/datatable'
 import { Dropdown } from 'primereact/dropdown'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
-import SectionHeader from '../../../components/SectionHeader'
 
-import Workspace from '../../../components/Workspace'
-import { useAuth } from '../../../contexts/auth'
-import styles from '../../../styles/AccessManagement.module.css'
-import { analytics } from '../../../utils/segmentClient'
-import { supabase } from '../../../utils/supabaseClient'
+import SectionHeader from 'components/SectionHeader'
+import Workspace from 'components/Workspace'
+import { useAuth } from 'contexts/auth'
+import styles from 'styles/AccessManagement.module.css'
+import { analytics } from 'utils/segmentClient'
+import { supabase } from 'utils/supabaseClient'
 
 const AccessManagement: FunctionComponent = () => {
   const { organizationId } = useAuth()

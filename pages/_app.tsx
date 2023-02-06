@@ -9,13 +9,13 @@ import { useEffect, useState } from 'react'
 import 'reactflow/dist/style.css'
 import { v4 as uuidv4 } from 'uuid'
 
-import { AuthProvider } from '../contexts/auth'
-import { BrowserProvider } from '../contexts/browser'
-import { EditabilityProvider } from '../contexts/editability'
-import { GraphProvider } from '../contexts/graph'
-import { QueriesProvider } from '../contexts/queries'
-import '../styles/globals.css'
-import { analytics } from '../utils/segmentClient'
+import { AuthProvider } from 'contexts/auth'
+import { BrowserProvider } from 'contexts/browser'
+import { EditabilityProvider } from 'contexts/editability'
+import { GraphProvider } from 'contexts/graph'
+import { QueriesProvider } from 'contexts/queries'
+import 'styles/globals.css'
+import { analytics } from 'utils/segmentClient'
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [sessionId] = useState<string>(uuidv4())

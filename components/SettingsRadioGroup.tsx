@@ -1,6 +1,6 @@
 import { FunctionComponent } from 'react'
 
-import styles from '../styles/SettingsRadioGroup.module.css'
+import styles from 'styles/SettingsRadioGroup.module.css'
 
 type SettingsRadioGroupOption = {
   label: string

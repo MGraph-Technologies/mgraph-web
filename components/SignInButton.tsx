@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import React, { FunctionComponent, useState } from 'react'
 
-import { supabase } from '../utils/supabaseClient'
+import { supabase } from 'utils/supabaseClient'
 
 const SignInButton: FunctionComponent = () => {
   const GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT =

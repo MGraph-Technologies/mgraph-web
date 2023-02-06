@@ -1,9 +1,9 @@
 import { Mention, MentionItemTemplateType } from 'primereact/mention'
 import React, { FunctionComponent, useState } from 'react'
 
-import { useEditability } from '../contexts/editability'
-import { supabase } from '../utils/supabaseClient'
-import UserAvatar from './UserAvatar'
+import UserAvatar from 'components/UserAvatar'
+import { useEditability } from 'contexts/editability'
+import { supabase } from 'utils/supabaseClient'
 
 type MentionFieldProps = {
   id: string

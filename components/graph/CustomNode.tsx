@@ -10,12 +10,12 @@ import { EditText, onSaveProps } from 'react-edit-text'
 import 'react-edit-text/dist/index.css'
 import { Handle, Node, Position } from 'reactflow'
 
-import { useEditability } from '../../contexts/editability'
-import { useGraph } from '../../contexts/graph'
-import styles from '../../styles/CustomNode.module.css'
-import CustomNodeRenderer from './CustomNodeRenderer'
-import ColorPicker from './nodepanel/ColorPicker'
-import NodePanel from './nodepanel/NodePanel'
+import CustomNodeRenderer from 'components/graph/CustomNodeRenderer'
+import ColorPicker from 'components/graph/nodepanel/ColorPicker'
+import NodePanel from 'components/graph/nodepanel/NodePanel'
+import { useEditability } from 'contexts/editability'
+import { useGraph } from 'contexts/graph'
+import styles from 'styles/CustomNode.module.css'
 
 export type CustomNodeSource = {
   html: string

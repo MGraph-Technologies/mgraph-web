@@ -1,9 +1,9 @@
 import { Button } from 'primereact/button'
 import { FunctionComponent, useCallback, useState } from 'react'
 
-import { useEditability } from '../../../contexts/editability'
-import { useGraph } from '../../../contexts/graph'
-import { analytics } from '../../../utils/segmentClient'
+import { useEditability } from 'contexts/editability'
+import { useGraph } from 'contexts/graph'
+import { analytics } from 'utils/segmentClient'
 
 const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent = () => {
   const { disableEditing } = useEditability()

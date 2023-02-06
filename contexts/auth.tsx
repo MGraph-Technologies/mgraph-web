@@ -8,8 +8,8 @@ import {
   useState,
 } from 'react'
 
-import { analytics } from '../utils/segmentClient'
-import { supabase } from '../utils/supabaseClient'
+import { analytics } from 'utils/segmentClient'
+import { supabase } from 'utils/supabaseClient'
 
 type AuthContextType = {
   session: Session | null | undefined

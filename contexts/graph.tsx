@@ -23,19 +23,17 @@ import { v4 as uuidv4 } from 'uuid'
 import CustomNode, {
   CustomNodeProperties,
   CustomNodeSource,
-} from '../components/graph/CustomNode'
+} from 'components/graph/CustomNode'
 import FunctionNode, {
   FunctionNodeProperties,
-} from '../components/graph/FunctionNode'
-import InputEdge, { InputEdgeProperties } from '../components/graph/InputEdge'
-import MetricNode, {
-  MetricNodeProperties,
-} from '../components/graph/MetricNode'
-import { GoalStatus } from '../components/graph/node_detail/GoalsTable'
-import { getLastUpdatedAt } from '../utils/queryUtils'
-import { supabase } from '../utils/supabaseClient'
-import { useAuth } from './auth'
-import { useEditability } from './editability'
+} from 'components/graph/FunctionNode'
+import InputEdge, { InputEdgeProperties } from 'components/graph/InputEdge'
+import MetricNode, { MetricNodeProperties } from 'components/graph/MetricNode'
+import { GoalStatus } from 'components/graph/node_detail/GoalsTable'
+import { useAuth } from 'contexts/auth'
+import { useEditability } from 'contexts/editability'
+import { getLastUpdatedAt } from 'utils/queryUtils'
+import { supabase } from 'utils/supabaseClient'
 
 export const nodeTypes = {
   custom: CustomNode,

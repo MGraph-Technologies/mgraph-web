@@ -4,12 +4,12 @@ import { Button } from 'primereact/button'
 import { Menu } from 'primereact/menu'
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '../contexts/auth'
-import { useBrowser } from '../contexts/browser'
-import styles from '../styles/AccountMenu.module.css'
-import { analytics } from '../utils/segmentClient'
-import { supabase } from '../utils/supabaseClient'
-import UserAvatar from './UserAvatar'
+import UserAvatar from 'components/UserAvatar'
+import { useAuth } from 'contexts/auth'
+import { useBrowser } from 'contexts/browser'
+import styles from 'styles/AccountMenu.module.css'
+import { analytics } from 'utils/segmentClient'
+import { supabase } from 'utils/supabaseClient'
 
 const AccountMenu: FunctionComponent = () => {
   const {

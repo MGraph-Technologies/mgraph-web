@@ -8,10 +8,13 @@ import React, {
 import Editor from 'react-simple-code-editor'
 import { Node } from 'reactflow'
 
-import { useEditability } from '../../../contexts/editability'
-import styles from '../../../styles/NodeDetail.module.css'
-import { highlight } from '../../../utils/codeHighlighter'
-import { CustomNodeProperties, CustomNodeSource } from '../CustomNode'
+import {
+  CustomNodeProperties,
+  CustomNodeSource,
+} from 'components/graph/CustomNode'
+import { useEditability } from 'contexts/editability'
+import styles from 'styles/NodeDetail.module.css'
+import { highlight } from 'utils/codeHighlighter'
 
 type CustomNodeSourceFieldsProps = {
   customNode: Node | undefined

@@ -1,10 +1,10 @@
 import { FunctionComponent } from 'react'
 import { Node } from 'reactflow'
 
-import { useAuth } from '../../../contexts/auth'
-import { useBrowser } from '../../../contexts/browser'
-import { analytics } from '../../../utils/segmentClient'
-import { MonitoringStatusIndicator } from '../node_detail/MonitoringRulesTable'
+import { MonitoringStatusIndicator } from 'components/graph/node_detail/MonitoringRulesTable'
+import { useAuth } from 'contexts/auth'
+import { useBrowser } from 'contexts/browser'
+import { analytics } from 'utils/segmentClient'
 
 type NodeMonitoringRulesStatusButtonProps = {
   node: Node | undefined

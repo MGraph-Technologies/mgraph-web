@@ -2,8 +2,8 @@ import { Button } from 'primereact/button'
 import { InputText } from 'primereact/inputtext'
 import React, { FunctionComponent } from 'react'
 
-import styles from '../styles/SettingsInputText.module.css'
-import MentionField from './MentionField'
+import MentionField from 'components/MentionField'
+import styles from 'styles/SettingsInputText.module.css'
 
 type SettingsInputTextProps = {
   label: string

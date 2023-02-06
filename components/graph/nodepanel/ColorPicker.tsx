@@ -3,7 +3,7 @@ import { OverlayPanel } from 'primereact/overlaypanel'
 import React, { FunctionComponent, useRef, useState } from 'react'
 import { ColorResult, TwitterPicker } from 'react-color'
 
-import { useEditability } from '../../../contexts/editability'
+import { useEditability } from 'contexts/editability'
 
 type ColorPickerProps = {
   color: string

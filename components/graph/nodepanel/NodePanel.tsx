@@ -1,12 +1,12 @@
 import { FunctionComponent, ReactNode, useEffect, useState } from 'react'
 import { Node } from 'reactflow'
 
-import { useGraph } from '../../../contexts/graph'
-import styles from '../../../styles/NodePanel.module.css'
-import NodeCommentsButton from './NodeCommentsButton'
-import NodeGoalsStatusButton from './NodeGoalsStatusButton'
-import NodeInfoButton from './NodeInfoButton'
-import NodeMonitoringRulesStatusButton from './NodeMonitoringRulesStatusButton'
+import NodeCommentsButton from 'components/graph/nodepanel/NodeCommentsButton'
+import NodeGoalsStatusButton from 'components/graph/nodepanel/NodeGoalsStatusButton'
+import NodeInfoButton from 'components/graph/nodepanel/NodeInfoButton'
+import NodeMonitoringRulesStatusButton from 'components/graph/nodepanel/NodeMonitoringRulesStatusButton'
+import { useGraph } from 'contexts/graph'
+import styles from 'styles/NodePanel.module.css'
 
 type NodePanelProps = {
   nodeId: string

@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { FunctionComponent, useCallback, useEffect } from 'react'
 
-import { useAuth } from '../contexts/auth'
+import { useAuth } from 'contexts/auth'
 
 const AuthedUserRouter: FunctionComponent = () => {
   const router = useRouter()
