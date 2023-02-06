@@ -138,12 +138,12 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
                       value={null}
                       options={[
                         {
-                          label: '+ Metric Node',
-                          value: 'metric',
-                        },
-                        {
                           label: '+ Custom Node',
                           value: 'custom',
+                        },
+                        {
+                          label: '+ Metric Node',
+                          value: 'metric',
                         },
                       ]}
                       onChange={(e) => {
