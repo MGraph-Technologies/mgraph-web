@@ -319,8 +319,11 @@ const GraphViewer: FunctionComponent = () => {
 
   const onSelect = useCallback(
     (nodeOrEdge: Node | Edge) => {
-      // clicking metric nodes opens metric detail when !editingEnabled
-      if (nodeOrEdge.type === 'metric' && !editingEnabled) {
+      // clicking custom or metric nodes opens metric detail when !editingEnabled
+      if (
+        ['custom', 'metric'].includes(nodeOrEdge.type || '') &&
+        !editingEnabled
+      ) {
         if (altKeyPressed) {
           const metricNode = nodeOrEdge as Node
           reactFlowInstance.fitBounds({
