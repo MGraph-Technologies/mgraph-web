@@ -231,9 +231,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               const rows = metricData.rows // rows are sorted from right to left
               const dimensions = Array.from(new Set(rows.map((row) => row[1])))
               dimensions.forEach((dimension: string) => {
-                const dimensionRows = rows.filter(
-                  (row) => row[1] === dimension && row[0] !== null
-                )
+                const dimensionRows = rows.filter((row) => row[1] === dimension)
                 const dimensionRowsToEval = dimensionRows.slice(
                   -lookbackPeriods
                 )
