@@ -25,12 +25,7 @@ import { useAuth } from 'contexts/auth'
 import { useGraph } from 'contexts/graph'
 import { useQueries } from 'contexts/queries'
 import styles from 'styles/LineChart.module.css'
-import {
-  MetricData,
-  QueryData,
-  sortMetricRowsByDate,
-  verifyMetricData,
-} from 'utils/queryUtils'
+import { MetricData, QueryData, verifyMetricData } from 'utils/queryUtils'
 import { supabase } from 'utils/supabaseClient'
 
 ChartJS.register(
@@ -79,7 +74,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
   const makeChartJSDatasets = (metricData: MetricData) => {
-    const { rows } = metricData
+    const { rows } = metricData // rows are sorted from right to left
     const datasets: ChartJSDataset[] = []
     const SERIESCOLORS = [
       '#6466e9', // violet
@@ -91,8 +86,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     ]
     const dimensions = Array.from(new Set(rows.map((row) => row[1])))
     dimensions.forEach((dimension, index) => {
-      let dimensionRows = rows.filter((row) => row[1] === dimension)
-      dimensionRows = sortMetricRowsByDate(dimensionRows)
+      const dimensionRows = rows.filter((row) => row[1] === dimension)
       datasets.push({
         label: dimension,
         data: dimensionRows.map((row) => ({
@@ -119,7 +113,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         _chartJSDatasets.length === 1
           ? // last non-null value
             Number(
-              _chartJSDatasets[0].data.reverse().find((d) => d.y !== null)?.y
+              _chartJSDatasets[0].data.filter((d) => d.y !== null).slice(-1)[0]
+                .y
             )
           : null
       setNumberToOverlay(_numberToOverlay)
@@ -140,20 +135,14 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     const firstPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
         // avoid inplace sort triggering chart rerender
-        const data = dataset.data.slice()
-        const _firstPlottedDate = data.sort(
-          (a, b) => a.x.getTime() - b.x.getTime()
-        )[0].x
+        const _firstPlottedDate = dataset.data[0].x
         return _firstPlottedDate < acc ? _firstPlottedDate : acc
       }, new Date(9999, 11, 31))
       .toISOString()
     // last date across all datasets
     const lastPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
-        const data = dataset.data.slice()
-        const _lastPlottedDate = data.sort(
-          (a, b) => b.x.getTime() - a.x.getTime()
-        )[0].x
+        const _lastPlottedDate = dataset.data[dataset.data.length - 1].x
         return _lastPlottedDate > acc ? _lastPlottedDate : acc
       }, new Date(0, 1, 1))
       .toISOString()
