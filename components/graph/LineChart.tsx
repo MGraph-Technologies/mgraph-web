@@ -113,7 +113,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         _chartJSDatasets.length === 1
           ? // last non-null value
             Number(
-              _chartJSDatasets[0].data.reverse().find((d) => d.y !== null)?.y
+              _chartJSDatasets[0].data.filter((d) => d.y !== null).slice(-1)[0]
+                .y
             )
           : null
       setNumberToOverlay(_numberToOverlay)
