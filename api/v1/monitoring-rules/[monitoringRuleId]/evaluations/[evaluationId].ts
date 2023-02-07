@@ -215,6 +215,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             queryData.columns.forEach((column, columnIndex) => {
               if (column.type === 'date') {
                 queryData.rows.forEach((row, rowIndex) => {
+                  if (!row[columnIndex]) return
                   queryData.rows[rowIndex][columnIndex] = new Date(
                     row[columnIndex] as string
                   )

@@ -265,6 +265,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
             data.columns.forEach((column, columnIndex) => {
               if (column.type === 'date') {
                 data.rows.forEach((row, rowIndex) => {
+                  if (!row[columnIndex]) return
                   data.rows[rowIndex][columnIndex] = new Date(
                     row[columnIndex] as string
                   )
