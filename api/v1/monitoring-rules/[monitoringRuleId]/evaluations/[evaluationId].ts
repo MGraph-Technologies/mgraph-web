@@ -231,7 +231,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               const rows = metricData.rows // rows are sorted from right to left
               const dimensions = Array.from(new Set(rows.map((row) => row[1])))
               dimensions.forEach((dimension: string) => {
-                const dimensionRows = rows.filter((row) => row[1] === dimension)
+                const dimensionRows = rows.filter(
+                  (row) => row[1] === dimension && row[0] !== null
+                )
                 const dimensionRowsToEval = dimensionRows.slice(
                   -lookbackPeriods
                 )
@@ -245,14 +247,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                     value <= rangeUpperBound
                   ) {
                     processAlert(
-                      `Value ${value} for dimension ${dimension} on ${date.toISOString()} is inside the range [${rangeLowerBound}, ${rangeUpperBound}].`
+                      `Value ${value} for dimension ${dimension} on ${
+                        date?.toISOString() ?? 'unknown date'
+                      } is inside the range [${rangeLowerBound}, ${rangeUpperBound}].`
                     )
                   } else if (
                     alertIfValue === 'outsideRangeExclusive' &&
                     (value < rangeLowerBound || value > rangeUpperBound)
                   ) {
                     processAlert(
-                      `Value ${value} for dimension ${dimension} on ${date.toISOString()} is outside the range (${rangeLowerBound}, ${rangeUpperBound}).`
+                      `Value ${value} for dimension ${dimension} on ${
+                        date?.toISOString() ?? 'unknown date'
+                      } is outside the range (${rangeLowerBound}, ${rangeUpperBound}).`
                     )
                   }
                 })
