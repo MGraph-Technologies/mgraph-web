@@ -210,9 +210,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               `Monitoring rule failed to evaluate: query status ${queryStatus}.`
             )
           } else {
-            const metricData = verifyMetricData(
-              (await queryResultResp.json()) as QueryData
-            )
+            const queryData = (await queryResultResp.json()) as QueryData
+            // convert any date columns since serialization loses type
+            queryData.columns.forEach((column, columnIndex) => {
+              if (column.type === 'date') {
+                queryData.rows.forEach((row, rowIndex) => {
+                  if (!row[columnIndex]) return
+                  queryData.rows[rowIndex][columnIndex] = new Date(
+                    row[columnIndex] as string
+                  )
+                })
+              }
+            })
+            const metricData = verifyMetricData(queryData)
             if (!metricData) {
               processAlert(
                 `Monitoring rule failed to evaluate: query result does not have the expected columns structure.`
@@ -235,14 +245,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                     value <= rangeUpperBound
                   ) {
                     processAlert(
-                      `Value ${value} for dimension ${dimension} on ${date.toISOString()} is inside the range [${rangeLowerBound}, ${rangeUpperBound}].`
+                      `Value ${value} for dimension ${dimension} on ${
+                        date?.toISOString() ?? 'unknown date'
+                      } is inside the range [${rangeLowerBound}, ${rangeUpperBound}].`
                     )
                   } else if (
                     alertIfValue === 'outsideRangeExclusive' &&
                     (value < rangeLowerBound || value > rangeUpperBound)
                   ) {
                     processAlert(
-                      `Value ${value} for dimension ${dimension} on ${date.toISOString()} is outside the range (${rangeLowerBound}, ${rangeUpperBound}).`
+                      `Value ${value} for dimension ${dimension} on ${
+                        date?.toISOString() ?? 'unknown date'
+                      } is outside the range (${rangeLowerBound}, ${rangeUpperBound}).`
                     )
                   }
                 })
