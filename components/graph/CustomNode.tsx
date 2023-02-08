@@ -112,7 +112,7 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
       style={{
         height: `${thisNode?.height || INIT_HEIGHT}px`,
         width: `${thisNode?.width || INIT_WIDTH}px`,
-        backgroundColor: '#ffffff',
+        backgroundColor: color,
         border: selected ? '5px solid' : '1px solid',
       }}
     >
