@@ -113,7 +113,7 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
         height: `${thisNode?.height || INIT_HEIGHT}px`,
         width: `${thisNode?.width || INIT_WIDTH}px`,
         backgroundColor: '#ffffff',
-        border: selected ? '2px solid' : '1px solid',
+        border: selected ? '5px solid' : '1px solid',
       }}
     >
       <div className={styles.header}>
