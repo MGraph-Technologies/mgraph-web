@@ -99,6 +99,19 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
     }
   }, [thisNode, xPos, yPos, nodeShouldRender])
 
+  const [rendererInteractionEnabled, setRendererInteractionEnabled] =
+    useState(false)
+  // reset on click outside of node
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setRendererInteractionEnabled(false)
+    }
+    window.addEventListener('click', handleClickOutside)
+    return () => {
+      window.removeEventListener('click', handleClickOutside)
+    }
+  }, [])
+
   const onResizeStart = useCallback(() => {
     // a somewhat-hacky way to save node state so that resize can be undone;
     // previous implementation (using updateGraph) was causing prior graph changes to be lost
@@ -142,6 +155,17 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
         />
       </div>
       <div className={styles.body}>
+        {/* prevent CustomNodeRenderer from receiving mouse events until overlay clicked */}
+        <div
+          className={styles.renderer_overlay}
+          style={{
+            pointerEvents: rendererInteractionEnabled ? 'none' : 'auto',
+          }}
+          onClick={(e) => {
+            setRendererInteractionEnabled(true)
+            e.stopPropagation() // preven node selection and subsequent detail push
+          }}
+        />
         <CustomNodeRenderer
           parentCustomNodeId={data.id}
           shouldRender={shouldRender}
