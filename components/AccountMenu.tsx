@@ -76,7 +76,11 @@ const AccountMenu: FunctionComponent = () => {
     helpMenuItems.push({
       label: 'Runbook',
       icon: 'pi pi-fw pi-book',
-      command: () => window.open('https://runbook.mgraph.us', '_blank'),
+      command: () =>
+        window.open(
+          'https://docs.google.com/document/d/1vLgQMqeKV6cVLzgDLUDxpkXwzDjXnSLsgMDCxY2SxQc/edit?usp=sharing',
+          '_blank'
+        ),
     })
   }
 
