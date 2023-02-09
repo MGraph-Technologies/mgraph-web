@@ -346,7 +346,21 @@ export function GraphProvider({ children }: GraphProps) {
         edgesUpdatedAt < graphInitializedAt &&
         monitoringRuleEvalsUpdatedAt < graphInitializedAt
       ) {
-        reset(initialGraph)
+        reset({
+          // initial graph with selections preserved
+          nodes: initialGraph.nodes.map((node) => {
+            return {
+              ...node,
+              selected: graph.nodes.find((n) => n.id === node.id)?.selected,
+            }
+          }),
+          edges: initialGraph.edges.map((edge) => {
+            return {
+              ...edge,
+              selected: graph.edges.find((e) => e.id === edge.id)?.selected,
+            }
+          }),
+        })
         return
       }
     }
@@ -386,6 +400,7 @@ export function GraphProvider({ children }: GraphProps) {
     organizationId,
     graphInitializedAt,
     initialGraph,
+    graph,
     reset,
   ])
   useEffect(() => {
@@ -887,7 +902,7 @@ export function GraphProvider({ children }: GraphProps) {
               connectedObjects.push(node)
               if (
                 maxSeparationDegrees !== undefined &&
-                node.type === 'metric'
+                ['custom', 'metric'].includes(node.type || '')
               ) {
                 maxSeparationDegrees -= 1
               }

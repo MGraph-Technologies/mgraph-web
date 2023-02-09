@@ -26,3 +26,11 @@
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 5px;
 }
+
+.custom_node .body .renderer_overlay {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  z-index: 1;
+  background-color: transparent;
+}

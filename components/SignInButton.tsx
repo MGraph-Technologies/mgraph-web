@@ -1,22 +1,15 @@
 import Image from 'next/image'
+import { Button } from 'primereact/button'
 import React, { FunctionComponent, useState } from 'react'
 
 import { supabase } from 'utils/supabaseClient'
 
 const SignInButton: FunctionComponent = () => {
-  const GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT =
-    '/btn_google_signin_dark_normal_web@2x.png'
-  const GOOGLE_SIGN_IN_BTN_IMG_SRC_HOVER =
-    '/btn_google_signin_dark_focus_web@2x.png'
-  const GOOGLE_SIGN_IN_BTN_IMG_SRC_CLICK =
-    '/btn_google_signin_dark_pressed_web@2x.png'
-  const [buttonImgSrc, setButtonImgSrc] = useState(
-    GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT
-  )
+  const [loading, setLoading] = useState(false)
 
   const handleSignIn = async () => {
     try {
-      setButtonImgSrc(GOOGLE_SIGN_IN_BTN_IMG_SRC_CLICK)
+      setLoading(true)
       const { error } = await supabase.auth.signIn({
         provider: 'google',
       })
@@ -24,24 +17,29 @@ const SignInButton: FunctionComponent = () => {
     } catch (error: unknown) {
       console.error(error)
     } finally {
-      setButtonImgSrc(GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT)
+      setLoading(false)
     }
   }
   return (
     <div>
-      <Image
-        src={buttonImgSrc}
-        alt="Sign in with Google"
-        width={200}
-        height={50}
+      <Button
+        id="continue-with-google-button"
+        className="p-button-outlined"
+        label="Continue with Google"
+        icon={
+          <>
+            <Image
+              src="/google_g.svg"
+              alt="Google G"
+              width={20}
+              height={20}
+              loading="eager"
+            />
+            <div style={{ width: '0.5rem' }} />
+          </>
+        }
         onClick={handleSignIn}
-        onMouseEnter={() => {
-          setButtonImgSrc(GOOGLE_SIGN_IN_BTN_IMG_SRC_HOVER)
-        }}
-        onMouseLeave={() => {
-          setButtonImgSrc(GOOGLE_SIGN_IN_BTN_IMG_SRC_DEFAULT)
-        }}
-        loading="eager"
+        loading={loading}
       />
     </div>
   )
