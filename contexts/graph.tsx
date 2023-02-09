@@ -902,7 +902,7 @@ export function GraphProvider({ children }: GraphProps) {
               connectedObjects.push(node)
               if (
                 maxSeparationDegrees !== undefined &&
-                node.type === 'metric'
+                ['custom', 'metric'].includes(node.type || '')
               ) {
                 maxSeparationDegrees -= 1
               }
