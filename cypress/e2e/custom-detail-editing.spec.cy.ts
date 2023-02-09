@@ -8,7 +8,7 @@ describe('Custom detail editing', () => {
 
   it('Visits a custom detail page, edits description, tests undo and redo, then cancels', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=custom_node]').first().click()
+    cy.get('[class*=CustomNode_header]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -36,7 +36,7 @@ describe('Custom detail editing', () => {
 
   it('Visits a custom detail page, edits description, then saves', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=custom_node]').first().click()
+    cy.get('[class*=CustomNode_header]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -57,7 +57,7 @@ describe('Custom detail editing', () => {
 
   it('Visits a custom detail page, successfully mentions a user as owner, then sees the mention', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=custom_node]').first().click()
+    cy.get('[class*=CustomNode_header]').first().click()
     cy.wait(2000)
 
     // begin editing
@@ -81,7 +81,7 @@ describe('Custom detail editing', () => {
 
   it('Visits a metric detail page, enters working HTML via input parameter, then sees results', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=custom_node]').first().click()
+    cy.get('[class*=CustomNode_header]').first().click()
     cy.wait(2000)
 
     // set input parameter

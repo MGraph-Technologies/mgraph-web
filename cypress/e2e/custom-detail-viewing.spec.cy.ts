@@ -8,7 +8,7 @@ describe('Custom detail viewing', () => {
 
   it('Visits and sees expected content on a custom detail page', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=custom_node]').first().click()
+    cy.get('[class*=CustomNode_header]').first().click()
     cy.get('body').contains('Description')
     cy.get('body').contains('Inputs')
     cy.get('body').contains('Outputs')
@@ -19,7 +19,7 @@ describe('Custom detail viewing', () => {
 
   it('Views comments, then adds and deletes a comment', () => {
     cy.visit('/mgraph')
-    cy.get('[class*=custom_node]').first().click()
+    cy.get('[class*=CustomNode_header]').first().click()
     cy.wait(2000)
 
     // view comments
