@@ -47,7 +47,8 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
   yPos,
 }) => {
   const { editingEnabled } = useEditability()
-  const { graph, nodeShouldRender, formNodeHandleStyle } = useGraph()
+  const { graph, nodeShouldRender, updateGraph, formNodeHandleStyle } =
+    useGraph()
 
   const INIT_HEIGHT = 288
   const INIT_WIDTH = 512
@@ -163,8 +164,22 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
             pointerEvents: rendererInteractionEnabled ? 'none' : 'auto',
           }}
           onClick={(e) => {
+            e.stopPropagation() // prevent reactflow node selection and detail push
             setRendererInteractionEnabled(true)
-            e.stopPropagation() // preven node selection and subsequent detail push
+            // manually mark node as selected to indicate interactability
+            updateGraph?.(
+              {
+                nodes: graph.nodes.map((node) => {
+                  if (node.id === data.id) {
+                    return { ...node, selected: true }
+                  } else {
+                    return node
+                  }
+                }),
+                edges: undefined,
+              },
+              false
+            )
           }}
         />
         <CustomNodeRenderer
