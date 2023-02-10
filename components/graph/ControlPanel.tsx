@@ -36,8 +36,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   const showEditButton = userCanEdit && !hideEditButton
   const { graph } = useGraph()
   const {
-    globalQueryRefreshes,
-    setGlobalQueryRefreshes,
+    setGlobalSourceRefreshes,
     queriesLoading,
     setQueriesToCancel,
     inputParameters,
@@ -72,7 +71,7 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
   ] = useState(false)
   const [initialInputParameters, setInitialInputParameters] =
     useState<InputParameters>({})
-  const refreshQueryIfParametersChanged = useCallback(() => {
+  const refreshSourcesIfParametersChanged = useCallback(() => {
     const parameterChanged = Object.keys(inputParameters).some((key) => {
       return (
         Object.keys(initialInputParameters).length > 0 &&
@@ -82,15 +81,15 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
     })
     if (parameterChanged) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      setGlobalQueryRefreshes!((prev) => prev + 1)
+      setGlobalSourceRefreshes!((prev) => prev + 1)
       setInitialInputParameters(inputParameters)
     }
-  }, [inputParameters, initialInputParameters, setGlobalQueryRefreshes])
+  }, [inputParameters, initialInputParameters, setGlobalSourceRefreshes])
   useEffect(() => {
     if (!inputParametersOverlayPanelVisible) {
-      refreshQueryIfParametersChanged()
+      refreshSourcesIfParametersChanged()
     }
-  }, [inputParametersOverlayPanelVisible, refreshQueryIfParametersChanged])
+  }, [inputParametersOverlayPanelVisible, refreshSourcesIfParametersChanged])
 
   if (editingEnabled) {
     return null
@@ -137,13 +136,13 @@ const _ControlPanel: FunctionComponent<ControlPanelProps> = ({
                 {inputParameterUserValueInEffect && <Badge severity="danger" />}
               </Button>
               <Button
-                id="global-query-refresh-button"
+                id="global-source-refresh-button"
                 className={styles.button}
                 icon="pi pi-refresh"
                 onClick={() => {
-                  if (setGlobalQueryRefreshes) {
-                    analytics.track('refresh_queries')
-                    setGlobalQueryRefreshes(globalQueryRefreshes + 1)
+                  if (setGlobalSourceRefreshes) {
+                    analytics.track('refresh_sources')
+                    setGlobalSourceRefreshes((prev) => prev + 1)
                   }
                 }}
               />

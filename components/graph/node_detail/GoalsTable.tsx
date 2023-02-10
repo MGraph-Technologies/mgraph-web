@@ -57,7 +57,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
   const { organizationId, userCanEdit } = useAuth()
   const { editingEnabled } = useEditability()
   const { goalStatusMap } = useGraph()
-  const { setGlobalQueryRefreshes } = useQueries()
+  const { setGlobalSourceRefreshes } = useQueries()
 
   const [goalsTableLoading, setGoalsTableLoading] = useState(true)
   type Goal = {
@@ -448,7 +448,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
                         populateGoals()
                         setShowUpsertGoalPopup(false)
                         clearFields()
-                        setGlobalQueryRefreshes?.((prev) => prev + 1)
+                        setGlobalSourceRefreshes?.((prev) => prev + 1)
                       }
                     } catch (error: unknown) {
                       console.error(error)

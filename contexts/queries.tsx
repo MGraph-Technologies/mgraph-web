@@ -14,8 +14,8 @@ import { InputParameters, getInputParameters } from 'utils/queryUtils'
 import { supabase } from 'utils/supabaseClient'
 
 type QueriesContextType = {
-  globalQueryRefreshes: number
-  setGlobalQueryRefreshes: Dispatch<SetStateAction<number>> | undefined
+  globalSourceRefreshes: number
+  setGlobalSourceRefreshes: Dispatch<SetStateAction<number>> | undefined
   queriesLoading: Array<string>
   /* ^would prefer to use a Set here, but that doesn't work with useState
     https://stackoverflow.com/questions/58806883/how-to-use-set-with-reacts-usestate */
@@ -34,8 +34,8 @@ type QueriesContextType = {
 }
 
 const queriesContextDefaultValues: QueriesContextType = {
-  globalQueryRefreshes: 0,
-  setGlobalQueryRefreshes: undefined,
+  globalSourceRefreshes: 0,
+  setGlobalSourceRefreshes: undefined,
   queriesLoading: [] as string[],
   setQueriesLoading: undefined,
   queriesToCancel: [] as string[],
@@ -61,11 +61,17 @@ type QueriesProps = {
 export function QueriesProvider({ children }: QueriesProps) {
   const { session, organizationId } = useAuth()
 
-  const [globalQueryRefreshes, setGlobalQueryRefreshes] = useState(0)
+  const [globalSourceRefreshes, setGlobalSourceRefreshes] = useState(0)
   const [queriesLoading, setQueriesLoading] = useState([] as string[])
   const [queriesToCancel, setQueriesToCancel] = useState([] as string[])
-
   const [inputParameters, setInputParameters] = useState<InputParameters>({})
+
+  useEffect(() => {
+    // reset globalSourceRefreshes to 0 once queriesLoading is empty
+    if (globalSourceRefreshes > 0 && queriesLoading.length === 0) {
+      setGlobalSourceRefreshes(0)
+    }
+  }, [globalSourceRefreshes, queriesLoading])
 
   const populateInputParameters = useCallback(async () => {
     if (organizationId && session?.user) {
@@ -200,8 +206,8 @@ export function QueriesProvider({ children }: QueriesProps) {
   )
 
   const value = {
-    globalQueryRefreshes: globalQueryRefreshes,
-    setGlobalQueryRefreshes: setGlobalQueryRefreshes,
+    globalSourceRefreshes: globalSourceRefreshes,
+    setGlobalSourceRefreshes: setGlobalSourceRefreshes,
     queriesLoading: queriesLoading,
     setQueriesLoading: setQueriesLoading,
     queriesToCancel: queriesToCancel,

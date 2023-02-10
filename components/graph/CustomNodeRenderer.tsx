@@ -7,8 +7,8 @@ import React, {
 } from 'react'
 import { Node } from 'reactflow'
 
-import { useQueries } from 'contexts/queries'
 import { useGraph } from 'contexts/graph'
+import { useQueries } from 'contexts/queries'
 import styles from 'styles/CustomNodeRenderer.module.css'
 import { parameterizeStatement } from 'utils/queryUtils'
 
@@ -27,7 +27,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   expandHeight = false,
 }) => {
   const { graph } = useGraph()
-  const { inputParameters } = useQueries()
+  const { globalSourceRefreshes, inputParameters } = useQueries()
 
   const [node, setNode] = useState<Node | undefined>(undefined)
   const [parameterizedHtml, setParameterizedHtml] = useState('')
@@ -80,14 +80,17 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   }, [populateGlobalFontFamily])
 
   // we proxy html through api/v1/render to sandbox it
-  const populateRendererUrl = useCallback(() => {
-    if (!parameterizedHtml) {
-      setRendererUrl('')
-      return
-    }
+  const populateRendererUrl = useCallback(
+    (refreshNum = 0) => {
+      setIframeHeight(0)
 
-    // form srcDoc
-    const srcDoc = `
+      if (!parameterizedHtml) {
+        setRendererUrl('')
+        return
+      }
+
+      // form srcDoc
+      const srcDoc = `
         <html>
           <head>
             <style>
@@ -115,18 +118,21 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
         </html>
       `
 
-    // encode srcDoc
-    const encodedSrcDoc = encodeURIComponent(srcDoc)
+      // encode srcDoc
+      const encodedSrcDoc = encodeURIComponent(srcDoc)
 
-    // form render url, using deployment url for sandboxing
-    const apiPath = `/api/v1/html-renderer?srcDoc=${encodedSrcDoc}`
-    const _rendererUrl = `${deploymentUrl}${apiPath}`
-    setRendererUrl(_rendererUrl)
-  }, [parameterizedHtml, parameterizedCss, globalFontFamily])
+      // form render url, using deployment url for sandboxing
+      const apiPath = `/api/v1/html-renderer?srcDoc=${encodedSrcDoc}`
+      const _rendererUrl = `${deploymentUrl}${apiPath}${
+        refreshNum > 0 ? `&refreshNum=${refreshNum}` : ''
+      }`
+      setRendererUrl(_rendererUrl)
+    },
+    [parameterizedHtml, parameterizedCss, globalFontFamily]
+  )
   useEffect(() => {
-    setIframeHeight(0)
-    populateRendererUrl()
-  }, [populateRendererUrl])
+    populateRendererUrl(globalSourceRefreshes)
+  }, [populateRendererUrl, globalSourceRefreshes])
 
   const handleIframeMessage = useCallback((event) => {
     if (event.data.type === 'setIframeHeight') {
