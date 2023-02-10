@@ -12,6 +12,8 @@ import { useGraph } from 'contexts/graph'
 import styles from 'styles/CustomNodeRenderer.module.css'
 import { parameterizeStatement } from 'utils/queryUtils'
 
+const deploymentUrl = process.env.VERCEL_URL || 'http://localhost:3000'
+
 type CustomNodeRendererProps = {
   parentCustomNodeId: string
   shouldRender?: boolean
@@ -29,6 +31,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   const [parameterizedHtml, setParameterizedHtml] = useState('')
   const [parameterizedCss, setParameterizedCss] = useState('')
   const [globalFontFamily, setGlobalFontFamily] = useState('')
+  const [rendererUrl, setRendererUrl] = useState('')
   const [iframeHeight, setIframeHeight] = useState(0)
 
   const populateNode = useCallback(() => {
@@ -74,6 +77,55 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
     populateGlobalFontFamily()
   }, [populateGlobalFontFamily])
 
+  // we proxy html through api/v1/render to sandbox it
+  const populateRendererUrl = useCallback(() => {
+    if (!parameterizedHtml) {
+      setRendererUrl('')
+      return
+    }
+
+    // form srcDoc
+    const srcDoc = `
+        <html>
+          <head>
+            <style>
+              ${`
+                ${parameterizedCss}
+                html,
+                body {
+                  padding: 0;
+                  margin: 0;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  ${globalFontFamily ? `font-family: ${globalFontFamily};` : ''}
+                }
+                a {
+                  color: inherit;
+                  text-decoration: none;
+                }
+                `}
+            </style>
+          </head>
+          <body onload="window.parent.postMessage({ type: 'setIframeHeight', height: document.body.scrollHeight }, '*')">
+            ${parameterizedHtml}
+          </body>
+        </html>
+      `
+
+    // encode srcDoc
+    const encodedSrcDoc = encodeURIComponent(srcDoc)
+
+    // form render url, using deployment url for sandboxing
+    const apiPath = `/api/v1/html-renderer?srcDoc=${encodedSrcDoc}`
+    const _rendererUrl = `${deploymentUrl}${apiPath}`
+    console.log('rendererUrl', _rendererUrl)
+    setRendererUrl(_rendererUrl)
+  }, [parameterizedHtml, parameterizedCss, globalFontFamily])
+  useEffect(() => {
+    populateRendererUrl()
+  }, [populateRendererUrl])
+
   const handleIframeMessage = useCallback((event) => {
     if (event.data.type === 'setIframeHeight') {
       setIframeHeight(event.data.height)
@@ -89,43 +141,14 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   if (!shouldRender) {
     return null
   } else {
-    if (parameterizedHtml) {
+    if (rendererUrl) {
       return (
         // render html and css securely within an iframe
         <iframe
           className={styles.renderer_container}
           style={expandHeight ? { height: `${iframeHeight}px` } : {}}
-          srcDoc={`
-            <html>
-              <head>
-                <style>
-                  ${`
-                    ${parameterizedCss}
-                    html,
-                    body {
-                      padding: 0;
-                      margin: 0;
-                      display: flex;
-                      flex-direction: column;
-                      align-items: center;
-                      ${
-                        globalFontFamily
-                          ? `font-family: ${globalFontFamily};`
-                          : ''
-                      }
-                    }
-                    a {
-                      color: inherit;
-                      text-decoration: none;
-                    }
-                    `}
-                </style>
-              </head>
-              <body onload="window.parent.postMessage({ type: 'setIframeHeight', height: document.body.scrollHeight }, '*')">
-                ${parameterizedHtml}
-              </body>
-            </html>
-          `}
+          src={rendererUrl}
+          sandbox="allow-scripts allow-same-origin"
         />
       )
     } else {
