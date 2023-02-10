@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { ConfirmDialog } from 'primereact/confirmdialog'
+import { InputText } from 'primereact/inputtext'
 import { Toolbar } from 'primereact/toolbar'
 import React, {
   FunctionComponent,
@@ -8,7 +9,6 @@ import React, {
   useEffect,
   useState,
 } from 'react'
-import { EditText } from 'react-edit-text'
 import { Edge, Node } from 'reactflow'
 import 'react-edit-text/dist/index.css'
 
@@ -267,23 +267,24 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
           }}
           style={{ minWidth: '32px' }}
         />
-        <EditText
-          id="name-field"
-          className={styles.detail_field_editable}
-          value={name}
-          readonly={!editingEnabled}
-          formatDisplayText={(value) => {
-            return editingEnabled
-              ? value
-              : `${nodeTypeTitleCase ? nodeTypeTitleCase : 'Node'}: ${value}`
-          }}
-          style={{
-            fontSize: '2em',
-            fontWeight: 'bold',
-          }}
-          onChange={(e) => setName(e.target.value)}
-          onSave={({ value }) => saveDetail('name', value)}
-        />
+        {editingEnabled ? (
+          <InputText
+            id="name-field"
+            className={styles.detail_field_editable}
+            value={name}
+            style={{
+              fontSize: '2em',
+              fontWeight: 'bold',
+              width: '600px',
+            }}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => {
+              saveDetail('name', name)
+            }}
+          />
+        ) : (
+          <SectionHeader title={name} size="h1" includeMargin={false} />
+        )}
         <NodePanel nodeId={nodeId} />
         <ControlPanel />
       </div>

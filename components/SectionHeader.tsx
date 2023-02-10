@@ -4,10 +4,12 @@ import React, { FunctionComponent } from 'react'
 type SectionHeaderProps = {
   title: string
   size: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  includeMargin?: boolean
 }
 const SectionHeader: FunctionComponent<SectionHeaderProps> = ({
   title,
   size,
+  includeMargin = true,
 }) => {
   const sizeEmMap = {
     h1: 2.0,
@@ -25,8 +27,9 @@ const SectionHeader: FunctionComponent<SectionHeaderProps> = ({
       style: {
         fontSize: `${sizeEmMap[size]}em`,
         fontWeight: 'bold',
-        marginTop: '1em',
-        marginBottom: '0.5em',
+        marginTop: includeMargin ? '1em' : 'None',
+        marginBottom: includeMargin ? '0.5em' : 'None',
+        width: '100%',
       },
     },
     <Link href={`#${sectionId}`}>{title}</Link>
