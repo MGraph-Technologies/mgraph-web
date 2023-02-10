@@ -124,6 +124,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
     setRendererUrl(_rendererUrl)
   }, [parameterizedHtml, parameterizedCss, globalFontFamily])
   useEffect(() => {
+    setIframeHeight(0)
     populateRendererUrl()
   }, [populateRendererUrl])
 
