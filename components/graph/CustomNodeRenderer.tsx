@@ -26,23 +26,39 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   const { inputParameters } = useQueries()
 
   const [node, setNode] = useState<Node | undefined>(undefined)
-  const [html, setHtml] = useState('')
-  const [css, setCss] = useState('')
   const [parameterizedHtml, setParameterizedHtml] = useState('')
   const [parameterizedCss, setParameterizedCss] = useState('')
   const [globalFontFamily, setGlobalFontFamily] = useState('')
   const [iframeHeight, setIframeHeight] = useState(0)
 
+  const populateNode = useCallback(() => {
+    if (graph.nodes.length > 0) {
+      const _node = graph.nodes.find((node) => node.id === parentCustomNodeId)
+      if (_node) {
+        setNode(_node)
+      } else {
+        setNode(undefined)
+      }
+    }
+  }, [graph, parentCustomNodeId])
+  useEffect(() => {
+    populateNode()
+  }, [populateNode])
+
   const populateParameterizedHtml = useCallback(() => {
-    setParameterizedHtml(parameterizeStatement(html, inputParameters))
-  }, [html, inputParameters])
+    setParameterizedHtml(
+      parameterizeStatement(node?.data?.source?.html || '', inputParameters)
+    )
+  }, [node, inputParameters])
   useEffect(() => {
     populateParameterizedHtml()
   }, [populateParameterizedHtml])
 
   const populateParameterizedCss = useCallback(() => {
-    setParameterizedCss(parameterizeStatement(css, inputParameters))
-  }, [css, inputParameters])
+    setParameterizedCss(
+      parameterizeStatement(node?.data?.source?.css || '', inputParameters)
+    )
+  }, [node, inputParameters])
   useEffect(() => {
     populateParameterizedCss()
   }, [populateParameterizedCss])
@@ -70,32 +86,10 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
     }
   }, [handleIframeMessage])
 
-  const populateNode = useCallback(() => {
-    if (graph.nodes.length > 0) {
-      const _node = graph.nodes.find((node) => node.id === parentCustomNodeId)
-      if (_node) {
-        setNode(_node)
-      } else {
-        setNode(undefined)
-      }
-    }
-  }, [graph, parentCustomNodeId])
-  useEffect(() => {
-    populateNode()
-  }, [populateNode])
-
-  const populateDetails = useCallback(() => {
-    setHtml(node?.data?.source?.html || '')
-    setCss(node?.data?.source?.css || '')
-  }, [node])
-  useEffect(() => {
-    populateDetails()
-  }, [populateDetails])
-
   if (!shouldRender) {
     return null
   } else {
-    if (html) {
+    if (parameterizedHtml) {
       return (
         // render html and css securely within an iframe
         <iframe
