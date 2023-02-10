@@ -12,6 +12,10 @@ import { useGraph } from 'contexts/graph'
 import styles from 'styles/CustomNodeRenderer.module.css'
 import { parameterizeStatement } from 'utils/queryUtils'
 
+const deploymentUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+  : 'http://localhost:3000'
+
 type CustomNodeRendererProps = {
   parentCustomNodeId: string
   shouldRender?: boolean
@@ -26,49 +30,11 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   const { inputParameters } = useQueries()
 
   const [node, setNode] = useState<Node | undefined>(undefined)
-  const [html, setHtml] = useState('')
-  const [css, setCss] = useState('')
   const [parameterizedHtml, setParameterizedHtml] = useState('')
   const [parameterizedCss, setParameterizedCss] = useState('')
   const [globalFontFamily, setGlobalFontFamily] = useState('')
+  const [rendererUrl, setRendererUrl] = useState('')
   const [iframeHeight, setIframeHeight] = useState(0)
-
-  const populateParameterizedHtml = useCallback(() => {
-    setParameterizedHtml(parameterizeStatement(html, inputParameters))
-  }, [html, inputParameters])
-  useEffect(() => {
-    populateParameterizedHtml()
-  }, [populateParameterizedHtml])
-
-  const populateParameterizedCss = useCallback(() => {
-    setParameterizedCss(parameterizeStatement(css, inputParameters))
-  }, [css, inputParameters])
-  useEffect(() => {
-    populateParameterizedCss()
-  }, [populateParameterizedCss])
-
-  const populateGlobalFontFamily = useCallback(() => {
-    // inject page font family into iframe by default
-    const _globalFontFamily = window
-      .getComputedStyle(document.body)
-      .getPropertyValue('font-family')
-    setGlobalFontFamily(_globalFontFamily)
-  }, [])
-  useEffect(() => {
-    populateGlobalFontFamily()
-  }, [populateGlobalFontFamily])
-
-  const handleIframeMessage = useCallback((event) => {
-    if (event.data.type === 'setIframeHeight') {
-      setIframeHeight(event.data.height)
-    }
-  }, [])
-  useEffect(() => {
-    window.addEventListener('message', handleIframeMessage)
-    return () => {
-      window.removeEventListener('message', handleIframeMessage)
-    }
-  }, [handleIframeMessage])
 
   const populateNode = useCallback(() => {
     if (graph.nodes.length > 0) {
@@ -84,54 +50,106 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
     populateNode()
   }, [populateNode])
 
-  const populateDetails = useCallback(() => {
-    setHtml(node?.data?.source?.html || '')
-    setCss(node?.data?.source?.css || '')
-  }, [node])
+  const populateParameterizedHtml = useCallback(() => {
+    setParameterizedHtml(
+      parameterizeStatement(node?.data?.source?.html || '', inputParameters)
+    )
+  }, [node, inputParameters])
   useEffect(() => {
-    populateDetails()
-  }, [populateDetails])
+    populateParameterizedHtml()
+  }, [populateParameterizedHtml])
+
+  const populateParameterizedCss = useCallback(() => {
+    setParameterizedCss(
+      parameterizeStatement(node?.data?.source?.css || '', inputParameters)
+    )
+  }, [node, inputParameters])
+  useEffect(() => {
+    populateParameterizedCss()
+  }, [populateParameterizedCss])
+
+  const populateGlobalFontFamily = useCallback(() => {
+    // inject page font family into iframe by default
+    const _globalFontFamily = window
+      .getComputedStyle(document.body)
+      .getPropertyValue('font-family')
+    setGlobalFontFamily(_globalFontFamily)
+  }, [])
+  useEffect(() => {
+    populateGlobalFontFamily()
+  }, [populateGlobalFontFamily])
+
+  // we proxy html through api/v1/render to sandbox it
+  const populateRendererUrl = useCallback(() => {
+    if (!parameterizedHtml) {
+      setRendererUrl('')
+      return
+    }
+
+    // form srcDoc
+    const srcDoc = `
+        <html>
+          <head>
+            <style>
+              ${`
+                ${parameterizedCss}
+                html,
+                body {
+                  padding: 0;
+                  margin: 0;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  ${globalFontFamily ? `font-family: ${globalFontFamily};` : ''}
+                }
+                a {
+                  color: inherit;
+                  text-decoration: none;
+                }
+                `}
+            </style>
+          </head>
+          <body onload="window.parent.postMessage({ type: 'setIframeHeight', height: document.body.scrollHeight }, '*')">
+            ${parameterizedHtml}
+          </body>
+        </html>
+      `
+
+    // encode srcDoc
+    const encodedSrcDoc = encodeURIComponent(srcDoc)
+
+    // form render url, using deployment url for sandboxing
+    const apiPath = `/api/v1/html-renderer?srcDoc=${encodedSrcDoc}`
+    const _rendererUrl = `${deploymentUrl}${apiPath}`
+    setRendererUrl(_rendererUrl)
+  }, [parameterizedHtml, parameterizedCss, globalFontFamily])
+  useEffect(() => {
+    populateRendererUrl()
+  }, [populateRendererUrl])
+
+  const handleIframeMessage = useCallback((event) => {
+    if (event.data.type === 'setIframeHeight') {
+      setIframeHeight(event.data.height)
+    }
+  }, [])
+  useEffect(() => {
+    window.addEventListener('message', handleIframeMessage)
+    return () => {
+      window.removeEventListener('message', handleIframeMessage)
+    }
+  }, [handleIframeMessage])
 
   if (!shouldRender) {
     return null
   } else {
-    if (html) {
+    if (rendererUrl) {
       return (
         // render html and css securely within an iframe
         <iframe
           className={styles.renderer_container}
           style={expandHeight ? { height: `${iframeHeight}px` } : {}}
-          srcDoc={`
-            <html>
-              <head>
-                <style>
-                  ${`
-                    ${parameterizedCss}
-                    html,
-                    body {
-                      padding: 0;
-                      margin: 0;
-                      display: flex;
-                      flex-direction: column;
-                      align-items: center;
-                      ${
-                        globalFontFamily
-                          ? `font-family: ${globalFontFamily};`
-                          : ''
-                      }
-                    }
-                    a {
-                      color: inherit;
-                      text-decoration: none;
-                    }
-                    `}
-                </style>
-              </head>
-              <body onload="window.parent.postMessage({ type: 'setIframeHeight', height: document.body.scrollHeight }, '*')">
-                ${parameterizedHtml}
-              </body>
-            </html>
-          `}
+          src={rendererUrl}
+          sandbox="allow-scripts allow-same-origin"
         />
       )
     } else {

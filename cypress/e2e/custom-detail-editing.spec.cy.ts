@@ -111,6 +111,7 @@ describe('Custom detail editing', () => {
     cy.get('[class*=NodeDetail_html_container]').first().click()
 
     // see results
+    cy.wait(2000) // wait for api response
     cy.get('[class*=NodeDetail_html_container]')
       .find('iframe')
       .then(($iframe) => {
