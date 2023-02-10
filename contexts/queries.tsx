@@ -8,10 +8,20 @@ import {
   useState,
   useContext,
 } from 'react'
+import { v5 as uuidv5 } from 'uuid'
 
 import { useAuth } from 'contexts/auth'
 import { InputParameters, getInputParameters } from 'utils/queryUtils'
 import { supabase } from 'utils/supabaseClient'
+
+type QueryHash = string
+type QueryId = string
+type QueryHashGenerator = (
+  databaseConnectionId: string,
+  parentNodeId: string,
+  statement: string
+) => QueryHash
+type QueryIdMap = { [hash: QueryHash]: QueryId }
 
 type QueriesContextType = {
   globalSourceRefreshes: number
@@ -20,6 +30,9 @@ type QueriesContextType = {
   /* ^would prefer to use a Set here, but that doesn't work with useState
     https://stackoverflow.com/questions/58806883/how-to-use-set-with-reacts-usestate */
   setQueriesLoading: Dispatch<SetStateAction<Array<string>>> | undefined
+  latestQueryIds: QueryIdMap
+  setLatestQueryIds: Dispatch<SetStateAction<QueryIdMap>> | undefined
+  generateQueryHash: QueryHashGenerator | undefined
   queriesToCancel: Array<string>
   setQueriesToCancel: Dispatch<SetStateAction<Array<string>>> | undefined
   inputParameters: InputParameters
@@ -38,6 +51,9 @@ const queriesContextDefaultValues: QueriesContextType = {
   setGlobalSourceRefreshes: undefined,
   queriesLoading: [] as string[],
   setQueriesLoading: undefined,
+  latestQueryIds: {},
+  setLatestQueryIds: undefined,
+  generateQueryHash: undefined,
   queriesToCancel: [] as string[],
   setQueriesToCancel: undefined,
   inputParameters: {},
@@ -63,6 +79,7 @@ export function QueriesProvider({ children }: QueriesProps) {
 
   const [globalSourceRefreshes, setGlobalSourceRefreshes] = useState(0)
   const [queriesLoading, setQueriesLoading] = useState([] as string[])
+  const [latestQueryIds, setLatestQueryIds] = useState<QueryIdMap>({})
   const [queriesToCancel, setQueriesToCancel] = useState([] as string[])
   const [inputParameters, setInputParameters] = useState<InputParameters>({})
 
@@ -72,6 +89,42 @@ export function QueriesProvider({ children }: QueriesProps) {
       setGlobalSourceRefreshes(0)
     }
   }, [globalSourceRefreshes, queriesLoading])
+
+  const generateQueryHash: QueryHashGenerator = (
+    databaseConnectionId,
+    parentNodeId,
+    statement
+  ) => {
+    return uuidv5(
+      `${databaseConnectionId}-${parentNodeId}-${statement}`,
+      uuidv5.DNS
+    )
+  }
+
+  // listen for query executions and keep map updated
+  useEffect(() => {
+    const subscription = supabase
+      .from('database_queries')
+      .on('INSERT', (payload) => {
+        const newQuery = payload.new
+        if (newQuery) {
+          const queryHash = generateQueryHash(
+            newQuery.database_connection_id,
+            newQuery.parent_node_id,
+            newQuery.statement
+          )
+          const queryId = newQuery.id
+          setLatestQueryIds((prev) => ({
+            ...prev,
+            [queryHash]: queryId,
+          }))
+        }
+      })
+      .subscribe()
+    return () => {
+      supabase.removeSubscription(subscription)
+    }
+  }, [])
 
   const populateInputParameters = useCallback(async () => {
     if (organizationId && session?.user) {
@@ -210,6 +263,9 @@ export function QueriesProvider({ children }: QueriesProps) {
     setGlobalSourceRefreshes: setGlobalSourceRefreshes,
     queriesLoading: queriesLoading,
     setQueriesLoading: setQueriesLoading,
+    latestQueryIds: latestQueryIds,
+    setLatestQueryIds: setLatestQueryIds,
+    generateQueryHash: generateQueryHash,
     queriesToCancel: queriesToCancel,
     setQueriesToCancel: setQueriesToCancel,
     inputParameters: inputParameters,

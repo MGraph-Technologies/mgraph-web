@@ -50,6 +50,9 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   const {
     globalSourceRefreshes,
     setQueriesLoading,
+    latestQueryIds,
+    setLatestQueryIds,
+    generateQueryHash,
     queriesToCancel,
     setQueriesToCancel,
     inputParameters,
@@ -135,29 +138,45 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     getQueryId()
   }, [getQueryId])
 
-  // listen for new query executions
+  // initialize latest query id and listen for new executions
   useEffect(() => {
-    const query = supabase
-      .from(`database_queries:parent_node_id=eq.${parentMetricNodeData?.id}`)
-      .on('INSERT', (payload) => {
-        /* update query id if db connection and statement match; Ideally we'd be able
-          to include this in from, but it only supports 1 filter at the moment */
-        if (
-          payload.new.database_connection_id ===
-            parentMetricNodeData?.source?.databaseConnectionId &&
-          payload.new.statement === parameterizedStatement
-        ) {
-          setQueryId(payload.new.id)
-        }
-      })
-      .subscribe()
-    return () => {
-      query.unsubscribe()
+    if (
+      parentPopulated &&
+      generateQueryHash &&
+      parentMetricNodeData?.source?.databaseConnectionId &&
+      parentMetricNodeData?.id &&
+      parameterizedStatement &&
+      queryId &&
+      setLatestQueryIds
+    ) {
+      const queryHash = generateQueryHash(
+        parentMetricNodeData?.source?.databaseConnectionId,
+        parentMetricNodeData?.id,
+        parameterizedStatement
+      )
+      const latestQueryId = latestQueryIds[queryHash]
+      if (!latestQueryId) {
+        // latest query id not yet set, initialize it
+        setLatestQueryIds((prev) => {
+          return {
+            ...prev,
+            [queryHash]: queryId,
+          }
+        })
+      } else if (latestQueryId !== queryId) {
+        // latest query id has changed, update it
+        setQueryId(latestQueryId)
+      }
     }
   }, [
-    parentMetricNodeData?.id,
+    parentPopulated,
+    generateQueryHash,
     parentMetricNodeData?.source?.databaseConnectionId,
+    parentMetricNodeData?.id,
     parameterizedStatement,
+    queryId,
+    latestQueryIds,
+    setLatestQueryIds,
   ])
 
   const cancelQuery = useCallback(async () => {
