@@ -12,7 +12,9 @@ import { useGraph } from 'contexts/graph'
 import styles from 'styles/CustomNodeRenderer.module.css'
 import { parameterizeStatement } from 'utils/queryUtils'
 
-const deploymentUrl = process.env.VERCEL_URL || 'http://localhost:3000'
+const deploymentUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+  : 'http://localhost:3000'
 
 type CustomNodeRendererProps = {
   parentCustomNodeId: string
@@ -119,7 +121,6 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
     // form render url, using deployment url for sandboxing
     const apiPath = `/api/v1/html-renderer?srcDoc=${encodedSrcDoc}`
     const _rendererUrl = `${deploymentUrl}${apiPath}`
-    console.log('rendererUrl', _rendererUrl)
     setRendererUrl(_rendererUrl)
   }, [parameterizedHtml, parameterizedCss, globalFontFamily])
   useEffect(() => {
