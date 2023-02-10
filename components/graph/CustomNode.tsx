@@ -140,6 +140,7 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
             // remove spacing
             margin: 0,
             padding: 0,
+            minWidth: '100px',
           }}
           onChange={(e) => setName(e.target.value)}
           onSave={saveName}
