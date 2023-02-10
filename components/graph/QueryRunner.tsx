@@ -49,8 +49,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   const { editingEnabled } = useEditability()
   const { initialGraph } = useGraph()
   const {
-    globalQueryRefreshes,
-    setGlobalQueryRefreshes,
+    globalSourceRefreshes,
     setQueriesLoading,
     queriesToCancel,
     setQueriesToCancel,
@@ -369,16 +368,13 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     if (refreshes > 0) {
       executeQuery()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshes])
+  }, [refreshes, executeQuery])
 
   useEffect(() => {
-    if (globalQueryRefreshes > 0 && setGlobalQueryRefreshes) {
+    if (globalSourceRefreshes > 0) {
       executeQuery()
-      setGlobalQueryRefreshes(0)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [globalQueryRefreshes])
+  }, [globalSourceRefreshes, executeQuery])
 
   useEffect(
     () => {
