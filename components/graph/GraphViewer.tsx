@@ -365,8 +365,8 @@ const GraphViewer: FunctionComponent = () => {
                   selected:
                     node.type === 'function'
                       ? true
-                      : // select function nodes only on double click
-                        !node.selected,
+                      : // select function nodes only on double click, unless multi-selecting
+                        !node.selected || actionKeyPressed || shiftKeyPressed,
                 }
               } else {
                 return node
@@ -400,6 +400,8 @@ const GraphViewer: FunctionComponent = () => {
       getConnectedObjects,
       updateGraph,
       graph,
+      actionKeyPressed,
+      shiftKeyPressed,
     ]
   )
 
@@ -480,7 +482,11 @@ const GraphViewer: FunctionComponent = () => {
         minZoom={0.01}
         maxZoom={10}
         deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
-        multiSelectionKeyCode={null}
+        disableKeyboardA11y={
+          // disable when input is focused
+          document.activeElement?.tagName === 'INPUT'
+        }
+        multiSelectionKeyCode={null} // handled manually above
         selectionKeyCode={editingEnabled ? 'Shift' : null}
         onlyRenderVisibleElements={false}
         proOptions={{
