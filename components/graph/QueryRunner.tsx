@@ -368,15 +368,13 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     if (refreshes > 0) {
       executeQuery()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshes])
+  }, [refreshes, executeQuery])
 
   useEffect(() => {
     if (globalSourceRefreshes > 0) {
       executeQuery()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [globalSourceRefreshes])
+  }, [globalSourceRefreshes, executeQuery])
 
   useEffect(
     () => {
