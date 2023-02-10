@@ -480,6 +480,10 @@ const GraphViewer: FunctionComponent = () => {
         minZoom={0.01}
         maxZoom={10}
         deleteKeyCode={editingEnabled ? ['Backspace', 'Delete'] : []}
+        disableKeyboardA11y={
+          // disable when input is focused
+          document.activeElement?.tagName === 'INPUT'
+        }
         multiSelectionKeyCode={null}
         selectionKeyCode={editingEnabled ? 'Shift' : null}
         onlyRenderVisibleElements={false}
