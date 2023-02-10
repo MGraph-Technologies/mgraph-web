@@ -7,7 +7,6 @@ import { useGraph } from 'contexts/graph'
 import { useQueries } from 'contexts/queries'
 import {
   QueryData,
-  getLastUpdatedAt,
   getLatestQueryId,
   parameterizeStatement,
 } from 'utils/queryUtils'
@@ -55,11 +54,23 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     setQueriesToCancel,
     inputParameters,
   } = useQueries()
-  const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
-  const [queryUpdatedAt, setQueryUpdatedAt] = useState<Date | null>(null)
-
+  const [parameterizedStatement, setParameterizedStatement] = useState('')
   const [parentPopulated, setParentPopulated] = useState(false)
+  const [queryId, setQueryId] = useState('')
+
+  useEffect(() => {
+    const statement = parentMetricNodeData?.source?.query
+    let _parameterizedStatement = ''
+    if (statement) {
+      _parameterizedStatement = parameterizeStatement(
+        statement,
+        inputParameters
+      )
+    }
+    setParameterizedStatement(_parameterizedStatement)
+  }, [parentMetricNodeData?.source?.query, inputParameters])
+
   useEffect(() => {
     setParentPopulated(
       Boolean(
@@ -100,10 +111,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     if (accessToken && parentPopulated) {
       try {
         const _queryId = await getLatestQueryId(
-          parameterizeStatement(
-            parentMetricNodeData?.source?.query,
-            inputParameters
-          ),
+          parameterizedStatement,
           parentMetricNodeData?.source?.databaseConnectionId,
           parentMetricNodeData?.id,
           supabase
@@ -118,58 +126,39 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     getQueryIdComplete,
     getValidAccessToken,
     parentPopulated,
-    parentMetricNodeData?.source?.query,
+    parameterizedStatement,
     parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,
-    inputParameters,
   ])
 
   useEffect(() => {
     getQueryId()
   }, [getQueryId])
 
-  const checkForQueryUpdate = useCallback(async () => {
-    const accessToken = getValidAccessToken()
-    if (accessToken && queryId) {
-      try {
-        const _queryUpdatedAt = await getLastUpdatedAt(
-          'database_queries',
-          {
-            database_connection_id:
-              parentMetricNodeData?.source?.databaseConnectionId,
-            parent_node_id: parentMetricNodeData?.id,
-          },
-          supabase
-        )
+  // listen for new query executions
+  useEffect(() => {
+    const query = supabase
+      .from(`database_queries:parent_node_id=eq.${parentMetricNodeData?.id}`)
+      .on('INSERT', (payload) => {
+        /* update query id if db connection and statement match; Ideally we'd be able
+          to include this in from, but it only supports 1 filter at the moment */
         if (
-          _queryUpdatedAt &&
-          queryUpdatedAt &&
-          _queryUpdatedAt > queryUpdatedAt
+          payload.new.database_connection_id ===
+            parentMetricNodeData?.source?.databaseConnectionId &&
+          payload.new.statement === parameterizedStatement
         ) {
-          setGetQueryIdComplete(false)
+          setQueryId(payload.new.id)
         }
-        setQueryUpdatedAt(_queryUpdatedAt)
-      } catch (error: unknown) {
-        console.error(error)
-      }
+      })
+      .subscribe()
+    return () => {
+      query.unsubscribe()
     }
   }, [
-    getValidAccessToken,
-    queryId,
-    parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,
-    queryUpdatedAt,
+    parentMetricNodeData?.source?.databaseConnectionId,
+    parameterizedStatement,
   ])
-
-  // periodically check if reload available
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!editingEnabled) {
-        checkForQueryUpdate()
-      }
-    }, 1000 * 10)
-    return () => clearInterval(interval)
-  }, [editingEnabled, checkForQueryUpdate])
 
   const cancelQuery = useCallback(async () => {
     const accessToken = getValidAccessToken()
