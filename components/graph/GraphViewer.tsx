@@ -239,22 +239,21 @@ const GraphViewer: FunctionComponent = () => {
       if (!updateGraph) {
         throw new Error('updateGraph not defined')
       }
-      // multiselection
-      if (actionKeyPressed) {
-        updateGraph(
-          {
-            nodes: graph.nodes.map((n) =>
-              n.id === node.id
-                ? { ...node, selected: true }
-                : { ...n, selected: n.selected }
-            ),
-            edges: undefined,
-          },
-          true
-        )
-      }
+      // save graph before moves so they can be undone
+      updateGraph(
+        {
+          nodes: graph.nodes.map((n) =>
+            n.id === node.id
+              ? // include node selection since update lands after reactflow's
+                { ...node, selected: true }
+              : { ...n, selected: actionKeyPressed ? n.selected : false }
+          ),
+          edges: undefined,
+        },
+        true
+      )
     },
-    [updateGraph, graph, actionKeyPressed]
+    [updateGraph, graph.nodes, actionKeyPressed]
   )
 
   const onEdgesChange = useCallback(
@@ -486,7 +485,7 @@ const GraphViewer: FunctionComponent = () => {
           // disable when input is focused
           document.activeElement?.tagName === 'INPUT'
         }
-        multiSelectionKeyCode={null} // handled manually above
+        multiSelectionKeyCode={null}
         selectionKeyCode={editingEnabled ? 'Shift' : null}
         onlyRenderVisibleElements={false}
         proOptions={{
