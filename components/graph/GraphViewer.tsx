@@ -1,6 +1,5 @@
 import React, {
   FunctionComponent,
-  MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
   useState,
@@ -50,7 +49,6 @@ const GraphViewer: FunctionComponent = () => {
     getConnectedObjects,
   } = useGraph()
   const {
-    actionKey,
     actionKeyPressed,
     altKeyPressed,
     inputInProgress,
@@ -188,6 +186,147 @@ const GraphViewer: FunctionComponent = () => {
     reactFlowViewport,
   ])
 
+  const [
+    lastSelectedFunctionNodeOrInputEdgeId,
+    setLastSelectedFunctionNodeOrInputEdgeId,
+  ] = useState('')
+  const [alsoSelectNonFunctionNodes, setAlsoSelectNonFunctionNodes] =
+    useState(true)
+  const onClick = useCallback(
+    (nodeOrEdge: Node | Edge) => {
+      // selection and multiselection
+      if (!updateGraph) {
+        throw new Error('updateGraph not defined')
+      }
+      let newGraph = {
+        nodes: graph.nodes.map((node) => {
+          if (node.id === nodeOrEdge.id) {
+            return {
+              ...node,
+              selected: true,
+            }
+          } else {
+            return {
+              ...node,
+              selected: actionKeyPressed ? node.selected : false,
+            }
+          }
+        }),
+        edges: graph.edges.map((edge) => {
+          if (edge.id === nodeOrEdge.id) {
+            return {
+              ...edge,
+              selected: true,
+            }
+          } else {
+            return {
+              ...edge,
+              selected: actionKeyPressed ? edge.selected : false,
+            }
+          }
+        }),
+      }
+      // selecting any function node or input edge selects all connected others
+      if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {
+        if (!getConnectedObjects) {
+          throw new Error('getConnectedObjects not defined')
+        }
+        let _lastSelectedFunctionNodeOrInputEdgeId =
+          lastSelectedFunctionNodeOrInputEdgeId
+        let _alsoSelectNonFunctionNodes = !alsoSelectNonFunctionNodes
+        if (nodeOrEdge.id !== _lastSelectedFunctionNodeOrInputEdgeId) {
+          _lastSelectedFunctionNodeOrInputEdgeId = nodeOrEdge.id
+          _alsoSelectNonFunctionNodes = true
+        }
+        const connectedObjects = getConnectedObjects(nodeOrEdge, 1).concat([
+          nodeOrEdge,
+        ])
+        newGraph = {
+          nodes: newGraph.nodes.map((node) => {
+            if (
+              connectedObjects.find(
+                (c) => c.id === node.id && c.type === node.type
+              )
+            ) {
+              return {
+                ...node,
+                selected:
+                  node.type === 'function'
+                    ? true
+                    : // select function nodes only on double click, unless multi-selecting
+                      _alsoSelectNonFunctionNodes ||
+                      actionKeyPressed ||
+                      shiftKeyPressed,
+              }
+            } else {
+              return node
+            }
+          }),
+          edges: newGraph.edges.map((edge) => {
+            if (
+              connectedObjects.find(
+                (c) => c.id === edge.id && c.type === edge.type
+              )
+            ) {
+              return {
+                ...edge,
+                selected: true,
+              }
+            } else {
+              return edge
+            }
+          }),
+        }
+        setLastSelectedFunctionNodeOrInputEdgeId(
+          _lastSelectedFunctionNodeOrInputEdgeId
+        )
+        setAlsoSelectNonFunctionNodes(_alsoSelectNonFunctionNodes)
+      }
+      // update graph
+      updateGraph(
+        { nodes: newGraph.nodes, edges: newGraph.edges },
+        editingEnabled
+      )
+      // clicking custom or metric nodes opens metric detail when !editingEnabled
+      if (
+        ['custom', 'metric'].includes(nodeOrEdge.type || '') &&
+        !editingEnabled
+      ) {
+        if (altKeyPressed) {
+          const metricNode = nodeOrEdge as Node
+          reactFlowInstance.fitBounds({
+            x: metricNode.position.x,
+            y: metricNode.position.y,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            width: metricNode.width!,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            height: metricNode.height!,
+          })
+          analytics.track('snap_to_metric_node', {
+            node_id: metricNode.id,
+          })
+        } else {
+          push(`${organizationName}/nodes/${nodeOrEdge.id}`)
+          return
+        }
+      }
+    },
+    [
+      updateGraph,
+      graph,
+      actionKeyPressed,
+      editingEnabled,
+      altKeyPressed,
+      reactFlowInstance,
+      push,
+      organizationName,
+      getConnectedObjects,
+      lastSelectedFunctionNodeOrInputEdgeId,
+      alsoSelectNonFunctionNodes,
+      shiftKeyPressed,
+    ]
+  )
+
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       // handle deletes via onNodesDelete
@@ -236,25 +375,20 @@ const GraphViewer: FunctionComponent = () => {
   )
 
   const onNodeDragStart = useCallback(
-    (_event: ReactMouseEvent, node: Node) => {
+    // save graph before moves so they can be undone
+    () => {
       if (!updateGraph) {
         throw new Error('updateGraph not defined')
       }
-      // save graph before moves so they can be undone
       updateGraph(
         {
-          nodes: graph.nodes.map((n) =>
-            n.id === node.id
-              ? // include node selection since update lands after reactflow's
-                { ...node, selected: true }
-              : n
-          ),
+          nodes: undefined,
           edges: undefined,
         },
         true
       )
     },
-    [updateGraph, graph.nodes]
+    [updateGraph]
   )
 
   const onEdgesChange = useCallback(
@@ -274,20 +408,6 @@ const GraphViewer: FunctionComponent = () => {
     [updateGraph, graph.edges]
   )
 
-  const [edgeUpdateInProgress, setEdgeUpdateInProgress] = useState(false)
-  const onEdgeUpdateStart = useCallback(
-    (_event: React.MouseEvent, edge: Edge, handleType: HandleType) => {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      setEdgeBeingUpdated!({ edge: edge, handleType: handleType })
-      setEdgeUpdateInProgress(true)
-    },
-    [setEdgeBeingUpdated, setEdgeUpdateInProgress]
-  )
-  const onEdgeUpdateEnd = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    setEdgeBeingUpdated!(null)
-    setEdgeUpdateInProgress(false)
-  }, [setEdgeBeingUpdated, setEdgeUpdateInProgress])
   const onEdgeUpdate = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
       if (!updateGraph) {
@@ -317,93 +437,20 @@ const GraphViewer: FunctionComponent = () => {
     [updateGraph, graph.edges]
   )
 
-  const onSelect = useCallback(
-    (nodeOrEdge: Node | Edge) => {
-      // clicking custom or metric nodes opens metric detail when !editingEnabled
-      if (
-        ['custom', 'metric'].includes(nodeOrEdge.type || '') &&
-        !editingEnabled
-      ) {
-        if (altKeyPressed) {
-          const metricNode = nodeOrEdge as Node
-          reactFlowInstance.fitBounds({
-            x: metricNode.position.x,
-            y: metricNode.position.y,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            width: metricNode.width!,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            height: metricNode.height!,
-          })
-          analytics.track('snap_to_metric_node', {
-            node_id: metricNode.id,
-          })
-        } else {
-          push(`${organizationName}/nodes/${nodeOrEdge.id}`)
-        }
-      }
-      // selecting any function node or input edge highlights all connected others
-      if (nodeOrEdge.type === 'function' || nodeOrEdge.type === 'input') {
-        if (!getConnectedObjects) {
-          throw new Error('getConnectedObjects not defined')
-        }
-        if (!updateGraph) {
-          throw new Error('updateGraph not defined')
-        }
-        const connectedObjects = getConnectedObjects(nodeOrEdge, 1).concat([
-          nodeOrEdge,
-        ])
-        updateGraph(
-          {
-            nodes: graph.nodes.map((node) => {
-              if (
-                connectedObjects.find(
-                  (c) => c.id === node.id && c.type === node.type
-                )
-              ) {
-                return {
-                  ...node,
-                  selected:
-                    node.type === 'function'
-                      ? true
-                      : // select function nodes only on double click, unless multi-selecting
-                        !node.selected || actionKeyPressed || shiftKeyPressed,
-                }
-              } else {
-                return node
-              }
-            }),
-            edges: graph.edges.map((edge) => {
-              if (
-                connectedObjects.find(
-                  (c) => c.id === edge.id && c.type === edge.type
-                )
-              ) {
-                return {
-                  ...edge,
-                  selected: true,
-                }
-              } else {
-                return edge
-              }
-            }),
-          },
-          false
-        )
-      }
+  const [edgeUpdateInProgress, setEdgeUpdateInProgress] = useState(false)
+  const onEdgeUpdateStart = useCallback(
+    (_event: React.MouseEvent, edge: Edge, handleType: HandleType) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      setEdgeBeingUpdated!({ edge: edge, handleType: handleType })
+      setEdgeUpdateInProgress(true)
     },
-    [
-      editingEnabled,
-      altKeyPressed,
-      reactFlowInstance,
-      organizationName,
-      push,
-      getConnectedObjects,
-      updateGraph,
-      graph,
-      actionKeyPressed,
-      shiftKeyPressed,
-    ]
+    [setEdgeBeingUpdated, setEdgeUpdateInProgress]
   )
+  const onEdgeUpdateEnd = useCallback(() => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    setEdgeBeingUpdated!(null)
+    setEdgeUpdateInProgress(false)
+  }, [setEdgeBeingUpdated, setEdgeUpdateInProgress])
 
   const [reactFlowViewportInitialized, setReactFlowViewportInitialized] =
     useState(false)
@@ -463,19 +510,21 @@ const GraphViewer: FunctionComponent = () => {
         edges={graph.edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onNodeClick={(_event, node) => onSelect(node)}
+        // selection handled manually by onClick except for shift-selecting
+        elementsSelectable={editingEnabled ? shiftKeyPressed : false}
+        nodesDraggable={editingEnabled}
+        nodesConnectable={edgeUpdateInProgress} // shows update preview while dragging
+        onNodeClick={(_event, node) => onClick(node)}
         onNodesChange={onNodesChange}
         onNodesDelete={onNodesDelete}
-        onEdgeClick={(_event, edge) => onSelect(edge)}
+        onNodeDragStart={onNodeDragStart}
+        onEdgeClick={(_event, edge) => onClick(edge)}
+        onEdgesChange={onEdgesChange}
         onEdgeUpdate={editingEnabled ? onEdgeUpdate : undefined}
         onEdgeUpdateStart={editingEnabled ? onEdgeUpdateStart : undefined}
         onEdgeUpdateEnd={editingEnabled ? onEdgeUpdateEnd : undefined}
-        onEdgesChange={onEdgesChange}
-        onNodeDragStart={onNodeDragStart}
         onMove={onMove}
         onMoveEnd={onMoveEnd}
-        nodesDraggable={editingEnabled}
-        nodesConnectable={edgeUpdateInProgress} // shows update preview while dragging
         snapToGrid={true}
         snapGrid={[16, 16]}
         panOnScroll={true}
@@ -486,7 +535,7 @@ const GraphViewer: FunctionComponent = () => {
           // disable when input is focused
           document.activeElement?.tagName === 'INPUT'
         }
-        multiSelectionKeyCode={editingEnabled ? actionKey : null}
+        multiSelectionKeyCode={null} // handled manually in onClick
         selectionKeyCode={editingEnabled ? 'Shift' : null}
         onlyRenderVisibleElements={false}
         proOptions={{
