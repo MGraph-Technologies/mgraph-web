@@ -554,9 +554,53 @@ export function GraphProvider({ children }: GraphProps) {
         }
       })
       .subscribe()
+    const monitoringRuleEvalsSubscription = supabase
+      .from('monitoring_rule_evaluations')
+      // inserts are pending, status comes through via update
+      .on('UPDATE', async (payload) => {
+        if (payload.new.status === 'pending' || payload.new.deleted_at) {
+          return
+        }
+        // query for node id
+        const { data, status, error } = await supabase
+          .from('monitoring_rules')
+          .select('parent_node_id')
+          .eq('id', payload.new.monitoring_rule_id)
+          .single()
+        if (error && status !== 406) {
+          throw error
+        }
+        if (data) {
+          // update node in graph
+          updateGraph(
+            {
+              nodes: graph.nodes.map((n) => {
+                if (n.id === data.parent_node_id) {
+                  return {
+                    ...n,
+                    data: {
+                      ...n.data,
+                      monitored: true,
+                      alert: ['alert', 'timed_out'].includes(
+                        payload.new.status
+                      ),
+                    },
+                  }
+                } else {
+                  return n
+                }
+              }),
+              edges: undefined,
+            },
+            false
+          )
+        }
+      })
+      .subscribe()
     return () => {
       nodesSubscription.unsubscribe()
       edgesSubscription.unsubscribe()
+      monitoringRuleEvalsSubscription.unsubscribe()
     }
   }, [updateGraph, graph])
 
