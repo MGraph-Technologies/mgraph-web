@@ -186,130 +186,6 @@ const GraphViewer: FunctionComponent = () => {
     reactFlowViewport,
   ])
 
-  const onNodesChange = useCallback(
-    (changes: NodeChange[]) => {
-      // handle deletes via onNodesDelete
-      if (changes.find((c) => c.type === 'remove')) {
-        return
-      }
-      if (!updateGraph) {
-        throw new Error('updateGraph not defined')
-      }
-      updateGraph(
-        { nodes: applyNodeChanges(changes, graph.nodes), edges: undefined },
-        false
-      )
-    },
-    [updateGraph, graph.nodes]
-  )
-
-  const onNodesDelete = useCallback(
-    (nodes: Node[]) => {
-      if (!updateGraph) {
-        throw new Error('updateGraph not defined')
-      }
-      if (!getConnectedObjects) {
-        throw new Error('getConnectedObjects not defined')
-      }
-      // delete node + connected input edges and function nodes
-      const toDelete: string[] = []
-      nodes.forEach((node) => {
-        toDelete.push(node.id)
-        const connectedObjects = getConnectedObjects(node, 1)
-        connectedObjects.forEach((o) => {
-          if (o.type === 'input' || o.type === 'function') {
-            toDelete.push(o.id)
-          }
-        })
-      })
-      updateGraph(
-        {
-          nodes: graph.nodes.filter((n) => !toDelete.includes(n.id)),
-          edges: graph.edges.filter((e) => !toDelete.includes(e.id)),
-        },
-        true
-      )
-    },
-    [getConnectedObjects, updateGraph, graph.nodes, graph.edges]
-  )
-
-  const onNodeDragStart = useCallback(
-    // save graph before moves so they can be undone
-    () => {
-      if (!updateGraph) {
-        throw new Error('updateGraph not defined')
-      }
-      updateGraph(
-        {
-          nodes: undefined,
-          edges: undefined,
-        },
-        true
-      )
-    },
-    [updateGraph]
-  )
-
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) => {
-      // handle deletes via onNodesDelete
-      if (changes.find((c) => c.type === 'remove')) {
-        return
-      }
-      if (!updateGraph) {
-        throw new Error('updateGraph not defined')
-      }
-      updateGraph(
-        { nodes: undefined, edges: applyEdgeChanges(changes, graph.edges) },
-        true
-      )
-    },
-    [updateGraph, graph.edges]
-  )
-
-  const [edgeUpdateInProgress, setEdgeUpdateInProgress] = useState(false)
-  const onEdgeUpdateStart = useCallback(
-    (_event: React.MouseEvent, edge: Edge, handleType: HandleType) => {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      setEdgeBeingUpdated!({ edge: edge, handleType: handleType })
-      setEdgeUpdateInProgress(true)
-    },
-    [setEdgeBeingUpdated, setEdgeUpdateInProgress]
-  )
-  const onEdgeUpdateEnd = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    setEdgeBeingUpdated!(null)
-    setEdgeUpdateInProgress(false)
-  }, [setEdgeBeingUpdated, setEdgeUpdateInProgress])
-  const onEdgeUpdate = useCallback(
-    (oldEdge: Edge, newConnection: Connection) => {
-      if (!updateGraph) {
-        throw new Error('updateGraph not defined')
-      }
-      if (
-        !(
-          oldEdge.source === newConnection.source &&
-          oldEdge.target === newConnection.target
-        )
-      ) {
-        return // only allow same-source/target updates
-      }
-      const newEdge = {
-        ...oldEdge,
-        sourceHandle: newConnection.sourceHandle,
-        targetHandle: newConnection.targetHandle,
-      }
-      updateGraph(
-        {
-          nodes: undefined,
-          edges: graph.edges.map((e) => (e.id === oldEdge.id ? newEdge : e)),
-        },
-        true
-      )
-    },
-    [updateGraph, graph.edges]
-  )
-
   const [
     lastSelectedFunctionNodeOrInputEdgeId,
     setLastSelectedFunctionNodeOrInputEdgeId,
@@ -451,6 +327,131 @@ const GraphViewer: FunctionComponent = () => {
     ]
   )
 
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      // handle deletes via onNodesDelete
+      if (changes.find((c) => c.type === 'remove')) {
+        return
+      }
+      if (!updateGraph) {
+        throw new Error('updateGraph not defined')
+      }
+      updateGraph(
+        { nodes: applyNodeChanges(changes, graph.nodes), edges: undefined },
+        false
+      )
+    },
+    [updateGraph, graph.nodes]
+  )
+
+  const onNodesDelete = useCallback(
+    (nodes: Node[]) => {
+      if (!updateGraph) {
+        throw new Error('updateGraph not defined')
+      }
+      if (!getConnectedObjects) {
+        throw new Error('getConnectedObjects not defined')
+      }
+      // delete node + connected input edges and function nodes
+      const toDelete: string[] = []
+      nodes.forEach((node) => {
+        toDelete.push(node.id)
+        const connectedObjects = getConnectedObjects(node, 1)
+        connectedObjects.forEach((o) => {
+          if (o.type === 'input' || o.type === 'function') {
+            toDelete.push(o.id)
+          }
+        })
+      })
+      updateGraph(
+        {
+          nodes: graph.nodes.filter((n) => !toDelete.includes(n.id)),
+          edges: graph.edges.filter((e) => !toDelete.includes(e.id)),
+        },
+        true
+      )
+    },
+    [getConnectedObjects, updateGraph, graph.nodes, graph.edges]
+  )
+
+  const onNodeDragStart = useCallback(
+    // save graph before moves so they can be undone
+    () => {
+      if (!updateGraph) {
+        throw new Error('updateGraph not defined')
+      }
+      updateGraph(
+        {
+          nodes: undefined,
+          edges: undefined,
+        },
+        true
+      )
+    },
+    [updateGraph]
+  )
+
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      // handle deletes via onNodesDelete
+      if (changes.find((c) => c.type === 'remove')) {
+        return
+      }
+      if (!updateGraph) {
+        throw new Error('updateGraph not defined')
+      }
+      updateGraph(
+        { nodes: undefined, edges: applyEdgeChanges(changes, graph.edges) },
+        true
+      )
+    },
+    [updateGraph, graph.edges]
+  )
+
+  const onEdgeUpdate = useCallback(
+    (oldEdge: Edge, newConnection: Connection) => {
+      if (!updateGraph) {
+        throw new Error('updateGraph not defined')
+      }
+      if (
+        !(
+          oldEdge.source === newConnection.source &&
+          oldEdge.target === newConnection.target
+        )
+      ) {
+        return // only allow same-source/target updates
+      }
+      const newEdge = {
+        ...oldEdge,
+        sourceHandle: newConnection.sourceHandle,
+        targetHandle: newConnection.targetHandle,
+      }
+      updateGraph(
+        {
+          nodes: undefined,
+          edges: graph.edges.map((e) => (e.id === oldEdge.id ? newEdge : e)),
+        },
+        true
+      )
+    },
+    [updateGraph, graph.edges]
+  )
+
+  const [edgeUpdateInProgress, setEdgeUpdateInProgress] = useState(false)
+  const onEdgeUpdateStart = useCallback(
+    (_event: React.MouseEvent, edge: Edge, handleType: HandleType) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      setEdgeBeingUpdated!({ edge: edge, handleType: handleType })
+      setEdgeUpdateInProgress(true)
+    },
+    [setEdgeBeingUpdated, setEdgeUpdateInProgress]
+  )
+  const onEdgeUpdateEnd = useCallback(() => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    setEdgeBeingUpdated!(null)
+    setEdgeUpdateInProgress(false)
+  }, [setEdgeBeingUpdated, setEdgeUpdateInProgress])
+
   const [reactFlowViewportInitialized, setReactFlowViewportInitialized] =
     useState(false)
   const onMove: OnMove = (_event, viewport) => {
@@ -509,21 +510,21 @@ const GraphViewer: FunctionComponent = () => {
         edges={graph.edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onNodeClick={(_event, node) => onClick(node)}
-        onNodesChange={onNodesChange}
-        onNodesDelete={onNodesDelete}
-        onEdgeClick={(_event, edge) => onClick(edge)}
-        onEdgeUpdate={editingEnabled ? onEdgeUpdate : undefined}
-        onEdgeUpdateStart={editingEnabled ? onEdgeUpdateStart : undefined}
-        onEdgeUpdateEnd={editingEnabled ? onEdgeUpdateEnd : undefined}
-        onEdgesChange={onEdgesChange}
-        onNodeDragStart={onNodeDragStart}
-        onMove={onMove}
-        onMoveEnd={onMoveEnd}
         // selection handled manually by onClick except for shift-selecting
         elementsSelectable={editingEnabled ? shiftKeyPressed : false}
         nodesDraggable={editingEnabled}
         nodesConnectable={edgeUpdateInProgress} // shows update preview while dragging
+        onNodeClick={(_event, node) => onClick(node)}
+        onNodesChange={onNodesChange}
+        onNodesDelete={onNodesDelete}
+        onNodeDragStart={onNodeDragStart}
+        onEdgeClick={(_event, edge) => onClick(edge)}
+        onEdgesChange={onEdgesChange}
+        onEdgeUpdate={editingEnabled ? onEdgeUpdate : undefined}
+        onEdgeUpdateStart={editingEnabled ? onEdgeUpdateStart : undefined}
+        onEdgeUpdateEnd={editingEnabled ? onEdgeUpdateEnd : undefined}
+        onMove={onMove}
+        onMoveEnd={onMoveEnd}
         snapToGrid={true}
         snapGrid={[16, 16]}
         panOnScroll={true}
