@@ -54,11 +54,19 @@ type GoalStatusMap = {
   [metricNodeId: string]: { [goalId: string]: GoalStatus }
 }
 
+type LatestCommentIdMap = {
+  [metricNodeId: string]: string | null
+}
+
 type GraphContextType = {
   initialGraph: Graph
   graph: Graph
   goalStatusMap: GoalStatusMap
   setGoalStatusMap: Dispatch<SetStateAction<GoalStatusMap>> | undefined
+  latestCommentIdMap: LatestCommentIdMap
+  setLatestCommentIdMap:
+    | Dispatch<SetStateAction<LatestCommentIdMap>>
+    | undefined
   /* reactFlowInstance is produced by useReactFlow(), which must be called
     in a component that is wrapped in a ReactFlowProvider. Thus, we can't
     instantiate it directly here but instead pass it back from GraphViewer. */
@@ -150,6 +158,8 @@ const graphContextDefaultValues: GraphContextType = {
   },
   goalStatusMap: {},
   setGoalStatusMap: undefined,
+  latestCommentIdMap: {},
+  setLatestCommentIdMap: undefined,
   reactFlowInstance: undefined,
   setReactFlowInstance: undefined,
   reactFlowRenderer: undefined,
@@ -202,6 +212,8 @@ export function GraphProvider({ children }: GraphProps) {
     })
 
   const [goalStatusMap, setGoalStatusMap] = useState<GoalStatusMap>({})
+  const [latestCommentIdMap, setLatestCommentIdMap] =
+    useState<LatestCommentIdMap>({})
 
   const [reactFlowInstance, setReactFlowInstance] = useState<
     ReactFlowInstance | undefined
@@ -597,10 +609,23 @@ export function GraphProvider({ children }: GraphProps) {
         }
       })
       .subscribe()
+    const commentsSubscription = supabase
+      .from('sce_comments')
+      .on('INSERT', (payload) => {
+        const comment = payload.new
+        setLatestCommentIdMap((latestCommentIdMap) => {
+          return {
+            ...latestCommentIdMap,
+            [comment.topic]: comment.id,
+          }
+        })
+      })
+      .subscribe()
     return () => {
       nodesSubscription.unsubscribe()
       edgesSubscription.unsubscribe()
       monitoringRuleEvalsSubscription.unsubscribe()
+      commentsSubscription.unsubscribe()
     }
   }, [updateGraph, graph])
 
@@ -1097,6 +1122,8 @@ export function GraphProvider({ children }: GraphProps) {
     graph: graph,
     goalStatusMap: goalStatusMap,
     setGoalStatusMap: setGoalStatusMap,
+    latestCommentIdMap: latestCommentIdMap,
+    setLatestCommentIdMap: setLatestCommentIdMap,
     reactFlowInstance: reactFlowInstance,
     setReactFlowInstance: setReactFlowInstance,
     reactFlowRenderer: reactFlowRenderer,

@@ -13,6 +13,7 @@ import { Node } from 'reactflow'
 import { Comments, CommentsProvider } from 'supabase-comments-extension'
 
 import { useAuth } from 'contexts/auth'
+import { useGraph } from 'contexts/graph'
 import styles from 'styles/NodeCommentsButton.module.css'
 import { analytics } from 'utils/segmentClient'
 import { supabase } from 'utils/supabaseClient'
@@ -26,32 +27,57 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   node,
 }) => {
   const { getValidAccessToken } = useAuth()
+  const { latestCommentIdMap, setLatestCommentIdMap } = useGraph()
   const commentsOverlay = useRef<OverlayPanel>(null)
   const [commentsOverlayVisible, setCommentsOverlayVisible] = useState(false)
 
+  const [latestTopicCommentId, setLatestTopicCommentId] = useState<
+    string | null
+  >(null)
   const [topicRecentComments, setTopicRecentComments] = useState(0)
-  useEffect(() => {
+  const fetchTopicRecentComments = useCallback(async () => {
     const recentCommentsCutoff = new Date(Date.now() - 86400000).toISOString()
-    const fetchTopicRecentComments = async () => {
-      if (node?.id) {
-        const { data, error } = await supabase
-          .from('sce_comments')
-          .select('id')
-          .eq('topic', node.id)
-          .gte('created_at', recentCommentsCutoff)
+    if (node?.id && setLatestCommentIdMap) {
+      const { data, error } = await supabase
+        .from('sce_comments')
+        .select('id')
+        .eq('topic', node.id)
+        .gte('created_at', recentCommentsCutoff)
+        .order('created_at', { ascending: false })
 
-        if (error) {
-          console.error(error)
-        } else {
-          setTopicRecentComments(data?.length || 0)
-        }
+      if (error) {
+        console.error(error)
+      } else {
+        setTopicRecentComments(data?.length || 0)
+        const _latestTopicCommentId = data?.[0]?.id || null
+        setLatestTopicCommentId(_latestTopicCommentId)
+        setLatestCommentIdMap((latestCommentIdMap) => ({
+          ...latestCommentIdMap,
+          [node.id]: _latestTopicCommentId,
+        }))
       }
     }
+  }, [node?.id, setLatestCommentIdMap])
+  // initialize recent comments
+  useEffect(() => {
+    if (latestTopicCommentId) return
     fetchTopicRecentComments()
-    // continue to fetch periodically
-    const interval = setInterval(fetchTopicRecentComments, 1000 * 10)
-    return () => clearInterval(interval)
-  }, [node?.id])
+  }, [latestTopicCommentId, fetchTopicRecentComments])
+  // listen for new comments
+  useEffect(() => {
+    const _latestTopicCommentId = latestCommentIdMap[node?.id || '']
+    if (
+      _latestTopicCommentId &&
+      _latestTopicCommentId !== latestTopicCommentId
+    ) {
+      fetchTopicRecentComments()
+    }
+  }, [
+    latestCommentIdMap,
+    node?.id,
+    latestTopicCommentId,
+    fetchTopicRecentComments,
+  ])
 
   // auto scroll top-level comments to bottom initially and on new comment
   // unfortunately there's no onCommment prop in SCE so we have to continuously check
