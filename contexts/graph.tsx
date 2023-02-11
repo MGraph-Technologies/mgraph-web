@@ -409,16 +409,6 @@ export function GraphProvider({ children }: GraphProps) {
     }
   }, [loadGraph, graphInitializedAt])
 
-  // periodically reload graph if not editing
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!editingEnabled) {
-        loadGraph()
-      }
-    }, 1000 * 10)
-    return () => clearInterval(interval)
-  }, [editingEnabled, loadGraph])
-
   const saveGraph = useCallback(async () => {
     const accessToken = getValidAccessToken()
     if (!accessToken || !organizationId) {
@@ -461,6 +451,114 @@ export function GraphProvider({ children }: GraphProps) {
     },
     [setGraph]
   )
+
+  // listen for graph changes
+  useEffect(() => {
+    const nodesSubscription = supabase
+      .from('nodes')
+      .on('*', (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const node = {
+            ...payload.new.react_flow_meta,
+            data: {
+              ...payload.new.properties,
+              setNodeDataToChange: setNodeDataToChange,
+            },
+          } as Node
+          updateGraph(
+            {
+              nodes: [...graph.nodes, node],
+              edges: undefined,
+            },
+            false
+          )
+        } else if (payload.eventType === 'UPDATE') {
+          if (payload.new.deleted_at) {
+            const node = payload.new as Node
+            updateGraph(
+              {
+                nodes: graph.nodes.filter((n) => n.id !== node.id),
+                edges: undefined,
+              },
+              false
+            )
+          } else {
+            const node = {
+              ...payload.new.react_flow_meta,
+              data: {
+                ...payload.new.properties,
+                setNodeDataToChange: setNodeDataToChange,
+              },
+            } as Node
+            updateGraph(
+              {
+                nodes: graph.nodes.map((n) => {
+                  if (n.id === node.id) {
+                    return node
+                  } else {
+                    return n
+                  }
+                }),
+                edges: undefined,
+              },
+              false
+            )
+          }
+        }
+      })
+      .subscribe()
+    const edgesSubscription = supabase
+      .from('edges')
+      .on('*', (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const edge = {
+            ...payload.new.react_flow_meta,
+            data: payload.new.properties,
+          } as Edge
+          updateGraph(
+            {
+              nodes: undefined,
+              edges: [...graph.edges, edge],
+            },
+            false
+          )
+        } else if (payload.eventType === 'UPDATE') {
+          if (payload.new.deleted_at) {
+            const edge = payload.new as Edge
+            updateGraph(
+              {
+                nodes: undefined,
+                edges: graph.edges.filter((e) => e.id !== edge.id),
+              },
+              false
+            )
+          } else {
+            const edge = {
+              ...payload.new.react_flow_meta,
+              data: payload.new.properties,
+            } as Edge
+            updateGraph(
+              {
+                nodes: undefined,
+                edges: graph.edges.map((e) => {
+                  if (e.id === edge.id) {
+                    return edge
+                  } else {
+                    return e
+                  }
+                }),
+              },
+              false
+            )
+          }
+        }
+      })
+      .subscribe()
+    return () => {
+      nodesSubscription.unsubscribe()
+      edgesSubscription.unsubscribe()
+    }
+  }, [updateGraph, graph])
 
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */

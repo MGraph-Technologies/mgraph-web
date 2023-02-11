@@ -7,7 +7,6 @@ import { useGraph } from 'contexts/graph'
 import { useQueries } from 'contexts/queries'
 import {
   QueryData,
-  getLastUpdatedAt,
   getLatestQueryId,
   parameterizeStatement,
 } from 'utils/queryUtils'
@@ -51,15 +50,30 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   const {
     globalSourceRefreshes,
     setQueriesLoading,
+    latestQueryIds,
+    setLatestQueryIds,
+    generateQueryHash,
     queriesToCancel,
     setQueriesToCancel,
     inputParameters,
   } = useQueries()
-  const [queryId, setQueryId] = useState('')
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
-  const [queryUpdatedAt, setQueryUpdatedAt] = useState<Date | null>(null)
-
+  const [parameterizedStatement, setParameterizedStatement] = useState('')
   const [parentPopulated, setParentPopulated] = useState(false)
+  const [queryId, setQueryId] = useState('')
+
+  useEffect(() => {
+    const statement = parentMetricNodeData?.source?.query
+    let _parameterizedStatement = ''
+    if (statement) {
+      _parameterizedStatement = parameterizeStatement(
+        statement,
+        inputParameters
+      )
+    }
+    setParameterizedStatement(_parameterizedStatement)
+  }, [parentMetricNodeData?.source?.query, inputParameters])
+
   useEffect(() => {
     setParentPopulated(
       Boolean(
@@ -100,10 +114,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     if (accessToken && parentPopulated) {
       try {
         const _queryId = await getLatestQueryId(
-          parameterizeStatement(
-            parentMetricNodeData?.source?.query,
-            inputParameters
-          ),
+          parameterizedStatement,
           parentMetricNodeData?.source?.databaseConnectionId,
           parentMetricNodeData?.id,
           supabase
@@ -118,58 +129,55 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
     getQueryIdComplete,
     getValidAccessToken,
     parentPopulated,
-    parentMetricNodeData?.source?.query,
+    parameterizedStatement,
     parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,
-    inputParameters,
   ])
 
   useEffect(() => {
     getQueryId()
   }, [getQueryId])
 
-  const checkForQueryUpdate = useCallback(async () => {
-    const accessToken = getValidAccessToken()
-    if (accessToken && queryId) {
-      try {
-        const _queryUpdatedAt = await getLastUpdatedAt(
-          'database_queries',
-          {
-            database_connection_id:
-              parentMetricNodeData?.source?.databaseConnectionId,
-            parent_node_id: parentMetricNodeData?.id,
-          },
-          supabase
-        )
-        if (
-          _queryUpdatedAt &&
-          queryUpdatedAt &&
-          _queryUpdatedAt > queryUpdatedAt
-        ) {
-          setGetQueryIdComplete(false)
-        }
-        setQueryUpdatedAt(_queryUpdatedAt)
-      } catch (error: unknown) {
-        console.error(error)
+  // initialize latest query id and listen for new executions
+  useEffect(() => {
+    if (
+      parentPopulated &&
+      generateQueryHash &&
+      parentMetricNodeData?.source?.databaseConnectionId &&
+      parentMetricNodeData?.id &&
+      parameterizedStatement &&
+      queryId &&
+      setLatestQueryIds
+    ) {
+      const queryHash = generateQueryHash(
+        parentMetricNodeData?.source?.databaseConnectionId,
+        parentMetricNodeData?.id,
+        parameterizedStatement
+      )
+      const latestQueryId = latestQueryIds[queryHash]
+      if (!latestQueryId) {
+        // latest query id not yet set, initialize it
+        setLatestQueryIds((prev) => {
+          return {
+            ...prev,
+            [queryHash]: queryId,
+          }
+        })
+      } else if (latestQueryId !== queryId) {
+        // latest query id has changed, update it
+        setQueryId(latestQueryId)
       }
     }
   }, [
-    getValidAccessToken,
-    queryId,
+    parentPopulated,
+    generateQueryHash,
     parentMetricNodeData?.source?.databaseConnectionId,
     parentMetricNodeData?.id,
-    queryUpdatedAt,
+    parameterizedStatement,
+    queryId,
+    latestQueryIds,
+    setLatestQueryIds,
   ])
-
-  // periodically check if reload available
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!editingEnabled) {
-        checkForQueryUpdate()
-      }
-    }, 1000 * 10)
-    return () => clearInterval(interval)
-  }, [editingEnabled, checkForQueryUpdate])
 
   const cancelQuery = useCallback(async () => {
     const accessToken = getValidAccessToken()
