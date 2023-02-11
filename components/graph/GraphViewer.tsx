@@ -50,6 +50,7 @@ const GraphViewer: FunctionComponent = () => {
     getConnectedObjects,
   } = useGraph()
   const {
+    actionKey,
     actionKeyPressed,
     altKeyPressed,
     inputInProgress,
@@ -246,14 +247,14 @@ const GraphViewer: FunctionComponent = () => {
             n.id === node.id
               ? // include node selection since update lands after reactflow's
                 { ...node, selected: true }
-              : { ...n, selected: actionKeyPressed ? n.selected : false }
+              : n
           ),
           edges: undefined,
         },
         true
       )
     },
-    [updateGraph, graph.nodes, actionKeyPressed]
+    [updateGraph, graph.nodes]
   )
 
   const onEdgesChange = useCallback(
@@ -485,7 +486,7 @@ const GraphViewer: FunctionComponent = () => {
           // disable when input is focused
           document.activeElement?.tagName === 'INPUT'
         }
-        multiSelectionKeyCode={null}
+        multiSelectionKeyCode={editingEnabled ? actionKey : null}
         selectionKeyCode={editingEnabled ? 'Shift' : null}
         onlyRenderVisibleElements={false}
         proOptions={{
