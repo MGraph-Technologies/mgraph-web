@@ -164,6 +164,7 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
             pointerEvents: rendererInteractionEnabled ? 'none' : 'auto',
           }}
           onClick={(e) => {
+            if (editingEnabled) return
             e.stopPropagation() // prevent reactflow node selection and detail push
             setRendererInteractionEnabled(true)
             // manually mark node as selected to indicate interactability

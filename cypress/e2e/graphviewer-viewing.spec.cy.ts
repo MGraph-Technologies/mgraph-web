@@ -20,6 +20,8 @@ describe('Graphviewer viewing as admin', () => {
     cy.get('.react-flow__edge-input').should('be.visible')
   })
 
+  // TODO: clicking function highlights connected nodes
+
   it('Sees edit button', () => {
     cy.visit('/mgraph')
     cy.get('[id=edit-button]').should('exist')
