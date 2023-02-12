@@ -250,9 +250,9 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   }, [enrichChartJSDatasets])
 
   /***** Evaluate Plotted Goals *****/
-  const [goalStatusMapUpdated, setGoalStatusesUpdated] = useState(false)
+  const [goalStatusMapUpdated, setGoalStatusMapUpdated] = useState(false)
   useEffect(() => {
-    setGoalStatusesUpdated(false)
+    setGoalStatusMapUpdated(false)
   }, [chartJSDatasets])
   const updateGoalStatusMap: () => void = useCallback(() => {
     // only evaluate in case of 1+ actual and 1+ goal datasets
@@ -402,7 +402,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         }
       })
     })
-    setGoalStatusesUpdated(true)
+    setGoalStatusMapUpdated(true)
   }, [chartJSDatasets, setGoalStatusMap, parentMetricNodeId])
   useEffect(() => {
     if (!goalStatusMapUpdated) {
