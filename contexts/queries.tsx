@@ -127,7 +127,7 @@ export function QueriesProvider({ children }: QueriesProps) {
   }, [])
 
   const populateInputParameters = useCallback(async () => {
-    if (organizationId && session?.user) {
+    if (organizationId && session?.user?.id) {
       const inputParameters = await getInputParameters(
         organizationId,
         supabase,
@@ -135,7 +135,7 @@ export function QueriesProvider({ children }: QueriesProps) {
       )
       setInputParameters(inputParameters)
     }
-  }, [organizationId, session])
+  }, [organizationId, session?.user?.id])
   useEffect(() => {
     populateInputParameters()
   }, [populateInputParameters])
