@@ -54,11 +54,19 @@ type GoalStatusMap = {
   [metricNodeId: string]: { [goalId: string]: GoalStatus }
 }
 
+type LatestCommentIdMap = {
+  [metricNodeId: string]: string | null
+}
+
 type GraphContextType = {
   initialGraph: Graph
   graph: Graph
   goalStatusMap: GoalStatusMap
   setGoalStatusMap: Dispatch<SetStateAction<GoalStatusMap>> | undefined
+  latestCommentIdMap: LatestCommentIdMap
+  setLatestCommentIdMap:
+    | Dispatch<SetStateAction<LatestCommentIdMap>>
+    | undefined
   /* reactFlowInstance is produced by useReactFlow(), which must be called
     in a component that is wrapped in a ReactFlowProvider. Thus, we can't
     instantiate it directly here but instead pass it back from GraphViewer. */
@@ -150,6 +158,8 @@ const graphContextDefaultValues: GraphContextType = {
   },
   goalStatusMap: {},
   setGoalStatusMap: undefined,
+  latestCommentIdMap: {},
+  setLatestCommentIdMap: undefined,
   reactFlowInstance: undefined,
   setReactFlowInstance: undefined,
   reactFlowRenderer: undefined,
@@ -202,6 +212,8 @@ export function GraphProvider({ children }: GraphProps) {
     })
 
   const [goalStatusMap, setGoalStatusMap] = useState<GoalStatusMap>({})
+  const [latestCommentIdMap, setLatestCommentIdMap] =
+    useState<LatestCommentIdMap>({})
 
   const [reactFlowInstance, setReactFlowInstance] = useState<
     ReactFlowInstance | undefined
@@ -554,9 +566,66 @@ export function GraphProvider({ children }: GraphProps) {
         }
       })
       .subscribe()
+    const monitoringRuleEvalsSubscription = supabase
+      .from('monitoring_rule_evaluations')
+      // inserts are pending, status comes through via update
+      .on('UPDATE', async (payload) => {
+        if (payload.new.status === 'pending' || payload.new.deleted_at) {
+          return
+        }
+        // query for node id
+        const { data, status, error } = await supabase
+          .from('monitoring_rules')
+          .select('parent_node_id')
+          .eq('id', payload.new.monitoring_rule_id)
+          .single()
+        if (error && status !== 406) {
+          throw error
+        }
+        if (data) {
+          // update node in graph
+          updateGraph(
+            {
+              nodes: graph.nodes.map((n) => {
+                if (n.id === data.parent_node_id) {
+                  return {
+                    ...n,
+                    data: {
+                      ...n.data,
+                      monitored: true,
+                      alert: ['alert', 'timed_out'].includes(
+                        payload.new.status
+                      ),
+                    },
+                  }
+                } else {
+                  return n
+                }
+              }),
+              edges: undefined,
+            },
+            false
+          )
+        }
+      })
+      .subscribe()
+    const commentsSubscription = supabase
+      .from('sce_comments')
+      .on('INSERT', (payload) => {
+        const comment = payload.new
+        setLatestCommentIdMap((latestCommentIdMap) => {
+          return {
+            ...latestCommentIdMap,
+            [comment.topic]: comment.id,
+          }
+        })
+      })
+      .subscribe()
     return () => {
       nodesSubscription.unsubscribe()
       edgesSubscription.unsubscribe()
+      monitoringRuleEvalsSubscription.unsubscribe()
+      commentsSubscription.unsubscribe()
     }
   }, [updateGraph, graph])
 
@@ -1053,6 +1122,8 @@ export function GraphProvider({ children }: GraphProps) {
     graph: graph,
     goalStatusMap: goalStatusMap,
     setGoalStatusMap: setGoalStatusMap,
+    latestCommentIdMap: latestCommentIdMap,
+    setLatestCommentIdMap: setLatestCommentIdMap,
     reactFlowInstance: reactFlowInstance,
     setReactFlowInstance: setReactFlowInstance,
     reactFlowRenderer: reactFlowRenderer,
