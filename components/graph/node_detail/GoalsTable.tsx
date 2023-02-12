@@ -58,6 +58,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
   const { editingEnabled } = useEditability()
   const { goalStatusMap } = useGraph()
   const { setGlobalSourceRefreshes } = useQueries()
+  // NB: refreshes below also push goal inserts/updates/deletes to other users via query listening
 
   const [goalsTableLoading, setGoalsTableLoading] = useState(true)
   type Goal = {
@@ -159,6 +160,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
               id: rowData.id,
             })
             populateGoals()
+            setGlobalSourceRefreshes?.((prev) => prev + 1)
           }
         } catch (error: unknown) {
           console.error(error)
@@ -208,7 +210,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
         </>
       )
     },
-    [populateGoals]
+    [populateGoals, setGlobalSourceRefreshes]
   )
 
   const columnStyle = {
