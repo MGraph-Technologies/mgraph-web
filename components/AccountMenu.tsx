@@ -49,7 +49,7 @@ const AccountMenu: FunctionComponent = () => {
       }
     }
     fetchAvatarUrl()
-  }, [session])
+  }, [session?.user?.id])
   useEffect(() => {
     setUserDisplayRole(
       userRole.replaceAll('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
