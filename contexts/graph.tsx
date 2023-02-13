@@ -625,6 +625,7 @@ export function GraphProvider({ children }: GraphProps) {
     [initialGraph, processNodesOrEdges]
   )
 
+  const [saveGraphTimeout, setSaveGraphTimeout] = useState<NodeJS.Timeout>()
   const updateGraph = useCallback(
     (
       update: { nodes: Node[] | undefined; edges: Edge[] | undefined },
@@ -639,10 +640,15 @@ export function GraphProvider({ children }: GraphProps) {
       } as Graph
       setGraph(updatedGraph, undefined, !undoable)
       if (undoable && editingEnabled) {
-        saveGraph(updatedGraph)
+        clearTimeout(saveGraphTimeout)
+        setSaveGraphTimeout(
+          setTimeout(() => {
+            saveGraph(updatedGraph)
+          }, 1000)
+        )
       }
     },
-    [graph, setGraph, editingEnabled, saveGraph]
+    [graph, setGraph, editingEnabled, saveGraphTimeout, saveGraph]
   )
 
   // listen for graph changes
