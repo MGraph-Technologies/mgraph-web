@@ -28,17 +28,17 @@ const UndoRedoSaveAndCancelGraphEditingButtons: FunctionComponent = () => {
       throw new Error('loadGraph is not defined')
     }
     setSaving(true)
-    saveGraph().then((response) => {
-      if (response?.status === 200) {
+    saveGraph().then((postgrestErrors) => {
+      if (postgrestErrors?.length === 0) {
         // only reset if the save was successful
         analytics.track('save_editing')
         disableEditing()
         loadGraph()
       } else {
         analytics.track('save_editing_error', {
-          status_text: response?.statusText,
+          postgrest_errors: JSON.stringify(postgrestErrors),
         })
-        console.error(response)
+        console.error(postgrestErrors)
       }
       setSaving(false)
     })

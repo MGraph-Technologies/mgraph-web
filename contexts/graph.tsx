@@ -1,3 +1,5 @@
+import { PostgrestError, PostgrestResponse } from '@supabase/supabase-js'
+import _ from 'lodash'
 import {
   Dispatch,
   ReactNode,
@@ -92,7 +94,7 @@ type GraphContextType = {
   canUndo: boolean
   canRedo: boolean
   loadGraph: (() => Promise<void>) | undefined
-  saveGraph: (() => Promise<Response | undefined>) | undefined
+  saveGraph: (() => Promise<PostgrestError[]>) | undefined
   updateGraph:
     | ((
         update: { nodes: Node[] | undefined; edges: Edge[] | undefined },
@@ -198,7 +200,8 @@ type GraphProps = {
 }
 
 export function GraphProvider({ children }: GraphProps) {
-  const { getValidAccessToken, organizationId, userOnMobile } = useAuth()
+  const { session, getValidAccessToken, organizationId, userOnMobile } =
+    useAuth()
   const { editingEnabled } = useEditability()
 
   const [initialGraph, setInitialGraph] = useState<Graph>({
@@ -421,26 +424,203 @@ export function GraphProvider({ children }: GraphProps) {
     }
   }, [loadGraph, graphInitializedAt])
 
-  const saveGraph = useCallback(async () => {
-    const accessToken = getValidAccessToken()
-    if (!accessToken || !organizationId) {
-      return
-    }
-    // remove selections
-    graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
-    graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
+  type NodeOrEdge = Node | Edge
+  type NodeOrEdgeArray = NodeOrEdge[]
+  const determineNodeOrEdgeType = useCallback((object: NodeOrEdge): string => {
+    return 'source' in object && 'target' in object ? 'edge' : 'node'
+  }, [])
+  const nodeOrEdgeArrayIsUniform = useCallback(
+    (objects: NodeOrEdgeArray): boolean => {
+      if (objects.length === 0) {
+        return true
+      } else {
+        const firstObjectType = determineNodeOrEdgeType(objects[0])
+        return objects.every(
+          (object) => determineNodeOrEdgeType(object) === firstObjectType
+        )
+      }
+    },
+    [determineNodeOrEdgeType]
+  )
 
-    return fetch(`/api/v1/graphs/${organizationId}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        initialGraph: initialGraph,
-        updatedGraph: graph,
-      }),
-      headers: {
-        'supabase-access-token': accessToken,
-      },
-    })
-  }, [getValidAccessToken, organizationId, graph, initialGraph])
+  const upsertNodesOrEdges = useCallback(
+    async (
+      objects: NodeOrEdgeArray,
+      op: 'create' | 'delete' | 'update'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ): Promise<PostgrestResponse<any>> => {
+      if (!nodeOrEdgeArrayIsUniform(objects)) {
+        throw new Error('Cannot upsert nodes and edges in the same request')
+      }
+      const userId = session?.user?.id
+      if (!userId) {
+        throw new Error('User not logged in')
+      }
+      type Record = {
+        id: string
+        organization_id: string
+        type_id: string
+        properties: object
+        react_flow_meta: object
+        updated_at: Date
+        updated_by: string
+        source_id?: string // only edges have source_id
+        target_id?: string // only edges have target_id
+        created_at?: Date // only needed for create
+        created_by?: string // only needed for create
+        deleted_at?: Date // only needed for delete
+        deleted_by?: string // only needed for delete
+      }
+      const recordType = determineNodeOrEdgeType(objects[0])
+      const currentDate = new Date()
+      const records: Record[] = objects.map((object) => {
+        const { data, ...reactFlowMeta } = object
+        const { initialProperties, ...updatedProperties } = data
+        let record: Record = {
+          id: updatedProperties.id,
+          organization_id: updatedProperties.organizationId,
+          type_id: updatedProperties.typeId,
+          properties: {
+            // so properties created outside of React Flow are not overwritten
+            ...initialProperties,
+            ...updatedProperties,
+          },
+          react_flow_meta: reactFlowMeta,
+          updated_at: currentDate,
+          updated_by: userId,
+        }
+        if (recordType === 'edge') {
+          record = {
+            ...record,
+            source_id: updatedProperties.sourceId,
+            target_id: updatedProperties.targetId,
+          }
+        }
+        if (op === 'create') {
+          record = {
+            ...record,
+            created_at: currentDate,
+            created_by: userId,
+          }
+        }
+        if (op === 'delete') {
+          record = {
+            ...record,
+            deleted_at: currentDate,
+            deleted_by: userId,
+          }
+        }
+        return record
+      })
+      return supabase
+        .from(`${recordType}s`)
+        .upsert(records, { returning: 'minimal' })
+    },
+    [nodeOrEdgeArrayIsUniform, session?.user?.id, determineNodeOrEdgeType]
+  )
+
+  const processNodesOrEdges = useCallback(
+    async (
+      initialObjects: NodeOrEdgeArray,
+      _updatedObjects: NodeOrEdgeArray
+    ): Promise<{
+      errors: PostgrestError[]
+      deletedObjects: NodeOrEdgeArray
+    }> => {
+      if (!nodeOrEdgeArrayIsUniform(initialObjects.concat(_updatedObjects))) {
+        throw new Error('Cannot process nodes and edges in the same request')
+      }
+      const errors: PostgrestError[] = []
+
+      // remove selections
+      const updatedObjects = _updatedObjects.map((o) => ({
+        ...o,
+        selected: false,
+      }))
+
+      const addedObjects: NodeOrEdgeArray = updatedObjects.filter(
+        (updatedObject: Edge | Node) =>
+          !initialObjects.find(
+            (initialObject: Edge | Node) =>
+              initialObject.id === updatedObject.id
+          )
+      )
+      if (addedObjects.length > 0) {
+        const { error: addedObjectsError } = await upsertNodesOrEdges(
+          addedObjects,
+          'create'
+        )
+        if (addedObjectsError) {
+          errors.push(addedObjectsError)
+        }
+      }
+
+      const modifiedObjects = updatedObjects.filter((updatedObject) => {
+        const initialObject = initialObjects.find(
+          (initialObject) => initialObject.id === updatedObject.id
+        )
+        return initialObject && !_.isEqual(initialObject, updatedObject)
+      })
+      if (modifiedObjects.length > 0) {
+        const { error: modifiedObjectsError } = await upsertNodesOrEdges(
+          modifiedObjects,
+          'update'
+        )
+        if (modifiedObjectsError) {
+          errors.push(modifiedObjectsError)
+        }
+      }
+
+      const deletedObjects = initialObjects.filter(
+        (initialObject) =>
+          !updatedObjects.find(
+            (updatedObject) => updatedObject.id === initialObject.id
+          )
+      )
+      if (deletedObjects.length > 0) {
+        const { error: deletedObjectsError } = await upsertNodesOrEdges(
+          deletedObjects,
+          'delete'
+        )
+        if (deletedObjectsError) {
+          errors.push(deletedObjectsError)
+        }
+      }
+
+      return { errors, deletedObjects }
+    },
+    [nodeOrEdgeArrayIsUniform, upsertNodesOrEdges]
+  )
+
+  const saveGraph = useCallback(async (): Promise<PostgrestError[]> => {
+    const upsertErrors: PostgrestError[] = []
+
+    // process nodes
+    const initialNodes = initialGraph.nodes
+    const updatedNodes = graph.nodes
+    const { errors: nodeErrors, deletedObjects: deletedNodes } =
+      await processNodesOrEdges(initialNodes, updatedNodes)
+    upsertErrors.push(...nodeErrors)
+
+    // process edges
+    const initialEdges = initialGraph.edges
+    const updatedEdges = graph.edges.filter(
+      // delete any edges connected to deleted nodes
+      (initialEdge) =>
+        !deletedNodes.find(
+          (deletedNode) =>
+            deletedNode.id === initialEdge.source ||
+            deletedNode.id === initialEdge.target
+        )
+    )
+    const { errors: edgeErrors } = await processNodesOrEdges(
+      initialEdges,
+      updatedEdges
+    )
+    upsertErrors.push(...edgeErrors)
+
+    return upsertErrors
+  }, [graph, initialGraph, processNodesOrEdges])
 
   const updateGraph = useCallback(
     (
