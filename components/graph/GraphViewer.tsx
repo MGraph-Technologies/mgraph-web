@@ -283,10 +283,7 @@ const GraphViewer: FunctionComponent = () => {
         setAlsoSelectNonFunctionNodes(_alsoSelectNonFunctionNodes)
       }
       // update graph
-      updateGraph(
-        { nodes: newGraph.nodes, edges: newGraph.edges },
-        editingEnabled
-      )
+      updateGraph({ nodes: newGraph.nodes, edges: newGraph.edges }, false)
       // clicking custom or metric nodes opens metric detail when !editingEnabled
       if (
         ['custom', 'metric'].includes(nodeOrEdge.type || '') &&

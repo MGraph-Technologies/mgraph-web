@@ -94,7 +94,6 @@ type GraphContextType = {
   canUndo: boolean
   canRedo: boolean
   loadGraph: (() => Promise<void>) | undefined
-  saveGraph: (() => Promise<PostgrestError[]>) | undefined
   updateGraph:
     | ((
         update: { nodes: Node[] | undefined; edges: Edge[] | undefined },
@@ -176,7 +175,6 @@ const graphContextDefaultValues: GraphContextType = {
   canUndo: false,
   canRedo: false,
   loadGraph: undefined,
-  saveGraph: undefined,
   updateGraph: undefined,
   setNodeDataToChange: undefined,
   setEdgeBeingUpdated: undefined,
@@ -592,35 +590,40 @@ export function GraphProvider({ children }: GraphProps) {
     [nodeOrEdgeArrayIsUniform, upsertNodesOrEdges]
   )
 
-  const saveGraph = useCallback(async (): Promise<PostgrestError[]> => {
-    const upsertErrors: PostgrestError[] = []
+  const saveGraph = useCallback(
+    async (updatedGraph: Graph) => {
+      const upsertErrors: PostgrestError[] = []
 
-    // process nodes
-    const initialNodes = initialGraph.nodes
-    const updatedNodes = graph.nodes
-    const { errors: nodeErrors, deletedObjects: deletedNodes } =
-      await processNodesOrEdges(initialNodes, updatedNodes)
-    upsertErrors.push(...nodeErrors)
+      // process nodes
+      const initialNodes = initialGraph.nodes
+      const updatedNodes = updatedGraph.nodes
+      const { errors: nodeErrors, deletedObjects: deletedNodes } =
+        await processNodesOrEdges(initialNodes, updatedNodes)
+      upsertErrors.push(...nodeErrors)
 
-    // process edges
-    const initialEdges = initialGraph.edges
-    const updatedEdges = graph.edges.filter(
-      // delete any edges connected to deleted nodes
-      (initialEdge) =>
-        !deletedNodes.find(
-          (deletedNode) =>
-            deletedNode.id === initialEdge.source ||
-            deletedNode.id === initialEdge.target
-        )
-    )
-    const { errors: edgeErrors } = await processNodesOrEdges(
-      initialEdges,
-      updatedEdges
-    )
-    upsertErrors.push(...edgeErrors)
+      // process edges
+      const initialEdges = initialGraph.edges
+      const updatedEdges = updatedGraph.edges.filter(
+        // delete any edges connected to deleted nodes
+        (initialEdge) =>
+          !deletedNodes.find(
+            (deletedNode) =>
+              deletedNode.id === initialEdge.source ||
+              deletedNode.id === initialEdge.target
+          )
+      )
+      const { errors: edgeErrors } = await processNodesOrEdges(
+        initialEdges,
+        updatedEdges
+      )
+      upsertErrors.push(...edgeErrors)
 
-    return upsertErrors
-  }, [graph, initialGraph, processNodesOrEdges])
+      if (upsertErrors.length > 0) {
+        console.error(upsertErrors)
+      }
+    },
+    [initialGraph, processNodesOrEdges]
+  )
 
   const updateGraph = useCallback(
     (
@@ -630,18 +633,16 @@ export function GraphProvider({ children }: GraphProps) {
       // To prevent a mismatch of state updates,
       // we'll use the value passed into this
       // function instead of the state directly.
-      setGraph(
-        (graph) => {
-          return {
-            nodes: update.nodes || graph.nodes,
-            edges: update.edges || graph.edges,
-          } as Graph
-        },
-        undefined,
-        !undoable
-      )
+      const updatedGraph = {
+        nodes: update.nodes || graph.nodes,
+        edges: update.edges || graph.edges,
+      } as Graph
+      setGraph(updatedGraph, undefined, !undoable)
+      if (undoable && editingEnabled) {
+        saveGraph(updatedGraph)
+      }
     },
-    [setGraph]
+    [graph, setGraph, editingEnabled, saveGraph]
   )
 
   // listen for graph changes
@@ -1382,7 +1383,6 @@ export function GraphProvider({ children }: GraphProps) {
     canUndo: canUndo,
     canRedo: canRedo,
     loadGraph: loadGraph,
-    saveGraph: saveGraph,
     updateGraph: updateGraph,
     setNodeDataToChange: setNodeDataToChange,
     setEdgeBeingUpdated: setEdgeBeingUpdated,

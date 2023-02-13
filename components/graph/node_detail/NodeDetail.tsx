@@ -26,7 +26,7 @@ import {
   MetricNodeSource,
 } from 'components/graph/MetricNode'
 import QueryRunner, { QueryResult } from 'components/graph/QueryRunner'
-import UndoRedoSaveAndCancelGraphEditingButtons from 'components/graph/editing/UndoRedoSaveAndCancelGraphEditingButtons'
+import UndoRedoDoneAndCancelGraphEditingButtons from 'components/graph/editing/UndoRedoDoneAndCancelGraphEditingButtons'
 import GoalsTable from 'components/graph/node_detail/GoalsTable'
 import MonitoringRulesTable from 'components/graph/node_detail/MonitoringRulesTable'
 import CustomNodeSourceFields from 'components/graph/node_detail/CustomNodeSourceFields'
@@ -373,7 +373,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
       </div>
       {editingEnabled && (
         <div className={styles.editor_dock}>
-          <Toolbar right={<UndoRedoSaveAndCancelGraphEditingButtons />} />
+          <Toolbar right={<UndoRedoDoneAndCancelGraphEditingButtons />} />
         </div>
       )}
       <ConfirmDialog />
