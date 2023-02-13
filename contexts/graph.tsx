@@ -657,6 +657,12 @@ export function GraphProvider({ children }: GraphProps) {
               setNodeDataToChange: setNodeDataToChange,
             },
           } as Node
+          setInitialGraph((initialGraph) => {
+            return {
+              nodes: [...initialGraph.nodes, node],
+              edges: initialGraph.edges,
+            }
+          })
           updateGraph(
             {
               nodes: [...graph.nodes, node],
@@ -667,9 +673,18 @@ export function GraphProvider({ children }: GraphProps) {
         } else if (payload.eventType === 'UPDATE') {
           if (payload.new.deleted_at) {
             const node = payload.new as Node
+            const removeDeletedNode = (nodes: Node[]) => {
+              return nodes.filter((n) => n.id !== node.id)
+            }
+            setInitialGraph((initialGraph) => {
+              return {
+                nodes: removeDeletedNode(initialGraph.nodes),
+                edges: initialGraph.edges,
+              }
+            })
             updateGraph(
               {
-                nodes: graph.nodes.filter((n) => n.id !== node.id),
+                nodes: removeDeletedNode(graph.nodes),
                 edges: undefined,
               },
               false
@@ -682,15 +697,24 @@ export function GraphProvider({ children }: GraphProps) {
                 setNodeDataToChange: setNodeDataToChange,
               },
             } as Node
+            const replaceUpdatedNode = (nodes: Node[]) => {
+              return nodes.map((n) => {
+                if (n.id === node.id) {
+                  return node
+                } else {
+                  return n
+                }
+              })
+            }
+            setInitialGraph((initialGraph) => {
+              return {
+                nodes: replaceUpdatedNode(initialGraph.nodes),
+                edges: initialGraph.edges,
+              }
+            })
             updateGraph(
               {
-                nodes: graph.nodes.map((n) => {
-                  if (n.id === node.id) {
-                    return node
-                  } else {
-                    return n
-                  }
-                }),
+                nodes: replaceUpdatedNode(graph.nodes),
                 edges: undefined,
               },
               false
@@ -702,11 +726,18 @@ export function GraphProvider({ children }: GraphProps) {
     const edgesSubscription = supabase
       .from('edges')
       .on('*', (payload) => {
+        // TODO: DRY this up (typescript makes it a pain)
         if (payload.eventType === 'INSERT') {
           const edge = {
             ...payload.new.react_flow_meta,
             data: payload.new.properties,
           } as Edge
+          setInitialGraph((initialGraph) => {
+            return {
+              nodes: initialGraph.nodes,
+              edges: [...initialGraph.edges, edge],
+            }
+          })
           updateGraph(
             {
               nodes: undefined,
@@ -717,10 +748,19 @@ export function GraphProvider({ children }: GraphProps) {
         } else if (payload.eventType === 'UPDATE') {
           if (payload.new.deleted_at) {
             const edge = payload.new as Edge
+            const removeDeletedEdge = (edges: Edge[]) => {
+              return edges.filter((e) => e.id !== edge.id)
+            }
+            setInitialGraph((initialGraph) => {
+              return {
+                nodes: initialGraph.nodes,
+                edges: removeDeletedEdge(initialGraph.edges),
+              }
+            })
             updateGraph(
               {
                 nodes: undefined,
-                edges: graph.edges.filter((e) => e.id !== edge.id),
+                edges: removeDeletedEdge(graph.edges),
               },
               false
             )
@@ -729,16 +769,25 @@ export function GraphProvider({ children }: GraphProps) {
               ...payload.new.react_flow_meta,
               data: payload.new.properties,
             } as Edge
+            const replaceUpdatedEdge = (edges: Edge[]) => {
+              return edges.map((e) => {
+                if (e.id === edge.id) {
+                  return edge
+                } else {
+                  return e
+                }
+              })
+            }
+            setInitialGraph((initialGraph) => {
+              return {
+                nodes: initialGraph.nodes,
+                edges: replaceUpdatedEdge(initialGraph.edges),
+              }
+            })
             updateGraph(
               {
                 nodes: undefined,
-                edges: graph.edges.map((e) => {
-                  if (e.id === edge.id) {
-                    return edge
-                  } else {
-                    return e
-                  }
-                }),
+                edges: replaceUpdatedEdge(graph.edges),
               },
               false
             )
@@ -764,24 +813,31 @@ export function GraphProvider({ children }: GraphProps) {
         }
         if (data) {
           // update node in graph
+          const updateNodes = (nodes: Node[]) => {
+            return nodes.map((n) => {
+              if (n.id === data.parent_node_id) {
+                return {
+                  ...n,
+                  data: {
+                    ...n.data,
+                    monitored: true,
+                    alert: ['alert', 'timed_out'].includes(payload.new.status),
+                  },
+                }
+              } else {
+                return n
+              }
+            })
+          }
+          setInitialGraph((initialGraph) => {
+            return {
+              nodes: updateNodes(initialGraph.nodes),
+              edges: initialGraph.edges,
+            }
+          })
           updateGraph(
             {
-              nodes: graph.nodes.map((n) => {
-                if (n.id === data.parent_node_id) {
-                  return {
-                    ...n,
-                    data: {
-                      ...n.data,
-                      monitored: true,
-                      alert: ['alert', 'timed_out'].includes(
-                        payload.new.status
-                      ),
-                    },
-                  }
-                } else {
-                  return n
-                }
-              }),
+              nodes: updateNodes(graph.nodes),
               edges: undefined,
             },
             false
@@ -807,7 +863,7 @@ export function GraphProvider({ children }: GraphProps) {
       monitoringRuleEvalsSubscription.unsubscribe()
       commentsSubscription.unsubscribe()
     }
-  }, [updateGraph, graph])
+  }, [updateGraph, graph, initialGraph])
 
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
