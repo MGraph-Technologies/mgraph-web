@@ -654,6 +654,7 @@ export function GraphProvider({ children }: GraphProps) {
             ...payload.new.react_flow_meta,
             data: {
               ...payload.new.properties,
+              initialProperties: payload.new.properties,
               setNodeDataToChange: setNodeDataToChange,
             },
           } as Node
@@ -694,6 +695,7 @@ export function GraphProvider({ children }: GraphProps) {
               ...payload.new.react_flow_meta,
               data: {
                 ...payload.new.properties,
+                initialProperties: payload.new.properties,
                 setNodeDataToChange: setNodeDataToChange,
               },
             } as Node
@@ -730,7 +732,10 @@ export function GraphProvider({ children }: GraphProps) {
         if (payload.eventType === 'INSERT') {
           const edge = {
             ...payload.new.react_flow_meta,
-            data: payload.new.properties,
+            data: {
+              ...payload.new.properties,
+              initialProperties: payload.new.properties,
+            },
           } as Edge
           setInitialGraph((initialGraph) => {
             return {
@@ -767,7 +772,10 @@ export function GraphProvider({ children }: GraphProps) {
           } else {
             const edge = {
               ...payload.new.react_flow_meta,
-              data: payload.new.properties,
+              data: {
+                ...payload.new.properties,
+                initialProperties: payload.new.properties,
+              },
             } as Edge
             const replaceUpdatedEdge = (edges: Edge[]) => {
               return edges.map((e) => {
