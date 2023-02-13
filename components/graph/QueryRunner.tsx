@@ -59,6 +59,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   } = useQueries()
   const [getQueryIdComplete, setGetQueryIdComplete] = useState(false)
   const [parameterizedStatement, setParameterizedStatement] = useState('')
+  const [parentSaved, setParentSaved] = useState(false)
   const [parentPopulated, setParentPopulated] = useState(false)
   const [queryId, setQueryId] = useState('')
 
@@ -75,11 +76,15 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   }, [parentMetricNodeData?.source?.query, inputParameters])
 
   useEffect(() => {
+    setParentSaved(
+      initialGraph.nodes.map((n) => n.id).includes(parentMetricNodeData?.id)
+    )
+  }, [initialGraph.nodes, parentMetricNodeData?.id])
+
+  useEffect(() => {
     setParentPopulated(
       Boolean(
-        initialGraph.nodes
-          .map((n) => n.id)
-          .includes(parentMetricNodeData?.id) &&
+        parentSaved &&
           parentMetricNodeData?.source?.databaseConnectionId &&
           parentMetricNodeData?.source?.query &&
           parentMetricNodeData?.source?.queryType &&
@@ -88,7 +93,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
             parentMetricNodeData?.source?.queryType === 'freeform')
       )
     )
-  }, [initialGraph.nodes, parentMetricNodeData])
+  }, [parentSaved, parentMetricNodeData])
 
   useEffect(() => {
     const parentNodeId = parentMetricNodeData?.id
@@ -224,9 +229,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       return
     }
 
-    if (
-      !initialGraph.nodes.map((n) => n.id).includes(parentMetricNodeData?.id)
-    ) {
+    if (!parentSaved) {
       setQueryResult({
         status: 'parent_unsaved',
         data: null,
@@ -314,7 +317,7 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
   }, [
     getValidAccessToken,
     parentMetricNodeData?.id,
-    initialGraph.nodes,
+    parentSaved,
     parentPopulated,
     queryId,
     setQueryResult,
