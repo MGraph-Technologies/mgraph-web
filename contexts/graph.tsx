@@ -214,11 +214,14 @@ export function GraphProvider({ children }: GraphProps) {
     nodes: [],
     edges: [],
   })
-  const [graph, setGraph, { undo, redo, canUndo, canRedo, reset }] =
-    useUndoable<Graph>(initialGraph, {
-      behavior: 'destroyFuture',
-      ignoreIdenticalMutations: false,
-    })
+  const [
+    graph,
+    setGraph,
+    { undo, redo, canUndo, canRedo, past, future, reset },
+  ] = useUndoable<Graph>(initialGraph, {
+    behavior: 'destroyFuture',
+    ignoreIdenticalMutations: false,
+  })
 
   const [goalStatusMap, setGoalStatusMap] = useState<GoalStatusMap>({})
   const [latestCommentIdMap, setLatestCommentIdMap] =
@@ -614,7 +617,7 @@ export function GraphProvider({ children }: GraphProps) {
   )
 
   const saveGraph = useCallback(
-    async (updatedGraph: Graph) => {
+    async (initialGraph: Graph, updatedGraph: Graph) => {
       const upsertErrors: PostgrestError[] = []
 
       // process nodes
@@ -669,13 +672,29 @@ export function GraphProvider({ children }: GraphProps) {
         clearTimeout(saveGraphTimeout)
         setSaveGraphTimeout(
           setTimeout(() => {
-            saveGraph(updatedGraph)
+            saveGraph(initialGraph, updatedGraph)
           }, 1000)
         )
       }
     },
-    [graph, setGraph, editingEnabled, saveGraphTimeout, saveGraph]
+    [graph, setGraph, editingEnabled, saveGraphTimeout, saveGraph, initialGraph]
   )
+
+  // saveGraph on (inferred) undo or redo
+  const [nPastStates, setNPastStates] = useState(0)
+  const [nFutureStates, setNFutureStates] = useState(0)
+  useEffect(() => {
+    const _nPastStates = past.length
+    const _nFutureStates = future.length
+    if (
+      (_nPastStates < nPastStates && _nFutureStates > nFutureStates) || // undo
+      (_nPastStates > nPastStates && _nFutureStates < nFutureStates) // redo
+    ) {
+      saveGraph(initialGraph, graph)
+    }
+    setNPastStates(_nPastStates)
+    setNFutureStates(_nFutureStates)
+  }, [past, future, nPastStates, nFutureStates, saveGraph, initialGraph, graph])
 
   // listen for graph changes
   useEffect(() => {
