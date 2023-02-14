@@ -5,6 +5,8 @@ import { Handle, Position } from 'reactflow'
 import { useGraph } from 'contexts/graph'
 import styles from 'styles/FunctionNode.module.css'
 
+export const FUNCTION_NODE_INIT_HEIGHT = 128
+export const FUNCTION_NODE_INIT_WIDTH = 128
 export type FunctionNodeProperties = {
   id: string
   organizationId: string
@@ -35,6 +37,8 @@ const FunctionNode: FunctionComponent<FunctionNodeProps> = ({
     <div
       className={styles.function_node}
       style={{
+        height: `${FUNCTION_NODE_INIT_HEIGHT}px`,
+        width: `${FUNCTION_NODE_INIT_WIDTH}px`,
         backgroundColor: '#ffffff',
         border: selected ? '5px solid' : '1px solid',
       }}

@@ -18,6 +18,8 @@ import { useEditability } from 'contexts/editability'
 import { useGraph } from 'contexts/graph'
 import styles from 'styles/MetricNode.module.css'
 
+export const METRIC_NODE_INIT_HEIGHT = 288
+export const METRIC_NODE_INIT_WIDTH = 512
 export type SourceQueryType = 'freeform' | 'generated'
 export type MetricNodeSource = {
   databaseConnectionId: string
@@ -57,9 +59,6 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
   const { editingEnabled } = useEditability()
   const { graph, goalStatusMap, nodeShouldRender, formNodeHandleStyle } =
     useGraph()
-
-  const INIT_HEIGHT = 288
-  const INIT_WIDTH = 512
 
   const [thisNode, setThisNode] = useState<Node | undefined>(undefined)
   useEffect(() => {
@@ -140,8 +139,8 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
     <div
       className={styles.metric_node}
       style={{
-        height: `${thisNode?.height || INIT_HEIGHT}px`,
-        width: `${thisNode?.width || INIT_WIDTH}px`,
+        height: `${thisNode?.height || METRIC_NODE_INIT_HEIGHT}px`,
+        width: `${thisNode?.width || METRIC_NODE_INIT_WIDTH}px`,
         backgroundColor: color,
         border: selected ? '5px solid' : '1px solid',
         boxShadow: boxShadow,
@@ -248,8 +247,8 @@ const MetricNode: FunctionComponent<MetricNodeProps> = ({
           width: '10px',
           height: '10px',
         }}
-        minHeight={INIT_HEIGHT}
-        minWidth={INIT_WIDTH}
+        minHeight={METRIC_NODE_INIT_HEIGHT}
+        minWidth={METRIC_NODE_INIT_WIDTH}
         onResizeStart={onResizeStart}
       />
     </div>

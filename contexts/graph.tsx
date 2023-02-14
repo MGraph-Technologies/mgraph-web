@@ -23,14 +23,22 @@ import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
 import CustomNode, {
+  CUSTOM_NODE_INIT_HEIGHT,
+  CUSTOM_NODE_INIT_WIDTH,
   CustomNodeProperties,
   CustomNodeSource,
 } from 'components/graph/CustomNode'
 import FunctionNode, {
+  FUNCTION_NODE_INIT_HEIGHT,
+  FUNCTION_NODE_INIT_WIDTH,
   FunctionNodeProperties,
 } from 'components/graph/FunctionNode'
 import InputEdge, { InputEdgeProperties } from 'components/graph/InputEdge'
-import MetricNode, { MetricNodeProperties } from 'components/graph/MetricNode'
+import MetricNode, {
+  METRIC_NODE_INIT_HEIGHT,
+  METRIC_NODE_INIT_WIDTH,
+  MetricNodeProperties,
+} from 'components/graph/MetricNode'
 import { GoalStatus } from 'components/graph/node_detail/GoalsTable'
 import { useAuth } from 'contexts/auth'
 import { useEditability } from 'contexts/editability'
@@ -983,6 +991,8 @@ export function GraphProvider({ children }: GraphProps) {
         x: x,
         y: y,
       },
+      height: CUSTOM_NODE_INIT_HEIGHT,
+      width: CUSTOM_NODE_INIT_WIDTH,
     }
     return newNode
   }, [
@@ -1039,6 +1049,8 @@ export function GraphProvider({ children }: GraphProps) {
         x: x,
         y: y,
       },
+      height: METRIC_NODE_INIT_HEIGHT,
+      width: METRIC_NODE_INIT_WIDTH,
     }
     return newNode
   }, [
@@ -1078,12 +1090,8 @@ export function GraphProvider({ children }: GraphProps) {
       x /= centerBetween.length
       y /= centerBetween.length
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const outputWidth = outputNode.width! // width exists because we checked for it above
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const outputHeight = outputNode.height!
-      const width = (outputWidth / 16) * 4 // perhaps there's a better way to link this to stylesheet?
-      const height = (outputHeight / 9) * 4
+      const width = FUNCTION_NODE_INIT_WIDTH
+      const height = FUNCTION_NODE_INIT_HEIGHT
       x -= width / 2
       y -= height / 2
 

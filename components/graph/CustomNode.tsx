@@ -17,6 +17,8 @@ import { useEditability } from 'contexts/editability'
 import { useGraph } from 'contexts/graph'
 import styles from 'styles/CustomNode.module.css'
 
+export const CUSTOM_NODE_INIT_HEIGHT = 288
+export const CUSTOM_NODE_INIT_WIDTH = 512
 export type CustomNodeSource = {
   html: string
   css: string
@@ -49,9 +51,6 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
   const { editingEnabled } = useEditability()
   const { graph, nodeShouldRender, updateGraph, formNodeHandleStyle } =
     useGraph()
-
-  const INIT_HEIGHT = 288
-  const INIT_WIDTH = 512
 
   const [thisNode, setThisNode] = useState<Node | undefined>(undefined)
   useEffect(() => {
@@ -124,8 +123,8 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
     <div
       className={styles.custom_node}
       style={{
-        height: `${thisNode?.height || INIT_HEIGHT}px`,
-        width: `${thisNode?.width || INIT_WIDTH}px`,
+        height: `${thisNode?.height || CUSTOM_NODE_INIT_HEIGHT}px`,
+        width: `${thisNode?.width || CUSTOM_NODE_INIT_WIDTH}px`,
         backgroundColor: color,
         border: selected ? '5px solid' : '1px solid',
       }}
@@ -250,8 +249,8 @@ const CustomNode: FunctionComponent<CustomNodeProps> = ({
           width: '10px',
           height: '10px',
         }}
-        minHeight={INIT_HEIGHT}
-        minWidth={INIT_WIDTH}
+        minHeight={CUSTOM_NODE_INIT_HEIGHT}
+        minWidth={CUSTOM_NODE_INIT_WIDTH}
         onResizeStart={onResizeStart}
       />
     </div>
