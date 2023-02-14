@@ -430,6 +430,18 @@ export function GraphProvider({ children }: GraphProps) {
     }
   }, [loadGraph, graphInitializedAt])
 
+  const [everLoadedIds, setEverLoadedIds] = useState<Set<string>>(new Set())
+  // keep updated with each graph change
+  useEffect(() => {
+    setEverLoadedIds((prev) => {
+      return new Set([
+        ...Array.from(prev),
+        ...graph.nodes.map((node) => node.id),
+        ...graph.edges.map((edge) => edge.id),
+      ])
+    })
+  }, [graph])
+
   type NodeOrEdge = Node | Edge
   type NodeOrEdgeArray = NodeOrEdge[]
   const determineNodeOrEdgeType = useCallback((object: NodeOrEdge): string => {
@@ -470,20 +482,21 @@ export function GraphProvider({ children }: GraphProps) {
         react_flow_meta: object
         updated_at: Date
         updated_by: string
+        deleted_at: Date | null
+        deleted_by: string | null
         source_id?: string // only edges have source_id
         target_id?: string // only edges have target_id
         created_at?: Date // only needed for create
         created_by?: string // only needed for create
-        deleted_at?: Date // only needed for delete
-        deleted_by?: string // only needed for delete
       }
       const recordType = determineNodeOrEdgeType(objects[0])
       const currentDate = new Date()
       const records: Record[] = objects.map((object) => {
         const { data, ...reactFlowMeta } = object
         const { initialProperties, ...updatedProperties } = data
+        const recordId = updatedProperties.id
         let record: Record = {
-          id: updatedProperties.id,
+          id: recordId,
           organization_id: updatedProperties.organizationId,
           type_id: updatedProperties.typeId,
           properties: {
@@ -494,6 +507,8 @@ export function GraphProvider({ children }: GraphProps) {
           react_flow_meta: reactFlowMeta,
           updated_at: currentDate,
           updated_by: userId,
+          deleted_at: null,
+          deleted_by: null,
         }
         if (recordType === 'edge') {
           record = {
@@ -502,7 +517,7 @@ export function GraphProvider({ children }: GraphProps) {
             target_id: updatedProperties.targetId,
           }
         }
-        if (op === 'create') {
+        if (op === 'create' && !everLoadedIds.has(recordId)) {
           record = {
             ...record,
             created_at: currentDate,
@@ -522,7 +537,12 @@ export function GraphProvider({ children }: GraphProps) {
         .from(`${recordType}s`)
         .upsert(records, { returning: 'minimal' })
     },
-    [nodeOrEdgeArrayIsUniform, session?.user?.id, determineNodeOrEdgeType]
+    [
+      nodeOrEdgeArrayIsUniform,
+      session?.user?.id,
+      determineNodeOrEdgeType,
+      everLoadedIds,
+    ]
   )
 
   const processNodesOrEdges = useCallback(
