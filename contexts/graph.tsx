@@ -731,24 +731,22 @@ export function GraphProvider({ children }: GraphProps) {
                 setNodeDataToChange: setNodeDataToChange,
               },
             } as Node
-            const replaceUpdatedNode = (nodes: Node[]) => {
-              return nodes.map((n) => {
-                if (n.id === node.id) {
-                  return node
-                } else {
-                  return n
-                }
-              })
+            const upsertUpdatedNode = (nodes: Node[]) => {
+              if (nodes.find((n) => n.id === node.id)) {
+                return nodes.map((n) => (n.id === node.id ? node : n))
+              } else {
+                return nodes.concat([node])
+              }
             }
             setInitialGraph((initialGraph) => {
               return {
-                nodes: replaceUpdatedNode(initialGraph.nodes),
+                nodes: upsertUpdatedNode(initialGraph.nodes),
                 edges: initialGraph.edges,
               }
             })
             updateGraph(
               {
-                nodes: replaceUpdatedNode(graph.nodes),
+                nodes: upsertUpdatedNode(graph.nodes),
                 edges: undefined,
               },
               false
@@ -807,25 +805,23 @@ export function GraphProvider({ children }: GraphProps) {
               ...payload.new.react_flow_meta,
               data: payload.new.properties,
             } as Edge
-            const replaceUpdatedEdge = (edges: Edge[]) => {
-              return edges.map((e) => {
-                if (e.id === edge.id) {
-                  return edge
-                } else {
-                  return e
-                }
-              })
+            const upsertUpdatedEdge = (edges: Edge[]) => {
+              if (edges.find((e) => e.id === edge.id)) {
+                return edges.map((e) => (e.id === edge.id ? edge : e))
+              } else {
+                return edges.concat([edge])
+              }
             }
             setInitialGraph((initialGraph) => {
               return {
                 nodes: initialGraph.nodes,
-                edges: replaceUpdatedEdge(initialGraph.edges),
+                edges: upsertUpdatedEdge(initialGraph.edges),
               }
             })
             updateGraph(
               {
                 nodes: undefined,
-                edges: replaceUpdatedEdge(graph.edges),
+                edges: upsertUpdatedEdge(graph.edges),
               },
               false
             )
