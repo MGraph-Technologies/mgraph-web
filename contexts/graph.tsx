@@ -493,17 +493,12 @@ export function GraphProvider({ children }: GraphProps) {
       const currentDate = new Date()
       const records: Record[] = objects.map((object) => {
         const { data, ...reactFlowMeta } = object
-        const { initialProperties, ...updatedProperties } = data
-        const recordId = updatedProperties.id
+        const recordId = data.id
         let record: Record = {
           id: recordId,
-          organization_id: updatedProperties.organizationId,
-          type_id: updatedProperties.typeId,
-          properties: {
-            // so properties created outside of React Flow are not overwritten
-            ...initialProperties,
-            ...updatedProperties,
-          },
+          organization_id: data.organizationId,
+          type_id: data.typeId,
+          properties: data,
           react_flow_meta: reactFlowMeta,
           updated_at: currentDate,
           updated_by: userId,
@@ -513,8 +508,8 @@ export function GraphProvider({ children }: GraphProps) {
         if (recordType === 'edge') {
           record = {
             ...record,
-            source_id: updatedProperties.sourceId,
-            target_id: updatedProperties.targetId,
+            source_id: data.sourceId,
+            target_id: data.targetId,
           }
         }
         if (op === 'create' && !everLoadedIds.has(recordId)) {
@@ -689,7 +684,6 @@ export function GraphProvider({ children }: GraphProps) {
             ...payload.new.react_flow_meta,
             data: {
               ...payload.new.properties,
-              initialProperties: payload.new.properties,
               setNodeDataToChange: setNodeDataToChange,
             },
           } as Node
@@ -730,7 +724,6 @@ export function GraphProvider({ children }: GraphProps) {
               ...payload.new.react_flow_meta,
               data: {
                 ...payload.new.properties,
-                initialProperties: payload.new.properties,
                 setNodeDataToChange: setNodeDataToChange,
               },
             } as Node
@@ -767,10 +760,7 @@ export function GraphProvider({ children }: GraphProps) {
         if (payload.eventType === 'INSERT') {
           const edge = {
             ...payload.new.react_flow_meta,
-            data: {
-              ...payload.new.properties,
-              initialProperties: payload.new.properties,
-            },
+            data: payload.new.properties,
           } as Edge
           setInitialGraph((initialGraph) => {
             return {
@@ -807,10 +797,7 @@ export function GraphProvider({ children }: GraphProps) {
           } else {
             const edge = {
               ...payload.new.react_flow_meta,
-              data: {
-                ...payload.new.properties,
-                initialProperties: payload.new.properties,
-              },
+              data: payload.new.properties,
             } as Edge
             const replaceUpdatedEdge = (edges: Edge[]) => {
               return edges.map((e) => {
@@ -1000,7 +987,6 @@ export function GraphProvider({ children }: GraphProps) {
         css: '',
       } as CustomNodeSource,
       color: '#FFFFFF',
-      initialProperties: {},
       setNodeDataToChange: setNodeDataToChange,
     }
     const newNode: Node = {
@@ -1056,7 +1042,6 @@ export function GraphProvider({ children }: GraphProps) {
       },
       color: '#FFFFFF',
       tablePosition: null,
-      initialProperties: {},
       setNodeDataToChange: setNodeDataToChange,
       monitored: false,
       alert: undefined,
@@ -1121,7 +1106,6 @@ export function GraphProvider({ children }: GraphProps) {
         typeId: newNodeTypeId,
         functionTypeId: functionTypeId,
         color: '#FFFFFF',
-        initialProperties: {},
         setNodeDataToChange: setNodeDataToChange,
       }
       const newNode: Node = {
@@ -1292,7 +1276,6 @@ export function GraphProvider({ children }: GraphProps) {
         typeId: newEdgeTypeId,
         sourceId: source.id,
         targetId: target.id,
-        initialProperties: {},
       }
       const newEdge: Edge = {
         source: displaySource.id,

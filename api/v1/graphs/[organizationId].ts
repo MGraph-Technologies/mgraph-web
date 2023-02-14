@@ -74,7 +74,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 css: properties.source?.css,
               } as CustomNodeSource,
               color: properties.color,
-              initialProperties: properties,
               setNodeDataToChange: () => {
                 return
               },
@@ -104,7 +103,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               },
               color: properties.color,
               tablePosition: properties.tablePosition,
-              initialProperties: properties,
               setNodeDataToChange: () => {
                 return
               },
@@ -132,7 +130,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               typeId: properties.typeId,
               functionTypeId: properties.functionTypeId,
               color: properties.color,
-              initialProperties: properties,
               setNodeDataToChange: () => {
                 return
               },
@@ -149,7 +146,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             typeId: properties.typeId,
             sourceId: properties.sourceId,
             targetId: properties.targetId,
-            initialProperties: properties,
           } as InputEdgeProperties
           return edge
         })

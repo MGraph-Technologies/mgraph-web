@@ -13,8 +13,7 @@ export type FunctionNodeProperties = {
   typeId: string
   functionTypeId: string
   color: string
-  // below not in postgres
-  initialProperties: object
+  // below set after load from pg
   setNodeDataToChange: (data: FunctionNodeProperties) => void
 }
 type FunctionNodeProps = {

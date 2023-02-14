@@ -32,8 +32,7 @@ export type CustomNodeProperties = {
   owner: string
   source: CustomNodeSource
   color: string
-  // below not in postgres
-  initialProperties: object
+  // below set after load from pg
   setNodeDataToChange: (data: CustomNodeProperties) => void
 }
 type CustomNodeProps = {

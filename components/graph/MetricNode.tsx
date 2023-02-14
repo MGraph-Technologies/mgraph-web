@@ -38,8 +38,7 @@ export type MetricNodeProperties = {
   source: MetricNodeSource
   color: string
   tablePosition: number | null
-  // below not in postgres
-  initialProperties: object
+  // below set after load from pg
   setNodeDataToChange: (data: MetricNodeProperties) => void
   monitored: boolean
   alert: boolean | undefined
