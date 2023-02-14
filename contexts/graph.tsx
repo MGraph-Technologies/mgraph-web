@@ -689,13 +689,17 @@ export function GraphProvider({ children }: GraphProps) {
           } as Node
           setInitialGraph((initialGraph) => {
             return {
-              nodes: [...initialGraph.nodes, node],
+              nodes: initialGraph.nodes.concat(
+                initialGraph.nodes.find((n) => n.id === node.id) ? [] : [node]
+              ),
               edges: initialGraph.edges,
             }
           })
           updateGraph(
             {
-              nodes: [...graph.nodes, node],
+              nodes: graph.nodes.concat(
+                graph.nodes.find((n) => n.id === node.id) ? [] : [node]
+              ),
               edges: undefined,
             },
             false
@@ -765,13 +769,17 @@ export function GraphProvider({ children }: GraphProps) {
           setInitialGraph((initialGraph) => {
             return {
               nodes: initialGraph.nodes,
-              edges: [...initialGraph.edges, edge],
+              edges: initialGraph.edges.concat(
+                initialGraph.edges.find((e) => e.id === edge.id) ? [] : [edge]
+              ),
             }
           })
           updateGraph(
             {
               nodes: undefined,
-              edges: [...graph.edges, edge],
+              edges: graph.edges.concat(
+                graph.edges.find((e) => e.id === edge.id) ? [] : [edge]
+              ),
             },
             false
           )
