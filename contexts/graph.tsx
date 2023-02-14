@@ -641,11 +641,14 @@ export function GraphProvider({ children }: GraphProps) {
       )
       upsertErrors.push(...edgeErrors)
 
-      if (upsertErrors.length > 0) {
+      // reset initial graph
+      if (upsertErrors.length === 0) {
+        setInitialGraph(updatedGraph)
+      } else {
         console.error(upsertErrors)
       }
     },
-    [initialGraph, processNodesOrEdges]
+    [processNodesOrEdges]
   )
 
   const [saveGraphTimeout, setSaveGraphTimeout] = useState<NodeJS.Timeout>()
