@@ -214,14 +214,11 @@ export function GraphProvider({ children }: GraphProps) {
     nodes: [],
     edges: [],
   })
-  const [
-    graph,
-    setGraph,
-    { undo, redo, canUndo, canRedo, past, future, reset },
-  ] = useUndoable<Graph>(initialGraph, {
-    behavior: 'destroyFuture',
-    ignoreIdenticalMutations: false,
-  })
+  const [graph, setGraph, { canUndo, canRedo, past, future, reset }] =
+    useUndoable<Graph>(initialGraph, {
+      behavior: 'destroyFuture',
+      ignoreIdenticalMutations: false,
+    })
 
   const [goalStatusMap, setGoalStatusMap] = useState<GoalStatusMap>({})
   const [latestCommentIdMap, setLatestCommentIdMap] =
@@ -680,21 +677,27 @@ export function GraphProvider({ children }: GraphProps) {
     [graph, setGraph, editingEnabled, saveGraphTimeout, saveGraph, initialGraph]
   )
 
-  // saveGraph on (inferred) undo or redo
-  const [nPastStates, setNPastStates] = useState(0)
-  const [nFutureStates, setNFutureStates] = useState(0)
-  useEffect(() => {
-    const _nPastStates = past.length
-    const _nFutureStates = future.length
-    if (
-      (_nPastStates < nPastStates && _nFutureStates > nFutureStates) || // undo
-      (_nPastStates > nPastStates && _nFutureStates < nFutureStates) // redo
-    ) {
-      saveGraph(initialGraph, graph)
+  // homebrewed undo/redo to support simultaneous saveGraph
+  const undo = useCallback(() => {
+    if (canUndo && past.length > 0) {
+      const lastGraph = past.pop()
+      if (lastGraph) {
+        saveGraph(graph, lastGraph)
+        future.push(graph)
+        setGraph(lastGraph, undefined, true)
+      }
     }
-    setNPastStates(_nPastStates)
-    setNFutureStates(_nFutureStates)
-  }, [past, future, nPastStates, nFutureStates, saveGraph, initialGraph, graph])
+  }, [canUndo, past, saveGraph, graph, setGraph, future])
+  const redo = useCallback(() => {
+    if (canRedo && future.length > 0) {
+      const nextGraph = future.pop()
+      if (nextGraph) {
+        saveGraph(graph, nextGraph)
+        past.push(graph)
+        setGraph(nextGraph, undefined, true)
+      }
+    }
+  }, [canRedo, future, saveGraph, graph, setGraph, past])
 
   // listen for graph changes
   useEffect(() => {
