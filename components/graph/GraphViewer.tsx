@@ -372,7 +372,7 @@ const GraphViewer: FunctionComponent = () => {
   )
 
   const onNodeDragStart = useCallback(
-    // save graph before moves so they can be undone
+    // update graph before moves so they can be undone
     () => {
       if (!updateGraph) {
         throw new Error('updateGraph not defined')
@@ -382,6 +382,24 @@ const GraphViewer: FunctionComponent = () => {
           nodes: undefined,
           edges: undefined,
         },
+        true
+      )
+    },
+    [updateGraph]
+  )
+
+  const onNodeDragStop = useCallback(
+    // update graph after moves to save them to db
+    () => {
+      if (!updateGraph) {
+        throw new Error('updateGraph not defined')
+      }
+      updateGraph(
+        {
+          nodes: undefined,
+          edges: undefined,
+        },
+        false,
         true
       )
     },
@@ -515,6 +533,7 @@ const GraphViewer: FunctionComponent = () => {
         onNodesChange={onNodesChange}
         onNodesDelete={onNodesDelete}
         onNodeDragStart={onNodeDragStart}
+        onNodeDragStop={onNodeDragStop}
         onEdgeClick={(_event, edge) => onClick(edge)}
         onEdgesChange={onEdgesChange}
         onEdgeUpdate={editingEnabled ? onEdgeUpdate : undefined}

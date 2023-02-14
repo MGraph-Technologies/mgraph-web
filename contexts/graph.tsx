@@ -105,7 +105,8 @@ type GraphContextType = {
   updateGraph:
     | ((
         update: { nodes: Node[] | undefined; edges: Edge[] | undefined },
-        undoable: boolean
+        undoable: boolean,
+        forceSave?: boolean
       ) => void)
     | undefined
   setNodeDataToChange:
@@ -655,17 +656,16 @@ export function GraphProvider({ children }: GraphProps) {
   const updateGraph = useCallback(
     (
       update: { nodes: Node[] | undefined; edges: Edge[] | undefined },
-      undoable: boolean
+      undoable: boolean,
+      forceSave?: boolean
     ) => {
-      // To prevent a mismatch of state updates,
-      // we'll use the value passed into this
-      // function instead of the state directly.
       const updatedGraph = {
         nodes: update.nodes || graph.nodes,
         edges: update.edges || graph.edges,
       } as Graph
       setGraph(updatedGraph, undefined, !undoable)
-      if (undoable && editingEnabled) {
+      if (undoable || forceSave) {
+        if (!editingEnabled) return // safety
         clearTimeout(saveGraphTimeout)
         setSaveGraphTimeout(
           setTimeout(() => {
