@@ -717,6 +717,14 @@ export function GraphProvider({ children }: GraphProps) {
   useEffect(() => {
     setGraphRef.current = setGraph
   }, [setGraph])
+  const pastRef = useRef(past)
+  useEffect(() => {
+    pastRef.current = past
+  }, [past])
+  const futureRef = useRef(future)
+  useEffect(() => {
+    futureRef.current = future
+  }, [future])
 
   // listen for graph changes
   useEffect(() => {
@@ -786,7 +794,7 @@ export function GraphProvider({ children }: GraphProps) {
       } as Graph
     }
     const processPayloadQueue = () => {
-      setInitialGraph((graph) => {
+      const migrateGraph: (graph: Graph) => Graph = (graph) => {
         let newGraph = graph
         payloadQueue.forEach((payload) => {
           if (
@@ -799,25 +807,15 @@ export function GraphProvider({ children }: GraphProps) {
           }
         })
         return newGraph
+      }
+      setInitialGraph(migrateGraph)
+      setGraphRef.current((graph) => migrateGraph(graph), undefined, true)
+      pastRef.current.forEach((graph, i) => {
+        pastRef.current[i] = migrateGraph(graph)
       })
-      setGraphRef.current(
-        (graph) => {
-          let newGraph = graph
-          payloadQueue.forEach((payload) => {
-            if (
-              payload.eventType === 'INSERT' ||
-              (payload.eventType === 'UPDATE' && !payload.new.deleted_at)
-            ) {
-              newGraph = upsertNodesOrEdgesPayload(payload, newGraph)
-            } else if (payload.eventType === 'UPDATE') {
-              newGraph = deleteNodesOrEdgesPayload(payload, newGraph)
-            }
-          })
-          return newGraph
-        },
-        undefined,
-        true
-      )
+      futureRef.current.forEach((graph, i) => {
+        futureRef.current[i] = migrateGraph(graph)
+      })
       payloadQueue = []
     }
     const processPayloadQueueDebounced = _.debounce(processPayloadQueue, 300)
@@ -878,6 +876,12 @@ export function GraphProvider({ children }: GraphProps) {
           }
           setInitialGraph(updateParentNode)
           setGraphRef.current(updateParentNode, undefined, true)
+          pastRef.current.forEach((graph, i) => {
+            pastRef.current[i] = updateParentNode(graph)
+          })
+          futureRef.current.forEach((graph, i) => {
+            futureRef.current[i] = updateParentNode(graph)
+          })
         }
       })
       .subscribe()
