@@ -747,7 +747,12 @@ export function GraphProvider({ children }: GraphProps) {
         return {
           ...graph,
           [table]: graph[table].map((n) =>
-            n.id === toUpsert.id ? toUpsert : n
+            n.id === toUpsert.id
+              ? {
+                  ...toUpsert,
+                  selected: n.selected,
+                }
+              : n
           ),
         } as Graph
       } else {
