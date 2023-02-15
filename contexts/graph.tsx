@@ -549,21 +549,15 @@ export function GraphProvider({ children }: GraphProps) {
   const processNodesOrEdges = useCallback(
     async (
       initialObjects: NodeOrEdgeArray,
-      _updatedObjects: NodeOrEdgeArray
+      updatedObjects: NodeOrEdgeArray
     ): Promise<{
       errors: PostgrestError[]
       deletedObjects: NodeOrEdgeArray
     }> => {
-      if (!nodeOrEdgeArrayIsUniform(initialObjects.concat(_updatedObjects))) {
+      if (!nodeOrEdgeArrayIsUniform(initialObjects.concat(updatedObjects))) {
         throw new Error('Cannot process nodes and edges in the same request')
       }
       const errors: PostgrestError[] = []
-
-      // remove selections
-      const updatedObjects = _updatedObjects.map((o) => ({
-        ...o,
-        selected: false,
-      }))
 
       const addedObjects: NodeOrEdgeArray = updatedObjects.filter(
         (updatedObject: Edge | Node) =>
@@ -623,24 +617,42 @@ export function GraphProvider({ children }: GraphProps) {
     async (initialGraph: Graph, updatedGraph: Graph) => {
       const upsertErrors: PostgrestError[] = []
 
+      const resetNodeOrEdge: (object: Node | Edge) => Node | Edge = (
+        object
+      ) => {
+        let newObject = {
+          ...object,
+          selected: false,
+        }
+        if (determineNodeOrEdgeType(object) === 'node') {
+          newObject = {
+            ...newObject,
+            dragging: false,
+          }
+        }
+        return newObject
+      }
+
       // process nodes
-      const initialNodes = initialGraph.nodes
-      const updatedNodes = updatedGraph.nodes
+      const initialNodes = initialGraph.nodes.map(resetNodeOrEdge)
+      const updatedNodes = updatedGraph.nodes.map(resetNodeOrEdge)
       const { errors: nodeErrors, deletedObjects: deletedNodes } =
         await processNodesOrEdges(initialNodes, updatedNodes)
       upsertErrors.push(...nodeErrors)
 
       // process edges
-      const initialEdges = initialGraph.edges
-      const updatedEdges = updatedGraph.edges.filter(
-        // delete any edges connected to deleted nodes
-        (initialEdge) =>
-          !deletedNodes.find(
-            (deletedNode) =>
-              deletedNode.id === initialEdge.source ||
-              deletedNode.id === initialEdge.target
-          )
-      )
+      const initialEdges = initialGraph.edges.map(resetNodeOrEdge)
+      const updatedEdges = updatedGraph.edges
+        .filter(
+          // delete any edges connected to deleted nodes
+          (initialEdge) =>
+            !deletedNodes.find(
+              (deletedNode) =>
+                deletedNode.id === initialEdge.source ||
+                deletedNode.id === initialEdge.target
+            )
+        )
+        .map(resetNodeOrEdge)
       const { errors: edgeErrors } = await processNodesOrEdges(
         initialEdges,
         updatedEdges
@@ -654,7 +666,7 @@ export function GraphProvider({ children }: GraphProps) {
         console.error(upsertErrors)
       }
     },
-    [processNodesOrEdges]
+    [determineNodeOrEdgeType, processNodesOrEdges]
   )
 
   const [saveGraphTimeout, setSaveGraphTimeout] = useState<NodeJS.Timeout>()
