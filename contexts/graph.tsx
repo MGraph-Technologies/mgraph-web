@@ -343,6 +343,7 @@ export function GraphProvider({ children }: GraphProps) {
   const [graphInitializedAt, setGraphInitializedAt] = useState<
     Date | undefined
   >()
+  const [everLoadedIds, setEverLoadedIds] = useState<Set<string>>(new Set())
   const loadGraph = useCallback(async () => {
     const accessToken = getValidAccessToken()
     if (!accessToken || !organizationId) {
@@ -417,6 +418,13 @@ export function GraphProvider({ children }: GraphProps) {
             setGraphInitializedAt(new Date())
             setInitialGraph(_graph)
             reset(_graph)
+            setEverLoadedIds((prev) => {
+              return new Set([
+                ...Array.from(prev),
+                ..._graph.nodes.map((node) => node.id),
+                ..._graph.edges.map((edge) => edge.id),
+              ])
+            })
           }
         })
     } catch (error: unknown) {
@@ -435,18 +443,6 @@ export function GraphProvider({ children }: GraphProps) {
       loadGraph()
     }
   }, [loadGraph, graphInitializedAt])
-
-  const [everLoadedIds, setEverLoadedIds] = useState<Set<string>>(new Set())
-  // keep updated with each graph change
-  useEffect(() => {
-    setEverLoadedIds((prev) => {
-      return new Set([
-        ...Array.from(prev),
-        ...graph.nodes.map((node) => node.id),
-        ...graph.edges.map((edge) => edge.id),
-      ])
-    })
-  }, [graph])
 
   type NodeOrEdge = Node | Edge
   type NodeOrEdgeArray = NodeOrEdge[]
@@ -743,6 +739,11 @@ export function GraphProvider({ children }: GraphProps) {
         ...payload.new.react_flow_meta,
         data: toUpsertData,
       }
+      setEverLoadedIds((prev) => {
+        const newSet = new Set(prev)
+        newSet.add(payload.new.id)
+        return newSet
+      })
       if (graph[table].some((n) => n.id === toUpsert.id)) {
         return {
           ...graph,
