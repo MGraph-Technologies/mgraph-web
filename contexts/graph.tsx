@@ -1,4 +1,8 @@
-import { PostgrestError, PostgrestResponse } from '@supabase/supabase-js'
+import {
+  PostgrestError,
+  PostgrestResponse,
+  SupabaseRealtimePayload,
+} from '@supabase/supabase-js'
 import _ from 'lodash'
 import {
   Dispatch,
@@ -8,6 +12,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import {
@@ -699,160 +704,92 @@ export function GraphProvider({ children }: GraphProps) {
     }
   }, [canRedo, future, saveGraph, graph, setGraph, past])
 
+  // avoid causing subscription unmounts below
+  const setGraphRef = useRef(setGraph)
+  useEffect(() => {
+    setGraphRef.current = setGraph
+  }, [setGraph])
+
   // listen for graph changes
   useEffect(() => {
+    const upsertNodesOrEdgesPayload: (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: SupabaseRealtimePayload<any>,
+      graph: Graph
+    ) => Graph = (payload, graph) => {
+      const table = payload.table as 'nodes' | 'edges'
+      let toUpsertData = {
+        ...payload.new.properties,
+      }
+      if (table === 'nodes') {
+        toUpsertData = {
+          ...toUpsertData,
+          setNodeDataToChange: setNodeDataToChange,
+        }
+      }
+      const toUpsert = {
+        ...payload.new.react_flow_meta,
+        data: toUpsertData,
+      }
+      if (graph[table].some((n) => n.id === toUpsert.id)) {
+        return {
+          ...graph,
+          [table]: graph[table].map((n) =>
+            n.id === toUpsert.id ? toUpsert : n
+          ),
+        } as Graph
+      } else {
+        return {
+          ...graph,
+          [table]: [...graph[table], toUpsert],
+        } as Graph
+      }
+    }
+    const deleteNodesOrEdgesPayload: (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: SupabaseRealtimePayload<any>,
+      graph: Graph
+    ) => Graph = (payload, graph) => {
+      const table = payload.table as 'nodes' | 'edges'
+      return {
+        ...graph,
+        // simpler filter yields ts(2349) error
+        [table]: graph[table]
+          .map((n) => (n.id === payload.old.id ? null : n))
+          .filter((n) => n !== null),
+      } as Graph
+    }
+    const handleNodesOrEdgesPayload: (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: SupabaseRealtimePayload<any>
+    ) => void = (payload) => {
+      if (
+        payload.eventType === 'INSERT' ||
+        (payload.eventType === 'UPDATE' && !payload.new.deleted_at)
+      ) {
+        setInitialGraph((graph) => upsertNodesOrEdgesPayload(payload, graph))
+        setGraphRef.current(
+          (graph) => upsertNodesOrEdgesPayload(payload, graph),
+          undefined,
+          true
+        )
+      } else if (payload.eventType === 'UPDATE') {
+        // soft delete
+        setInitialGraph((graph) => deleteNodesOrEdgesPayload(payload, graph))
+        setGraphRef.current(
+          (graph) => deleteNodesOrEdgesPayload(payload, graph),
+          undefined,
+          true
+        )
+      }
+    }
     const nodesSubscription = supabase
       .from('nodes')
-      .on('*', (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const node = {
-            ...payload.new.react_flow_meta,
-            data: {
-              ...payload.new.properties,
-              setNodeDataToChange: setNodeDataToChange,
-            },
-          } as Node
-          setInitialGraph((initialGraph) => {
-            return {
-              nodes: initialGraph.nodes.concat(
-                initialGraph.nodes.find((n) => n.id === node.id) ? [] : [node]
-              ),
-              edges: initialGraph.edges,
-            }
-          })
-          updateGraph(
-            {
-              nodes: graph.nodes.concat(
-                graph.nodes.find((n) => n.id === node.id) ? [] : [node]
-              ),
-              edges: undefined,
-            },
-            false
-          )
-        } else if (payload.eventType === 'UPDATE') {
-          if (payload.new.deleted_at) {
-            const node = payload.new as Node
-            const removeDeletedNode = (nodes: Node[]) => {
-              return nodes.filter((n) => n.id !== node.id)
-            }
-            setInitialGraph((initialGraph) => {
-              return {
-                nodes: removeDeletedNode(initialGraph.nodes),
-                edges: initialGraph.edges,
-              }
-            })
-            updateGraph(
-              {
-                nodes: removeDeletedNode(graph.nodes),
-                edges: undefined,
-              },
-              false
-            )
-          } else {
-            const node = {
-              ...payload.new.react_flow_meta,
-              data: {
-                ...payload.new.properties,
-                setNodeDataToChange: setNodeDataToChange,
-              },
-            } as Node
-            const upsertUpdatedNode = (nodes: Node[]) => {
-              if (nodes.find((n) => n.id === node.id)) {
-                return nodes.map((n) => (n.id === node.id ? node : n))
-              } else {
-                return nodes.concat([node])
-              }
-            }
-            setInitialGraph((initialGraph) => {
-              return {
-                nodes: upsertUpdatedNode(initialGraph.nodes),
-                edges: initialGraph.edges,
-              }
-            })
-            updateGraph(
-              {
-                nodes: upsertUpdatedNode(graph.nodes),
-                edges: undefined,
-              },
-              false
-            )
-          }
-        }
-      })
+      .on('*', handleNodesOrEdgesPayload)
       .subscribe()
     const edgesSubscription = supabase
       .from('edges')
-      .on('*', (payload) => {
-        // TODO: DRY this up (typescript makes it a pain)
-        if (payload.eventType === 'INSERT') {
-          const edge = {
-            ...payload.new.react_flow_meta,
-            data: payload.new.properties,
-          } as Edge
-          setInitialGraph((initialGraph) => {
-            return {
-              nodes: initialGraph.nodes,
-              edges: initialGraph.edges.concat(
-                initialGraph.edges.find((e) => e.id === edge.id) ? [] : [edge]
-              ),
-            }
-          })
-          updateGraph(
-            {
-              nodes: undefined,
-              edges: graph.edges.concat(
-                graph.edges.find((e) => e.id === edge.id) ? [] : [edge]
-              ),
-            },
-            false
-          )
-        } else if (payload.eventType === 'UPDATE') {
-          if (payload.new.deleted_at) {
-            const edge = payload.new as Edge
-            const removeDeletedEdge = (edges: Edge[]) => {
-              return edges.filter((e) => e.id !== edge.id)
-            }
-            setInitialGraph((initialGraph) => {
-              return {
-                nodes: initialGraph.nodes,
-                edges: removeDeletedEdge(initialGraph.edges),
-              }
-            })
-            updateGraph(
-              {
-                nodes: undefined,
-                edges: removeDeletedEdge(graph.edges),
-              },
-              false
-            )
-          } else {
-            const edge = {
-              ...payload.new.react_flow_meta,
-              data: payload.new.properties,
-            } as Edge
-            const upsertUpdatedEdge = (edges: Edge[]) => {
-              if (edges.find((e) => e.id === edge.id)) {
-                return edges.map((e) => (e.id === edge.id ? edge : e))
-              } else {
-                return edges.concat([edge])
-              }
-            }
-            setInitialGraph((initialGraph) => {
-              return {
-                nodes: initialGraph.nodes,
-                edges: upsertUpdatedEdge(initialGraph.edges),
-              }
-            })
-            updateGraph(
-              {
-                nodes: undefined,
-                edges: upsertUpdatedEdge(graph.edges),
-              },
-              false
-            )
-          }
-        }
-      })
+      .on('*', handleNodesOrEdgesPayload)
       .subscribe()
     const monitoringRuleEvalsSubscription = supabase
       .from('monitoring_rule_evaluations')
@@ -872,35 +809,29 @@ export function GraphProvider({ children }: GraphProps) {
         }
         if (data) {
           // update node in graph
-          const updateNodes = (nodes: Node[]) => {
-            return nodes.map((n) => {
-              if (n.id === data.parent_node_id) {
-                return {
-                  ...n,
-                  data: {
-                    ...n.data,
-                    monitored: true,
-                    alert: ['alert', 'timed_out'].includes(payload.new.status),
-                  },
-                }
-              } else {
-                return n
-              }
-            })
-          }
-          setInitialGraph((initialGraph) => {
+          const updateParentNode: (graph: Graph) => Graph = (graph) => {
             return {
-              nodes: updateNodes(initialGraph.nodes),
-              edges: initialGraph.edges,
+              nodes: graph.nodes.map((n) => {
+                if (n.id === data.parent_node_id) {
+                  return {
+                    ...n,
+                    data: {
+                      ...n.data,
+                      monitored: true,
+                      alert: ['alert', 'timed_out'].includes(
+                        payload.new.status
+                      ),
+                    },
+                  }
+                } else {
+                  return n
+                }
+              }),
+              edges: graph.edges,
             }
-          })
-          updateGraph(
-            {
-              nodes: updateNodes(graph.nodes),
-              edges: undefined,
-            },
-            false
-          )
+          }
+          setInitialGraph(updateParentNode)
+          setGraphRef.current(updateParentNode, undefined, true)
         }
       })
       .subscribe()
@@ -917,12 +848,12 @@ export function GraphProvider({ children }: GraphProps) {
       })
       .subscribe()
     return () => {
-      nodesSubscription.unsubscribe()
-      edgesSubscription.unsubscribe()
-      monitoringRuleEvalsSubscription.unsubscribe()
-      commentsSubscription.unsubscribe()
+      supabase.removeSubscription(nodesSubscription)
+      supabase.removeSubscription(edgesSubscription)
+      supabase.removeSubscription(monitoringRuleEvalsSubscription)
+      supabase.removeSubscription(commentsSubscription)
     }
-  }, [updateGraph, graph, initialGraph])
+  }, [])
 
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
