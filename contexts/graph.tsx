@@ -720,6 +720,8 @@ export function GraphProvider({ children }: GraphProps) {
 
   // listen for graph changes
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let payloadQueue: SupabaseRealtimePayload<any>[] = []
     const ignoreNodeOrEdgesPayload = (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       payload: SupabaseRealtimePayload<any>
@@ -783,30 +785,49 @@ export function GraphProvider({ children }: GraphProps) {
           .filter((n) => n !== null),
       } as Graph
     }
+    const processPayloadQueue = () => {
+      setInitialGraph((graph) => {
+        let newGraph = graph
+        payloadQueue.forEach((payload) => {
+          if (
+            payload.eventType === 'INSERT' ||
+            (payload.eventType === 'UPDATE' && !payload.new.deleted_at)
+          ) {
+            newGraph = upsertNodesOrEdgesPayload(payload, newGraph)
+          } else if (payload.eventType === 'UPDATE') {
+            newGraph = deleteNodesOrEdgesPayload(payload, newGraph)
+          }
+        })
+        return newGraph
+      })
+      setGraphRef.current(
+        (graph) => {
+          let newGraph = graph
+          payloadQueue.forEach((payload) => {
+            if (
+              payload.eventType === 'INSERT' ||
+              (payload.eventType === 'UPDATE' && !payload.new.deleted_at)
+            ) {
+              newGraph = upsertNodesOrEdgesPayload(payload, newGraph)
+            } else if (payload.eventType === 'UPDATE') {
+              newGraph = deleteNodesOrEdgesPayload(payload, newGraph)
+            }
+          })
+          return newGraph
+        },
+        undefined,
+        true
+      )
+      payloadQueue = []
+    }
+    const processPayloadQueueDebounced = _.debounce(processPayloadQueue, 300)
     const handleNodesOrEdgesPayload: (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       payload: SupabaseRealtimePayload<any>
     ) => void = (payload) => {
       if (ignoreNodeOrEdgesPayload(payload)) return
-      if (
-        payload.eventType === 'INSERT' ||
-        (payload.eventType === 'UPDATE' && !payload.new.deleted_at)
-      ) {
-        setInitialGraph((graph) => upsertNodesOrEdgesPayload(payload, graph))
-        setGraphRef.current(
-          (graph) => upsertNodesOrEdgesPayload(payload, graph),
-          undefined,
-          true
-        )
-      } else if (payload.eventType === 'UPDATE') {
-        // soft delete
-        setInitialGraph((graph) => deleteNodesOrEdgesPayload(payload, graph))
-        setGraphRef.current(
-          (graph) => deleteNodesOrEdgesPayload(payload, graph),
-          undefined,
-          true
-        )
-      }
+      payloadQueue.push(payload)
+      processPayloadQueueDebounced()
     }
     const nodesSubscription = supabase
       .from('nodes')
