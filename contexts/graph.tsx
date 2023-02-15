@@ -720,6 +720,12 @@ export function GraphProvider({ children }: GraphProps) {
 
   // listen for graph changes
   useEffect(() => {
+    const ignoreNodeOrEdgesPayload = (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: SupabaseRealtimePayload<any>
+    ) =>
+      // ignore active-window payloads (but below still intended to be idempotent)
+      payload.new.updated_by === session?.user?.id && document.hasFocus()
     const upsertNodesOrEdgesPayload: (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       payload: SupabaseRealtimePayload<any>,
@@ -781,6 +787,7 @@ export function GraphProvider({ children }: GraphProps) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       payload: SupabaseRealtimePayload<any>
     ) => void = (payload) => {
+      if (ignoreNodeOrEdgesPayload(payload)) return
       if (
         payload.eventType === 'INSERT' ||
         (payload.eventType === 'UPDATE' && !payload.new.deleted_at)
@@ -871,7 +878,7 @@ export function GraphProvider({ children }: GraphProps) {
       supabase.removeSubscription(monitoringRuleEvalsSubscription)
       supabase.removeSubscription(commentsSubscription)
     }
-  }, [])
+  }, [session?.user?.id])
 
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
