@@ -152,6 +152,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
             .from('goals')
             .update({ deleted_at: new Date() })
             .eq('id', rowData.id)
+            .select('id')
 
           if (error) {
             throw error
@@ -434,7 +435,8 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
                       const { data, error } = await supabase
                         .from('goals')
                         .upsert([toUpsert])
-                        .select()
+                        .select('id')
+                        .single()
 
                       if (error) {
                         throw error
@@ -444,7 +446,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
                         analytics.track(
                           upsertGoalIsNew ? 'create_goal' : 'update_goal',
                           {
-                            id: data[0].id,
+                            id: data.id,
                           }
                         )
                         populateGoals()

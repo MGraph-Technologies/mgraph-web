@@ -121,6 +121,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const { data, error } = await supabase
         .from('graph_syncs')
         .upsert(toUpsert)
+        .select('*')
         .single()
 
       if (error) {

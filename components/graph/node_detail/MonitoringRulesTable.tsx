@@ -200,6 +200,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             .from('monitoring_rules')
             .update({ deleted_at: new Date() })
             .eq('id', rowData.id)
+            .select('id')
 
           if (error) {
             throw error
@@ -499,7 +500,8 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                       const { data, error } = await supabase
                         .from('monitoring_rules')
                         .upsert([toUpsert])
-                        .select()
+                        .select('id')
+                        .single()
 
                       if (error) {
                         throw error
@@ -511,7 +513,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                             ? 'create_monitoring_rule'
                             : 'update_monitoring_rule',
                           {
-                            id: data[0].id,
+                            id: data.id,
                           }
                         )
                         setMonitoringRulesTableLoading(true)

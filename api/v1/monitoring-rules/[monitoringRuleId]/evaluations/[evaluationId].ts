@@ -286,6 +286,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           updated_at: new Date(),
         })
         .eq('id', evaluationId)
+        .select('id')
         .single()
 
       if (monitoringRuleEvaluationUpdateError) {

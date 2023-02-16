@@ -59,9 +59,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       const { error, status } = await supabase
         .from('database_connections')
-        .upsert(_toUpsert, {
-          returning: 'minimal',
-        })
+        .upsert(_toUpsert)
         .eq('id', _toUpsert.id)
 
       if (error && status !== 406) {

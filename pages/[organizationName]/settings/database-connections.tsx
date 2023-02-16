@@ -92,6 +92,7 @@ const DatabaseConnections: FunctionComponent = () => {
             .from('database_connections')
             .update({ deleted_at: new Date() })
             .eq('id', rowData.id)
+            .select('id')
 
           if (error) {
             throw error

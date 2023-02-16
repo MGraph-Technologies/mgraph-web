@@ -91,6 +91,7 @@ const RefreshJobs: FunctionComponent = () => {
             .from('refresh_jobs')
             .update({ deleted_at: new Date() })
             .eq('id', rowData.id)
+            .select('id')
 
           if (error) {
             throw error
@@ -242,7 +243,8 @@ const RefreshJobs: FunctionComponent = () => {
                         const { data, error } = await supabase
                           .from('refresh_jobs')
                           .upsert([toUpsert])
-                          .select()
+                          .select('id')
+                          .single()
 
                         if (error) {
                           throw error
@@ -254,7 +256,7 @@ const RefreshJobs: FunctionComponent = () => {
                               ? 'create_refresh_job'
                               : 'update_refresh_job',
                             {
-                              id: data[0].id,
+                              id: data.id,
                             }
                           )
                           populateRefreshJobs()

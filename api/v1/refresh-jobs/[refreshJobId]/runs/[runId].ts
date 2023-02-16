@@ -267,6 +267,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             updated_at: new Date(),
           })
           .eq('id', runId)
+          .select('id')
           .single()
 
       if (refreshJobRunUpdateError) {

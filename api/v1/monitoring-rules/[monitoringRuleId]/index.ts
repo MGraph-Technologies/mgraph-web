@@ -152,6 +152,7 @@ const logMonitoringRuleEvaluation = async (
         status: status,
       },
     ])
+    .select('id')
     .single()
 
   if (monitoringRuleEvaluationError) {

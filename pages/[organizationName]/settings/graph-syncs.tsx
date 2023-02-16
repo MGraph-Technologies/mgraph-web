@@ -282,6 +282,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
                       updated_at: new Date(),
                     })
                     .eq('id', upsertGraphSyncId)
+                    .select('id')
 
                   if (updateGraphSyncError) {
                     throw updateGraphSyncError

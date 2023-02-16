@@ -468,7 +468,7 @@ export function GraphProvider({ children }: GraphProps) {
       objects: NodeOrEdgeArray,
       op: 'create' | 'delete' | 'update'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ): Promise<PostgrestResponse<any>> => {
+    ): Promise<PostgrestError | null> => {
       if (!nodeOrEdgeArrayIsUniform(objects)) {
         throw new Error('Cannot upsert nodes and edges in the same request')
       }
@@ -530,9 +530,8 @@ export function GraphProvider({ children }: GraphProps) {
         }
         return record
       })
-      return supabase
-        .from(`${recordType}s`)
-        .upsert(records, { returning: 'minimal' })
+      const { error } = await supabase.from(`${recordType}s`).upsert(records)
+      return error
     },
     [
       nodeOrEdgeArrayIsUniform,
@@ -563,7 +562,7 @@ export function GraphProvider({ children }: GraphProps) {
           )
       )
       if (addedObjects.length > 0) {
-        const { error: addedObjectsError } = await upsertNodesOrEdges(
+        const addedObjectsError = await upsertNodesOrEdges(
           addedObjects,
           'create'
         )
@@ -579,7 +578,7 @@ export function GraphProvider({ children }: GraphProps) {
         return initialObject && !_.isEqual(initialObject, updatedObject)
       })
       if (modifiedObjects.length > 0) {
-        const { error: modifiedObjectsError } = await upsertNodesOrEdges(
+        const modifiedObjectsError = await upsertNodesOrEdges(
           modifiedObjects,
           'update'
         )
@@ -595,7 +594,7 @@ export function GraphProvider({ children }: GraphProps) {
           )
       )
       if (deletedObjects.length > 0) {
-        const { error: deletedObjectsError } = await upsertNodesOrEdges(
+        const deletedObjectsError = await upsertNodesOrEdges(
           deletedObjects,
           'delete'
         )

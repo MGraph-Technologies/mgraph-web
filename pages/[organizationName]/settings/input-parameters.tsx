@@ -86,7 +86,6 @@ const Field: FunctionComponent<FieldProps> = ({ name, example }) => {
             })
             .is('deleted_at', null)
             .eq('id', organizationId)
-            .single()
 
           if (error && status !== 406) {
             throw error

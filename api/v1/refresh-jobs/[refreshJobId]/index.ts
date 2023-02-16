@@ -145,6 +145,7 @@ const logRefreshJobRun = async (
         status: status,
       },
     ])
+    .select('id')
     .single()
 
   if (refreshJobRunError) {
