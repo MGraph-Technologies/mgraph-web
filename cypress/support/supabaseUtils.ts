@@ -25,12 +25,12 @@ export async function getSession({
   // Create a session for the user if it doesn't exist already.
   // You can then log in as any number of test users from your tests.
   if (!sessions[email]) {
-    const res = await supabase.auth.signIn({
+    const { data } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
-    sessions[email] = res.session
+    sessions[email] = data.session
   }
 
   return sessions[email]
