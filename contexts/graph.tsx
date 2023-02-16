@@ -741,11 +741,11 @@ export function GraphProvider({ children }: GraphProps) {
       payload: SupabaseRealtimePayload<any>,
       graph: Graph
     ) => Graph = (payload, graph) => {
-      const table = payload.table as 'nodes' | 'edges'
+      const nodesOrEdges = payload.table as 'nodes' | 'edges'
       let toUpsertData = {
         ...payload.new.properties,
       }
-      if (table === 'nodes') {
+      if (nodesOrEdges === 'nodes') {
         toUpsertData = {
           ...toUpsertData,
           setNodeDataToChange: setNodeDataToChange,
@@ -760,10 +760,10 @@ export function GraphProvider({ children }: GraphProps) {
         newSet.add(payload.new.id)
         return newSet
       })
-      if (graph[table].some((n) => n.id === toUpsert.id)) {
+      if (graph[nodesOrEdges].some((n) => n.id === toUpsert.id)) {
         return {
           ...graph,
-          [table]: graph[table].map((n) =>
+          [nodesOrEdges]: graph[nodesOrEdges].map((n) =>
             n.id === toUpsert.id
               ? {
                   ...toUpsert,
@@ -775,7 +775,7 @@ export function GraphProvider({ children }: GraphProps) {
       } else {
         return {
           ...graph,
-          [table]: [...graph[table], toUpsert],
+          [nodesOrEdges]: [...graph[nodesOrEdges], toUpsert],
         } as Graph
       }
     }
@@ -784,11 +784,11 @@ export function GraphProvider({ children }: GraphProps) {
       payload: SupabaseRealtimePayload<any>,
       graph: Graph
     ) => Graph = (payload, graph) => {
-      const table = payload.table as 'nodes' | 'edges'
+      const nodesOrEdges = payload.table as 'nodes' | 'edges'
       return {
         ...graph,
         // simpler filter yields ts(2349) error
-        [table]: graph[table]
+        [nodesOrEdges]: graph[nodesOrEdges]
           .map((n) => (n.id === payload.old.id ? null : n))
           .filter((n) => n !== null),
       } as Graph
