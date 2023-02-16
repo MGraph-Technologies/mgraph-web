@@ -1,7 +1,6 @@
 import {
   PostgrestError,
-  PostgrestResponse,
-  SupabaseRealtimePayload,
+  RealtimePostgresChangesPayload,
 } from '@supabase/supabase-js'
 import _ from 'lodash'
 import {
@@ -728,16 +727,16 @@ export function GraphProvider({ children }: GraphProps) {
   // listen for graph changes
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let payloadQueue: SupabaseRealtimePayload<any>[] = []
+    let payloadQueue: RealtimePostgresChangesPayload<any>[] = []
     const ignoreNodeOrEdgesPayload = (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload: SupabaseRealtimePayload<any>
+      payload: RealtimePostgresChangesPayload<any>
     ) =>
       // ignore active-window payloads (but below still intended to be idempotent)
       payload.new.updated_by === session?.user?.id && document.hasFocus()
     const upsertNodesOrEdgesPayload: (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload: SupabaseRealtimePayload<any>,
+      payload: RealtimePostgresChangesPayload<any>,
       graph: Graph
     ) => Graph = (payload, graph) => {
       const nodesOrEdges = payload.table as 'nodes' | 'edges'
@@ -780,15 +779,18 @@ export function GraphProvider({ children }: GraphProps) {
     }
     const deleteNodesOrEdgesPayload: (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload: SupabaseRealtimePayload<any>,
+      payload: RealtimePostgresChangesPayload<any>,
       graph: Graph
     ) => Graph = (payload, graph) => {
       const nodesOrEdges = payload.table as 'nodes' | 'edges'
+      const old = payload.old as {
+        id: string
+      }
       return {
         ...graph,
         // simpler filter yields ts(2349) error
         [nodesOrEdges]: graph[nodesOrEdges]
-          .map((n) => (n.id === payload.old.id ? null : n))
+          .map((n) => (n.id === old.id ? null : n))
           .filter((n) => n !== null),
       } as Graph
     }
@@ -820,87 +822,107 @@ export function GraphProvider({ children }: GraphProps) {
     const processPayloadQueueDebounced = _.debounce(processPayloadQueue, 300)
     const handleNodesOrEdgesPayload: (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload: SupabaseRealtimePayload<any>
+      payload: RealtimePostgresChangesPayload<any>
     ) => void = (payload) => {
       if (ignoreNodeOrEdgesPayload(payload)) return
       payloadQueue.push(payload)
       processPayloadQueueDebounced()
     }
     const nodesSubscription = supabase
-      .from('nodes')
-      .on('*', handleNodesOrEdgesPayload)
+      .channel('public:nodes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'nodes' },
+        handleNodesOrEdgesPayload
+      )
       .subscribe()
     const edgesSubscription = supabase
-      .from('edges')
-      .on('*', handleNodesOrEdgesPayload)
+      .channel('public:edges')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'edges' },
+        handleNodesOrEdgesPayload
+      )
       .subscribe()
     const monitoringRuleEvalsSubscription = supabase
-      .from('monitoring_rule_evaluations')
-      // inserts are pending, status comes through via update
-      .on('UPDATE', async (payload) => {
-        if (payload.new.status === 'pending' || payload.new.deleted_at) {
-          return
-        }
-        // query for node id
-        const { data, status, error } = await supabase
-          .from('monitoring_rules')
-          .select('parent_node_id')
-          .eq('id', payload.new.monitoring_rule_id)
-          .single()
-        if (error && status !== 406) {
-          throw error
-        }
-        if (data) {
-          // update node in graph
-          const updateParentNode: (graph: Graph) => Graph = (graph) => {
-            return {
-              nodes: graph.nodes.map((n) => {
-                if (n.id === data.parent_node_id) {
-                  return {
-                    ...n,
-                    data: {
-                      ...n.data,
-                      monitored: true,
-                      alert: ['alert', 'timed_out'].includes(
-                        payload.new.status
-                      ),
-                    },
-                  }
-                } else {
-                  return n
-                }
-              }),
-              edges: graph.edges,
-            }
+      .channel('public:monitoring_rule_evaluations')
+      .on(
+        'postgres_changes',
+        // inserts are pending, status comes through via update
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'monitoring_rule_evaluations',
+        },
+        async (payload) => {
+          if (payload.new.status === 'pending' || payload.new.deleted_at) {
+            return
           }
-          setInitialGraph(updateParentNode)
-          setGraphRef.current(updateParentNode, undefined, true)
-          pastRef.current.forEach((graph, i) => {
-            pastRef.current[i] = updateParentNode(graph)
-          })
-          futureRef.current.forEach((graph, i) => {
-            futureRef.current[i] = updateParentNode(graph)
-          })
+          // query for node id
+          const { data, status, error } = await supabase
+            .from('monitoring_rules')
+            .select('parent_node_id')
+            .eq('id', payload.new.monitoring_rule_id)
+            .single()
+          if (error && status !== 406) {
+            throw error
+          }
+          if (data) {
+            // update node in graph
+            const updateParentNode: (graph: Graph) => Graph = (graph) => {
+              return {
+                nodes: graph.nodes.map((n) => {
+                  if (n.id === data.parent_node_id) {
+                    return {
+                      ...n,
+                      data: {
+                        ...n.data,
+                        monitored: true,
+                        alert: ['alert', 'timed_out'].includes(
+                          payload.new.status
+                        ),
+                      },
+                    }
+                  } else {
+                    return n
+                  }
+                }),
+                edges: graph.edges,
+              }
+            }
+            setInitialGraph(updateParentNode)
+            setGraphRef.current(updateParentNode, undefined, true)
+            pastRef.current.forEach((graph, i) => {
+              pastRef.current[i] = updateParentNode(graph)
+            })
+            futureRef.current.forEach((graph, i) => {
+              futureRef.current[i] = updateParentNode(graph)
+            })
+          }
         }
-      })
+      )
       .subscribe()
     const commentsSubscription = supabase
-      .from('sce_comments')
-      .on('INSERT', (payload) => {
-        const comment = payload.new
-        setLatestCommentIdMap((latestCommentIdMap) => {
-          return {
-            ...latestCommentIdMap,
-            [comment.topic]: comment.id,
-          }
-        })
-      })
+      .channel('public:sce_comments')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'sce_comments' },
+        (payload) => {
+          const comment = payload.new
+          setLatestCommentIdMap((latestCommentIdMap) => {
+            return {
+              ...latestCommentIdMap,
+              [comment.topic]: comment.id,
+            }
+          })
+        }
+      )
       .subscribe()
     return () => {
-      supabase.removeSubscription(nodesSubscription)
-      supabase.removeSubscription(edgesSubscription)
-      supabase.removeSubscription(monitoringRuleEvalsSubscription)
-      supabase.removeSubscription(commentsSubscription)
+      supabase.removeChannel(nodesSubscription)
+      supabase.removeChannel(edgesSubscription)
+      supabase.removeChannel(monitoringRuleEvalsSubscription)
+      supabase.removeChannel(commentsSubscription)
     }
   }, [session?.user?.id])
 

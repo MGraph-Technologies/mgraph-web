@@ -104,25 +104,29 @@ export function QueriesProvider({ children }: QueriesProps) {
   // listen for query executions and keep map updated
   useEffect(() => {
     const subscription = supabase
-      .from('database_queries')
-      .on('INSERT', (payload) => {
-        const newQuery = payload.new
-        if (newQuery) {
-          const queryHash = generateQueryHash(
-            newQuery.database_connection_id,
-            newQuery.parent_node_id,
-            newQuery.statement
-          )
-          const queryId = newQuery.id
-          setLatestQueryIds((prev) => ({
-            ...prev,
-            [queryHash]: queryId,
-          }))
+      .channel('public:database_queries')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'database_queries' },
+        (payload) => {
+          const newQuery = payload.new
+          if (newQuery) {
+            const queryHash = generateQueryHash(
+              newQuery.database_connection_id,
+              newQuery.parent_node_id,
+              newQuery.statement
+            )
+            const queryId = newQuery.id
+            setLatestQueryIds((prev) => ({
+              ...prev,
+              [queryHash]: queryId,
+            }))
+          }
         }
-      })
+      )
       .subscribe()
     return () => {
-      supabase.removeSubscription(subscription)
+      supabase.removeChannel(subscription)
     }
   }, [])
 
