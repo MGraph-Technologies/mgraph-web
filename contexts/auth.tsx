@@ -53,12 +53,14 @@ export function AuthProvider({ children }: AuthProps) {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
 
   useEffect(() => {
-    const session = supabase.auth.session()
-    setSession(session)
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session)
-    })
+    const initializeSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      setSession(data.session)
+      supabase.auth.onAuthStateChange((event, session) => {
+        setSession(session)
+      })
+    }
+    initializeSession()
   }, [])
 
   const [organizationId, setOrganizationId] = useState('')

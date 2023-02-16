@@ -20,9 +20,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const body = JSON.parse(req.body)
     const { toUpsert, credentials } = body
 
-    const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
-    supabase.auth.setAuth(accessToken)
+    const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    })
 
     try {
       let _toUpsert = {

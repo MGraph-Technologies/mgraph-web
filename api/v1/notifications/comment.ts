@@ -19,27 +19,33 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log('\nBody: ', body)
     const { topicId } = body
 
-    const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
-    supabase.auth.setAuth(accessToken)
+    const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    })
     try {
       const recipientUserIds = new Set<string>()
 
       // get user
-      const { user, error: userError } = await supabase.auth.api.getUser(
+      const { data: userData, error: userError } = await supabase.auth.getUser(
         accessToken
       )
       if (userError) throw userError
+      const user = userData.user
       if (!user) throw new Error('User not found')
       const userId = user.id
       console.log('\nInitiated by user ', userId)
-      const { data: userData, error: userDataError } = await supabase
+      const { data: sduData, error: sduError } = await supabase
         .from('sce_display_users')
         .select('email, name')
         .eq('id', userId)
         .single()
-      if (userDataError) throw userDataError
-      if (!userData) throw new Error('User not found')
+      if (sduError) throw sduError
+      if (!sduData) throw new Error('User not found')
 
       // get parent id and mentioned users from their latest comment
       const { data: latestCommentData, error: latestCommentError } =
@@ -141,7 +147,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         )
         console.log('\nRecipient emails: ', recipientEmails)
         // todo: send email to each recipient
-        const commenter = userData.name || userData.email
+        const commenter = sduData.name || sduData.email
         const nodeName = nodeData?.properties?.name
         const nodeTypeName = nodeData?.node_types?.name || ''
         const nodeOrgName = nodeData?.organizations?.name || ''

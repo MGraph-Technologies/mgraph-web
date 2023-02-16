@@ -21,9 +21,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log('\nBody: ', body)
     const { databaseConnectionId, parentNodeId, statement } = body
 
-    const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
-    supabase.auth.setAuth(accessToken)
+    const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    })
     try {
       const { data, error, status } = await supabase
         .from('database_connections')
