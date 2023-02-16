@@ -12,7 +12,7 @@ import React, {
 } from 'react'
 
 import FormulaEditor from 'components/graph/editing/FormulaEditor'
-import UndoRedoDoneAndCancelGraphEditingButtons from 'components/graph/editing/UndoRedoDoneAndCancelGraphEditingButtons'
+import UndoRedoAndDoneGraphEditingButtons from 'components/graph/editing/UndoRedoAndDoneGraphEditingButtons'
 import { useEditability } from 'contexts/editability'
 import { useGraph } from 'contexts/graph'
 import styles from 'styles/EditorDock.module.css'
@@ -212,7 +212,7 @@ const _EditorDock: FunctionComponent<EditorDockProps> = ({ parent }) => {
                 </>
               )
             }
-            right={<UndoRedoDoneAndCancelGraphEditingButtons />}
+            right={<UndoRedoAndDoneGraphEditingButtons />}
           />
         )}
       </div>

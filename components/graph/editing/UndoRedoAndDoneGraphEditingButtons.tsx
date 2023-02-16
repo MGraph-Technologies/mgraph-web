@@ -5,7 +5,7 @@ import { useEditability } from 'contexts/editability'
 import { useGraph } from 'contexts/graph'
 import { analytics } from 'utils/segmentClient'
 
-const UndoRedoDoneAndCancelGraphEditingButtons: FunctionComponent = () => {
+const UndoRedoAndDoneGraphEditingButtons: FunctionComponent = () => {
   const { disableEditing } = useEditability()
   const { undo, redo, canUndo, canRedo, loadGraph } = useGraph()
 
@@ -48,4 +48,4 @@ const UndoRedoDoneAndCancelGraphEditingButtons: FunctionComponent = () => {
   )
 }
 
-export default UndoRedoDoneAndCancelGraphEditingButtons
+export default UndoRedoAndDoneGraphEditingButtons
