@@ -1,7 +1,7 @@
 import { defineConfig } from 'cypress'
 import { config } from 'dotenv'
 
-import getSession from './cypress/support/supabaseLogin'
+import { getSession, insertCustomNode } from './cypress/support/supabaseUtils'
 
 config()
 
@@ -23,6 +23,9 @@ export default defineConfig({
       on('task', {
         getSupabaseSession({ email, password, supabaseUrl, supabaseAnonKey }) {
           return getSession({ email, password, supabaseUrl, supabaseAnonKey })
+        },
+        insertCustomNode({ accessToken, nodeName }) {
+          return insertCustomNode({ accessToken, nodeName })
         },
       })
     },

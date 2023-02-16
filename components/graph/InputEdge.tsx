@@ -8,8 +8,6 @@ export type InputEdgeProperties = {
   typeId: string
   sourceId: string
   targetId: string
-  // below not in postgres
-  initialProperties: object
 }
 const InputEdge: FunctionComponent<EdgeProps> = ({
   id,

@@ -1,4 +1,10 @@
 import {
+  PostgrestError,
+  PostgrestResponse,
+  SupabaseRealtimePayload,
+} from '@supabase/supabase-js'
+import _ from 'lodash'
+import {
   Dispatch,
   ReactNode,
   SetStateAction,
@@ -6,6 +12,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import {
@@ -21,14 +28,22 @@ import useUndoable from 'use-undoable'
 import { v4 as uuidv4 } from 'uuid'
 
 import CustomNode, {
+  CUSTOM_NODE_INIT_HEIGHT,
+  CUSTOM_NODE_INIT_WIDTH,
   CustomNodeProperties,
   CustomNodeSource,
 } from 'components/graph/CustomNode'
 import FunctionNode, {
+  FUNCTION_NODE_INIT_HEIGHT,
+  FUNCTION_NODE_INIT_WIDTH,
   FunctionNodeProperties,
 } from 'components/graph/FunctionNode'
 import InputEdge, { InputEdgeProperties } from 'components/graph/InputEdge'
-import MetricNode, { MetricNodeProperties } from 'components/graph/MetricNode'
+import MetricNode, {
+  METRIC_NODE_INIT_HEIGHT,
+  METRIC_NODE_INIT_WIDTH,
+  MetricNodeProperties,
+} from 'components/graph/MetricNode'
 import { GoalStatus } from 'components/graph/node_detail/GoalsTable'
 import { useAuth } from 'contexts/auth'
 import { useEditability } from 'contexts/editability'
@@ -92,11 +107,11 @@ type GraphContextType = {
   canUndo: boolean
   canRedo: boolean
   loadGraph: (() => Promise<void>) | undefined
-  saveGraph: (() => Promise<Response | undefined>) | undefined
   updateGraph:
     | ((
         update: { nodes: Node[] | undefined; edges: Edge[] | undefined },
-        undoable: boolean
+        undoable: boolean,
+        forceSave?: boolean
       ) => void)
     | undefined
   setNodeDataToChange:
@@ -174,7 +189,6 @@ const graphContextDefaultValues: GraphContextType = {
   canUndo: false,
   canRedo: false,
   loadGraph: undefined,
-  saveGraph: undefined,
   updateGraph: undefined,
   setNodeDataToChange: undefined,
   setEdgeBeingUpdated: undefined,
@@ -198,14 +212,15 @@ type GraphProps = {
 }
 
 export function GraphProvider({ children }: GraphProps) {
-  const { getValidAccessToken, organizationId, userOnMobile } = useAuth()
+  const { session, getValidAccessToken, organizationId, userOnMobile } =
+    useAuth()
   const { editingEnabled } = useEditability()
 
   const [initialGraph, setInitialGraph] = useState<Graph>({
     nodes: [],
     edges: [],
   })
-  const [graph, setGraph, { undo, redo, canUndo, canRedo, reset }] =
+  const [graph, setGraph, { canUndo, canRedo, past, future, reset }] =
     useUndoable<Graph>(initialGraph, {
       behavior: 'destroyFuture',
       ignoreIdenticalMutations: false,
@@ -328,6 +343,7 @@ export function GraphProvider({ children }: GraphProps) {
   const [graphInitializedAt, setGraphInitializedAt] = useState<
     Date | undefined
   >()
+  const [everLoadedIds, setEverLoadedIds] = useState<Set<string>>(new Set())
   const loadGraph = useCallback(async () => {
     const accessToken = getValidAccessToken()
     if (!accessToken || !organizationId) {
@@ -402,6 +418,13 @@ export function GraphProvider({ children }: GraphProps) {
             setGraphInitializedAt(new Date())
             setInitialGraph(_graph)
             reset(_graph)
+            setEverLoadedIds((prev) => {
+              return new Set([
+                ...Array.from(prev),
+                ..._graph.nodes.map((node) => node.id),
+                ..._graph.edges.map((edge) => edge.id),
+              ])
+            })
           }
         })
     } catch (error: unknown) {
@@ -421,150 +444,396 @@ export function GraphProvider({ children }: GraphProps) {
     }
   }, [loadGraph, graphInitializedAt])
 
-  const saveGraph = useCallback(async () => {
-    const accessToken = getValidAccessToken()
-    if (!accessToken || !organizationId) {
-      return
-    }
-    // remove selections
-    graph.nodes = graph.nodes.map((n) => ({ ...n, selected: false }))
-    graph.edges = graph.edges.map((e) => ({ ...e, selected: false }))
+  type NodeOrEdge = Node | Edge
+  type NodeOrEdgeArray = NodeOrEdge[]
+  const determineNodeOrEdgeType = useCallback((object: NodeOrEdge): string => {
+    return 'source' in object && 'target' in object ? 'edge' : 'node'
+  }, [])
+  const nodeOrEdgeArrayIsUniform = useCallback(
+    (objects: NodeOrEdgeArray): boolean => {
+      if (objects.length === 0) {
+        return true
+      } else {
+        const firstObjectType = determineNodeOrEdgeType(objects[0])
+        return objects.every(
+          (object) => determineNodeOrEdgeType(object) === firstObjectType
+        )
+      }
+    },
+    [determineNodeOrEdgeType]
+  )
 
-    return fetch(`/api/v1/graphs/${organizationId}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        initialGraph: initialGraph,
-        updatedGraph: graph,
-      }),
-      headers: {
-        'supabase-access-token': accessToken,
-      },
-    })
-  }, [getValidAccessToken, organizationId, graph, initialGraph])
+  const upsertNodesOrEdges = useCallback(
+    async (
+      objects: NodeOrEdgeArray,
+      op: 'create' | 'delete' | 'update'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ): Promise<PostgrestResponse<any>> => {
+      if (!nodeOrEdgeArrayIsUniform(objects)) {
+        throw new Error('Cannot upsert nodes and edges in the same request')
+      }
+      const userId = session?.user?.id
+      if (!userId) {
+        throw new Error('User not logged in')
+      }
+      type Record = {
+        id: string
+        organization_id: string
+        type_id: string
+        properties: object
+        react_flow_meta: object
+        updated_at: Date
+        updated_by: string
+        deleted_at: Date | null
+        deleted_by: string | null
+        source_id?: string // only edges have source_id
+        target_id?: string // only edges have target_id
+        created_at?: Date // only needed for create
+        created_by?: string // only needed for create
+      }
+      const recordType = determineNodeOrEdgeType(objects[0])
+      const currentDate = new Date()
+      const records: Record[] = objects.map((object) => {
+        const { data, ...reactFlowMeta } = object
+        const recordId = data.id
+        let record: Record = {
+          id: recordId,
+          organization_id: data.organizationId,
+          type_id: data.typeId,
+          properties: data,
+          react_flow_meta: reactFlowMeta,
+          updated_at: currentDate,
+          updated_by: userId,
+          deleted_at: null,
+          deleted_by: null,
+        }
+        if (recordType === 'edge') {
+          record = {
+            ...record,
+            source_id: data.sourceId,
+            target_id: data.targetId,
+          }
+        }
+        if (op === 'create' && !everLoadedIds.has(recordId)) {
+          record = {
+            ...record,
+            created_at: currentDate,
+            created_by: userId,
+          }
+        }
+        if (op === 'delete') {
+          record = {
+            ...record,
+            deleted_at: currentDate,
+            deleted_by: userId,
+          }
+        }
+        return record
+      })
+      return supabase
+        .from(`${recordType}s`)
+        .upsert(records, { returning: 'minimal' })
+    },
+    [
+      nodeOrEdgeArrayIsUniform,
+      session?.user?.id,
+      determineNodeOrEdgeType,
+      everLoadedIds,
+    ]
+  )
 
+  const processNodesOrEdges = useCallback(
+    async (
+      initialObjects: NodeOrEdgeArray,
+      updatedObjects: NodeOrEdgeArray
+    ): Promise<{
+      errors: PostgrestError[]
+      deletedObjects: NodeOrEdgeArray
+    }> => {
+      if (!nodeOrEdgeArrayIsUniform(initialObjects.concat(updatedObjects))) {
+        throw new Error('Cannot process nodes and edges in the same request')
+      }
+      const errors: PostgrestError[] = []
+
+      const addedObjects: NodeOrEdgeArray = updatedObjects.filter(
+        (updatedObject: Edge | Node) =>
+          !initialObjects.find(
+            (initialObject: Edge | Node) =>
+              initialObject.id === updatedObject.id
+          )
+      )
+      if (addedObjects.length > 0) {
+        const { error: addedObjectsError } = await upsertNodesOrEdges(
+          addedObjects,
+          'create'
+        )
+        if (addedObjectsError) {
+          errors.push(addedObjectsError)
+        }
+      }
+
+      const modifiedObjects = updatedObjects.filter((updatedObject) => {
+        const initialObject = initialObjects.find(
+          (initialObject) => initialObject.id === updatedObject.id
+        )
+        return initialObject && !_.isEqual(initialObject, updatedObject)
+      })
+      if (modifiedObjects.length > 0) {
+        const { error: modifiedObjectsError } = await upsertNodesOrEdges(
+          modifiedObjects,
+          'update'
+        )
+        if (modifiedObjectsError) {
+          errors.push(modifiedObjectsError)
+        }
+      }
+
+      const deletedObjects = initialObjects.filter(
+        (initialObject) =>
+          !updatedObjects.find(
+            (updatedObject) => updatedObject.id === initialObject.id
+          )
+      )
+      if (deletedObjects.length > 0) {
+        const { error: deletedObjectsError } = await upsertNodesOrEdges(
+          deletedObjects,
+          'delete'
+        )
+        if (deletedObjectsError) {
+          errors.push(deletedObjectsError)
+        }
+      }
+
+      return { errors, deletedObjects }
+    },
+    [nodeOrEdgeArrayIsUniform, upsertNodesOrEdges]
+  )
+
+  const saveGraph = useCallback(
+    async (initialGraph: Graph, updatedGraph: Graph) => {
+      const upsertErrors: PostgrestError[] = []
+
+      const resetNodeOrEdge: (object: Node | Edge) => Node | Edge = (
+        object
+      ) => {
+        let newObject = {
+          ...object,
+          selected: false,
+        }
+        if (determineNodeOrEdgeType(object) === 'node') {
+          newObject = {
+            ...newObject,
+            dragging: false,
+          }
+        }
+        return newObject
+      }
+
+      // process nodes
+      const initialNodes = initialGraph.nodes.map(resetNodeOrEdge)
+      const updatedNodes = updatedGraph.nodes.map(resetNodeOrEdge)
+      const { errors: nodeErrors, deletedObjects: deletedNodes } =
+        await processNodesOrEdges(initialNodes, updatedNodes)
+      upsertErrors.push(...nodeErrors)
+
+      // process edges
+      const initialEdges = initialGraph.edges.map(resetNodeOrEdge)
+      const updatedEdges = updatedGraph.edges
+        .filter(
+          // delete any edges connected to deleted nodes
+          (initialEdge) =>
+            !deletedNodes.find(
+              (deletedNode) =>
+                deletedNode.id === initialEdge.source ||
+                deletedNode.id === initialEdge.target
+            )
+        )
+        .map(resetNodeOrEdge)
+      const { errors: edgeErrors } = await processNodesOrEdges(
+        initialEdges,
+        updatedEdges
+      )
+      upsertErrors.push(...edgeErrors)
+
+      // reset initial graph
+      if (upsertErrors.length === 0) {
+        setInitialGraph(updatedGraph)
+      } else {
+        console.error(upsertErrors)
+      }
+    },
+    [determineNodeOrEdgeType, processNodesOrEdges]
+  )
+
+  const [saveGraphTimeout, setSaveGraphTimeout] = useState<NodeJS.Timeout>()
   const updateGraph = useCallback(
     (
       update: { nodes: Node[] | undefined; edges: Edge[] | undefined },
-      undoable: boolean
+      undoable: boolean,
+      forceSave?: boolean
     ) => {
-      // To prevent a mismatch of state updates,
-      // we'll use the value passed into this
-      // function instead of the state directly.
-      setGraph(
-        (graph) => {
-          return {
-            nodes: update.nodes || graph.nodes,
-            edges: update.edges || graph.edges,
-          } as Graph
-        },
-        undefined,
-        !undoable
-      )
+      const updatedGraph = {
+        nodes: update.nodes || graph.nodes,
+        edges: update.edges || graph.edges,
+      } as Graph
+      setGraph(updatedGraph, undefined, !undoable)
+      if (undoable || forceSave) {
+        if (!editingEnabled) return // safety
+        clearTimeout(saveGraphTimeout)
+        setSaveGraphTimeout(
+          setTimeout(() => {
+            saveGraph(initialGraph, updatedGraph)
+          }, 1000)
+        )
+      }
     },
-    [setGraph]
+    [graph, setGraph, editingEnabled, saveGraphTimeout, saveGraph, initialGraph]
   )
+
+  // homebrewed undo/redo to support simultaneous saveGraph
+  const undo = useCallback(() => {
+    if (canUndo && past.length > 0) {
+      const lastGraph = past.pop()
+      if (lastGraph) {
+        saveGraph(graph, lastGraph)
+        future.push(graph)
+        setGraph(lastGraph, undefined, true)
+      }
+    }
+  }, [canUndo, past, saveGraph, graph, setGraph, future])
+  const redo = useCallback(() => {
+    if (canRedo && future.length > 0) {
+      const nextGraph = future.pop()
+      if (nextGraph) {
+        saveGraph(graph, nextGraph)
+        past.push(graph)
+        setGraph(nextGraph, undefined, true)
+      }
+    }
+  }, [canRedo, future, saveGraph, graph, setGraph, past])
+
+  // avoid causing subscription unmounts below
+  const setGraphRef = useRef(setGraph)
+  useEffect(() => {
+    setGraphRef.current = setGraph
+  }, [setGraph])
+  const pastRef = useRef(past)
+  useEffect(() => {
+    pastRef.current = past
+  }, [past])
+  const futureRef = useRef(future)
+  useEffect(() => {
+    futureRef.current = future
+  }, [future])
 
   // listen for graph changes
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let payloadQueue: SupabaseRealtimePayload<any>[] = []
+    const ignoreNodeOrEdgesPayload = (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: SupabaseRealtimePayload<any>
+    ) =>
+      // ignore active-window payloads (but below still intended to be idempotent)
+      payload.new.updated_by === session?.user?.id && document.hasFocus()
+    const upsertNodesOrEdgesPayload: (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: SupabaseRealtimePayload<any>,
+      graph: Graph
+    ) => Graph = (payload, graph) => {
+      const nodesOrEdges = payload.table as 'nodes' | 'edges'
+      let toUpsertData = {
+        ...payload.new.properties,
+      }
+      if (nodesOrEdges === 'nodes') {
+        toUpsertData = {
+          ...toUpsertData,
+          setNodeDataToChange: setNodeDataToChange,
+        }
+      }
+      const toUpsert = {
+        ...payload.new.react_flow_meta,
+        data: toUpsertData,
+      }
+      setEverLoadedIds((prev) => {
+        const newSet = new Set(prev)
+        newSet.add(payload.new.id)
+        return newSet
+      })
+      if (graph[nodesOrEdges].some((n) => n.id === toUpsert.id)) {
+        return {
+          ...graph,
+          [nodesOrEdges]: graph[nodesOrEdges].map((n) =>
+            n.id === toUpsert.id
+              ? {
+                  ...toUpsert,
+                  selected: n.selected,
+                }
+              : n
+          ),
+        } as Graph
+      } else {
+        return {
+          ...graph,
+          [nodesOrEdges]: [...graph[nodesOrEdges], toUpsert],
+        } as Graph
+      }
+    }
+    const deleteNodesOrEdgesPayload: (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: SupabaseRealtimePayload<any>,
+      graph: Graph
+    ) => Graph = (payload, graph) => {
+      const nodesOrEdges = payload.table as 'nodes' | 'edges'
+      return {
+        ...graph,
+        // simpler filter yields ts(2349) error
+        [nodesOrEdges]: graph[nodesOrEdges]
+          .map((n) => (n.id === payload.old.id ? null : n))
+          .filter((n) => n !== null),
+      } as Graph
+    }
+    const processPayloadQueue = () => {
+      const migrateGraph: (graph: Graph) => Graph = (graph) => {
+        let newGraph = graph
+        payloadQueue.forEach((payload) => {
+          if (
+            payload.eventType === 'INSERT' ||
+            (payload.eventType === 'UPDATE' && !payload.new.deleted_at)
+          ) {
+            newGraph = upsertNodesOrEdgesPayload(payload, newGraph)
+          } else if (payload.eventType === 'UPDATE') {
+            newGraph = deleteNodesOrEdgesPayload(payload, newGraph)
+          }
+        })
+        return newGraph
+      }
+      setInitialGraph(migrateGraph)
+      setGraphRef.current((graph) => migrateGraph(graph), undefined, true)
+      pastRef.current.forEach((graph, i) => {
+        pastRef.current[i] = migrateGraph(graph)
+      })
+      futureRef.current.forEach((graph, i) => {
+        futureRef.current[i] = migrateGraph(graph)
+      })
+      payloadQueue = []
+    }
+    const processPayloadQueueDebounced = _.debounce(processPayloadQueue, 300)
+    const handleNodesOrEdgesPayload: (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: SupabaseRealtimePayload<any>
+    ) => void = (payload) => {
+      if (ignoreNodeOrEdgesPayload(payload)) return
+      payloadQueue.push(payload)
+      processPayloadQueueDebounced()
+    }
     const nodesSubscription = supabase
       .from('nodes')
-      .on('*', (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const node = {
-            ...payload.new.react_flow_meta,
-            data: {
-              ...payload.new.properties,
-              setNodeDataToChange: setNodeDataToChange,
-            },
-          } as Node
-          updateGraph(
-            {
-              nodes: [...graph.nodes, node],
-              edges: undefined,
-            },
-            false
-          )
-        } else if (payload.eventType === 'UPDATE') {
-          if (payload.new.deleted_at) {
-            const node = payload.new as Node
-            updateGraph(
-              {
-                nodes: graph.nodes.filter((n) => n.id !== node.id),
-                edges: undefined,
-              },
-              false
-            )
-          } else {
-            const node = {
-              ...payload.new.react_flow_meta,
-              data: {
-                ...payload.new.properties,
-                setNodeDataToChange: setNodeDataToChange,
-              },
-            } as Node
-            updateGraph(
-              {
-                nodes: graph.nodes.map((n) => {
-                  if (n.id === node.id) {
-                    return node
-                  } else {
-                    return n
-                  }
-                }),
-                edges: undefined,
-              },
-              false
-            )
-          }
-        }
-      })
+      .on('*', handleNodesOrEdgesPayload)
       .subscribe()
     const edgesSubscription = supabase
       .from('edges')
-      .on('*', (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const edge = {
-            ...payload.new.react_flow_meta,
-            data: payload.new.properties,
-          } as Edge
-          updateGraph(
-            {
-              nodes: undefined,
-              edges: [...graph.edges, edge],
-            },
-            false
-          )
-        } else if (payload.eventType === 'UPDATE') {
-          if (payload.new.deleted_at) {
-            const edge = payload.new as Edge
-            updateGraph(
-              {
-                nodes: undefined,
-                edges: graph.edges.filter((e) => e.id !== edge.id),
-              },
-              false
-            )
-          } else {
-            const edge = {
-              ...payload.new.react_flow_meta,
-              data: payload.new.properties,
-            } as Edge
-            updateGraph(
-              {
-                nodes: undefined,
-                edges: graph.edges.map((e) => {
-                  if (e.id === edge.id) {
-                    return edge
-                  } else {
-                    return e
-                  }
-                }),
-              },
-              false
-            )
-          }
-        }
-      })
+      .on('*', handleNodesOrEdgesPayload)
       .subscribe()
     const monitoringRuleEvalsSubscription = supabase
       .from('monitoring_rule_evaluations')
@@ -584,8 +853,8 @@ export function GraphProvider({ children }: GraphProps) {
         }
         if (data) {
           // update node in graph
-          updateGraph(
-            {
+          const updateParentNode: (graph: Graph) => Graph = (graph) => {
+            return {
               nodes: graph.nodes.map((n) => {
                 if (n.id === data.parent_node_id) {
                   return {
@@ -602,10 +871,17 @@ export function GraphProvider({ children }: GraphProps) {
                   return n
                 }
               }),
-              edges: undefined,
-            },
-            false
-          )
+              edges: graph.edges,
+            }
+          }
+          setInitialGraph(updateParentNode)
+          setGraphRef.current(updateParentNode, undefined, true)
+          pastRef.current.forEach((graph, i) => {
+            pastRef.current[i] = updateParentNode(graph)
+          })
+          futureRef.current.forEach((graph, i) => {
+            futureRef.current[i] = updateParentNode(graph)
+          })
         }
       })
       .subscribe()
@@ -622,12 +898,12 @@ export function GraphProvider({ children }: GraphProps) {
       })
       .subscribe()
     return () => {
-      nodesSubscription.unsubscribe()
-      edgesSubscription.unsubscribe()
-      monitoringRuleEvalsSubscription.unsubscribe()
-      commentsSubscription.unsubscribe()
+      supabase.removeSubscription(nodesSubscription)
+      supabase.removeSubscription(edgesSubscription)
+      supabase.removeSubscription(monitoringRuleEvalsSubscription)
+      supabase.removeSubscription(commentsSubscription)
     }
-  }, [updateGraph, graph])
+  }, [session?.user?.id])
 
   /* ideally we'd use a callback for this, but I don't think it's currently possible
   https://github.com/wbkd/react-flow/discussions/2270 */
@@ -721,7 +997,6 @@ export function GraphProvider({ children }: GraphProps) {
         css: '',
       } as CustomNodeSource,
       color: '#FFFFFF',
-      initialProperties: {},
       setNodeDataToChange: setNodeDataToChange,
     }
     const newNode: Node = {
@@ -732,6 +1007,8 @@ export function GraphProvider({ children }: GraphProps) {
         x: x,
         y: y,
       },
+      height: CUSTOM_NODE_INIT_HEIGHT,
+      width: CUSTOM_NODE_INIT_WIDTH,
     }
     return newNode
   }, [
@@ -775,7 +1052,6 @@ export function GraphProvider({ children }: GraphProps) {
       },
       color: '#FFFFFF',
       tablePosition: null,
-      initialProperties: {},
       setNodeDataToChange: setNodeDataToChange,
       monitored: false,
       alert: undefined,
@@ -788,6 +1064,8 @@ export function GraphProvider({ children }: GraphProps) {
         x: x,
         y: y,
       },
+      height: METRIC_NODE_INIT_HEIGHT,
+      width: METRIC_NODE_INIT_WIDTH,
     }
     return newNode
   }, [
@@ -827,12 +1105,8 @@ export function GraphProvider({ children }: GraphProps) {
       x /= centerBetween.length
       y /= centerBetween.length
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const outputWidth = outputNode.width! // width exists because we checked for it above
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const outputHeight = outputNode.height!
-      const width = (outputWidth / 16) * 4 // perhaps there's a better way to link this to stylesheet?
-      const height = (outputHeight / 9) * 4
+      const width = FUNCTION_NODE_INIT_WIDTH
+      const height = FUNCTION_NODE_INIT_HEIGHT
       x -= width / 2
       y -= height / 2
 
@@ -842,7 +1116,6 @@ export function GraphProvider({ children }: GraphProps) {
         typeId: newNodeTypeId,
         functionTypeId: functionTypeId,
         color: '#FFFFFF',
-        initialProperties: {},
         setNodeDataToChange: setNodeDataToChange,
       }
       const newNode: Node = {
@@ -1013,7 +1286,6 @@ export function GraphProvider({ children }: GraphProps) {
         typeId: newEdgeTypeId,
         sourceId: source.id,
         targetId: target.id,
-        initialProperties: {},
       }
       const newEdge: Edge = {
         source: displaySource.id,
@@ -1138,7 +1410,6 @@ export function GraphProvider({ children }: GraphProps) {
     canUndo: canUndo,
     canRedo: canRedo,
     loadGraph: loadGraph,
-    saveGraph: saveGraph,
     updateGraph: updateGraph,
     setNodeDataToChange: setNodeDataToChange,
     setEdgeBeingUpdated: setEdgeBeingUpdated,

@@ -251,7 +251,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
                           metricId
                         )
                       const newProperties = {
-                        ...node.data.initialProperties,
+                        ...node.data,
                       }
                       newProperties.source.query = newQuery
                       const { error: updateNodeError } = await supabase

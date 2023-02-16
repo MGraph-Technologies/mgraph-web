@@ -283,10 +283,7 @@ const GraphViewer: FunctionComponent = () => {
         setAlsoSelectNonFunctionNodes(_alsoSelectNonFunctionNodes)
       }
       // update graph
-      updateGraph(
-        { nodes: newGraph.nodes, edges: newGraph.edges },
-        editingEnabled
-      )
+      updateGraph({ nodes: newGraph.nodes, edges: newGraph.edges }, false)
       // clicking custom or metric nodes opens metric detail when !editingEnabled
       if (
         ['custom', 'metric'].includes(nodeOrEdge.type || '') &&
@@ -338,7 +335,8 @@ const GraphViewer: FunctionComponent = () => {
       }
       updateGraph(
         { nodes: applyNodeChanges(changes, graph.nodes), edges: undefined },
-        false
+        false,
+        true
       )
     },
     [updateGraph, graph.nodes]
@@ -375,7 +373,7 @@ const GraphViewer: FunctionComponent = () => {
   )
 
   const onNodeDragStart = useCallback(
-    // save graph before moves so they can be undone
+    // update graph before moves so they can be undone
     () => {
       if (!updateGraph) {
         throw new Error('updateGraph not defined')

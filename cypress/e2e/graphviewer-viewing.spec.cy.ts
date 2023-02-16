@@ -20,7 +20,13 @@ describe('Graphviewer viewing as admin', () => {
     cy.get('.react-flow__edge-input').should('be.visible')
   })
 
-  // TODO: clicking function highlights connected nodes
+  it('Clicks function node and sees adjacent nodes light up', () => {
+    cy.visit('/mgraph')
+    cy.get('.react-flow__node-function').first().click()
+    cy.get('.react-flow__node')
+      .filter('[class*=selected]')
+      .should('have.length.greaterThan', 1)
+  })
 
   it('Sees edit button', () => {
     cy.visit('/mgraph')
