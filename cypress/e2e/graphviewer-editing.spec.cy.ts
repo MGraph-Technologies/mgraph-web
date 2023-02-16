@@ -106,6 +106,30 @@ describe('Graphviewer editing', () => {
       .should('not.exist')
   })
 
+  it('Sees and deletes realtime-added node', () => {
+    cy.visit('/mgraph')
+    /* wait for graph to load before editing
+    (otherwise, added nodes are overwritten by graph load) */
+    cy.wait(2000)
+
+    // programatically add custom node
+    const newNodeName = Math.random().toString(36)
+    cy.insertCustomNode(newNodeName)
+    cy.wait(2000)
+
+    // see that it's synced to the graph
+    cy.get('.react-flow__node-custom').contains(newNodeName).should('exist')
+
+    // delete it
+    cy.get('[id=edit-button]').click()
+    cy.get('.react-flow__node-custom')
+      .contains(newNodeName)
+      .parents('.react-flow__node-custom')
+      .find('[class*=CustomNode_body]')
+      .type('{del}')
+      .wait(2000)
+  })
+
   it('Edits table view order', () => {
     cy.visit('/mgraph')
 

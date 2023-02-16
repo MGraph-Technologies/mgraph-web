@@ -10,6 +10,16 @@
 
 import { Session } from '@supabase/supabase-js'
 
+Cypress.Commands.add('insertCustomNode', (nodeName: string) => {
+  const accessToken = JSON.parse(
+    localStorage.getItem('supabase.auth.token') || ''
+  )?.currentSession?.access_token
+  cy.task('insertCustomNode', {
+    accessToken,
+    nodeName,
+  })
+})
+
 Cypress.Commands.add(
   'loginWithTestAccount',
   (email: string, password: string) => {
@@ -36,6 +46,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
+      insertCustomNode(nodeName: string): Chainable<void>
       loginWithTestAccount(email: string, password: string): Chainable<void>
     }
   }
