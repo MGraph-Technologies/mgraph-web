@@ -6,7 +6,7 @@ describe('Custom detail editing', () => {
     )
   })
 
-  it('Visits a custom detail page, edits description, tests undo and redo, then cancels', () => {
+  it('Visits a custom detail page, edits description, tests undo and redo, then undoes', () => {
     cy.visit('/mgraph')
     cy.get('[class*=CustomNode_header]').first().click()
     cy.wait(2000)
@@ -29,12 +29,12 @@ describe('Custom detail editing', () => {
     cy.get('[id=redo-button]').click()
     cy.contains(newValue).should('exist')
 
-    // cancel
-    cy.get('[id=cancel-button]').click()
+    // undo
+    cy.get('[id=undo-button]').click()
     cy.contains(newValue).should('not.exist')
   })
 
-  it('Visits a custom detail page, edits description, then saves', () => {
+  it('Visits a custom detail page, edits description', () => {
     cy.visit('/mgraph')
     cy.get('[class*=CustomNode_header]').first().click()
     cy.wait(2000)
@@ -49,8 +49,8 @@ describe('Custom detail editing', () => {
     cy.get('[class*=Header]').first().click()
     cy.contains(newValue).should('exist')
 
-    // save
-    cy.get('[id=save-button]').click()
+    // test persistence
+    cy.get('[id=done-button]').click()
     cy.wait(2000).reload()
     cy.contains(newValue).should('exist')
   })
@@ -70,10 +70,11 @@ describe('Custom detail editing', () => {
       .contains('cypress-test-account')
       .first()
       .click()
+    cy.get('[class*=Header]').first().click()
 
-    // save
-    cy.get('[id=save-button]').click()
-    cy.wait(2000)
+    // test persistence
+    cy.get('[id=done-button]').click()
+    cy.wait(2000).reload()
     cy.get('[class*=at_mention]')
       .contains('cypress-test-account')
       .should('exist')
@@ -108,10 +109,10 @@ describe('Custom detail editing', () => {
     cy.get('[id=source-html-field]')
       .clear()
       .type(newHTML, { parseSpecialCharSequences: false })
-    cy.get('[class*=NodeDetail_html_container]').first().click()
+    cy.get('[class*=Header]').first().click()
 
     // see results
-    cy.wait(2000) // wait for api response
+    cy.wait(2000) // wait for iframe to load
     cy.get('[class*=NodeDetail_html_container]')
       .find('iframe')
       .then(($iframe) => {
@@ -120,13 +121,10 @@ describe('Custom detail editing', () => {
         cy.wrap($body).contains(currentTimeString)
       })
 
-    // save and reload
-    cy.get('[id=save-button]').click()
-    cy.wait(2000)
-    cy.reload()
-    cy.wait(2000)
-
-    // see results
+    // test persistence
+    cy.get('[id=done-button]').click()
+    cy.wait(2000).reload()
+    cy.wait(2000) // wait for iframe to load
     cy.get('[class*=NodeDetail_html_container]')
       .find('iframe')
       .then(($iframe) => {

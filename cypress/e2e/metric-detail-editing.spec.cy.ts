@@ -6,7 +6,7 @@ describe('Metric detail editing', () => {
     )
   })
 
-  it('Visits a metric detail page, edits description, tests undo and redo, then cancels', () => {
+  it('Visits a metric detail page, edits description, tests undo and redo, then undoes', () => {
     cy.visit('/mgraph')
     cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
@@ -29,8 +29,8 @@ describe('Metric detail editing', () => {
     cy.get('[id=redo-button]').click()
     cy.contains(newValue).should('exist')
 
-    // cancel
-    cy.get('[id=cancel-button]').click()
+    // undo
+    cy.get('[id=undo-button]').click()
     cy.contains(newValue).should('not.exist')
   })
 
@@ -50,7 +50,7 @@ describe('Metric detail editing', () => {
     cy.contains(newValue).should('exist')
 
     // save
-    cy.get('[id=save-button]').click()
+    cy.get('[id=done-button]').click()
     cy.wait(2000).reload()
     cy.contains(newValue).should('exist')
   })
@@ -72,7 +72,7 @@ describe('Metric detail editing', () => {
       .click()
 
     // save
-    cy.get('[id=save-button]').click()
+    cy.get('[id=done-button]').click()
     cy.wait(2000)
     cy.get('[class*=at_mention]')
       .contains('cypress-test-account')
@@ -130,7 +130,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=source-query-field]').click()
     cy.get('[id=source-query-field]').clear().type(newQuery)
     cy.get('[class*=Header]').first().click()
-    cy.get('[id=save-button]').click()
+    cy.get('[id=done-button]').click()
 
     // see results on metric detail page
     cy.wait(2000).reload()
@@ -243,7 +243,7 @@ describe('Metric detail editing', () => {
     cy.get('[id=source-query-field]').click()
     cy.get('[id=source-query-field]').clear().type(newQuery)
     cy.get('[class*=Header]').first().click()
-    cy.get('[id=save-button]').click()
+    cy.get('[id=done-button]').click()
 
     cy.wait(2000).reload()
     cy.get('[class*=LineChart_chart_container]').contains('300').should('exist')

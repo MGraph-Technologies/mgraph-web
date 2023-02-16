@@ -6,7 +6,7 @@ describe('Graphviewer editing', () => {
     )
   })
 
-  it('Adds a custom node, then cancels addition', () => {
+  it('Adds a custom node, then deletes addition', () => {
     cy.visit('/mgraph')
     /* wait for graph to load before editing
     (otherwise, added nodes are overwritten by graph load) */
@@ -15,7 +15,7 @@ describe('Graphviewer editing', () => {
     // begin editing
     cy.get('[id=edit-button]').click()
 
-    // add and rename metric
+    // add and rename node
     const newNodeName = Math.random().toString(36)
     cy.get('[id=add-node-button]').click()
     cy.get('[class*=p-listbox-item]').contains('Custom').click()
@@ -25,13 +25,26 @@ describe('Graphviewer editing', () => {
     cy.get('.react-flow__node-custom')
       .contains(newNodeName)
       .should('be.visible')
+    cy.wait(2000)
 
-    // cancel
-    cy.get('[id=cancel-button]').click()
-    cy.get('.react-flow__node-custom').contains(newNodeName).should('not.exist')
+    // check persistence
+    cy.reload()
+    cy.wait(2000)
+    cy.get('.react-flow__node-custom')
+      .contains(newNodeName)
+      .should('be.visible')
+
+    // delete node
+    cy.get('[id=edit-button]').click()
+    cy.get('.react-flow__node-custom')
+      .contains(newNodeName)
+      .parents('.react-flow__node-custom')
+      .find('[class*=CustomNode_body]')
+      .type('{del}')
+      .wait(2000)
   })
 
-  it('Adds a metric, tests undo and redo, adds a formula, then cancels additions', () => {
+  it('Adds a metric node, tests undo and redo, adds a formula, then undoes additions', () => {
     cy.visit('/mgraph')
     /* wait for graph to load before editing
     (otherwise, added nodes are overwritten by graph load) */
@@ -78,11 +91,16 @@ describe('Graphviewer editing', () => {
       .wait(2000)
       .type('{enter}')
     cy.get('[id=save-formula-button]').click()
+    cy.wait(2000)
     // TODO: check newly-added function node is visible
     // (requires distinguishing which function node is the new one)
 
-    // cancel
-    cy.get('[id=cancel-button]').click()
+    // undo
+    cy.get('[id=undo-button]').click() // undo formula
+    cy.get('[id=undo-button]').click() // undo node name change
+    cy.get('[id=undo-button]').click() // undo node selection
+    cy.get('[id=undo-button]').click() // undo node addition
+    cy.wait(2000)
     cy.get('.react-flow__node-metric')
       .contains(newMetricName)
       .should('not.exist')
@@ -131,8 +149,6 @@ describe('Graphviewer editing', () => {
         })
     })
   })
-
-  // TODO: add and save (was having trouble with deletion)
 })
 
 export {}
