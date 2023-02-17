@@ -44,15 +44,27 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       if (data) {
-        if (!(data.database_connection_types.name === 'snowflake')) {
+        const databaseConnection = data as {
+          encrypted_credentials: string
+          organizations: {
+            id: string
+            created_at: string
+          }
+          database_connection_types: {
+            name: string
+          }
+        }
+        if (
+          !(databaseConnection.database_connection_types.name === 'snowflake')
+        ) {
           throw new Error(
             'We only support snowflake database connections at this time.'
           )
         }
         const decryptedCredentials = decryptCredentials(
-          data.encrypted_credentials,
-          data.organizations.id,
-          data.organizations.created_at
+          databaseConnection.encrypted_credentials,
+          databaseConnection.organizations?.id,
+          databaseConnection.organizations?.created_at
         )
         const { region, account, username, password } = decryptedCredentials
         const resp = await fetch(

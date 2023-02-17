@@ -3,6 +3,8 @@ import { SupabaseClient, createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 
+import { MetricNodeProperties } from '../../../../components/graph/MetricNode.jsx'
+import { MonitoringRuleProperties } from '../../../../components/graph/node_detail/MonitoringRulesTable.jsx'
 import { SENTRY_CONFIG } from '../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../utils/appBaseUrl'
 import {
@@ -50,8 +52,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw new Error('Monitoring rule not found.')
       }
 
+      const monitoringRule = monitoringRuleData as {
+        organization_id: string
+        parent_node_id: string
+        properties: MonitoringRuleProperties
+      }
+
       // get parent metric node
-      const parentNodeId = monitoringRuleData.parent_node_id
+      const parentNodeId = monitoringRule.parent_node_id
       const {
         data: metricNodeData,
         error: metricNodeError,
@@ -70,14 +78,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw new Error('Parent metric node not found.')
       }
 
+      const metricNode = metricNodeData as {
+        properties: MetricNodeProperties
+      }
+
       // get organization's input parameters
       let inputParameters = await getInputParameters(
-        monitoringRuleData.organization_id,
+        monitoringRule.organization_id,
         supabase
       )
 
       // inputParameterOverrides
-      const inputParameterOverrides = monitoringRuleData.properties
+      const inputParameterOverrides = monitoringRule.properties
         ?.inputParameterOverrides as InputParameterOverrides
       inputParameters = overrideInputParameters(
         inputParameters,
@@ -86,7 +98,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       // parameterize metric node query and send to query runner
       const parameterizedStatement = parameterizeStatement(
-        metricNodeData.properties?.source?.query,
+        metricNode.properties.source.query,
         inputParameters
       )
       console.log(`\nExecuting query for node ${parentNodeId}...`)
@@ -94,7 +106,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         method: 'POST',
         body: JSON.stringify({
           databaseConnectionId:
-            metricNodeData.properties?.source?.databaseConnectionId,
+            metricNode.properties.source.databaseConnectionId,
           parentNodeId: parentNodeId,
           statement: parameterizedStatement,
         }),
@@ -162,8 +174,11 @@ const logMonitoringRuleEvaluation = async (
   if (!monitoringRuleEvaluationData) {
     throw new Error('Monitoring rule evaluation was not inserted.')
   } else {
+    const monitoringRuleEvaluation = monitoringRuleEvaluationData as {
+      id: string
+    }
     console.log(
-      `\nMonitoring rule evaluation ${monitoringRuleEvaluationData.id} created with status ${status}.`
+      `\nMonitoring rule evaluation ${monitoringRuleEvaluation.id} created with status ${status}.`
     )
     return 'ok'
   }

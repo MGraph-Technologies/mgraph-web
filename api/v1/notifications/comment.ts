@@ -46,12 +46,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         .single()
       if (sduError) throw sduError
       if (!sduData) throw new Error('User not found')
+      const sceDisplayUser = sduData as {
+        email: string
+        name: string
+      }
 
       // get parent id and mentioned users from their latest comment
       const { data: latestCommentData, error: latestCommentError } =
         await supabase
           .from('sce_comments')
-          .select('id, comment, parent_id, mentioned_user_ids')
+          .select('id, parent_id, user_id, comment, mentioned_user_ids')
           .match({
             topic: topicId,
             user_id: userId,
@@ -61,12 +65,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           .single()
       if (latestCommentError) throw latestCommentError
       if (!latestCommentData) throw new Error('Latest comment not found')
-      console.log('\nLatest user comment: ', JSON.stringify(latestCommentData))
+      type Comment = {
+        id: string
+        parent_id: string
+        user_id: string
+        comment: string
+        mentioned_user_ids: string[]
+      }
+      const latestComment = latestCommentData as Comment
+      console.log('\nLatest user comment: ', JSON.stringify(latestComment))
       const {
         id: latestCommentId,
         parent_id: latestCommentParentId,
         mentioned_user_ids: latestCommentMentionedUserIds,
-      } = latestCommentData
+      } = latestComment
       latestCommentMentionedUserIds.forEach((id: string) =>
         recipientUserIds.add(id)
       )
@@ -76,7 +88,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { data: sameThreadCommentsData, error: sameThreadCommentsError } =
           await supabase
             .from('sce_comments')
-            .select('id, user_id, mentioned_user_ids')
+            .select('id, parent_id, user_id, comment, mentioned_user_ids')
             .match({
               topic: topicId,
               parent_id: latestCommentParentId,
@@ -88,7 +100,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           JSON.stringify(sameThreadCommentsData)
         )
         if (sameThreadCommentsData) {
-          sameThreadCommentsData.forEach(
+          const sameThreadComments = sameThreadCommentsData as Comment[]
+          sameThreadComments.forEach(
             (comment: {
               id: string
               user_id: string
@@ -113,19 +126,26 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         .eq('id', topicId)
         .single()
       if (nodeError) throw nodeError
-      if (nodeData) {
-        const { properties, organizations } = nodeData
-        const { owner } = properties
-        console.log('\nNode owner: ', owner)
-        if (owner) {
-          // parse out @mentions
-          const ownerAtUsernames = owner.match(/@[\w\d._+-]+/g)
-          ownerAtUsernames?.forEach((atUsername: string) => {
-            const username = atUsername.substring(1)
-            const ownerEmail = `${username}@${organizations.domain}`
-            nodeOwnerEmails.add(ownerEmail)
-          })
+      if (!nodeData) throw new Error('Node not found')
+      const node = nodeData as {
+        properties: {
+          owner: string
+          [key: string]: string
         }
+        node_types: { name: string }
+        organizations: { name: string; domain: string }
+      }
+      const { properties, node_types, organizations } = node
+      const { owner } = properties
+      console.log('\nNode owner: ', owner)
+      if (owner) {
+        // parse out @mentions
+        const ownerAtUsernames = owner.match(/@[\w\d._+-]+/g)
+        ownerAtUsernames?.forEach((atUsername: string) => {
+          const username = atUsername.substring(1)
+          const ownerEmail = `${username}@${organizations.domain}`
+          nodeOwnerEmails.add(ownerEmail)
+        })
       }
 
       // get addresses of users to notify
@@ -142,15 +162,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           .not('id', 'eq', userId)
       if (recipientUsersError) throw recipientUsersError
       if (recipientUsersData && recipientUsersData.length) {
-        const recipientEmails = recipientUsersData.map(
-          (user: { email: string }) => user.email
-        )
+        const recipientUsers = recipientUsersData as { email: string }[]
+        const recipientEmails = recipientUsers.map((user) => user.email)
         console.log('\nRecipient emails: ', recipientEmails)
         // todo: send email to each recipient
-        const commenter = sduData.name || sduData.email
-        const nodeName = nodeData?.properties?.name
-        const nodeTypeName = nodeData?.node_types?.name || ''
-        const nodeOrgName = nodeData?.organizations?.name || ''
+        const commenter = sceDisplayUser.name || sceDisplayUser.email
+        const nodeName = properties.name
+        const nodeTypeName = node_types.name
+        const nodeOrgName = organizations.name
         const sendgridResp = await fetch(
           'https://api.sendgrid.com/v3/mail/send',
           {
@@ -169,7 +188,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 to: [{ email }],
                 dynamic_template_data: {
                   commenter: commenter,
-                  comment: latestCommentData.comment,
+                  comment: latestComment.comment,
                   on_node: nodeName ? ` on ${nodeName}` : '',
                   cta_url: `${getBaseUrl()}/${nodeOrgName}/${nodeTypeName}s/${topicId}`,
                 },

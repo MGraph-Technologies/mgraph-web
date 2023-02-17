@@ -35,13 +35,14 @@ export const getLastUpdatedAt = async (
       .match(match)
       .order('updated_at', { ascending: false })
       .limit(1)
+      .single()
 
     if (error && status !== 406) {
       throw error
     }
 
-    if (data && data.length > 0) {
-      lastUpdatedAt = new Date(data[0].updated_at)
+    if (data) {
+      lastUpdatedAt = new Date(data.updated_at)
     }
   } catch (error: unknown) {
     console.error(error)
@@ -69,13 +70,17 @@ export const getLatestQueryId = async (
       })
       .order('created_at', { ascending: false })
       .limit(1)
+      .single()
 
     if (error && status !== 406) {
       throw error
     }
 
-    if (data && data.length > 0) {
-      queryId = data[0].id
+    if (data) {
+      const databaseQuery = data as {
+        id: string
+      }
+      queryId = databaseQuery.id
     }
   } catch (error: unknown) {
     console.error(error)
@@ -166,13 +171,20 @@ export const getInputParameters = async (
     }
 
     if (data) {
-      const names = new Set(data.map((row) => row.name))
+      const _inputParameters = data as {
+        id: string
+        user_id: string | null
+        name: string
+        value: string
+        deleted_at: string | null
+      }[]
+      const names = new Set(_inputParameters.map((row) => row.name))
       inputParameters = formInputParametersScaffold(
         Array.from(names),
         inputParameters
       )
       // dedupe data
-      data
+      _inputParameters
         .filter(
           (row, index, self) =>
             index ===
@@ -192,7 +204,7 @@ export const getInputParameters = async (
               },
             }
           } else {
-            const userValueExists = data.some(
+            const userValueExists = _inputParameters.some(
               (r) => r.name === row.name && r.user_id && r.deleted_at === null
             )
             inputParameters = {

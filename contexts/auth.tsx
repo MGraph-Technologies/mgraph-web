@@ -90,11 +90,24 @@ export function AuthProvider({ children }: AuthProps) {
         }
 
         if (data) {
-          setOrganizationId(data.organizations.id)
-          setOrganizationEnabled(data.organizations.enabled)
-          setOrganizationLogoStoragePath(data.organizations.logo_storage_path)
-          setOrganizationName(data.organizations.name)
-          const _userRole = data.roles.name
+          const organizationMembership = data as {
+            organizations: {
+              id: string
+              name: string
+              logo_storage_path: string
+              enabled: boolean
+            }
+            roles: {
+              name: string
+            }
+          }
+          setOrganizationId(organizationMembership.organizations.id)
+          setOrganizationEnabled(organizationMembership.organizations.enabled)
+          setOrganizationLogoStoragePath(
+            organizationMembership.organizations.logo_storage_path
+          )
+          setOrganizationName(organizationMembership.organizations.name)
+          const _userRole = organizationMembership.roles.name
           setUserRole(_userRole)
           const _userIsAdmin = _userRole === 'admin'
           setUserIsAdmin(_userIsAdmin)
@@ -106,8 +119,8 @@ export function AuthProvider({ children }: AuthProps) {
 
           analytics.identify(session.user.id, {
             email: session.user.email,
-            organization_id: data.organizations.id,
-            organization_name: data.organizations.name,
+            organization_id: organizationMembership.organizations.id,
+            organization_name: organizationMembership.organizations.name,
             is_admin: _userIsAdmin,
             can_edit: _userCanEdit,
             can_view: _userCanView,

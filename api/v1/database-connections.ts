@@ -37,7 +37,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (credentials) {
         const organizationId = toUpsert.organization_id
         const {
-          data: organization,
+          data: organizationData,
           error: organizationError,
           status: organizationStatus,
         } = await supabase
@@ -49,7 +49,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (organizationError && organizationStatus !== 406) {
           throw organizationError
         }
-
+        const organization = organizationData as { created_at: string }
         const organizationCreatedAt = organization.created_at
         const encryptedCredentials = encryptCredentials(
           credentials as SnowflakeCredentials,

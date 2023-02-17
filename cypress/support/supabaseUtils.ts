@@ -70,8 +70,12 @@ export async function insertCustomNode({
   if (userError) {
     throw new Error(userError.message)
   }
-  const userId = userData?.id
-  const orgId = userData?.organization_members[0].organization_id
+  const user = userData as {
+    id: string
+    organization_members: { organization_id: string }[]
+  }
+  const userId = user.id
+  const orgId = user.organization_members[0].organization_id
 
   // get node type id
   const { data: nodeTypeData, error: nodeTypeError } = await supabase
@@ -82,7 +86,8 @@ export async function insertCustomNode({
   if (nodeTypeError) {
     throw new Error(nodeTypeError.message)
   }
-  const nodeTypeId = nodeTypeData?.id
+  const nodeType = nodeTypeData as { id: string }
+  const nodeTypeId = nodeType.id
 
   // insert node
   const nodeId = uuidv4()

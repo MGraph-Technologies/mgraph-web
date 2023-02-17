@@ -9,11 +9,11 @@ export const storagePathToSignedUrl = async (path: string) => {
   const splitPath = path.split('/')
   const bucket = splitPath[0]
   const key = splitPath.slice(1).join('/')
-  const { signedURL, error } = await supabase.storage
+  const { data, error } = await supabase.storage
     .from(bucket)
     .createSignedUrl(key, 60)
   if (error) {
     throw error
   }
-  return signedURL
+  return data.signedUrl
 }

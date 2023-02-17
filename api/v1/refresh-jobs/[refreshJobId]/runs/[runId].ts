@@ -53,6 +53,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw new Error('Refresh job run not found.')
       }
 
+      const refreshJobRun = refreshJobRunData as { created_at: string }
+
       // get refresh job record
       const {
         data: refreshJobData,
@@ -72,19 +74,26 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw new Error('Refresh job not found.')
       }
 
+      const refreshJob = refreshJobData as {
+        organization_id: string
+        email_to: string
+        slack_to: string
+        organizations: { name: string }
+      }
+
       let runStatus: 'success' | 'timed_out' = 'success'
 
       // check for timeout
       const timeoutThreshold = new Date(
         Date.now() - REFRESH_JOB_RUN_TIMEOUT_SECONDS * 1000
       ).toISOString()
-      if (refreshJobRunData.created_at < timeoutThreshold) {
+      if (refreshJobRun.created_at < timeoutThreshold) {
         runStatus = 'timed_out'
       } else {
         // check processing status of all metrics' queries
         // get organization's metric nodes
         const graphResp = await fetch(
-          getBaseUrl() + `/api/v1/graphs/${refreshJobData.organization_id}`,
+          getBaseUrl() + `/api/v1/graphs/${refreshJob.organization_id}`,
           {
             method: 'GET',
             headers: {
@@ -102,7 +111,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // get organization's input parameters
         const inputParameters = await getInputParameters(
-          refreshJobData.organization_id,
+          refreshJob.organization_id,
           supabase
         )
 
@@ -165,10 +174,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       let slackRequests = 0
       const slackResponses: { [webhookId: string]: number } = {}
       console.log(`\nNo queries are still running.`)
-      if (refreshJobData.slack_to) {
+      if (refreshJob.slack_to) {
         console.log(`\nBeginning slack messaging...`)
-        const slackWebhooks = refreshJobData.slack_to.split(',')
-        const organizationName = refreshJobData.organizations.name
+        const slackWebhooks = refreshJob.slack_to.split(',')
+        const organizationName = refreshJob.organizations.name
         const organizationNameEncoded = encodeURIComponent(organizationName)
         const organizationNameWords = organizationName.split(' ')
         const organizationNameTitleCased = organizationNameWords

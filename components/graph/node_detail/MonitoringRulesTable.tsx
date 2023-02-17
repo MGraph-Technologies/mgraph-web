@@ -83,34 +83,45 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
           }
 
           if (data) {
-            const _monitoringRules = data.map(
-              (mr) =>
-                ({
-                  id: mr.id,
-                  name: mr.name,
-                  properties: {
-                    alertIfValue: mr.properties.alertIfValue,
-                    rangeLowerBound: mr.properties.rangeLowerBound,
-                    rangeUpperBound: mr.properties.rangeUpperBound,
-                    lookbackPeriods: mr.properties.lookbackPeriods,
-                    inputParameterOverrides:
-                      mr.properties.inputParameterOverrides,
-                  } as MonitoringRuleProperties,
-                  schedule: mr.schedule,
-                  slackTo: mr.slack_to,
-                  latestEvaluation:
-                    mr.latest_monitoring_rule_evaluations.length > 0
-                      ? ({
-                          status:
-                            mr.latest_monitoring_rule_evaluations[0].status,
-                          alerts:
-                            mr.latest_monitoring_rule_evaluations[0].alerts,
-                          updatedAt:
-                            mr.latest_monitoring_rule_evaluations[0].updated_at,
-                        } as MonitoringRuleLatestEvaluation)
-                      : null,
-                } as MonitoringRule)
-            )
+            type MonitoringRuleRecord = {
+              id: string
+              name: string
+              properties: MonitoringRuleProperties
+              schedule: string
+              slack_to: string
+              latest_monitoring_rule_evaluations: {
+                status: MonitoringRuleEvaluationStatus
+                alerts: string[]
+                updated_at: string
+              }[]
+            }
+            const _monitoringRules = data.map((_mr) => {
+              const mr = _mr as MonitoringRuleRecord
+              return {
+                id: mr.id,
+                name: mr.name,
+                properties: {
+                  alertIfValue: mr.properties.alertIfValue,
+                  rangeLowerBound: mr.properties.rangeLowerBound,
+                  rangeUpperBound: mr.properties.rangeUpperBound,
+                  lookbackPeriods: mr.properties.lookbackPeriods,
+                  inputParameterOverrides:
+                    mr.properties.inputParameterOverrides,
+                } as MonitoringRuleProperties,
+                schedule: mr.schedule,
+                slackTo: mr.slack_to,
+                latestEvaluation:
+                  mr.latest_monitoring_rule_evaluations.length > 0
+                    ? ({
+                        status: mr.latest_monitoring_rule_evaluations[0].status,
+                        alerts: mr.latest_monitoring_rule_evaluations[0].alerts,
+                        updatedAt: new Date(
+                          mr.latest_monitoring_rule_evaluations[0].updated_at
+                        ),
+                      } as MonitoringRuleLatestEvaluation)
+                    : null,
+              } as MonitoringRule
+            })
             setMonitoringRules(_monitoringRules)
             setMonitoringRulesTableLoading(false)
             if (updateNode) {
@@ -201,12 +212,14 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             .update({ deleted_at: new Date() })
             .eq('id', rowData.id)
             .select('id')
+            .single()
 
           if (error) {
             throw error
           } else if (data) {
+            const monitoringRule = data as { id: string }
             analytics.track('delete_monitoring_rule', {
-              id: rowData.id,
+              id: monitoringRule.id,
             })
             setMonitoringRulesTableLoading(true)
             populateMonitoringRules(true)
@@ -508,12 +521,13 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
                       }
 
                       if (data) {
+                        const monitoringRule = data as { id: string }
                         analytics.track(
                           upsertRuleIsNew
                             ? 'create_monitoring_rule'
                             : 'update_monitoring_rule',
                           {
-                            id: data.id,
+                            id: monitoringRule.id,
                           }
                         )
                         setMonitoringRulesTableLoading(true)

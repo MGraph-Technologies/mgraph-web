@@ -98,7 +98,8 @@ const MetricNodeSourceFields: FunctionComponent<
         }
 
         if (data) {
-          data.sort((a, b) => {
+          const _databaseConnections = data as DatabaseConnection[]
+          _databaseConnections.sort((a, b) => {
             if (a.name < b.name) {
               return -1
             }
@@ -107,8 +108,8 @@ const MetricNodeSourceFields: FunctionComponent<
             }
             return 0
           })
-          data.unshift(DROPDOWN_EMPTY_OPTION)
-          setDatabaseConnections(data)
+          _databaseConnections.unshift(DROPDOWN_EMPTY_OPTION)
+          setDatabaseConnections(_databaseConnections)
         }
       } catch (error: unknown) {
         console.error(error)
@@ -136,7 +137,8 @@ const MetricNodeSourceFields: FunctionComponent<
         }
 
         if (data) {
-          data.sort((a, b) => {
+          const _graphSyncs = data as GraphSync[]
+          _graphSyncs.sort((a, b) => {
             if (a.name < b.name) {
               return -1
             }
@@ -145,14 +147,14 @@ const MetricNodeSourceFields: FunctionComponent<
             }
             return 0
           })
-          data.unshift({
+          _graphSyncs.unshift({
             ...DROPDOWN_EMPTY_OPTION,
             properties: {},
             graph_sync_types: {
               name: '',
             },
           })
-          setGraphSyncs(data)
+          setGraphSyncs(_graphSyncs)
         }
       } catch (error: unknown) {
         console.error(error)

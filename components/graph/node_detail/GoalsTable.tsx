@@ -84,25 +84,32 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
         }
 
         if (data) {
-          const _goals = data.map(
-            (mr) =>
-              ({
-                id: mr.id,
-                name: mr.name,
-                properties: {
-                  owner: mr.properties.owner,
-                  description: mr.properties.description,
-                  dimension: mr.properties.dimension as GoalDimension,
-                  frequency: mr.properties.frequency,
-                  type: mr.properties.type,
-                  values: mr.properties.values.map((v: GoalValue) => ({
-                    date: new Date(v.date),
-                    value: v.value,
-                  })) as GoalValue[],
-                } as GoalProperties,
-              } as Goal)
+          const _goals = data as {
+            id: string
+            name: string
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            properties: any
+          }[]
+          setGoals(
+            _goals.map(
+              (mr) =>
+                ({
+                  id: mr.id,
+                  name: mr.name,
+                  properties: {
+                    owner: mr.properties.owner,
+                    description: mr.properties.description,
+                    dimension: mr.properties.dimension as GoalDimension,
+                    frequency: mr.properties.frequency,
+                    type: mr.properties.type,
+                    values: mr.properties.values.map((v: GoalValue) => ({
+                      date: new Date(v.date),
+                      value: v.value,
+                    })) as GoalValue[],
+                  } as GoalProperties,
+                } as Goal)
+            )
           )
-          setGoals(_goals)
           setGoalsTableLoading(false)
         }
       } catch (error: unknown) {
@@ -153,12 +160,14 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
             .update({ deleted_at: new Date() })
             .eq('id', rowData.id)
             .select('id')
+            .single()
 
           if (error) {
             throw error
           } else if (data) {
+            const goal = data as { id: string }
             analytics.track('delete_goal', {
-              id: rowData.id,
+              id: goal.id,
             })
             populateGoals()
             setGlobalSourceRefreshes?.((prev) => prev + 1)
@@ -443,10 +452,13 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
                       }
 
                       if (data) {
+                        const goal = data as {
+                          id: string
+                        }
                         analytics.track(
                           upsertGoalIsNew ? 'create_goal' : 'update_goal',
                           {
-                            id: data.id,
+                            id: goal.id,
                           }
                         )
                         populateGoals()

@@ -45,7 +45,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         [monitoringRuleEvaluationId: string]: number
       } = {}
       if (MREData) {
-        MREData.forEach(async (evaluation) => {
+        const monitoringRuleEvaluations = MREData as {
+          id: string
+          monitoring_rule_id: string
+        }[]
+        monitoringRuleEvaluations.forEach(async (evaluation) => {
           console.log(
             `\nMonitoring rule evaluation ${evaluation.id} is pending notification. Sending to finisher...`
           )
@@ -93,7 +97,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       let initiatorRequests = 0
       const initiatorResponses: { [monitoringRuleId: string]: number } = {}
       if (MRData) {
-        MRData.forEach(async (monitoringRule: MonitoringRule) => {
+        const monitoringRules = MRData as MonitoringRule[]
+        monitoringRules.forEach(async (monitoringRule: MonitoringRule) => {
           console.log(
             `\nMonitoring rule ${monitoringRule.id} has schedule ${monitoringRule.schedule}. Checking if it should run now...`
           )

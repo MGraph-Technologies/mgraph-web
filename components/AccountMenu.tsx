@@ -44,8 +44,12 @@ const AccountMenu: FunctionComponent = () => {
       if (error) {
         console.error(error)
       } else if (data) {
-        setUserName(data.name)
-        setAvatarUrl(data.avatar)
+        const sceDisplayUser = data as {
+          name: string
+          avatar: string
+        }
+        setUserName(sceDisplayUser.name)
+        setAvatarUrl(sceDisplayUser.avatar)
       }
     }
     fetchAvatarUrl()

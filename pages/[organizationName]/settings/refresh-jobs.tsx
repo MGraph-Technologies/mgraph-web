@@ -49,8 +49,15 @@ const RefreshJobs: FunctionComponent = () => {
         }
 
         if (data) {
+          const _refreshJobs = data as {
+            id: string
+            name: string
+            schedule: string
+            slack_to: string
+            created_at: string
+          }[]
           setRefreshJobs(
-            data.map(
+            _refreshJobs.map(
               (rj) =>
                 ({
                   id: rj.id,
@@ -92,12 +99,14 @@ const RefreshJobs: FunctionComponent = () => {
             .update({ deleted_at: new Date() })
             .eq('id', rowData.id)
             .select('id')
+            .single()
 
           if (error) {
             throw error
           } else if (data) {
+            const refreshJob = data as { id: string }
             analytics.track('delete_refresh_job', {
-              id: rowData.id,
+              id: refreshJob.id,
             })
             populateRefreshJobs()
           }
@@ -251,12 +260,13 @@ const RefreshJobs: FunctionComponent = () => {
                         }
 
                         if (data) {
+                          const refreshJob = data as { id: string }
                           analytics.track(
                             upsertJobIsNew
                               ? 'create_refresh_job'
                               : 'update_refresh_job',
                             {
-                              id: data.id,
+                              id: refreshJob.id,
                             }
                           )
                           populateRefreshJobs()

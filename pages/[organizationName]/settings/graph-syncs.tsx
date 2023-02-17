@@ -346,16 +346,24 @@ const GraphSyncs: FunctionComponent = () => {
         }
 
         if (data) {
-          const _graphSyncs = data.map((graphSync) => {
-            return {
-              id: graphSync.id,
-              name: graphSync.name,
-              type_name: graphSync.graph_sync_types.name,
-              properties: graphSync.properties,
-              created_at: graphSync.created_at,
-            } as GraphSync
-          })
-          setGraphSyncs(_graphSyncs)
+          const _graphSyncs = data as {
+            id: string
+            name: string
+            properties: string
+            created_at: string
+            graph_sync_types: { name: string }
+          }[]
+          setGraphSyncs(
+            _graphSyncs.map((graphSync) => {
+              return {
+                id: graphSync.id,
+                name: graphSync.name,
+                type_name: graphSync.graph_sync_types.name,
+                properties: graphSync.properties,
+                created_at: graphSync.created_at,
+              } as GraphSync
+            })
+          )
           setGraphSyncsTableLoading(false)
         }
       } catch (error: unknown) {

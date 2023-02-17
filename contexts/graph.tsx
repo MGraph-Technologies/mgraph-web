@@ -49,12 +49,12 @@ import { useEditability } from 'contexts/editability'
 import { getLastUpdatedAt } from 'utils/queryUtils'
 import { supabase } from 'utils/supabaseClient'
 
-export const nodeTypes = {
+export const NODE_TYPES = {
   custom: CustomNode,
   metric: MetricNode,
   function: FunctionNode,
 }
-export const edgeTypes = {
+export const EDGE_TYPES = {
   input: InputEdge,
 }
 
@@ -270,7 +270,7 @@ export function GraphProvider({ children }: GraphProps) {
   )
 
   const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
-    Object.fromEntries(Object.keys(nodeTypes).map((key) => [key, '']))
+    Object.fromEntries(Object.keys(NODE_TYPES).map((key) => [key, '']))
   )
   async function getNodeTypeIds() {
     try {
@@ -284,13 +284,17 @@ export function GraphProvider({ children }: GraphProps) {
       }
 
       if (data) {
+        const nodeTypes = data as {
+          name: string
+          id: string
+        }[]
         const _nodeTypeIds = {} as TypeIdMap
-        for (const nodeType in nodeTypeIds) {
-          const nodeTypeId = data.find((n) => n.name === nodeType)?.id
+        for (const nodeTypeName in nodeTypeIds) {
+          const nodeTypeId = nodeTypes.find((n) => n.name === nodeTypeName)?.id
           if (nodeTypeId) {
-            _nodeTypeIds[nodeType] = nodeTypeId
+            _nodeTypeIds[nodeTypeName] = nodeTypeId
           } else {
-            throw new Error(`Could not find node type id for ${nodeType}`)
+            throw new Error(`Could not find node type id for ${nodeTypeName}`)
           }
           setNodeTypeIds(_nodeTypeIds)
         }
@@ -305,7 +309,7 @@ export function GraphProvider({ children }: GraphProps) {
   }, [])
 
   const [edgeTypeIds, setEdgeTypeIds] = useState<TypeIdMap>(
-    Object.fromEntries(Object.keys(edgeTypes).map((key) => [key, '']))
+    Object.fromEntries(Object.keys(EDGE_TYPES).map((key) => [key, '']))
   )
   async function getEdgeTypeIds() {
     try {
@@ -319,13 +323,17 @@ export function GraphProvider({ children }: GraphProps) {
       }
 
       if (data) {
+        const edgeTypes = data as {
+          name: string
+          id: string
+        }[]
         const _edgeTypeIds = {} as TypeIdMap
-        for (const edgeType in edgeTypeIds) {
-          const edgeTypeId = data.find((e) => e.name === edgeType)?.id
+        for (const edgeTypeName in edgeTypeIds) {
+          const edgeTypeId = edgeTypes.find((e) => e.name === edgeTypeName)?.id
           if (edgeTypeId) {
-            _edgeTypeIds[edgeType] = edgeTypeId
+            _edgeTypeIds[edgeTypeName] = edgeTypeId
           } else {
-            throw new Error(`Could not find edge type id for ${edgeType}`)
+            throw new Error(`Could not find edge type id for ${edgeTypeName}`)
           }
           setEdgeTypeIds(_edgeTypeIds)
         }
@@ -868,11 +876,14 @@ export function GraphProvider({ children }: GraphProps) {
             throw error
           }
           if (data) {
+            const monitoringRule = data as {
+              parent_node_id: string
+            }
             // update node in graph
             const updateParentNode: (graph: Graph) => Graph = (graph) => {
               return {
                 nodes: graph.nodes.map((n) => {
-                  if (n.id === data.parent_node_id) {
+                  if (n.id === monitoringRule.parent_node_id) {
                     return {
                       ...n,
                       data: {
@@ -1173,9 +1184,9 @@ export function GraphProvider({ children }: GraphProps) {
         if (!data) {
           throw new Error('No function types returned')
         }
-
+        const functionTypes = data as { id: string; symbol: string }[]
         const _functionTypeIdsAndSymbols: { [key: string]: string } = {}
-        data.forEach((functionType: { id: string; symbol: string }) => {
+        functionTypes.forEach((functionType) => {
           _functionTypeIdsAndSymbols[functionType.id] = functionType.symbol
         })
         setFunctionTypeIdsAndSymbols(_functionTypeIdsAndSymbols)

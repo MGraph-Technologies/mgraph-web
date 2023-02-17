@@ -52,15 +52,22 @@ const DatabaseConnections: FunctionComponent = () => {
         }
 
         if (data) {
-          const _databaseConnections = data.map((databaseConnection) => {
-            return {
-              id: databaseConnection.id,
-              name: databaseConnection.name,
-              type_name: databaseConnection.database_connection_types.name,
-              created_at: databaseConnection.created_at,
-            } as DatabaseConnection
-          })
-          setDatabaseConnections(_databaseConnections)
+          const _databaseConnections = data as {
+            id: string
+            name: string
+            created_at: string
+            database_connection_types: { name: string }
+          }[]
+          setDatabaseConnections(
+            _databaseConnections.map((databaseConnection) => {
+              return {
+                id: databaseConnection.id,
+                name: databaseConnection.name,
+                type_name: databaseConnection.database_connection_types.name,
+                created_at: databaseConnection.created_at,
+              } as DatabaseConnection
+            })
+          )
           setDatabaseConnectionsTableLoading(false)
         }
       } catch (error: unknown) {
@@ -93,12 +100,14 @@ const DatabaseConnections: FunctionComponent = () => {
             .update({ deleted_at: new Date() })
             .eq('id', rowData.id)
             .select('id')
+            .single()
 
           if (error) {
             throw error
           } else if (data) {
+            const databaseConnection = data as { id: string }
             analytics.track('delete_database_connection', {
-              id: rowData.id,
+              id: databaseConnection.id,
             })
             populateDatabaseConnections()
           }
@@ -324,8 +333,12 @@ const DatabaseConnections: FunctionComponent = () => {
                           throw databaseConnectionTypeError
                         }
 
+                        const databaseConnectionType =
+                          databaseConnectionTypeData as {
+                            id: string
+                          }
                         const databaseConnectionTypeId =
-                          databaseConnectionTypeData?.id
+                          databaseConnectionType.id
                         const now = new Date()
                         let toUpsert = {
                           id: upsertDatabaseConnectionId,

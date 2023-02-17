@@ -51,8 +51,14 @@ const MentionField: FunctionComponent<MentionFieldProps> = ({
     }
 
     if (data) {
+      const sceDisplayUsers = data as {
+        id: string
+        name: string
+        email: string
+        avatar: string
+      }[]
       setMentionSuggestions(
-        data.map((owner) => ({
+        sceDisplayUsers.map((owner) => ({
           id: owner.id,
           name: owner.name,
           email: owner.email,

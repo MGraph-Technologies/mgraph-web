@@ -48,8 +48,11 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
       if (error) {
         console.error(error)
       } else {
-        setTopicRecentComments(data?.length || 0)
-        const _latestTopicCommentId = data?.[0]?.id || null
+        const sceComments = data as {
+          id: string
+        }[]
+        setTopicRecentComments(sceComments?.length || 0)
+        const _latestTopicCommentId = sceComments?.[0]?.id || null
         setLatestTopicCommentId(_latestTopicCommentId)
         setLatestCommentIdMap((latestCommentIdMap) => ({
           ...latestCommentIdMap,

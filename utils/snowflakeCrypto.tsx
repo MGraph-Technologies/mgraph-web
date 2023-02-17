@@ -14,7 +14,7 @@ export type SnowflakeCredentials = {
 export const decryptCredentials = (
   encryptedCredentials: string,
   organizationId: string,
-  organizationCreatedAt: Date
+  organizationCreatedAt: string
 ): SnowflakeCredentials => {
   const decryptedCredentials = CryptoJS.AES.decrypt(
     encryptedCredentials,
@@ -35,7 +35,7 @@ export const decryptCredentials = (
 export const encryptCredentials = (
   credentials: SnowflakeCredentials,
   organizationId: string,
-  organizationCreatedAt: Date
+  organizationCreatedAt: string
 ): string => {
   return CryptoJS.AES.encrypt(
     JSON.stringify(credentials),

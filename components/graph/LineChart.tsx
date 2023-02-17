@@ -184,9 +184,15 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       if (goalsData && goalsData.length > 0) {
         // create goal datasets for each row whose dimension_name is in chartJSData,
         // matching color of actual but with dotted line
-        const goalsDatasets = goalsData
-          .map((goalData) => {
-            const goalDimensionValue = goalData.dimension_value
+        const goals = goalsData as {
+          id: string
+          dimension_value: string
+          values: GoalValue[]
+          type: GoalType
+        }[]
+        const goalsDatasets = goals
+          .map((goal) => {
+            const goalDimensionValue = goal.dimension_value
             const correspondingChartJSDataset = chartJSDatasets.find(
               (dataset) => {
                 return dataset.label === goalDimensionValue
@@ -195,10 +201,9 @@ const LineChart: FunctionComponent<LineChartProps> = ({
             if (!correspondingChartJSDataset) {
               return null
             } else {
-              const goalValues = goalData.values as GoalValue[]
               const goalDataset: ChartJSDataset = {
                 label: `${goalDimensionValue} - goal`,
-                data: goalValues.map((goalValue) => ({
+                data: goal.values.map((goalValue) => ({
                   x: new Date(goalValue.date),
                   y: Number(goalValue.value),
                 })),
@@ -207,8 +212,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
                 borderDash: [5, 5],
                 borderWidth: 1,
                 goalInfo: {
-                  id: goalData.id,
-                  type: goalData.type,
+                  id: goal.id,
+                  type: goal.type,
                 },
               }
               return goalDataset
