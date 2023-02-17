@@ -10,10 +10,15 @@
 
 import { Session } from '@supabase/supabase-js'
 
+const getSupabaseProjectId = () => {
+  const supabaseUrl = Cypress.env('SUPABASE_URL')
+  return supabaseUrl.split('//')[1].split('.')[0]
+}
+
 Cypress.Commands.add('insertCustomNode', (nodeName: string) => {
   const accessToken = JSON.parse(
-    localStorage.getItem('supabase.auth.token') || ''
-  )?.currentSession?.access_token
+    localStorage.getItem(`sb-${getSupabaseProjectId()}-auth-token`) || ''
+  )?.access_token
   cy.task('insertCustomNode', {
     accessToken,
     nodeName,
@@ -24,20 +29,17 @@ Cypress.Commands.add(
   'loginWithTestAccount',
   (email: string, password: string) => {
     cy.log('Logging in to supabase')
-    cy.task('getSupabaseSession', {
+    cy.task('getSession', {
       email: email,
       password: password,
-      supabaseUrl: Cypress.env('SUPABASE_URL'),
-      supabaseAnonKey: Cypress.env('SUPABASE_ANON_KEY'),
     }).then((_currentSession) => {
+      // put session where supabase expects it
       const currentSession = _currentSession as Session
       localStorage.setItem(
-        'supabase.auth.token',
-        JSON.stringify({
-          currentSession,
-          expiresAt: currentSession.expires_at,
-        })
+        `sb-${getSupabaseProjectId()}-auth-token`,
+        JSON.stringify(currentSession)
       )
+      cy.log('Logged in to supabase')
     })
   }
 )

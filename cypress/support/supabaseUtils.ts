@@ -1,35 +1,27 @@
 /* sourced from here: 
 https://github.com/supabase/supabase/discussions/6177 */
-import { createClient, Session, SupabaseClient } from '@supabase/supabase-js'
+import { createClient, Session } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
 
-let supabase: SupabaseClient
 const sessions: { [key: string]: Session | null } = {}
 
 export async function getSession({
   email,
   password,
-  supabaseUrl,
-  supabaseAnonKey,
 }: {
   email: string
   password: string
-  supabaseUrl: string
-  supabaseAnonKey: string
 }) {
-  // If there's already a supabase client, use it, don't create a new one.
-  if (!supabase) {
-    supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
-  }
-
   // Create a session for the user if it doesn't exist already.
-  // You can then log in as any number of test users from your tests.
   if (!sessions[email]) {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
     const { data } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-
     sessions[email] = data.session
   }
 
