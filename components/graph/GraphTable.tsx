@@ -6,6 +6,7 @@ import { Node } from 'reactflow'
 
 import ControlPanel from 'components/graph/ControlPanel'
 import LineChart from 'components/graph/LineChart'
+import PresencePanel from 'components/graph/PresencePanel'
 import EditorDock from 'components/graph/editing/EditorDock'
 import NodePanel from 'components/graph/nodepanel/NodePanel'
 import QueryRunner, { QueryResult } from 'components/graph/QueryRunner'
@@ -210,6 +211,9 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
     >
       {expansionLevel === 0 && (
         <>
+          <div className={styles.presence_panel_container}>
+            <PresencePanel pageId="GraphTable" />
+          </div>
           <div className={styles.control_panel_container}>
             <ControlPanel />
           </div>

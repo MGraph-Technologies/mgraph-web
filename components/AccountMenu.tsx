@@ -17,43 +17,15 @@ const AccountMenu: FunctionComponent = () => {
     organizationEnabled,
     organizationName,
     organizationLogoStoragePath,
+    userAvatarUrl,
+    userEmail,
+    userName,
     userRole,
     userIsAdmin,
   } = useAuth()
   const { push } = useBrowser()
 
-  const [userEmail, setUserEmail] = useState('')
-  const [userName, setUserName] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
   const [userDisplayRole, setUserDisplayRole] = useState('')
-  useEffect(() => {
-    setUserEmail(session?.user?.email || '')
-  }, [session])
-  useEffect(() => {
-    const fetchAvatarUrl = async () => {
-      if (!session?.user?.id) {
-        setAvatarUrl('')
-        return
-      }
-      const { data, error } = await supabase
-        .from('sce_display_users')
-        .select('name, avatar')
-        .eq('id', session?.user?.id)
-        .single()
-
-      if (error) {
-        console.error(error)
-      } else if (data) {
-        const sceDisplayUser = data as {
-          name: string
-          avatar: string
-        }
-        setUserName(sceDisplayUser.name)
-        setAvatarUrl(sceDisplayUser.avatar)
-      }
-    }
-    fetchAvatarUrl()
-  }, [session?.user?.id])
   useEffect(() => {
     setUserDisplayRole(
       userRole.replaceAll('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
@@ -169,9 +141,10 @@ const AccountMenu: FunctionComponent = () => {
       <Menu model={overlayMenuItems} popup ref={overlayMenu} />
       <UserAvatar
         user={{
+          id: session?.user?.id || '',
           name: userName,
-          email: session?.user?.email || '',
-          avatarUrl: avatarUrl,
+          email: userEmail,
+          avatarUrl: userAvatarUrl,
         }}
         onClick={(event) => overlayMenu.current?.toggle(event)}
       />

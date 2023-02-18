@@ -25,6 +25,7 @@ import {
   MetricNodeProperties,
   MetricNodeSource,
 } from 'components/graph/MetricNode'
+import PresencePanel from 'components/graph/PresencePanel'
 import QueryRunner, { QueryResult } from 'components/graph/QueryRunner'
 import UndoRedoAndDoneGraphEditingButtons from 'components/graph/editing/UndoRedoAndDoneGraphEditingButtons'
 import GoalsTable from 'components/graph/node_detail/GoalsTable'
@@ -286,6 +287,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
           <SectionHeader title={name} size="h1" includeMargin={false} />
         )}
         <NodePanel nodeId={nodeId} />
+        <PresencePanel pageId={nodeId} />
         <ControlPanel />
       </div>
       <div className={styles.body}>

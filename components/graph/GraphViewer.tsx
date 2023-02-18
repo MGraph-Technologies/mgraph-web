@@ -22,6 +22,7 @@ import ReactFlow, {
 } from 'reactflow'
 
 import ControlPanel from 'components/graph/ControlPanel'
+import PresencePanel from 'components/graph/PresencePanel'
 import EditorDock from 'components/graph/editing/EditorDock'
 import { useAuth } from 'contexts/auth'
 import { useBrowser } from 'contexts/browser'
@@ -552,6 +553,7 @@ const GraphViewer: FunctionComponent = () => {
         <Controls showInteractive={false} />
         <EditorDock parent="GraphViewer" />
         <MiniMap nodeColor="#AFADFF" nodeStrokeColor="#AFADFF" />
+        <PresencePanel pageId="GraphViewer" />
       </ReactFlow>
     </div>
   )

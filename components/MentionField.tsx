@@ -76,6 +76,7 @@ const MentionField: FunctionComponent<MentionFieldProps> = ({
         <div style={{ width: '32px' }}>
           <UserAvatar
             user={{
+              id: suggestion.id as string,
               name: suggestion.name as string,
               email: suggestion.email as string,
               avatarUrl: suggestion.avatarUrl as string,

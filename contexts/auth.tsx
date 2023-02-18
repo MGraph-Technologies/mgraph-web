@@ -18,6 +18,9 @@ type AuthContextType = {
   organizationEnabled: boolean
   organizationLogoStoragePath: string
   organizationName: string
+  userAvatarUrl: string
+  userEmail: string
+  userName: string
   userRole: string
   userIsAdmin: boolean
   userCanEdit: boolean
@@ -32,6 +35,9 @@ const authContextTypeValues: AuthContextType = {
   organizationEnabled: false,
   organizationLogoStoragePath: '',
   organizationName: '',
+  userAvatarUrl: '',
+  userEmail: '',
+  userName: '',
   userRole: '',
   userIsAdmin: false,
   userCanEdit: false,
@@ -68,6 +74,9 @@ export function AuthProvider({ children }: AuthProps) {
   const [organizationLogoStoragePath, setOrganizationLogoStoragePath] =
     useState('')
   const [organizationName, setOrganizationName] = useState('')
+  const [userAvatarUrl, setUserAvatarUrl] = useState('')
+  const [userEmail, setUserEmail] = useState('')
+  const [userName, setUserName] = useState('')
   const [userRole, setUserRole] = useState('')
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [userCanEdit, setUserCanEdit] = useState(false)
@@ -79,7 +88,7 @@ export function AuthProvider({ children }: AuthProps) {
         const { data, error, status } = await supabase
           .from('organization_members')
           .select(
-            'organizations ( id, name, logo_storage_path, enabled ), roles ( name )'
+            'sce_display_users (name, avatar), organizations ( id, name, logo_storage_path, enabled ), roles ( name )'
           )
           .is('deleted_at', null)
           .eq('user_id', session.user.id || '')
@@ -91,6 +100,10 @@ export function AuthProvider({ children }: AuthProps) {
 
         if (data) {
           const organizationMembership = data as {
+            sce_display_users: {
+              name: string
+              avatar: string
+            }
             organizations: {
               id: string
               name: string
@@ -107,6 +120,9 @@ export function AuthProvider({ children }: AuthProps) {
             organizationMembership.organizations.logo_storage_path
           )
           setOrganizationName(organizationMembership.organizations.name)
+          setUserAvatarUrl(organizationMembership.sce_display_users.avatar)
+          setUserEmail(session.user.email || '')
+          setUserName(organizationMembership.sce_display_users.name)
           const _userRole = organizationMembership.roles.name
           setUserRole(_userRole)
           const _userIsAdmin = _userRole === 'admin'
@@ -153,6 +169,9 @@ export function AuthProvider({ children }: AuthProps) {
     organizationEnabled,
     organizationLogoStoragePath,
     organizationName,
+    userAvatarUrl,
+    userEmail,
+    userName,
     userRole,
     userIsAdmin,
     userCanEdit,
