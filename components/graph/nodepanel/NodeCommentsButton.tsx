@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { OverlayPanel } from 'primereact/overlaypanel'
@@ -10,15 +9,12 @@ import React, {
   useState,
 } from 'react'
 import { Node } from 'reactflow'
-import { Comments, CommentsProvider } from 'supabase-comments-extension'
 
-import { useAuth } from 'contexts/auth'
+import CommentsProvider from 'components/graph/CommentsProvider'
 import { useGraph } from 'contexts/graph'
 import styles from 'styles/NodeCommentsButton.module.css'
 import { analytics } from 'utils/segmentClient'
 import { supabase } from 'utils/supabaseClient'
-
-export const GRAPH_COMMENTS_TOPIC_ID = 'graph'
 
 type NodeCommentsButtonProps = {
   node: Node | undefined
@@ -26,10 +22,8 @@ type NodeCommentsButtonProps = {
 const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
   node,
 }) => {
-  const { getValidAccessToken } = useAuth()
   const { latestCommentIdMap, setLatestCommentIdMap } = useGraph()
   const commentsOverlay = useRef<OverlayPanel>(null)
-  const [commentsOverlayVisible, setCommentsOverlayVisible] = useState(false)
 
   const [latestTopicCommentId, setLatestTopicCommentId] = useState<
     string | null
@@ -39,10 +33,11 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
     const recentCommentsCutoff = new Date(Date.now() - 86400000).toISOString()
     if (node?.id && setLatestCommentIdMap) {
       const { data, error } = await supabase
-        .from('sce_comments')
+        .from('comments')
         .select('id')
-        .eq('topic', node.id)
+        .eq('topic_id', node.id)
         .gte('created_at', recentCommentsCutoff)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -82,75 +77,6 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
     fetchTopicRecentComments,
   ])
 
-  // auto scroll top-level comments to bottom initially and on new comment
-  // unfortunately there's no onCommment prop in SCE so we have to continuously check
-  useEffect(() => {
-    if (!commentsOverlayVisible) return
-    let lastScrollHeight: number | undefined = undefined
-    const interval = setInterval(() => {
-      const topLevelComments = document.querySelector(
-        '.rounded-md > .space-y-1' // SCE's top-level comments container
-      )
-      const currentScrollHeight = topLevelComments?.scrollHeight
-      if (
-        topLevelComments &&
-        currentScrollHeight &&
-        (lastScrollHeight === undefined ||
-          currentScrollHeight > lastScrollHeight)
-      ) {
-        topLevelComments.scrollTop = currentScrollHeight
-      }
-      lastScrollHeight = currentScrollHeight
-    }, 100)
-    return () => clearInterval(interval)
-  }, [commentsOverlayVisible])
-
-  // hack to prevent SCE's dropdown overlays from closing OverlayPanel
-  const [overlayDismissible, setOverlayDismissible] = useState(true)
-  useEffect(() => {
-    if (!commentsOverlayVisible) return
-    const interval = setInterval(() => {
-      const sbuiDropdown = document.querySelector(
-        '[class^=sbui-dropdown__content]'
-      )
-      if (sbuiDropdown) {
-        if (overlayDismissible) {
-          setOverlayDismissible(false)
-        }
-      } else {
-        if (!overlayDismissible) {
-          setOverlayDismissible(true)
-        }
-      }
-    }, 100)
-    return () => clearInterval(interval)
-  }, [commentsOverlayVisible, overlayDismissible])
-
-  // TODO: move this to backend
-  const initiateNotifications = useCallback(async () => {
-    if (!node) {
-      console.error('No node to initiate notifications for')
-      return
-    }
-    const accessToken = getValidAccessToken()
-    if (!accessToken) {
-      console.error('No access token to initiate notifications')
-      return
-    }
-    const notifResp = await fetch('/api/v1/notifications/comment', {
-      method: 'POST',
-      headers: {
-        'supabase-access-token': accessToken,
-      },
-      body: JSON.stringify({
-        topicId: node.id,
-      }),
-    })
-    if (notifResp.status !== 200) {
-      console.error('Error initiating notifications', notifResp)
-    }
-  }, [getValidAccessToken, node])
-
   if (node) {
     return (
       <>
@@ -183,15 +109,12 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
         <OverlayPanel
           id="comments-overlay"
           ref={commentsOverlay}
-          dismissable={overlayDismissible}
           onShow={() => {
-            setCommentsOverlayVisible(true)
             analytics.track('show_comments', {
               topicId: node.id,
             })
           }}
           onHide={() => {
-            setCommentsOverlayVisible(false)
             analytics.track('hide_comments', {
               topicId: node.id,
             })
@@ -202,37 +125,13 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
               className={styles.comments_container}
               onClick={(event) => {
                 event.stopPropagation()
-                // increment topicRecentComments + trigger notifs on submission
-                // (this is a hacky workaround for the lack of onComment prop)
-                const target = event.target as HTMLElement
-                const checkTarget = (target: HTMLElement) => {
-                  return (
-                    target.tagName === 'SPAN' && target.textContent === 'Submit'
-                  )
-                }
-                const checkChildren = (target: HTMLElement) => {
-                  return Array.from(target.children).some((child) =>
-                    checkTarget(child as HTMLElement)
-                  )
-                }
-                if (checkTarget(target) || checkChildren(target)) {
-                  setTopicRecentComments(topicRecentComments + 1)
-                  analytics.track('add_comment', {
-                    topicId: node.id,
-                  })
-                  initiateNotifications()
-                }
               }}
             >
               <CommentsProvider
-                supabaseClient={supabase}
-                accentColor="#3943ac"
-                components={{
-                  CommentReactions: () => null,
-                }}
-              >
-                <Comments topic={node.id} />
-              </CommentsProvider>
+                topicId={node.id}
+                parentId={null}
+                showInput={true}
+              />
             </div>
           )}
         </OverlayPanel>

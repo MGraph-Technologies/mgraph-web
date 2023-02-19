@@ -88,7 +88,7 @@ export function AuthProvider({ children }: AuthProps) {
         const { data, error, status } = await supabase
           .from('organization_members')
           .select(
-            'sce_display_users (name, avatar), organizations ( id, name, logo_storage_path, enabled ), roles ( name )'
+            'display_users (name, avatar_url), organizations ( id, name, logo_storage_path, enabled ), roles ( name )'
           )
           .is('deleted_at', null)
           .eq('user_id', session.user.id || '')
@@ -100,9 +100,9 @@ export function AuthProvider({ children }: AuthProps) {
 
         if (data) {
           const organizationMembership = data as {
-            sce_display_users: {
+            display_users: {
               name: string
-              avatar: string
+              avatar_url: string
             }
             organizations: {
               id: string
@@ -120,9 +120,9 @@ export function AuthProvider({ children }: AuthProps) {
             organizationMembership.organizations.logo_storage_path
           )
           setOrganizationName(organizationMembership.organizations.name)
-          setUserAvatarUrl(organizationMembership.sce_display_users.avatar)
+          setUserAvatarUrl(organizationMembership.display_users.avatar_url)
           setUserEmail(session.user.email || '')
-          setUserName(organizationMembership.sce_display_users.name)
+          setUserName(organizationMembership.display_users.name)
           const _userRole = organizationMembership.roles.name
           setUserRole(_userRole)
           const _userIsAdmin = _userRole === 'admin'

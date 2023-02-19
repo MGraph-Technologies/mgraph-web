@@ -914,16 +914,32 @@ export function GraphProvider({ children }: GraphProps) {
       )
       .subscribe()
     const commentsSubscription = supabase
-      .channel('public:sce_comments')
+      .channel('public:comments')
+      // handle insertions
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'sce_comments' },
+        { event: 'INSERT', schema: 'public', table: 'comments' },
         (payload) => {
           const comment = payload.new
           setLatestCommentIdMap((latestCommentIdMap) => {
             return {
               ...latestCommentIdMap,
-              [comment.topic]: comment.id,
+              [comment.topic_id]: comment.id,
+            }
+          })
+        }
+      )
+      // handle soft deletions
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'comments' },
+        (payload) => {
+          const comment = payload.new
+          if (!comment.deleted_at) return
+          setLatestCommentIdMap((latestCommentIdMap) => {
+            return {
+              ...latestCommentIdMap,
+              [comment.topic_id]: 'needsUpdate', // NodeCommentsButton will handle
             }
           })
         }

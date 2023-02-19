@@ -45,7 +45,6 @@
     "react-query": "^3.39.2",
     "react-simple-code-editor": "^0.13.1",
     "reactflow": "^11.4.2",
-    "supabase-comments-extension": "^0.0.2",
     "use-undoable": "^3.3.11",
     "uuid": "^8.3.2",
     "uuid-by-string": "^4.0.0"

@@ -331,6 +331,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
         <MentionField
           id="owner-field"
           className={styles.detail_field_editable}
+          editable={editingEnabled}
           value={owner}
           setValue={setOwner}
           placeholder={editingEnabled ? 'Add...' : '-'}
@@ -340,6 +341,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
         <MentionField
           id="description-field"
           className={styles.detail_field_editable}
+          editable={editingEnabled}
           value={description}
           setValue={setDescription}
           placeholder={editingEnabled ? 'Add...' : '-'}

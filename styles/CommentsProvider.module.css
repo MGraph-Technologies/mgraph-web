@@ -1,0 +1,110 @@
+.comments_thread {
+  display: flex;
+  flex-direction: column;
+}
+
+.comments_thread .comments_container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.comments_thread .comments_container .collapse_thread_container {
+  width: 4px;
+  margin-right: 1em;
+}
+
+.comments_thread .comments_container .collapse_thread_container button {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  border-left: 2px solid #e2e2e2;
+}
+
+.comments_thread .comments_container .comments {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.comments_thread .expand_thread_container {
+  width: 100%;
+  margin-top: 0.5em;
+}
+
+.comments_thread .expand_thread_container button {
+  width: 100%;
+  padding: 0 0.5em;
+  font-size: 0.8em;
+}
+
+.comments_thread .new_comment_container {
+  margin-top: 1em;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.comments_thread .new_comment_container .input_field_container {
+  width: 100%;
+  margin-right: 1em;
+}
+
+.comments_thread .new_comment_container .input_field_container .input_field {
+  width: 100%;
+  max-height: 100px;
+  overflow-y: auto !important;
+  font-size: 1em;
+}
+
+.comment_display {
+  margin-top: 1em;
+  display: flex;
+  flex-direction: row;
+}
+
+.comment_display .avatar {
+  margin-right: 1em;
+}
+
+.comment_display .content {
+  width: 100%;
+}
+
+.comment_display .content .header {
+  width: 100%;
+  min-height: 1em; /* Prevent the header from collapsing when user loading */
+  font-size: 0.9em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+.comment_display .content .body {
+  width: 100%;
+  font-size: 1em;
+  margin-bottom: 0.5em;
+}
+
+.comment_display .content .footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.comment_display .content .footer .dates {
+  font-size: 0.8em;
+  color: #6c757d;
+}
+
+.comment_display .content .footer .actions {
+  padding-right: 0.5em;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.comment_display .content .footer .actions button {
+  width: auto;
+  padding: 0 0.5em;
+  font-size: 0.8em;
+}
