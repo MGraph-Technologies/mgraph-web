@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import { Button } from 'primereact/button'
-import { ConfirmDialog } from 'primereact/confirmdialog'
 import { InputText } from 'primereact/inputtext'
 import { Toolbar } from 'primereact/toolbar'
 import React, {
@@ -364,12 +363,9 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
         {nodeTypeTitleCase === 'Metric' && (
           <>
             <SectionHeader title="Goals" size="h2" />
-            <GoalsTable parentNodeId={nodeId} includeConfirmDialogFC={false} />
+            <GoalsTable parentNodeId={nodeId} />
             <SectionHeader title="Monitoring Rules" size="h2" />
-            <MonitoringRulesTable
-              parentNodeId={nodeId}
-              includeConfirmDialogFC={false}
-            />
+            <MonitoringRulesTable parentNodeId={nodeId} />
             <SectionHeader title="Source" size="h2" />
             <MetricNodeSourceFields metricNode={node} saveDetail={saveDetail} />
           </>
@@ -380,7 +376,6 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
           <Toolbar right={<UndoRedoAndDoneGraphEditingButtons />} />
         </div>
       )}
-      <ConfirmDialog />
     </div>
   )
 }

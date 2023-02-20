@@ -1,6 +1,6 @@
 import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog'
+import { confirmDialog } from 'primereact/confirmdialog'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
@@ -48,12 +48,8 @@ type GoalProperties = {
 }
 type GoalsTableProps = {
   parentNodeId: string
-  includeConfirmDialogFC?: boolean // avoid double dialogs if parent hosting multiple tables
 }
-const GoalsTable: FunctionComponent<GoalsTableProps> = ({
-  parentNodeId,
-  includeConfirmDialogFC = true,
-}) => {
+const GoalsTable: FunctionComponent<GoalsTableProps> = ({ parentNodeId }) => {
   const { organizationId, userCanEdit } = useAuth()
   const { editingEnabled } = useEditability()
   const { goalStatusMap } = useGraph()
@@ -529,7 +525,6 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({
             />
           )}
         </DataTable>
-        {includeConfirmDialogFC && <ConfirmDialog />}
       </div>
     </>
   )

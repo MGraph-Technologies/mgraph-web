@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog'
+import { confirmDialog } from 'primereact/confirmdialog'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
@@ -443,7 +443,6 @@ const DatabaseConnections: FunctionComponent = () => {
               />
               <Column body={editCellBodyTemplate} align="center" />
             </DataTable>
-            <ConfirmDialog />
           </div>
         </div>
       </Workspace>

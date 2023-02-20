@@ -1,7 +1,7 @@
 import { isValidCron } from 'cron-validator'
 import { Button } from 'primereact/button'
 import { Column, ColumnBodyType } from 'primereact/column'
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog'
+import { confirmDialog } from 'primereact/confirmdialog'
 import { DataTable, DataTablePFSEvent } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
@@ -43,11 +43,9 @@ export type MonitoringRuleLatestEvaluation = {
 
 type MonitoringRulesTableProps = {
   parentNodeId: string
-  includeConfirmDialogFC?: boolean // avoid double dialogs if parent hosting multiple tables
 }
 const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
   parentNodeId,
-  includeConfirmDialogFC = true,
 }) => {
   const { organizationId, userCanEdit } = useAuth()
   const { editingEnabled } = useEditability()
@@ -606,7 +604,6 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
             />
           )}
         </DataTable>
-        {includeConfirmDialogFC && <ConfirmDialog />}
       </div>
     </>
   )
