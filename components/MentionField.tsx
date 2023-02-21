@@ -128,6 +128,7 @@ const MentionField: FunctionComponent<MentionFieldProps> = ({
     />
   ) : (
     <div
+      id={id}
       className={className}
       dangerouslySetInnerHTML={{
         __html: value.replaceAll(

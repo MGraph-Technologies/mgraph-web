@@ -17,44 +17,104 @@ describe('Metric detail viewing', () => {
     cy.get('body').contains('Source')
   })
 
-  it('Views comments, then adds and deletes a comment', () => {
+  it('Views comments, then adds, edits, replies to, and deletes a comment', () => {
     cy.visit('/mgraph')
     cy.get('[class*=metric_node]').first().click()
-    cy.wait(2000)
+    cy.get('body').contains('Description')
 
     // view comments
     cy.get('[id*=comments-button]').first().click()
 
+    // wait for comments to load
+    cy.wait(2000)
+
     // add comment
     const randomString = Math.random().toString(36)
-    cy.get('[class*=module_editor]').first().click().clear().type(randomString)
-    cy.get('[class*=sbui-btn').contains('Submit').click()
-    cy.contains('[class*=sce-comment-body]', randomString)
+    cy.get('[id*=new-comment-field]').click().clear().type(randomString)
+    cy.get('[id*=add-comment-button]').click()
+    cy.contains('[class*=CommentsProvider_body]', randomString)
+
+    // check that change has persisted
+    cy.reload()
+    cy.get('[id*=comments-button]').first().click()
+    cy.contains('[class*=CommentsProvider_body]', randomString).scrollIntoView()
 
     // edit comment
-    cy.get('[class*=sce-comment-body]')
-      .get('[class*=sbui-dropdown__trigger')
-      .first()
+    cy.get('[class*=CommentsProvider_body]')
+      .contains(randomString)
+      .parent()
+      .find('[id*=begin-edit-comment]')
       .click()
-    cy.get('[class*=sbui-dropdown-item]').contains('Edit').click()
     const randomString2 = Math.random().toString(36)
-    cy.get('[class*=sce-comment-body]')
-      .get('[class*=module_editor]')
-      .first()
+    cy.get('[class*=CommentsProvider_body]')
+      .contains(randomString)
       .click()
       .clear()
       .type(randomString2)
-    cy.get('[class*=sbui-btn').contains('Save').click()
-    cy.contains('[class*=sce-comment-body]', randomString2)
+    cy.get('[id*=save-edit-comment]').click()
+    cy.contains('[class*=CommentsProvider_body]', randomString2)
+    cy.get('[class*=CommentsProvider_body]')
+      .contains(randomString2)
+      .parent()
+      .contains(' | edited')
 
-    // delete comment
-    cy.get('[class*=sce-comment-body]')
-      .get('[class*=sbui-dropdown__trigger')
+    // check that change has persisted
+    cy.reload()
+    cy.get('[id*=comments-button]').first().click()
+    cy.contains(
+      '[class*=CommentsProvider_body]',
+      randomString2
+    ).scrollIntoView()
+
+    // reply
+    cy.get('[class*=CommentsProvider_body]')
+      .contains(randomString2)
+      .parent()
+      .find('[id*=begin-reply-comment]')
+      .click()
+    const randomString3 = Math.random().toString(36)
+    cy.get('[class*=CommentsProvider_body]')
+      .contains(randomString2)
+      .parent()
+      .find('[id*=new-comment-field]')
+      .click()
+      .clear()
+      .type(randomString3)
+    cy.get('[class*=CommentsProvider_body]')
+      .contains(randomString2)
+      .parent()
+      .find('[id*=add-comment-button]')
+      .click()
+    cy.contains('[class*=CommentsProvider_body]', randomString3)
+
+    // check that change has persisted
+    cy.reload()
+    cy.get('[id*=comments-button]').first().click()
+    cy.contains('[class*=CommentsProvider_body]', randomString2)
+      .scrollIntoView()
+      .parent()
+      .find('[class*=CommentsProvider_expand_thread_container]')
+      .click()
+    cy.contains('[class*=CommentsProvider_body]', randomString3)
+
+    // delete parent comment
+    cy.get('[class*=CommentsProvider_body]')
+      .contains(randomString2)
+      .parent()
+      .find('[id*=delete-comment]')
       .first()
-      .click({ force: true })
-    cy.get('[class*=sbui-dropdown-item]')
-      .contains('Delete')
-      .click({ force: true })
+      .click()
+    cy.get('[class*=p-confirm-dialog-accept]').click()
+
+    // check that change has persisted
+    cy.reload()
+    cy.get('[id*=comments-button]').first().click()
+    cy.contains('[class*=CommentsProvider_body]', randomString2).should(
+      'not.exist'
+    )
+
+    // wait for db
+    cy.wait(2000)
   })
 })
 

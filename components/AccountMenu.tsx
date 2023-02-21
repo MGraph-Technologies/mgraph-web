@@ -139,15 +139,17 @@ const AccountMenu: FunctionComponent = () => {
         onClick={(event) => helpMenu.current?.toggle(event)}
       />
       <Menu model={overlayMenuItems} popup ref={overlayMenu} />
-      <UserAvatar
-        user={{
-          id: session?.user?.id || '',
-          name: userName,
-          email: userEmail,
-          avatarUrl: userAvatarUrl,
-        }}
-        onClick={(event) => overlayMenu.current?.toggle(event)}
-      />
+      <div id="account-menu">
+        <UserAvatar
+          user={{
+            id: session?.user?.id || '',
+            name: userName,
+            email: userEmail,
+            avatarUrl: userAvatarUrl,
+          }}
+          onClick={(event) => overlayMenu.current?.toggle(event)}
+        />
+      </div>
     </>
   )
 }

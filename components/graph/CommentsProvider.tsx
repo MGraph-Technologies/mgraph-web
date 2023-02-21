@@ -281,6 +281,7 @@ const CommentThread: FunctionComponent<CommentThreadProps> = ({
             placeholder={'Add a comment...'}
           />
           <Button
+            id={`add-comment-button-${topicId}-` + JSON.stringify(parentId)}
             className={styles.add_button}
             icon="pi pi-send"
             onClick={() => {
@@ -417,6 +418,7 @@ const CommentDisplay: FunctionComponent<CommentDisplayProps> = ({
             {editingEnabled ? (
               <>
                 <Button
+                  id={`cancel-edit-comment-${comment.id}`}
                   className="p-button-text"
                   onClick={() => {
                     setDisplayContent(comment.content)
@@ -426,6 +428,7 @@ const CommentDisplay: FunctionComponent<CommentDisplayProps> = ({
                   Cancel
                 </Button>
                 <Button
+                  id={`save-edit-comment-${comment.id}`}
                   className="p-button-text"
                   onClick={() => {
                     if (!editComment) return
@@ -438,6 +441,7 @@ const CommentDisplay: FunctionComponent<CommentDisplayProps> = ({
               </>
             ) : replyingEnabled ? (
               <Button
+                id={`cancel-reply-comment-${comment.id}`}
                 className="p-button-text"
                 onClick={() => setReplyingEnabled(false)}
               >
@@ -448,12 +452,14 @@ const CommentDisplay: FunctionComponent<CommentDisplayProps> = ({
                 {session?.user?.id === user?.id && (
                   <>
                     <Button
+                      id={`begin-edit-comment-${comment.id}`}
                       className="p-button-text"
                       onClick={() => setEditingEnabled(true)}
                     >
                       Edit
                     </Button>
                     <Button
+                      id={`delete-comment-${comment.id}`}
                       className="p-button-text"
                       onClick={confirmDeleteComment}
                     >
@@ -462,6 +468,7 @@ const CommentDisplay: FunctionComponent<CommentDisplayProps> = ({
                   </>
                 )}
                 <Button
+                  id={`begin-reply-comment-${comment.id}`}
                   className="p-button-text"
                   onClick={() => setReplyingEnabled(true)}
                 >
