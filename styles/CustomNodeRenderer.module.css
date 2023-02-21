@@ -1,6 +1,7 @@
 .renderer_container {
   height: 100%;
   width: 100%;
+  border: 0;
 }
 
 .renderer_container .renderer_message {

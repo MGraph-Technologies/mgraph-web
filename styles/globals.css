@@ -15,12 +15,19 @@ a {
   box-sizing: border-box;
 }
 
-/* align with highlight.js */
+/* align highlight.js and react-simple-code-editor */
+.hljs,
 .react-simple-code-editor-textarea {
   padding: 1em !important;
-  font-size: 1em !important;
+  font-size: 0.8rem !important;
+  font-family: Consolas, Monaco, monospace !important;
 }
 
+.hljs {
+  background: #f8f8fe !important;
+}
+
+/* progress spinner */
 @keyframes p-progress-spinner-color {
   100%,
   0% {
