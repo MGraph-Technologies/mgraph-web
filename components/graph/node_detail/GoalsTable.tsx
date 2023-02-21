@@ -140,7 +140,7 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({ parentNodeId }) => {
       goalStatusMap?.[parentNodeId]?.[rowData.id] ?? 'unevaluated'
     return (
       <GoalStatusIndicator
-        id={`${rowData.id}-goal-status-indicator`}
+        id={`goal-status-indicator-${rowData.id}`}
         goalStatus={goalStatus}
       />
     )

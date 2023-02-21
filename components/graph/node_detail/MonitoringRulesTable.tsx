@@ -283,7 +283,7 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
     (rowData: any) => {
       return (
         <MonitoringStatusIndicator
-          id={`${rowData.id}-monitoring-status-indicator`}
+          id={`monitoring-status-indicator-${rowData.id}`}
           alert={
             rowData.latestEvaluation
               ? ['alert', 'timed_out'].includes(rowData.latestEvaluation.status)

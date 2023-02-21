@@ -23,7 +23,7 @@ describe('Custom detail viewing', () => {
     cy.wait(2000)
 
     // view comments
-    cy.get('[id=comments-button]').first().click()
+    cy.get('[id*=comments-button]').first().click()
 
     // add comment
     const randomString = Math.random().toString(36)

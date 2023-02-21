@@ -81,7 +81,7 @@ const _NodeCommentsButton: FunctionComponent<NodeCommentsButtonProps> = ({
     return (
       <>
         <Button
-          id="comments-button"
+          id={`comments-button-${node.id}`}
           className={`${styles.button} p-button-text p-button-lg p-overlay-badge p-button-icon-only`}
           icon="pi pi-comment"
           onClick={(event) => {

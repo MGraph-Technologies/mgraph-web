@@ -52,7 +52,7 @@ describe('Graphviewer viewing as admin', () => {
     cy.get('td').find('[class*=pi-comment]').should('be.visible')
     cy.get('td').find('[class*=pi-info-circle]').should('be.visible')
     cy.get('td')
-      .find('[id=link-to-detail-button]')
+      .find('[id*=link-to-detail-button]')
       .first()
       .click({ force: true })
     cy.url().should('include', '/nodes/')
@@ -92,7 +92,7 @@ describe('Graphviewer viewing as admin', () => {
   it('Views comments, then adds and deletes a comment', () => {
     cy.visit('/mgraph')
     // view comments
-    cy.get('[id=comments-button]').first().click()
+    cy.get('[id*=comments-button]').first().click()
 
     // add comment
     const randomString = Math.random().toString(36)

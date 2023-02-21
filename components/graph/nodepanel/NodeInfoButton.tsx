@@ -28,7 +28,7 @@ const NodeInfoButton: FunctionComponent<NodeInfoButtonProps> = ({ node }) => {
   if (node) {
     return (
       <Button
-        id="link-to-detail-button"
+        id={`link-to-detail-button-${node.data.id}`}
         className="p-button-text p-button-lg"
         icon="pi pi-info-circle"
         tooltip={node.data.description}
