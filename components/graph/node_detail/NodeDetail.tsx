@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import { Button } from 'primereact/button'
-import { ConfirmDialog } from 'primereact/confirmdialog'
 import { InputText } from 'primereact/inputtext'
 import { Toolbar } from 'primereact/toolbar'
 import React, {
@@ -25,6 +24,7 @@ import {
   MetricNodeProperties,
   MetricNodeSource,
 } from 'components/graph/MetricNode'
+import PresencePanel from 'components/graph/PresencePanel'
 import QueryRunner, { QueryResult } from 'components/graph/QueryRunner'
 import UndoRedoAndDoneGraphEditingButtons from 'components/graph/editing/UndoRedoAndDoneGraphEditingButtons'
 import GoalsTable from 'components/graph/node_detail/GoalsTable'
@@ -286,6 +286,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
           <SectionHeader title={name} size="h1" includeMargin={false} />
         )}
         <NodePanel nodeId={nodeId} />
+        <PresencePanel pageId={nodeId} />
         <ControlPanel />
       </div>
       <div className={styles.body}>
@@ -329,6 +330,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
         <MentionField
           id="owner-field"
           className={styles.detail_field_editable}
+          editable={editingEnabled}
           value={owner}
           setValue={setOwner}
           placeholder={editingEnabled ? 'Add...' : '-'}
@@ -338,6 +340,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
         <MentionField
           id="description-field"
           className={styles.detail_field_editable}
+          editable={editingEnabled}
           value={description}
           setValue={setDescription}
           placeholder={editingEnabled ? 'Add...' : '-'}
@@ -360,12 +363,9 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
         {nodeTypeTitleCase === 'Metric' && (
           <>
             <SectionHeader title="Goals" size="h2" />
-            <GoalsTable parentNodeId={nodeId} includeConfirmDialogFC={false} />
+            <GoalsTable parentNodeId={nodeId} />
             <SectionHeader title="Monitoring Rules" size="h2" />
-            <MonitoringRulesTable
-              parentNodeId={nodeId}
-              includeConfirmDialogFC={false}
-            />
+            <MonitoringRulesTable parentNodeId={nodeId} />
             <SectionHeader title="Source" size="h2" />
             <MetricNodeSourceFields metricNode={node} saveDetail={saveDetail} />
           </>
@@ -376,7 +376,6 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
           <Toolbar right={<UndoRedoAndDoneGraphEditingButtons />} />
         </div>
       )}
-      <ConfirmDialog />
     </div>
   )
 }

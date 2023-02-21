@@ -36,6 +36,7 @@ const SettingsInputText: FunctionComponent<SettingsInputTextProps> = ({
           <MentionField
             id={id}
             className={styles.settings_input_text_field}
+            editable={true}
             value={value}
             setValue={setValue}
             placeholder={placeholder}

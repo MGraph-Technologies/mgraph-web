@@ -15,12 +15,19 @@ a {
   box-sizing: border-box;
 }
 
-/* align with highlight.js */
+/* align highlight.js and react-simple-code-editor */
+.hljs,
 .react-simple-code-editor-textarea {
   padding: 1em !important;
-  font-size: 1em !important;
+  font-size: 0.8rem !important;
+  font-family: Consolas, Monaco, monospace !important;
 }
 
+.hljs {
+  background: #f8f8fe !important;
+}
+
+/* progress spinner */
 @keyframes p-progress-spinner-color {
   100%,
   0% {
@@ -45,26 +52,6 @@ a {
 
 .p-paginator {
   justify-content: right !important;
-}
-
-/* rid supabase-comments-extension of supabase styling */
-.CommentContainer_comment_container__gpMEx {
-  background-color: #fff !important;
-  border: none !important;
-}
-
-/* add scrolling to top level of comments in SCE */
-.rounded-md > .space-y-1 {
-  max-height: 200px;
-  overflow-y: scroll;
-  /* hide scrollbar */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-  scrollbar-width: none; /* Firefox */
-  scroll-behavior: calc((100% - 50em) / 2);
-}
-
-.rounded-md > .space-y-1::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
 }
 
 /* decrease calendar picker size */

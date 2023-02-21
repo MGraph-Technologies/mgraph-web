@@ -78,7 +78,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           throw graphSyncTypeError
         }
 
-        const graphSyncTypeId = graphSyncTypeData?.id
+        const graphSyncType = graphSyncTypeData as { id: string }
+        const graphSyncTypeId = graphSyncType.id
         toUpsert = {
           ...toUpsert,
           /* will set organization_id and name on client callback
@@ -121,6 +122,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const { data, error } = await supabase
         .from('graph_syncs')
         .upsert(toUpsert)
+        .select('*')
         .single()
 
       if (error) {

@@ -42,7 +42,7 @@ const NodeGoalsStatusButton: FunctionComponent<NodeGoalsStatusButtonProps> = ({
   ) {
     return (
       <GoalStatusIndicator
-        id={`${node?.data?.id}-goal-status-indicator`}
+        id={`goal-status-indicator-${node?.data?.id}`}
         goalStatus={
           localGoalStatuses.some((goalStatus) => goalStatus === 'behind')
             ? 'behind'

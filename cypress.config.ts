@@ -21,8 +21,8 @@ export default defineConfig({
     video: false,
     setupNodeEvents(on) {
       on('task', {
-        getSupabaseSession({ email, password, supabaseUrl, supabaseAnonKey }) {
-          return getSession({ email, password, supabaseUrl, supabaseAnonKey })
+        getSession({ email, password }) {
+          return getSession({ email, password })
         },
         insertCustomNode({ accessToken, nodeName }) {
           return insertCustomNode({ accessToken, nodeName })

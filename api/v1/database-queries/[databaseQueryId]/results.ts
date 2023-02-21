@@ -59,21 +59,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log('\nQuery: ', req.query)
     const { databaseQueryId } = req.query
 
-    const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
     const accessToken = (req.headers['supabase-access-token'] as string) || ''
-    supabase.auth.setAuth(accessToken)
+    const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    })
     try {
       const { data, error, status } = await supabase
         .from('database_queries')
         .select(
-          `
-          result_url,
-          created_at,
-          database_connections (
-            encrypted_credentials,
-            organizations (id, created_at))'
-          )
-        `
+          'result_url, created_at, database_connections (encrypted_credentials, organizations (id, created_at))'
         )
         .eq('id', databaseQueryId)
         .is('deleted_at', null)
@@ -84,7 +82,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       if (data) {
-        const queryCreated = new Date(data.created_at)
+        const databaseQuery = data as {
+          result_url: string
+          created_at: string
+          database_connections: {
+            encrypted_credentials: string
+            organizations: {
+              id: string
+              created_at: string
+            }
+          }
+        }
+        const queryCreated = new Date(databaseQuery.created_at)
         const now = new Date()
         const diff = now.getTime() - queryCreated.getTime()
         const diffHours = Math.round(diff / (1000 * 60 * 60))
@@ -96,12 +105,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
 
         const decryptedCredentials = decryptCredentials(
-          data.database_connections.encrypted_credentials,
-          data.database_connections.organizations.id,
-          data.database_connections.organizations.created_at
+          databaseQuery.database_connections.encrypted_credentials,
+          databaseQuery.database_connections.organizations.id,
+          databaseQuery.database_connections.organizations.created_at
         )
         const { username, password } = decryptedCredentials
-        const snowflakeQueryId = data.result_url.split('/').pop()
+        const snowflakeQueryId = databaseQuery.result_url.split('/').pop()
         const queryStatusResp = await fetch(
           getBaseUrl() + `/api/v1/database-queries/snowflake-jdbc-proxy`,
           {
@@ -111,7 +120,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               'Snowflake-JDBC-URL': formJdbcUrl(decryptedCredentials),
               'Snowflake-Username': username,
               'Snowflake-Password': password,
-              'Snowflake-Query-Id': snowflakeQueryId,
+              'Snowflake-Query-Id': snowflakeQueryId || '',
             },
           }
         )
@@ -166,7 +175,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               return aStr.localeCompare(bStr)
             })
           }
-          const executedAt = new Date(data.created_at)
+          const executedAt = new Date(databaseQuery.created_at)
           res.setHeader('Cache-Control', 'max-age=31536000')
           return res.status(200).json({
             columns: columns,

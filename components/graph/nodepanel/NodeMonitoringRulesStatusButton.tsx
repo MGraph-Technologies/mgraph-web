@@ -18,7 +18,7 @@ const NodeMonitoringRulesStatusButton: FunctionComponent<
   if (node && node.data.monitored) {
     return (
       <MonitoringStatusIndicator
-        id={`${node?.data?.id}-monitoring-status-indicator`}
+        id={`monitoring-status-indicator-${node?.data?.id}`}
         alert={node.data.alert}
         onClick={() => {
           analytics.track('click_metric_node_alert_badge', {

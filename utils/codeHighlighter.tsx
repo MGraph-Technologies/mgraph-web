@@ -4,7 +4,7 @@ import html from 'highlight.js/lib/languages/xml'
 import plaintext from 'highlight.js/lib/languages/plaintext'
 import sql from 'highlight.js/lib/languages/sql'
 import yaml from 'highlight.js/lib/languages/yaml'
-import 'highlight.js/styles/docco.css'
+import 'highlight.js/styles/googlecode.css' // purply
 
 hljs.registerLanguage('css', css)
 hljs.registerLanguage('html', html)

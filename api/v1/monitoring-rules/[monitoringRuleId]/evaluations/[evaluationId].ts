@@ -61,6 +61,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!monitoringRuleEvaluationData) {
         throw new Error('Monitoring rule not found.')
       }
+      const monitoringRuleEvaluation = monitoringRuleEvaluationData as {
+        created_at: string
+      }
 
       // get monitoring rule record
       const {
@@ -82,10 +85,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!monitoringRuleData) {
         throw new Error('Monitoring rule not found.')
       }
-
-      const organizationName = monitoringRuleData.organizations.name
-      const monitoringRuleProperties =
-        monitoringRuleData.properties as MonitoringRuleProperties
+      const monitoringRule = monitoringRuleData as {
+        organization_id: string
+        parent_node_id: string
+        properties: MonitoringRuleProperties
+        email_to: string
+        slack_to: string
+        organizations: { name: string }
+      }
+      const organizationName = monitoringRule.organizations.name
+      const monitoringRuleProperties = monitoringRule.properties
       console.log(
         `\nmonitoringRuleProperties:`,
         JSON.stringify(monitoringRuleProperties)
@@ -99,7 +108,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       } = monitoringRuleProperties
 
       // get parent metric node
-      const parentNodeId = monitoringRuleData.parent_node_id
+      const parentNodeId = monitoringRule.parent_node_id
       const {
         data: metricNodeData,
         error: metricNodeError,
@@ -118,8 +127,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw new Error('Parent metric node not found.')
       }
 
-      const metricNodeProperties =
-        metricNodeData.properties as MetricNodeProperties
+      const metricNode = metricNodeData as { properties: MetricNodeProperties }
+      const metricNodeProperties = metricNode.properties
 
       let evaluationStatus: MonitoringRuleEvaluationStatus = 'ok'
       const evaluationAlerts: string[] = []
@@ -129,15 +138,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log('\n' + alert)
         evaluationStatus = 'alert'
         evaluationAlerts.push(alert)
-        if (monitoringRuleData.slack_to) {
+        if (monitoringRule.slack_to) {
           alertRequests++
           const slackResponses = await sendSlackAlerts(
             alert,
-            monitoringRuleData.slack_to,
+            monitoringRule.slack_to,
             metricNodeProperties,
             organizationName
           )
-          alertResponses[monitoringRuleData.slack_to] = slackResponses
+          alertResponses[monitoringRule.slack_to] = slackResponses
         }
       }
 
@@ -145,7 +154,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const timeoutThreshold = new Date(
         Date.now() - MONITORING_RULE_EVALUATION_TIMEOUT_SECONDS * 1000
       ).toISOString()
-      if (monitoringRuleEvaluationData.created_at < timeoutThreshold) {
+      if (monitoringRuleEvaluation.created_at < timeoutThreshold) {
         // terminate early
         processAlert('Monitoring rule evaluation timed out.')
         evaluationStatus = 'timed_out' // override processAlert
@@ -153,7 +162,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // try to evaluate monitoring rule
         // get organization's input parameters
         let inputParameters = await getInputParameters(
-          monitoringRuleData.organization_id,
+          monitoringRule.organization_id,
           supabase
         )
 
@@ -286,6 +295,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           updated_at: new Date(),
         })
         .eq('id', evaluationId)
+        .select('id')
         .single()
 
       if (monitoringRuleEvaluationUpdateError) {

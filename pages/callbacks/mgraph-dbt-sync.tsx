@@ -35,6 +35,7 @@ const MGraphDbtSync: FunctionComponent = () => {
           if (graphSyncTypeError && graphSyncTypeStatus !== 406) {
             throw graphSyncTypeError
           }
+          const graphSyncType = graphSyncTypeData as { id: string }
 
           const { data, error, status } = await supabase
             .from('graph_syncs')
@@ -49,10 +50,11 @@ const MGraphDbtSync: FunctionComponent = () => {
               updated_at: new Date(),
             })
             .match({
-              type_id: graphSyncTypeData?.id,
+              type_id: graphSyncType.id,
               'properties->installationId': installationIdNum,
             })
             .select('id')
+            .single()
 
           if (error) {
             throw error
@@ -60,9 +62,12 @@ const MGraphDbtSync: FunctionComponent = () => {
           if (status !== 200) {
             throw new Error('Update graph sync failed')
           }
-
+          if (!data) {
+            throw new Error('No graph sync found')
+          }
+          const graphSync = data as { id: string }
           analytics.track('create_graph_sync', {
-            id: data?.[0]?.id,
+            id: graphSync.id,
           })
           localStorage.removeItem(savedStateKey)
           router.push(`/${organizationName}/settings/graph-syncs`)

@@ -3,6 +3,7 @@ import { Avatar } from 'primereact/avatar'
 import { FunctionComponent, MouseEventHandler } from 'react'
 
 export type User = {
+  id: string
   name: string
   email: string
   avatarUrl: string
@@ -25,7 +26,6 @@ const UserAvatar: FunctionComponent<UserAvatarProps> = ({ user, onClick }) => {
     />
   ) : (
     <Avatar
-      id="account-menu"
       label={avatarChar}
       onClick={onClick}
       // shape="circle" doesn't work with char

@@ -22,11 +22,12 @@ import ReactFlow, {
 } from 'reactflow'
 
 import ControlPanel from 'components/graph/ControlPanel'
+import PresencePanel from 'components/graph/PresencePanel'
 import EditorDock from 'components/graph/editing/EditorDock'
 import { useAuth } from 'contexts/auth'
 import { useBrowser } from 'contexts/browser'
 import { useEditability } from 'contexts/editability'
-import { nodeTypes, edgeTypes, useGraph } from 'contexts/graph'
+import { EDGE_TYPES, NODE_TYPES, useGraph } from 'contexts/graph'
 import styles from 'styles/GraphViewer.module.css'
 import { analytics } from 'utils/segmentClient'
 
@@ -506,8 +507,8 @@ const GraphViewer: FunctionComponent = () => {
       <ReactFlow
         nodes={graph.nodes}
         edges={graph.edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
+        nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
         // selection handled manually by onClick except for shift-selecting
         elementsSelectable={editingEnabled ? shiftKeyPressed : false}
         nodesDraggable={editingEnabled}
@@ -552,6 +553,7 @@ const GraphViewer: FunctionComponent = () => {
         <Controls showInteractive={false} />
         <EditorDock parent="GraphViewer" />
         <MiniMap nodeColor="#AFADFF" nodeStrokeColor="#AFADFF" />
+        <PresencePanel pageId="GraphViewer" />
       </ReactFlow>
     </div>
   )

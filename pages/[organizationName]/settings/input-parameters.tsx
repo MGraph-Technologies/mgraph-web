@@ -38,7 +38,7 @@ const InputParameters: FunctionComponent = () => {
 }
 
 type FieldProps = {
-  name: string
+  name: 'dimensions' | 'frequencies'
   example: string
 }
 const Field: FunctionComponent<FieldProps> = ({ name, example }) => {
@@ -48,10 +48,9 @@ const Field: FunctionComponent<FieldProps> = ({ name, example }) => {
   const populate = useCallback(async () => {
     if (organizationId) {
       try {
-        const colName = `query_${name}`
         const { data, error, status } = await supabase
           .from('organizations')
-          .select(colName)
+          .select('query_dimensions, query_frequencies')
           .is('deleted_at', null)
           .eq('id', organizationId)
           .order('created_at', { ascending: true })
@@ -62,7 +61,14 @@ const Field: FunctionComponent<FieldProps> = ({ name, example }) => {
         }
 
         if (data) {
-          setValue(data[colName])
+          const organization = data as {
+            query_dimensions: string
+            query_frequencies: string
+          }
+          const colName = `query_${name}` as
+            | 'query_dimensions'
+            | 'query_frequencies'
+          setValue(organization[colName])
         }
       } catch (error: unknown) {
         console.error(error)
@@ -86,7 +92,6 @@ const Field: FunctionComponent<FieldProps> = ({ name, example }) => {
             })
             .is('deleted_at', null)
             .eq('id', organizationId)
-            .single()
 
           if (error && status !== 406) {
             throw error

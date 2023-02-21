@@ -254,12 +254,9 @@ const InputParameterField: FunctionComponent<InputParameterFieldProps> = ({
     if (!['conditions', 'dimension', 'frequency'].includes(picker || '')) {
       return
     }
-    const colName = `query_${
-      picker == 'frequency' ? 'frequencies' : 'dimensions'
-    }`
     const { data, error } = await supabase
       .from('organizations')
-      .select(colName)
+      .select('query_dimensions, query_frequencies')
       .is('deleted_at', null)
       .eq('id', organizationId)
       .single()
@@ -269,8 +266,15 @@ const InputParameterField: FunctionComponent<InputParameterFieldProps> = ({
     }
 
     if (data) {
+      const organization = data as {
+        query_dimensions: string
+        query_frequencies: string
+      }
+      const colName = `query_${
+        picker == 'frequency' ? 'frequencies' : 'dimensions'
+      }` as 'query_dimensions' | 'query_frequencies'
       setPickerOptions(
-        data[colName].split(',').map((option: string) => {
+        organization[colName].split(',').map((option: string) => {
           return { label: option, value: option }
         })
       )

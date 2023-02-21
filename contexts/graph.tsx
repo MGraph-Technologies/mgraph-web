@@ -1,7 +1,6 @@
 import {
   PostgrestError,
-  PostgrestResponse,
-  SupabaseRealtimePayload,
+  RealtimePostgresChangesPayload,
 } from '@supabase/supabase-js'
 import _ from 'lodash'
 import {
@@ -50,12 +49,12 @@ import { useEditability } from 'contexts/editability'
 import { getLastUpdatedAt } from 'utils/queryUtils'
 import { supabase } from 'utils/supabaseClient'
 
-export const nodeTypes = {
+export const NODE_TYPES = {
   custom: CustomNode,
   metric: MetricNode,
   function: FunctionNode,
 }
-export const edgeTypes = {
+export const EDGE_TYPES = {
   input: InputEdge,
 }
 
@@ -271,7 +270,7 @@ export function GraphProvider({ children }: GraphProps) {
   )
 
   const [nodeTypeIds, setNodeTypeIds] = useState<TypeIdMap>(
-    Object.fromEntries(Object.keys(nodeTypes).map((key) => [key, '']))
+    Object.fromEntries(Object.keys(NODE_TYPES).map((key) => [key, '']))
   )
   async function getNodeTypeIds() {
     try {
@@ -285,13 +284,17 @@ export function GraphProvider({ children }: GraphProps) {
       }
 
       if (data) {
+        const nodeTypes = data as {
+          name: string
+          id: string
+        }[]
         const _nodeTypeIds = {} as TypeIdMap
-        for (const nodeType in nodeTypeIds) {
-          const nodeTypeId = data.find((n) => n.name === nodeType)?.id
+        for (const nodeTypeName in nodeTypeIds) {
+          const nodeTypeId = nodeTypes.find((n) => n.name === nodeTypeName)?.id
           if (nodeTypeId) {
-            _nodeTypeIds[nodeType] = nodeTypeId
+            _nodeTypeIds[nodeTypeName] = nodeTypeId
           } else {
-            throw new Error(`Could not find node type id for ${nodeType}`)
+            throw new Error(`Could not find node type id for ${nodeTypeName}`)
           }
           setNodeTypeIds(_nodeTypeIds)
         }
@@ -306,7 +309,7 @@ export function GraphProvider({ children }: GraphProps) {
   }, [])
 
   const [edgeTypeIds, setEdgeTypeIds] = useState<TypeIdMap>(
-    Object.fromEntries(Object.keys(edgeTypes).map((key) => [key, '']))
+    Object.fromEntries(Object.keys(EDGE_TYPES).map((key) => [key, '']))
   )
   async function getEdgeTypeIds() {
     try {
@@ -320,13 +323,17 @@ export function GraphProvider({ children }: GraphProps) {
       }
 
       if (data) {
+        const edgeTypes = data as {
+          name: string
+          id: string
+        }[]
         const _edgeTypeIds = {} as TypeIdMap
-        for (const edgeType in edgeTypeIds) {
-          const edgeTypeId = data.find((e) => e.name === edgeType)?.id
+        for (const edgeTypeName in edgeTypeIds) {
+          const edgeTypeId = edgeTypes.find((e) => e.name === edgeTypeName)?.id
           if (edgeTypeId) {
-            _edgeTypeIds[edgeType] = edgeTypeId
+            _edgeTypeIds[edgeTypeName] = edgeTypeId
           } else {
-            throw new Error(`Could not find edge type id for ${edgeType}`)
+            throw new Error(`Could not find edge type id for ${edgeTypeName}`)
           }
           setEdgeTypeIds(_edgeTypeIds)
         }
@@ -468,7 +475,7 @@ export function GraphProvider({ children }: GraphProps) {
       objects: NodeOrEdgeArray,
       op: 'create' | 'delete' | 'update'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ): Promise<PostgrestResponse<any>> => {
+    ): Promise<PostgrestError | null> => {
       if (!nodeOrEdgeArrayIsUniform(objects)) {
         throw new Error('Cannot upsert nodes and edges in the same request')
       }
@@ -530,9 +537,8 @@ export function GraphProvider({ children }: GraphProps) {
         }
         return record
       })
-      return supabase
-        .from(`${recordType}s`)
-        .upsert(records, { returning: 'minimal' })
+      const { error } = await supabase.from(`${recordType}s`).upsert(records)
+      return error
     },
     [
       nodeOrEdgeArrayIsUniform,
@@ -563,7 +569,7 @@ export function GraphProvider({ children }: GraphProps) {
           )
       )
       if (addedObjects.length > 0) {
-        const { error: addedObjectsError } = await upsertNodesOrEdges(
+        const addedObjectsError = await upsertNodesOrEdges(
           addedObjects,
           'create'
         )
@@ -579,7 +585,7 @@ export function GraphProvider({ children }: GraphProps) {
         return initialObject && !_.isEqual(initialObject, updatedObject)
       })
       if (modifiedObjects.length > 0) {
-        const { error: modifiedObjectsError } = await upsertNodesOrEdges(
+        const modifiedObjectsError = await upsertNodesOrEdges(
           modifiedObjects,
           'update'
         )
@@ -595,7 +601,7 @@ export function GraphProvider({ children }: GraphProps) {
           )
       )
       if (deletedObjects.length > 0) {
-        const { error: deletedObjectsError } = await upsertNodesOrEdges(
+        const deletedObjectsError = await upsertNodesOrEdges(
           deletedObjects,
           'delete'
         )
@@ -729,16 +735,16 @@ export function GraphProvider({ children }: GraphProps) {
   // listen for graph changes
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let payloadQueue: SupabaseRealtimePayload<any>[] = []
+    let payloadQueue: RealtimePostgresChangesPayload<any>[] = []
     const ignoreNodeOrEdgesPayload = (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload: SupabaseRealtimePayload<any>
+      payload: RealtimePostgresChangesPayload<any>
     ) =>
       // ignore active-window payloads (but below still intended to be idempotent)
       payload.new.updated_by === session?.user?.id && document.hasFocus()
     const upsertNodesOrEdgesPayload: (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload: SupabaseRealtimePayload<any>,
+      payload: RealtimePostgresChangesPayload<any>,
       graph: Graph
     ) => Graph = (payload, graph) => {
       const nodesOrEdges = payload.table as 'nodes' | 'edges'
@@ -781,15 +787,18 @@ export function GraphProvider({ children }: GraphProps) {
     }
     const deleteNodesOrEdgesPayload: (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload: SupabaseRealtimePayload<any>,
+      payload: RealtimePostgresChangesPayload<any>,
       graph: Graph
     ) => Graph = (payload, graph) => {
       const nodesOrEdges = payload.table as 'nodes' | 'edges'
+      const old = payload.old as {
+        id: string
+      }
       return {
         ...graph,
         // simpler filter yields ts(2349) error
         [nodesOrEdges]: graph[nodesOrEdges]
-          .map((n) => (n.id === payload.old.id ? null : n))
+          .map((n) => (n.id === old.id ? null : n))
           .filter((n) => n !== null),
       } as Graph
     }
@@ -821,87 +830,126 @@ export function GraphProvider({ children }: GraphProps) {
     const processPayloadQueueDebounced = _.debounce(processPayloadQueue, 300)
     const handleNodesOrEdgesPayload: (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload: SupabaseRealtimePayload<any>
+      payload: RealtimePostgresChangesPayload<any>
     ) => void = (payload) => {
       if (ignoreNodeOrEdgesPayload(payload)) return
       payloadQueue.push(payload)
       processPayloadQueueDebounced()
     }
     const nodesSubscription = supabase
-      .from('nodes')
-      .on('*', handleNodesOrEdgesPayload)
+      .channel('public:nodes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'nodes' },
+        handleNodesOrEdgesPayload
+      )
       .subscribe()
     const edgesSubscription = supabase
-      .from('edges')
-      .on('*', handleNodesOrEdgesPayload)
+      .channel('public:edges')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'edges' },
+        handleNodesOrEdgesPayload
+      )
       .subscribe()
     const monitoringRuleEvalsSubscription = supabase
-      .from('monitoring_rule_evaluations')
-      // inserts are pending, status comes through via update
-      .on('UPDATE', async (payload) => {
-        if (payload.new.status === 'pending' || payload.new.deleted_at) {
-          return
-        }
-        // query for node id
-        const { data, status, error } = await supabase
-          .from('monitoring_rules')
-          .select('parent_node_id')
-          .eq('id', payload.new.monitoring_rule_id)
-          .single()
-        if (error && status !== 406) {
-          throw error
-        }
-        if (data) {
-          // update node in graph
-          const updateParentNode: (graph: Graph) => Graph = (graph) => {
-            return {
-              nodes: graph.nodes.map((n) => {
-                if (n.id === data.parent_node_id) {
-                  return {
-                    ...n,
-                    data: {
-                      ...n.data,
-                      monitored: true,
-                      alert: ['alert', 'timed_out'].includes(
-                        payload.new.status
-                      ),
-                    },
-                  }
-                } else {
-                  return n
-                }
-              }),
-              edges: graph.edges,
-            }
+      .channel('public:monitoring_rule_evaluations')
+      .on(
+        'postgres_changes',
+        // inserts are pending, status comes through via update
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'monitoring_rule_evaluations',
+        },
+        async (payload) => {
+          if (payload.new.status === 'pending' || payload.new.deleted_at) {
+            return
           }
-          setInitialGraph(updateParentNode)
-          setGraphRef.current(updateParentNode, undefined, true)
-          pastRef.current.forEach((graph, i) => {
-            pastRef.current[i] = updateParentNode(graph)
-          })
-          futureRef.current.forEach((graph, i) => {
-            futureRef.current[i] = updateParentNode(graph)
-          })
+          // query for node id
+          const { data, status, error } = await supabase
+            .from('monitoring_rules')
+            .select('parent_node_id')
+            .eq('id', payload.new.monitoring_rule_id)
+            .single()
+          if (error && status !== 406) {
+            throw error
+          }
+          if (data) {
+            const monitoringRule = data as {
+              parent_node_id: string
+            }
+            // update node in graph
+            const updateParentNode: (graph: Graph) => Graph = (graph) => {
+              return {
+                nodes: graph.nodes.map((n) => {
+                  if (n.id === monitoringRule.parent_node_id) {
+                    return {
+                      ...n,
+                      data: {
+                        ...n.data,
+                        monitored: true,
+                        alert: ['alert', 'timed_out'].includes(
+                          payload.new.status
+                        ),
+                      },
+                    }
+                  } else {
+                    return n
+                  }
+                }),
+                edges: graph.edges,
+              }
+            }
+            setInitialGraph(updateParentNode)
+            setGraphRef.current(updateParentNode, undefined, true)
+            pastRef.current.forEach((graph, i) => {
+              pastRef.current[i] = updateParentNode(graph)
+            })
+            futureRef.current.forEach((graph, i) => {
+              futureRef.current[i] = updateParentNode(graph)
+            })
+          }
         }
-      })
+      )
       .subscribe()
     const commentsSubscription = supabase
-      .from('sce_comments')
-      .on('INSERT', (payload) => {
-        const comment = payload.new
-        setLatestCommentIdMap((latestCommentIdMap) => {
-          return {
-            ...latestCommentIdMap,
-            [comment.topic]: comment.id,
-          }
-        })
-      })
+      .channel('public:comments')
+      // handle insertions
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'comments' },
+        (payload) => {
+          const comment = payload.new
+          setLatestCommentIdMap((latestCommentIdMap) => {
+            return {
+              ...latestCommentIdMap,
+              [comment.topic_id]: comment.id,
+            }
+          })
+        }
+      )
+      // handle soft deletions
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'comments' },
+        (payload) => {
+          const comment = payload.new
+          if (!comment.deleted_at) return
+          setLatestCommentIdMap((latestCommentIdMap) => {
+            return {
+              ...latestCommentIdMap,
+              [comment.topic_id]: 'needsUpdate', // NodeCommentsButton will handle
+            }
+          })
+        }
+      )
       .subscribe()
     return () => {
-      supabase.removeSubscription(nodesSubscription)
-      supabase.removeSubscription(edgesSubscription)
-      supabase.removeSubscription(monitoringRuleEvalsSubscription)
-      supabase.removeSubscription(commentsSubscription)
+      supabase.removeChannel(nodesSubscription)
+      supabase.removeChannel(edgesSubscription)
+      supabase.removeChannel(monitoringRuleEvalsSubscription)
+      supabase.removeChannel(commentsSubscription)
     }
   }, [session?.user?.id])
 
@@ -1152,9 +1200,9 @@ export function GraphProvider({ children }: GraphProps) {
         if (!data) {
           throw new Error('No function types returned')
         }
-
+        const functionTypes = data as { id: string; symbol: string }[]
         const _functionTypeIdsAndSymbols: { [key: string]: string } = {}
-        data.forEach((functionType: { id: string; symbol: string }) => {
+        functionTypes.forEach((functionType) => {
           _functionTypeIdsAndSymbols[functionType.id] = functionType.symbol
         })
         setFunctionTypeIdsAndSymbols(_functionTypeIdsAndSymbols)

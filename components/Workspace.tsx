@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { ConfirmDialog } from 'primereact/confirmdialog'
 import React, { FunctionComponent, ReactNode, useEffect, useState } from 'react'
 
 import Header from 'components/Header'
@@ -42,6 +43,7 @@ const Workspace: FunctionComponent<WorkspaceProps> = ({ children }) => {
     <div className={styles.workspace}>
       <Header />
       {children}
+      <ConfirmDialog />
     </div>
   ) : // show nothing if user is not authorized to view this organization
   null

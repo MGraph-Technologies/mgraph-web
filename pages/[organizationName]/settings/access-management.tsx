@@ -39,7 +39,8 @@ const AccessManagement: FunctionComponent = () => {
       }
 
       if (data) {
-        setRoles(data as Role[])
+        const _roles = data as Role[]
+        setRoles(_roles)
       }
     } catch (error: unknown) {
       console.error(error)
@@ -71,12 +72,17 @@ const AccessManagement: FunctionComponent = () => {
         }
 
         if (data) {
-          const _users = data.map(
-            (d) =>
+          const organizationMembers = data as {
+            user_id: string
+            users: { email: string }
+            roles: { name: string }
+          }[]
+          const _users = organizationMembers.map(
+            (om) =>
               ({
-                id: d.user_id,
-                email: d.users.email,
-                role_name: d.roles.name,
+                id: om.user_id,
+                email: om.users.email,
+                role_name: om.roles.name,
               } as User)
           )
           _users.sort((a, b) => {
@@ -178,9 +184,10 @@ const AccessManagement: FunctionComponent = () => {
         }
 
         if (data) {
+          const organization = data as { default_role_id: string }
           setOrgDefaultRoleName(
-            roles.find((role) => role.id === data.default_role_id)?.name ||
-              'error'
+            roles.find((role) => role.id === organization.default_role_id)
+              ?.name || 'error'
           )
         }
       } catch (error: unknown) {

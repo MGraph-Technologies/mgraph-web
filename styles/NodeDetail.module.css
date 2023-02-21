@@ -59,7 +59,7 @@
 }
 
 .node_detail .body .detail_field_editable {
-  background-color: #f8f8fe;
+  background-color: #f8f8fe; /* align with code editor */
   border-radius: 5px;
   width: 100%;
   font-family: inherit;
@@ -67,10 +67,8 @@
 }
 
 .node_detail .body .detail_field_code {
-  background-color: #f8f8fe;
   border-radius: 5px;
   width: 100%;
-  font-size: 0.8rem;
 }
 
 /* match primereact behaviors */

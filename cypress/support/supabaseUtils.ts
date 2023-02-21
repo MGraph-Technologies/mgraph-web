@@ -1,36 +1,28 @@
 /* sourced from here: 
 https://github.com/supabase/supabase/discussions/6177 */
-import { createClient, Session, SupabaseClient } from '@supabase/supabase-js'
+import { createClient, Session } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
 
-let supabase: SupabaseClient
 const sessions: { [key: string]: Session | null } = {}
 
 export async function getSession({
   email,
   password,
-  supabaseUrl,
-  supabaseAnonKey,
 }: {
   email: string
   password: string
-  supabaseUrl: string
-  supabaseAnonKey: string
 }) {
-  // If there's already a supabase client, use it, don't create a new one.
-  if (!supabase) {
-    supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
-  }
-
   // Create a session for the user if it doesn't exist already.
-  // You can then log in as any number of test users from your tests.
   if (!sessions[email]) {
-    const res = await supabase.auth.signIn({
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+    const { data } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-
-    sessions[email] = res.session
+    sessions[email] = data.session
   }
 
   return sessions[email]
@@ -46,9 +38,15 @@ export async function insertCustomNode({
   // create supabase client
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    }
   )
-  supabase.auth.setAuth(accessToken)
 
   // get user id and org id
   const editorEmail =
@@ -64,8 +62,12 @@ export async function insertCustomNode({
   if (userError) {
     throw new Error(userError.message)
   }
-  const userId = userData?.id
-  const orgId = userData?.organization_members[0].organization_id
+  const user = userData as {
+    id: string
+    organization_members: { organization_id: string }[]
+  }
+  const userId = user.id
+  const orgId = user.organization_members[0].organization_id
 
   // get node type id
   const { data: nodeTypeData, error: nodeTypeError } = await supabase
@@ -76,7 +78,8 @@ export async function insertCustomNode({
   if (nodeTypeError) {
     throw new Error(nodeTypeError.message)
   }
-  const nodeTypeId = nodeTypeData?.id
+  const nodeType = nodeTypeData as { id: string }
+  const nodeTypeId = nodeType.id
 
   // insert node
   const nodeId = uuidv4()

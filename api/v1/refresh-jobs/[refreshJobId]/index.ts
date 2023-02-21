@@ -46,10 +46,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!refreshJobData) {
         throw new Error('Refresh job not found.')
       }
+      const refreshJob = refreshJobData as { organization_id: string }
+      const organizationId = refreshJob.organization_id
 
       // get organization's metric nodes
       const graphResp = await fetch(
-        getBaseUrl() + `/api/v1/graphs/${refreshJobData.organization_id}`,
+        getBaseUrl() + `/api/v1/graphs/${organizationId}`,
         {
           method: 'GET',
           headers: {
@@ -66,10 +68,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       )
 
       // get organization's input parameters
-      const inputParameters = await getInputParameters(
-        refreshJobData.organization_id,
-        supabase
-      )
+      const inputParameters = await getInputParameters(organizationId, supabase)
 
       // for each metric node, parameterize its query and send to query runner
       let refreshRequests = 0
@@ -145,6 +144,7 @@ const logRefreshJobRun = async (
         status: status,
       },
     ])
+    .select('id')
     .single()
 
   if (refreshJobRunError) {
@@ -154,8 +154,9 @@ const logRefreshJobRun = async (
   if (!refreshJobRunData) {
     throw new Error('Refresh job run to be updated not found.')
   } else {
+    const refreshJobRun = refreshJobRunData as { id: string }
     console.log(
-      `\nRefresh job run ${refreshJobRunData.id} created with status ${status}.`
+      `\nRefresh job run ${refreshJobRun.id} created with status ${status}.`
     )
     return 'ok'
   }

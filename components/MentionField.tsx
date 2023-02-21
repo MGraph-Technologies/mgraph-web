@@ -2,28 +2,30 @@ import { Mention, MentionItemTemplateType } from 'primereact/mention'
 import React, { FunctionComponent, useState } from 'react'
 
 import UserAvatar from 'components/UserAvatar'
-import { useEditability } from 'contexts/editability'
 import { supabase } from 'utils/supabaseClient'
 
 type MentionFieldProps = {
   id: string
   className: string
+  editable: boolean
   value: string
   setValue: (value: string) => void
   placeholder?: string
   onClick?: React.MouseEventHandler<HTMLTextAreaElement>
   onBlur?: (event: React.FocusEvent<HTMLInputElement, Element>) => void
+  inputClassName?: string
 }
 const MentionField: FunctionComponent<MentionFieldProps> = ({
   id,
   className,
+  editable,
   value,
   setValue,
   placeholder,
   onClick,
   onBlur,
+  inputClassName,
 }) => {
-  const { editingEnabled } = useEditability()
   type Mention = {
     id: string
     name: string
@@ -38,8 +40,8 @@ const MentionField: FunctionComponent<MentionFieldProps> = ({
     if (!query) return
     setMentionQuery(query)
     const { data, error } = await supabase
-      .from('sce_display_users')
-      .select('id, name, email, avatar')
+      .from('display_users')
+      .select('id, name, email, avatar_url')
       .or(
         `email.ilike.${query.toLowerCase()}%,name.ilike.${query.toLowerCase()}%`
       )
@@ -51,13 +53,19 @@ const MentionField: FunctionComponent<MentionFieldProps> = ({
     }
 
     if (data) {
+      const displayUsers = data as {
+        id: string
+        name: string
+        email: string
+        avatar_url: string
+      }[]
       setMentionSuggestions(
-        data.map((owner) => ({
+        displayUsers.map((owner) => ({
           id: owner.id,
           name: owner.name,
           email: owner.email,
           username: owner.email.split('@')[0],
-          avatarUrl: owner.avatar,
+          avatarUrl: owner.avatar_url,
         }))
       )
     } else {
@@ -70,6 +78,7 @@ const MentionField: FunctionComponent<MentionFieldProps> = ({
         <div style={{ width: '32px' }}>
           <UserAvatar
             user={{
+              id: suggestion.id as string,
               name: suggestion.name as string,
               email: suggestion.email as string,
               avatarUrl: suggestion.avatarUrl as string,
@@ -88,12 +97,12 @@ const MentionField: FunctionComponent<MentionFieldProps> = ({
     )
   }
 
-  return editingEnabled ? (
+  return editable ? (
     <Mention
       id={id}
       autoResize
       className={className}
-      inputClassName={className}
+      inputClassName={inputClassName || className}
       value={value}
       placeholder={placeholder}
       suggestions={mentionSuggestions}
@@ -119,6 +128,7 @@ const MentionField: FunctionComponent<MentionFieldProps> = ({
     />
   ) : (
     <div
+      id={id}
       className={className}
       dangerouslySetInnerHTML={{
         __html: value.replaceAll(

@@ -42,7 +42,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       let finisherRequests = 0
       const finisherResponses: { [refreshJobRunId: string]: number } = {}
       if (RJRData) {
-        RJRData.forEach(async (run) => {
+        const refreshJobRuns = RJRData as {
+          id: string
+          refresh_job_id: string
+        }[]
+        refreshJobRuns.forEach(async (run) => {
           console.log(
             `\nRefresh job run ${run.id} is pending. Sending to finisher...`
           )
@@ -88,7 +92,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       let initiatorRequests = 0
       const initiatorResponses: { [refreshJobId: string]: number } = {}
       if (RJData) {
-        RJData.forEach(async (refreshJob: RefreshJob) => {
+        const refreshJobs = RJData as RefreshJob[]
+        refreshJobs.forEach(async (refreshJob: RefreshJob) => {
           console.log(
             `\nRefresh job ${refreshJob.id} has schedule ${refreshJob.schedule}. Checking if it should run now...`
           )

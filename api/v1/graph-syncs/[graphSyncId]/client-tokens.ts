@@ -58,9 +58,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { graphSyncId } = req.query
     console.log('\ngraphSyncId: ', graphSyncId)
     try {
-      const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
       const accessToken = (req.headers['supabase-access-token'] as string) || ''
-      supabase.auth.setAuth(accessToken)
+      const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+        global: {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      })
 
       const {
         data: graphSyncData,
@@ -78,12 +83,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         throw new Error('No graph sync found with that id.')
       }
       console.log('\ngraphSyncData: ', graphSyncData)
-      const graphSyncType = graphSyncData.graph_sync_types.name
+      const graphSync = graphSyncData as {
+        properties: { installationId: string }
+        graph_sync_types: { name: string }
+      }
+      const graphSyncType = graphSync.graph_sync_types.name
 
       if (graphSyncType === 'dbt Project') {
         console.log('\ngraphSyncType is dbt Project')
         console.log('Making GitHub app token...')
-        const installationId = graphSyncData.properties.installationId
+        const installationId = graphSync.properties.installationId
         const appToken = await getGitHubAppToken(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           mgraphDbtSyncGithubAppId!,

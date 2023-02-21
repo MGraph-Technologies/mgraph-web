@@ -1,0 +1,65 @@
+.presence_panel {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  font-size: 12px;
+}
+
+.presence_panel .present_users {
+  display: flex;
+  flex-direction: row;
+}
+
+.presence_panel .present_users .leftmost {
+  margin-left: 0px;
+}
+
+.presence_panel .present_users .overlapping {
+  margin-left: -8px;
+}
+
+.presence_panel .present_users .more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #c7c7c7;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: bold;
+  color: #c7c7c7;
+  cursor: pointer;
+}
+
+.single_user_tooltip {
+  font-size: 0.8rem;
+}
+
+.remaining_users_tooltip {
+  width: 150px;
+}
+
+.remaining_users_tooltip ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.remaining_users_tooltip li {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.remaining_users_tooltip li .user_avatar {
+  width: 48px;
+}
+
+.remaining_users_tooltip li .user_name {
+  width: 100%;
+  margin-left: 5px;
+  font-size: 0.8rem;
+  text-align: left;
+}

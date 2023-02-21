@@ -55,8 +55,13 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
             symbol.startsWith('f')
           )
         }
+        const functionTypes = data as {
+          id: string
+          name: string
+          symbol: string
+        }[]
         setIdentities(
-          data
+          functionTypes
             .filter((item) => isIdentity(item.symbol))
             .map((item) => {
               return {
@@ -68,7 +73,7 @@ const _FormulaEditor: FunctionComponent<FormulaEditorProps> = ({
         )
         // ids generated at selection time to allow multiple uses of the same symbol
         setOperators(
-          data
+          functionTypes
             .filter((item) => !isIdentity(item.symbol))
             .map((item) => {
               return {
