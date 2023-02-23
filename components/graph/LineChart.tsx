@@ -25,7 +25,7 @@ import { useAuth } from 'contexts/auth'
 import { useGraph } from 'contexts/graph'
 import { useQueries } from 'contexts/queries'
 import styles from 'styles/LineChart.module.css'
-import { MetricData, QueryData, verifyMetricData } from 'utils/queryUtils'
+import { MetricData, QueryData } from 'utils/queryUtils'
 import { supabase } from 'utils/supabaseClient'
 
 ChartJS.register(
@@ -38,12 +38,13 @@ ChartJS.register(
   Tooltip
 )
 
+export type ChartJSDatapoint = {
+  x: Date
+  y: number | null
+}
 type ChartJSDataset = {
   label: string
-  data: {
-    x: Date
-    y: number | null
-  }[]
+  data: ChartJSDatapoint[]
   backgroundColor: string
   borderColor: string
   borderDash: number[]
@@ -74,7 +75,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
   const makeChartJSDatasets = (metricData: MetricData) => {
-    const { rows } = metricData // rows are sorted from right to left
+    const { metricDimensionsData } = metricData // rows are sorted from right to left
     const datasets: ChartJSDataset[] = []
     const SERIESCOLORS = [
       '#6466e9', // violet
@@ -84,15 +85,11 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       '#E84855', // red
       '#787878', // grey
     ]
-    const dimensions = Array.from(new Set(rows.map((row) => row[1])))
+    const dimensions = Object.keys(metricDimensionsData).sort()
     dimensions.forEach((dimension, index) => {
-      const dimensionRows = rows.filter((row) => row[1] === dimension)
       datasets.push({
         label: dimension,
-        data: dimensionRows.map((row) => ({
-          x: row[0],
-          y: row[2],
-        })),
+        data: metricDimensionsData[dimension],
         backgroundColor: SERIESCOLORS[index % SERIESCOLORS.length],
         borderColor: SERIESCOLORS[index % SERIESCOLORS.length],
         borderDash: [],
@@ -104,7 +101,9 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   }
 
   useEffect(() => {
-    const _metricData = verifyMetricData(queryResult.data as QueryData)
+    const data = queryResult.data as MetricData | QueryData
+    const _metricData =
+      data && data.metricDataVerified ? (data as MetricData) : null
     setMetricData(_metricData)
     if (_metricData) {
       const _chartJSDatasets = makeChartJSDatasets(_metricData)
@@ -287,6 +286,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     // evaluate each actual dataset's goals
     actualDatasets.forEach((actualDataset) => {
       // only evaluate if actual dataset has at least 1 non-null data point
+      type DataPoint = { x: Date; y: number }
       const mostRecentActualDataPoint = actualDataset.data
         .filter((dataPoint) => {
           return dataPoint.y !== null
@@ -294,7 +294,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         .slice()
         .sort((a, b) => {
           return b.x.getTime() - a.x.getTime()
-        })[0] as { x: Date; y: number } | undefined
+        })[0] as DataPoint | undefined
       if (!mostRecentActualDataPoint) {
         return
       }
@@ -326,7 +326,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
             .slice()
             .sort((a, b) => {
               return b.x.getTime() - a.x.getTime()
-            })[0] as { x: Date; y: number } | undefined
+            })[0] as DataPoint | undefined
           const closestGTEGoalDataPoint = goalData
             .filter((dataPoint) => {
               return (
@@ -337,7 +337,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
             .slice()
             .sort((a, b) => {
               return a.x.getTime() - b.x.getTime()
-            })[0] as { x: Date; y: number } | undefined
+            })[0] as DataPoint | undefined
           if (!closestLTEGoalDataPoint || !closestGTEGoalDataPoint) {
             return
           }
@@ -371,7 +371,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
             .slice()
             .sort((a, b) => {
               return b.x.getTime() - a.x.getTime()
-            })[0] as { x: Date; y: number } | undefined
+            })[0] as DataPoint | undefined
           if (!lastGoalDataPoint) {
             return
           }
@@ -386,7 +386,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
             .slice()
             .sort((a, b) => {
               return b.x.getTime() - a.x.getTime()
-            })[0] as { x: Date; y: number } | undefined
+            })[0] as DataPoint | undefined
           if (!comparisonActualValue) {
             return
           }

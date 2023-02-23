@@ -11,6 +11,7 @@ import {
   QueryData,
   QueryDataType,
   QueryRow,
+  isVerifiedMetricData,
 } from '../../../../utils/queryUtils'
 import {
   decryptCredentials,
@@ -147,6 +148,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               }
             )
           const rows = queryStatus.data as QueryRow[]
+          // Verify
+          const metricDataVerified = isVerifiedMetricData(columns, rows)
           // Convert values
           rows.forEach((row) => {
             row.forEach((val, i) => {
@@ -181,6 +184,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             columns: columns,
             rows: rows,
             executedAt: executedAt,
+            metricDataVerified: metricDataVerified,
           } as QueryData)
         } else if (queryStatusResp.status === 202) {
           console.log('\nQuery still processing')

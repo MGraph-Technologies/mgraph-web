@@ -1,6 +1,8 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
 
+import { ChartJSDatapoint } from 'components/graph/LineChart'
+
 /***** QUERY EXECUTION STUFF *****/
 // /results handles conversion from raw db formats to ones below
 // we only convert dates and numbers currently, other types left as strings
@@ -14,12 +16,17 @@ export type QueryData = {
   columns: QueryColumn[]
   rows: QueryRow[]
   executedAt: Date
+  metricDataVerified: boolean
 }
 export type MetricRow = [Date, string, number]
 export type MetricData = {
   columns: QueryColumn[]
   rows: MetricRow[]
   executedAt: Date
+  metricDataVerified: true
+  metricDimensionsData: {
+    [dimension: string]: ChartJSDatapoint[]
+  }
 }
 
 export const getLastUpdatedAt = async (
@@ -89,20 +96,19 @@ export const getLatestQueryId = async (
   return queryId
 }
 
-export const verifyMetricData = (queryData: QueryData): MetricData | null => {
-  if (queryData && queryData.columns && queryData.rows) {
-    const { columns } = queryData
-    if (
-      columns &&
+export const isVerifiedMetricData = (
+  columns: QueryColumn[],
+  rows: QueryRow[]
+): boolean => {
+  return Boolean(
+    columns &&
       columns.length === 3 &&
       columns[0].type === 'date' &&
       columns[1].type === 'string' &&
-      columns[2].type === 'number'
-    ) {
-      return queryData as MetricData
-    }
-  }
-  return null
+      columns[2].type === 'number' &&
+      rows &&
+      rows.length > 0
+  )
 }
 
 /***** INPUT PARAMETER STUFF *****/
