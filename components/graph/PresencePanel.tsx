@@ -15,22 +15,27 @@ type PresencePanelProps = {
 }
 
 const PresencePanel: FunctionComponent<PresencePanelProps> = ({ pageId }) => {
-  const { session, userAvatarUrl, userEmail, userName } = useAuth()
+  const { session, organizationId, userAvatarUrl, userEmail, userName } =
+    useAuth()
   const [presentUsers, setPresentUsers] = useState<User[]>([])
 
   useEffect(() => {
+    if (!organizationId) return
     type Presence = {
       user: User
       tabId: string
       onlineAt: string
     }
-    const presenceChannel = supabase.channel(`presence:${pageId}`, {
-      config: {
-        presence: {
-          key: session?.user?.id,
+    const presenceChannel = supabase.channel(
+      `presence:${organizationId}:${pageId}`,
+      {
+        config: {
+          presence: {
+            key: session?.user?.id,
+          },
         },
-      },
-    })
+      }
+    )
     const presenceSubscription = presenceChannel
       // listen for presence updates
       .on('presence', { event: 'sync' }, () => {
@@ -97,7 +102,14 @@ const PresencePanel: FunctionComponent<PresencePanelProps> = ({ pageId }) => {
     return () => {
       supabase.removeChannel(presenceSubscription)
     }
-  }, [pageId, session?.user?.id, userName, userEmail, userAvatarUrl])
+  }, [
+    organizationId,
+    pageId,
+    session?.user?.id,
+    userName,
+    userEmail,
+    userAvatarUrl,
+  ])
 
   return (
     <div className={styles.presence_panel} style={{ zIndex: PANEL_Z_INDEX }}>
