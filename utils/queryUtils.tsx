@@ -111,6 +111,39 @@ export const isVerifiedMetricData = (
   )
 }
 
+export const processQueryData = (data: QueryData): MetricData | QueryData => {
+  const metricDataVerified = data.metricDataVerified
+  const metricDimensionsData: {
+    [dimension: string]: ChartJSDatapoint[]
+  } = {}
+  data.rows.forEach((row, rowIndex) => {
+    row.forEach((value, columnIndex) => {
+      const column = data.columns[columnIndex]
+      if (column.type === 'date') {
+        if (!value) return
+        data.rows[rowIndex][columnIndex] = new Date(value as string)
+      }
+    })
+    if (metricDataVerified) {
+      const dimension = row[1] as string
+      if (!metricDimensionsData[dimension]) {
+        metricDimensionsData[dimension] = []
+      }
+      metricDimensionsData[dimension].push({
+        x: row[0] as Date,
+        y: row[2] as number,
+      })
+    }
+  })
+  return metricDataVerified
+    ? ({
+        ...data,
+        metricDataVerified: true,
+        metricDimensionsData,
+      } as MetricData)
+    : data
+}
+
 /***** INPUT PARAMETER STUFF *****/
 /* On getInputParameters, blank inputParameters values are initialized for the set of
   parameter keys which have either a user-specfic or org-default value in the

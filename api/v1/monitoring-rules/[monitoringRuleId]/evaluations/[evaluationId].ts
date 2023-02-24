@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
 
+import { MetricNodeProperties } from '../../../../../components/graph/MetricNode'
 import {
   MonitoringRuleEvaluationStatus,
   MonitoringRuleProperties,
@@ -10,14 +11,14 @@ import {
 import { SENTRY_CONFIG } from '../../../../../sentry.server.config.js'
 import { getBaseUrl } from '../../../../../utils/appBaseUrl'
 import {
+  MetricData,
   QueryData,
   getInputParameters,
   getLatestQueryId,
   overrideInputParameters,
   parameterizeStatement,
-  verifyMetricData,
+  processQueryData,
 } from '../../../../../utils/queryUtils'
-import { MetricNodeProperties } from '../../../../../components/graph/MetricNode'
 
 Sentry.init(SENTRY_CONFIG)
 
@@ -220,35 +221,32 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             )
           } else {
             const queryData = (await queryResultResp.json()) as QueryData
-            // convert any date columns since serialization loses type
-            queryData.columns.forEach((column, columnIndex) => {
-              if (column.type === 'date') {
-                queryData.rows.forEach((row, rowIndex) => {
-                  if (!row[columnIndex]) return
-                  queryData.rows[rowIndex][columnIndex] = new Date(
-                    row[columnIndex] as string
-                  )
-                })
-              }
-            })
-            const metricData = verifyMetricData(queryData)
-            if (!metricData) {
+            const procssedQueryData = processQueryData(queryData)
+            const metricDataVerified = procssedQueryData.metricDataVerified
+            if (!metricDataVerified) {
               processAlert(
-                `Monitoring rule failed to evaluate: query result does not have the expected columns structure.`
+                `Monitoring rule failed to evaluate: query result does not have the expected structure.`
               )
             } else {
-              const rows = metricData.rows // rows are sorted from right to left
-              const dimensions = Array.from(new Set(rows.map((row) => row[1])))
+              const processedMetricData = procssedQueryData as MetricData
+              const metricDimensionsData =
+                processedMetricData.metricDimensionsData
+              const dimensions = Object.keys(metricDimensionsData)
               dimensions.forEach((dimension: string) => {
-                const dimensionRows = rows.filter((row) => row[1] === dimension)
+                const dimensionRows = metricDimensionsData[dimension]
                 const dimensionRowsToEval = dimensionRows.slice(
                   -lookbackPeriods
                 )
                 dimensionRowsToEval.forEach((row) => {
-                  const date = row[0]
-                  const dimension = row[1]
-                  const value = row[2]
-                  if (
+                  const date = row.x
+                  const value = row.y
+                  if (value === null) {
+                    processAlert(
+                      `Value for dimension ${dimension} on ${
+                        date?.toISOString() ?? 'unknown date'
+                      } is null.`
+                    )
+                  } else if (
                     alertIfValue === 'insideRangeInclusive' &&
                     value >= rangeLowerBound &&
                     value <= rangeUpperBound

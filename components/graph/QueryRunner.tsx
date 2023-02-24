@@ -1,6 +1,5 @@
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 
-import { ChartJSDatapoint } from 'components/graph/LineChart'
 import { MetricNodeProperties } from 'components/graph/MetricNode'
 import { useAuth } from 'contexts/auth'
 import { useEditability } from 'contexts/editability'
@@ -11,6 +10,7 @@ import {
   QueryData,
   getLatestQueryId,
   parameterizeStatement,
+  processQueryData,
 } from 'utils/queryUtils'
 import { supabase } from 'utils/supabaseClient'
 
@@ -273,38 +273,10 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       .then((response) => {
         if (response.status === 200) {
           response.json().then((data: QueryData) => {
-            const metricDataVerified = data.metricDataVerified
-            const metricDimensionsData: {
-              [dimension: string]: ChartJSDatapoint[]
-            } = {}
-            data.rows.forEach((row, rowIndex) => {
-              row.forEach((value, columnIndex) => {
-                const column = data.columns[columnIndex]
-                if (column.type === 'date') {
-                  if (!value) return
-                  data.rows[rowIndex][columnIndex] = new Date(value as string)
-                }
-              })
-              if (metricDataVerified) {
-                const dimension = row[1] as string
-                if (!metricDimensionsData[dimension]) {
-                  metricDimensionsData[dimension] = []
-                }
-                metricDimensionsData[dimension].push({
-                  x: row[0] as Date,
-                  y: row[2] as number,
-                })
-              }
-            })
+            const processedData = processQueryData(data)
             setQueryResult({
               status: 'success',
-              data: metricDataVerified
-                ? ({
-                    ...data,
-                    metricDataVerified: true,
-                    metricDimensionsData,
-                  } as MetricData)
-                : data,
+              data: processedData,
             })
           })
         } else if (response.status === 202) {
