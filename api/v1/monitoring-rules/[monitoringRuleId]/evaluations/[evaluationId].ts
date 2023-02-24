@@ -231,9 +231,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               const processedMetricData = processedQueryData as MetricData
               const metricDimensionsData =
                 processedMetricData.metricDimensionsData
-              const dimensions = Object.keys(metricDimensionsData)
+              const dimensions = Array.from(metricDimensionsData.keys())
               dimensions.forEach((dimension: string) => {
-                const dimensionRows = metricDimensionsData[dimension]
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const dimensionRows = metricDimensionsData.get(dimension)!
                 const dimensionRowsToEval = dimensionRows.slice(
                   -lookbackPeriods // points come sorted from query results endpoint
                 )

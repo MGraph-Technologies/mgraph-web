@@ -24,9 +24,7 @@ export type MetricData = {
   rows: MetricRow[]
   executedAt: Date
   metricDataVerified: true
-  metricDimensionsData: {
-    [dimension: string]: ChartJSDatapoint[]
-  }
+  metricDimensionsData: Map<string, ChartJSDatapoint[]>
 }
 
 export const getLastUpdatedAt = async (
@@ -113,9 +111,7 @@ export const isVerifiedMetricData = (
 
 export const processQueryData = (data: QueryData): MetricData | QueryData => {
   const metricDataVerified = data.metricDataVerified
-  const metricDimensionsData: {
-    [dimension: string]: ChartJSDatapoint[]
-  } = {}
+  const metricDimensionsData = new Map<string, ChartJSDatapoint[]>()
   data.rows.forEach((row, rowIndex) => {
     row.forEach((value, columnIndex) => {
       const column = data.columns[columnIndex]
@@ -126,10 +122,10 @@ export const processQueryData = (data: QueryData): MetricData | QueryData => {
     })
     if (metricDataVerified) {
       const dimension = row[1] as string
-      if (!metricDimensionsData[dimension]) {
-        metricDimensionsData[dimension] = []
+      if (!metricDimensionsData.has(dimension)) {
+        metricDimensionsData.set(dimension, [])
       }
-      metricDimensionsData[dimension].push({
+      metricDimensionsData.get(dimension)?.push({
         x: row[0] as Date,
         y: row[2] as number,
       })

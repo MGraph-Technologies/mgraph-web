@@ -85,11 +85,12 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       '#E84855', // red
       '#787878', // grey
     ]
-    const dimensions = Object.keys(metricDimensionsData).sort()
+    const dimensions = Array.from(metricDimensionsData.keys())
     dimensions.forEach((dimension, index) => {
       datasets.push({
         label: dimension,
-        data: metricDimensionsData[dimension],
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        data: metricDimensionsData.get(dimension)!,
         backgroundColor: SERIESCOLORS[index % SERIESCOLORS.length],
         borderColor: SERIESCOLORS[index % SERIESCOLORS.length],
         borderDash: [],
