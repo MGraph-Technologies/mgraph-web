@@ -75,7 +75,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   const [showNumberOverlay, setShowNumberOverlay] = useState(true)
 
   const makeChartJSDatasets = (metricData: MetricData) => {
-    const { metricDimensionsData } = metricData // rows are sorted from right to left
+    const { metricDimensionsData } = metricData
     const datasets: ChartJSDataset[] = []
     const SERIESCOLORS = [
       '#6466e9', // violet
@@ -112,6 +112,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         _chartJSDatasets.length === 1
           ? // last non-null value
             Number(
+              // points come sorted from query results endpoint
               _chartJSDatasets[0].data.filter((d) => d.y !== null).slice(-1)[0]
                 ?.y
             )
@@ -133,7 +134,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     // first date across all datasets
     const firstPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
-        // avoid inplace sort triggering chart rerender
+        // points come sorted from query results endpoint
         const _firstPlottedDate = dataset.data[0].x
         return _firstPlottedDate < acc ? _firstPlottedDate : acc
       }, new Date(9999, 11, 31))
@@ -141,6 +142,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     // last date across all datasets
     const lastPlottedDate = chartJSDatasets
       .reduce((acc, dataset) => {
+        // points come sorted from query results endpoint
         const _lastPlottedDate = dataset.data[dataset.data.length - 1].x
         return _lastPlottedDate > acc ? _lastPlottedDate : acc
       }, new Date(0, 1, 1))

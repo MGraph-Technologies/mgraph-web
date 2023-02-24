@@ -235,7 +235,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               dimensions.forEach((dimension: string) => {
                 const dimensionRows = metricDimensionsData[dimension]
                 const dimensionRowsToEval = dimensionRows.slice(
-                  -lookbackPeriods
+                  -lookbackPeriods // points come sorted from query results endpoint
                 )
                 dimensionRowsToEval.forEach((row) => {
                   const date = row.x
