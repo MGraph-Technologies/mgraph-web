@@ -221,14 +221,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             )
           } else {
             const queryData = (await queryResultResp.json()) as QueryData
-            const procssedQueryData = processQueryData(queryData)
-            const metricDataVerified = procssedQueryData.metricDataVerified
+            const processedQueryData = processQueryData(queryData)
+            const metricDataVerified = processedQueryData.metricDataVerified
             if (!metricDataVerified) {
               processAlert(
                 `Monitoring rule failed to evaluate: query result does not have the expected structure.`
               )
             } else {
-              const processedMetricData = procssedQueryData as MetricData
+              const processedMetricData = processedQueryData as MetricData
               const metricDimensionsData =
                 processedMetricData.metricDimensionsData
               const dimensions = Object.keys(metricDimensionsData)
