@@ -1,6 +1,8 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
 
+import { ChartJSDatapoint } from 'components/graph/LineChart'
+
 /***** QUERY EXECUTION STUFF *****/
 // /results handles conversion from raw db formats to ones below
 // we only convert dates and numbers currently, other types left as strings
@@ -14,12 +16,15 @@ export type QueryData = {
   columns: QueryColumn[]
   rows: QueryRow[]
   executedAt: Date
+  metricDataVerified: boolean
 }
 export type MetricRow = [Date, string, number]
 export type MetricData = {
   columns: QueryColumn[]
   rows: MetricRow[]
   executedAt: Date
+  metricDataVerified: true
+  metricDimensionsData: Map<string, ChartJSDatapoint[]>
 }
 
 export const getLastUpdatedAt = async (
@@ -89,20 +94,50 @@ export const getLatestQueryId = async (
   return queryId
 }
 
-export const verifyMetricData = (queryData: QueryData): MetricData | null => {
-  if (queryData && queryData.columns && queryData.rows) {
-    const { columns } = queryData
-    if (
-      columns &&
+export const isVerifiedMetricData = (
+  columns: QueryColumn[],
+  rows: QueryRow[]
+): boolean => {
+  return Boolean(
+    columns &&
       columns.length === 3 &&
       columns[0].type === 'date' &&
       columns[1].type === 'string' &&
-      columns[2].type === 'number'
-    ) {
-      return queryData as MetricData
+      columns[2].type === 'number' &&
+      rows &&
+      rows.length > 0
+  )
+}
+
+export const processQueryData = (data: QueryData): MetricData | QueryData => {
+  const metricDataVerified = data.metricDataVerified
+  const metricDimensionsData = new Map<string, ChartJSDatapoint[]>()
+  data.rows.forEach((row, rowIndex) => {
+    row.forEach((value, columnIndex) => {
+      const column = data.columns[columnIndex]
+      if (column.type === 'date') {
+        if (!value) return
+        data.rows[rowIndex][columnIndex] = new Date(value as string)
+      }
+    })
+    if (metricDataVerified) {
+      const dimension = row[1] as string
+      if (!metricDimensionsData.has(dimension)) {
+        metricDimensionsData.set(dimension, [])
+      }
+      metricDimensionsData.get(dimension)?.push({
+        x: row[0] as Date,
+        y: row[2] as number,
+      })
     }
-  }
-  return null
+  })
+  return metricDataVerified
+    ? ({
+        ...data,
+        metricDataVerified: true,
+        metricDimensionsData,
+      } as MetricData)
+    : data
 }
 
 /***** INPUT PARAMETER STUFF *****/

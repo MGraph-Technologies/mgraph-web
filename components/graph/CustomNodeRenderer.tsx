@@ -1,4 +1,5 @@
 import { Message } from 'primereact/message'
+import { ProgressSpinner } from 'primereact/progressspinner'
 import React, {
   FunctionComponent,
   useCallback,
@@ -7,6 +8,7 @@ import React, {
 } from 'react'
 import { Node } from 'reactflow'
 
+import { useAuth } from 'contexts/auth'
 import { useGraph } from 'contexts/graph'
 import { useQueries } from 'contexts/queries'
 import styles from 'styles/CustomNodeRenderer.module.css'
@@ -26,6 +28,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   shouldRender = true,
   expandHeight = false,
 }) => {
+  const { userOnMobile } = useAuth()
   const { graph } = useGraph()
   const { globalSourceRefreshes, inputParameters } = useQueries()
 
@@ -35,6 +38,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   const [globalFontFamily, setGlobalFontFamily] = useState('')
   const [rendererUrl, setRendererUrl] = useState('')
   const [iframeHeight, setIframeHeight] = useState(0)
+  const [iframeLoading, setIframeLoading] = useState(true)
 
   const populateNode = useCallback(() => {
     if (graph.nodes.length > 0) {
@@ -83,9 +87,11 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   const populateRendererUrl = useCallback(
     (refreshNum = 0) => {
       setIframeHeight(0)
+      setIframeLoading(true)
 
       if (!parameterizedHtml) {
         setRendererUrl('')
+        setIframeLoading(false)
         return
       }
 
@@ -137,6 +143,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   const handleIframeMessage = useCallback((event) => {
     if (event.data.type === 'setIframeHeight') {
       setIframeHeight(event.data.height)
+      setIframeLoading(false)
     }
   }, [])
   useEffect(() => {
@@ -149,27 +156,39 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   if (!shouldRender) {
     return null
   } else {
-    if (rendererUrl) {
-      return (
-        // render html and css securely within an iframe
-        <iframe
-          className={styles.renderer_container}
-          style={expandHeight ? { height: `${iframeHeight}px` } : {}}
-          src={rendererUrl}
-          sandbox="allow-scripts allow-same-origin"
-        />
-      )
-    } else {
-      return (
-        <div className={styles.renderer_container}>
-          <Message
-            className={styles.renderer_message}
-            severity="info"
-            text="Define source to render content"
+    return (
+      <>
+        {/* overlay progress spinner til iframe done loading */}
+        {iframeLoading && (
+          <div className={styles.progress_spinner_overlay}>
+            {userOnMobile ? (
+              <>Loading...</>
+            ) : (
+              <ProgressSpinner
+                className={styles.progress_spinner}
+                strokeWidth="4"
+              />
+            )}
+          </div>
+        )}
+        {rendererUrl ? (
+          <iframe
+            className={styles.renderer_container}
+            style={expandHeight ? { height: `${iframeHeight}px` } : {}}
+            src={rendererUrl}
+            sandbox="allow-scripts allow-same-origin"
           />
-        </div>
-      )
-    }
+        ) : (
+          <div className={styles.renderer_container}>
+            <Message
+              className={styles.renderer_message}
+              severity="info"
+              text="Define source to render content"
+            />
+          </div>
+        )}
+      </>
+    )
   }
 }
 

@@ -6,9 +6,11 @@ import { useEditability } from 'contexts/editability'
 import { useGraph } from 'contexts/graph'
 import { useQueries } from 'contexts/queries'
 import {
+  MetricData,
   QueryData,
   getLatestQueryId,
   parameterizeStatement,
+  processQueryData,
 } from 'utils/queryUtils'
 import { supabase } from 'utils/supabaseClient'
 
@@ -25,7 +27,7 @@ export type QueryResult = {
     | 'parent_empty'
     | 'expired'
     | 'error'
-  data: QueryData | QueryError | null
+  data: QueryData | MetricData | QueryError | null
 }
 
 /* TODO: it seems a little strange that this is a component, given it operates
@@ -271,20 +273,10 @@ const QueryRunner: FunctionComponent<QueryRunnerProps> = ({
       .then((response) => {
         if (response.status === 200) {
           response.json().then((data: QueryData) => {
-            // convert any date columns since serialization loses type
-            data.columns.forEach((column, columnIndex) => {
-              if (column.type === 'date') {
-                data.rows.forEach((row, rowIndex) => {
-                  if (!row[columnIndex]) return
-                  data.rows[rowIndex][columnIndex] = new Date(
-                    row[columnIndex] as string
-                  )
-                })
-              }
-            })
+            const processedData = processQueryData(data)
             setQueryResult({
               status: 'success',
-              data: data,
+              data: processedData,
             })
           })
         } else if (response.status === 202) {

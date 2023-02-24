@@ -346,6 +346,8 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({ parentNodeId }) => {
                   const upsertGoalDimensionStrCleaned = upsertGoalDimensionStr
                     .replace(/ /g, '')
                     .replace(/'/g, '"')
+                    .replace(/“/g, '"')
+                    .replace(/”/g, '"')
                   const upsertGoalDimensionErrorMsg =
                     'Dimension must be a {"name":...,"value":...} object'
                   let upsertGoalDimension = {} as GoalDimension
@@ -369,6 +371,8 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({ parentNodeId }) => {
                   const upsertGoalValuesStrCleaned = upsertGoalValuesStr
                     .replace(/ /g, '')
                     .replace(/'/g, '"')
+                    .replace(/“/g, '"')
+                    .replace(/”/g, '"')
                   const upsertGoalValuesErrorMsg =
                     'Values must consist of one or more comma-separated {"date":...,"value":...} objects'
                   let upsertGoalValuesArr = []
