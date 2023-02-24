@@ -8,6 +8,7 @@ import React, {
 } from 'react'
 import { Node } from 'reactflow'
 
+import { useAuth } from 'contexts/auth'
 import { useGraph } from 'contexts/graph'
 import { useQueries } from 'contexts/queries'
 import styles from 'styles/CustomNodeRenderer.module.css'
@@ -27,6 +28,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   shouldRender = true,
   expandHeight = false,
 }) => {
+  const { userOnMobile } = useAuth()
   const { graph } = useGraph()
   const { globalSourceRefreshes, inputParameters } = useQueries()
 
@@ -159,10 +161,14 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
         {/* overlay progress spinner til iframe done loading */}
         {iframeLoading && (
           <div className={styles.progress_spinner_overlay}>
-            <ProgressSpinner
-              className={styles.progress_spinner}
-              strokeWidth="4"
-            />
+            {userOnMobile ? (
+              <>Loading...</>
+            ) : (
+              <ProgressSpinner
+                className={styles.progress_spinner}
+                strokeWidth="4"
+              />
+            )}
           </div>
         )}
         {rendererUrl ? (
