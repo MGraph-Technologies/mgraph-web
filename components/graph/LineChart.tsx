@@ -68,13 +68,14 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   const { organizationId } = useAuth()
   const { setGoalStatusMap } = useGraph()
   const { inputParameters } = useQueries()
-  const [metricData, setMetricData] = useState<MetricData | null>(null)
   const [chartJSDatasets, setChartJSDatasets] = useState<ChartJSDataset[]>([])
+  const [chartJSDatasetsLoaded, setChartJSDatasetsLoaded] = useState(false)
+  const [displayNumberOverlay, setDisplayNumberOverlay] = useState(true)
   const [numberToOverlay, setNumberToOverlay] = useState<number | null>(null)
-  const [chartJSDatasetsEnriched, setChartJSDatasetsEnriched] = useState(false)
-  const [showNumberOverlay, setShowNumberOverlay] = useState(true)
+  const [queryResultVerified, setQueryResultVerified] = useState(false)
 
-  const makeChartJSDatasets = (metricData: MetricData) => {
+  /***** Process Query Result for Plotting *****/
+  const makeInitialChartJSDatasets = useCallback((metricData: MetricData) => {
     const { metricDimensionsData } = metricData
     const datasets: ChartJSDataset[] = []
     const SERIESCOLORS = [
@@ -99,63 +100,48 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       })
     })
     return datasets
-  }
+  }, [])
 
-  useEffect(() => {
-    const data = queryResult.data as MetricData | QueryData
-    const _metricData =
-      data && data.metricDataVerified ? (data as MetricData) : null
-    setMetricData(_metricData)
-    if (_metricData) {
-      const _chartJSDatasets = makeChartJSDatasets(_metricData)
-      setChartJSDatasets(_chartJSDatasets)
-      const _numberToOverlay =
-        _chartJSDatasets.length === 1
-          ? // last non-null value
-            Number(
-              // points come sorted from query results endpoint
-              _chartJSDatasets[0].data.filter((d) => d.y !== null).slice(-1)[0]
-                ?.y
-            )
-          : null
-      setNumberToOverlay(_numberToOverlay)
-    } else {
-      setChartJSDatasets([])
-      setNumberToOverlay(null)
-    }
-    setChartJSDatasetsEnriched(false)
-  }, [queryResult])
+  const makeEnrichedChartJSDatasets: (
+    initialChartJSDatasets: ChartJSDataset[]
+  ) => Promise<ChartJSDataset[] | null> = useCallback(
+    async (initialChartJSDatasets) => {
+      const earlyReturn = () => {
+        setChartJSDatasetsLoaded(true)
+        return null
+      }
 
-  /***** Plot Goals On Chart *****/
-  const enrichChartJSDatasets = useCallback(async () => {
-    if (chartJSDatasets.length === 0) return
-    if (chartJSDatasetsEnriched) return
-    const frequency = inputParameters.frequency?.userValue
-    const dimensionName = inputParameters.group_by?.userValue
-    // first date across all datasets
-    const firstPlottedDate = chartJSDatasets
-      .reduce((acc, dataset) => {
-        // points come sorted from query results endpoint
-        const _firstPlottedDate = dataset.data[0].x
-        return _firstPlottedDate < acc ? _firstPlottedDate : acc
-      }, new Date(9999, 11, 31))
-      .toISOString()
-    // last date across all datasets
-    const lastPlottedDate = chartJSDatasets
-      .reduce((acc, dataset) => {
-        // points come sorted from query results endpoint
-        const _lastPlottedDate = dataset.data[dataset.data.length - 1].x
-        return _lastPlottedDate > acc ? _lastPlottedDate : acc
-      }, new Date(0, 1, 1))
-      .toISOString()
-    if (
-      organizationId &&
-      parentMetricNodeId &&
-      frequency &&
-      dimensionName &&
-      firstPlottedDate &&
-      lastPlottedDate
-    ) {
+      /* query for goals */
+      const frequency = inputParameters.frequency?.userValue
+      const dimensionName = inputParameters.group_by?.userValue
+      // first date across all datasets
+      const firstPlottedDate = initialChartJSDatasets
+        .reduce((acc, dataset) => {
+          // points come sorted from query results endpoint
+          const _firstPlottedDate = dataset.data[0].x
+          return _firstPlottedDate < acc ? _firstPlottedDate : acc
+        }, new Date(9999, 11, 31))
+        .toISOString()
+      // last date across all datasets
+      const lastPlottedDate = initialChartJSDatasets
+        .reduce((acc, dataset) => {
+          // points come sorted from query results endpoint
+          const _lastPlottedDate = dataset.data[dataset.data.length - 1].x
+          return _lastPlottedDate > acc ? _lastPlottedDate : acc
+        }, new Date(0, 1, 1))
+        .toISOString()
+      if (
+        !(
+          organizationId &&
+          parentMetricNodeId &&
+          frequency &&
+          dimensionName &&
+          firstPlottedDate &&
+          lastPlottedDate
+        )
+      ) {
+        earlyReturn()
+      }
       const { data: goalsData, error: goalsError } = await supabase
         .from('columnar_goals')
         .select('id, dimension_value, values, type')
@@ -177,84 +163,118 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         .lte('first_date', lastPlottedDate)
         // goal is not deleted
         .is('deleted_at', null)
-
       if (goalsError) {
         console.error(goalsError)
-        return
+        earlyReturn()
+      }
+      if (!goalsData || goalsData.length === 0) {
+        earlyReturn()
       }
 
-      if (goalsData && goalsData.length > 0) {
-        // create goal datasets for each row whose dimension_name is in chartJSData,
-        // matching color of actual but with dotted line
-        const goals = goalsData as {
-          id: string
-          dimension_value: string
-          values: GoalValue[]
-          type: GoalType
-        }[]
-        const goalsDatasets = goals
-          .map((goal) => {
-            const goalDimensionValue = goal.dimension_value
-            const correspondingChartJSDataset = chartJSDatasets.find(
-              (dataset) => {
-                return dataset.label === goalDimensionValue
-              }
-            )
-            if (!correspondingChartJSDataset) {
-              return null
-            } else {
-              const goalDataset: ChartJSDataset = {
-                label: `${goalDimensionValue} - goal`,
-                data: goal.values.map((goalValue) => ({
-                  x: new Date(goalValue.date),
-                  y: Number(goalValue.value),
-                })),
-                backgroundColor: 'transparent',
-                borderColor: correspondingChartJSDataset.backgroundColor,
-                borderDash: [5, 5],
-                borderWidth: 1,
-                goalInfo: {
-                  id: goal.id,
-                  type: goal.type,
-                },
-              }
-              return goalDataset
+      /* create goal datasets for each row whose dimension_name is in chartJSData,
+        matching color of actual but with dotted line */
+      const goals = goalsData as {
+        id: string
+        dimension_value: string
+        values: GoalValue[]
+        type: GoalType
+      }[]
+      const goalsDatasets = goals
+        .map((goal) => {
+          const goalDimensionValue = goal.dimension_value
+          const correspondingChartJSDataset = initialChartJSDatasets.find(
+            (dataset) => {
+              return dataset.label === goalDimensionValue
             }
-          })
-          .filter((dataset) => dataset !== null) as ChartJSDataset[]
-        if (goalsDatasets.length === 0) {
-          return
-        }
-        // mark actual datasets with 'actual' label
-        const actualDatasets = chartJSDatasets.map((dataset) => {
-          dataset.label = `${dataset.label} - actual`
-          return dataset
+          )
+          if (!correspondingChartJSDataset) {
+            return null
+          } else {
+            const goalDataset: ChartJSDataset = {
+              label: `${goalDimensionValue} - goal`,
+              data: goal.values.map((goalValue) => ({
+                x: new Date(goalValue.date),
+                y: Number(goalValue.value),
+              })),
+              backgroundColor: 'transparent',
+              borderColor: correspondingChartJSDataset.backgroundColor,
+              borderDash: [5, 5],
+              borderWidth: 1,
+              goalInfo: {
+                id: goal.id,
+                type: goal.type,
+              },
+            }
+            return goalDataset
+          }
         })
-        // if only 'null - actual' and 'null - goal', rename to 'actual' and 'goal'
-        if (
-          actualDatasets.length === 1 &&
-          goalsDatasets.length === 1 &&
-          actualDatasets[0].label === 'null - actual' &&
-          goalsDatasets[0].label === 'null - goal'
-        ) {
-          actualDatasets[0].label = 'actual'
-          goalsDatasets[0].label = 'goal'
-        }
-        setChartJSDatasets([...actualDatasets, ...goalsDatasets])
-        setChartJSDatasetsEnriched(true)
+        .filter((dataset) => dataset !== null) as ChartJSDataset[]
+      if (goalsDatasets.length === 0) {
+        earlyReturn()
       }
-    }
-  }, [
-    chartJSDatasets,
-    chartJSDatasetsEnriched,
-    inputParameters,
-    organizationId,
-    parentMetricNodeId,
-  ])
+
+      /* merge actual and goal datasets */
+      // mark actual datasets with 'actual' label
+      const actualDatasets = initialChartJSDatasets.map((dataset) => {
+        dataset.label = `${dataset.label} - actual`
+        return dataset
+      })
+      // if only 'null - actual' and 'null - goal', rename to 'actual' and 'goal'
+      if (
+        actualDatasets.length === 1 &&
+        goalsDatasets.length === 1 &&
+        actualDatasets[0].label === 'null - actual' &&
+        goalsDatasets[0].label === 'null - goal'
+      ) {
+        actualDatasets[0].label = 'actual'
+        goalsDatasets[0].label = 'goal'
+      }
+      return [...actualDatasets, ...goalsDatasets]
+    },
+    [inputParameters, organizationId, parentMetricNodeId]
+  )
 
   useEffect(() => {
-    enrichChartJSDatasets()
-  }, [enrichChartJSDatasets])
+    const loadData = async () => {
+      const data = queryResult.data as MetricData | QueryData
+      const _queryResultVerified = Boolean(data && data.metricDataVerified)
+      setQueryResultVerified(_queryResultVerified)
+      if (_queryResultVerified) {
+        const metricData = data as MetricData
+        const initialChartJSDatasets = makeInitialChartJSDatasets(metricData)
+        const _numberToOverlay =
+          initialChartJSDatasets.length === 1
+            ? // last non-null value
+              Number(
+                // points come sorted from query results endpoint
+                initialChartJSDatasets[0].data
+                  .filter((d) => d.y !== null)
+                  .slice(-1)[0]?.y
+              )
+            : null
+        setNumberToOverlay(_numberToOverlay)
+        const enrichedChartJSDatasets = await makeEnrichedChartJSDatasets(
+          initialChartJSDatasets
+        )
+        setChartJSDatasets(enrichedChartJSDatasets || initialChartJSDatasets)
+      } else {
+        setChartJSDatasets([])
+        setNumberToOverlay(null)
+      }
+      setChartJSDatasetsLoaded(true)
+    }
+    if (!chartJSDatasetsLoaded) {
+      loadData()
+    }
+  }, [
+    queryResult,
+    makeInitialChartJSDatasets,
+    makeEnrichedChartJSDatasets,
+    chartJSDatasetsLoaded,
+  ])
+  useEffect(() => {
+    setChartJSDatasetsLoaded(false)
+  }, [queryResult])
 
   /***** Evaluate Plotted Goals *****/
   const [goalStatusMapUpdated, setGoalStatusMapUpdated] = useState(false)
@@ -440,89 +460,99 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         />
       )
     case 'success':
-      if (chartJSDatasets.length === 0) {
-        return (
-          <Message
-            severity="error"
-            text="Query result should be of format date | dimension | value."
-            style={centerStyle}
-          />
-        )
+      if (!chartJSDatasetsLoaded) {
+        return <LoadingWheelOverlay />
       } else {
-        const numberToOverlayString =
-          numberToOverlay !== null
-            ? numberToOverlay >= 1000 || numberToOverlay <= -1000
-              ? numberToOverlay.toLocaleString().slice(0, 17)
-              : numberToOverlay.toString().slice(0, 17)
-            : null
-        return (
-          <>
-            <div
-              className={styles.chart_container}
-              onMouseOver={() => setShowNumberOverlay(false)}
-              onMouseOut={() => setShowNumberOverlay(true)}
-            >
-              {showNumberOverlay && numberToOverlayString ? ( // show number overlay if only one series
-                <div className={styles.number_overlay}>
-                  {numberToOverlayString}
-                </div>
-              ) : null}
-              {renderChart ? (
-                <Line
-                  data={{
-                    datasets: chartJSDatasets,
-                  }}
-                  options={{
-                    animation: false,
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    scales: {
-                      x: {
-                        type: 'time',
+        if (queryResultVerified) {
+          const numberToOverlayString =
+            numberToOverlay !== null
+              ? numberToOverlay >= 1000 || numberToOverlay <= -1000
+                ? numberToOverlay.toLocaleString().slice(0, 17)
+                : numberToOverlay.toString().slice(0, 17)
+              : null
+          return (
+            <>
+              <div
+                className={styles.chart_container}
+                onMouseOver={() => setDisplayNumberOverlay(false)}
+                onMouseOut={() => setDisplayNumberOverlay(true)}
+              >
+                {displayNumberOverlay && numberToOverlayString ? ( // show number overlay if only one series
+                  <div className={styles.number_overlay}>
+                    {numberToOverlayString}
+                  </div>
+                ) : null}
+                {renderChart ? (
+                  <Line
+                    data={{
+                      datasets: chartJSDatasets,
+                    }}
+                    options={{
+                      animation: false,
+                      maintainAspectRatio: false,
+                      responsive: true,
+                      scales: {
+                        x: {
+                          type: 'time',
+                        },
                       },
-                    },
-                    plugins: {
-                      subtitle: {
-                        display: true,
-                        text: 'Last updated: ' + metricData?.executedAt,
-                        position: 'bottom',
-                        align: 'end',
-                      },
-                      legend:
-                        chartJSDatasets.length > 1
-                          ? {
-                              position: 'bottom',
-                              labels: {
-                                // deduplicate dataset labels
-                                // needed in case of multiple goal series for same dimension
-                                generateLabels: (chart) => {
-                                  const firstLabeledDatasets =
-                                    chart.data.datasets.filter((dataset, i) => {
-                                      return (
-                                        chart.data.datasets.findIndex(
-                                          (d) => d.label === dataset.label
-                                        ) === i
+                      plugins: {
+                        subtitle: {
+                          display: true,
+                          text:
+                            'Last updated: ' +
+                            (queryResult.data as MetricData).executedAt,
+                          position: 'bottom',
+                          align: 'end',
+                        },
+                        legend:
+                          chartJSDatasets.length > 1
+                            ? {
+                                position: 'bottom',
+                                labels: {
+                                  // deduplicate dataset labels
+                                  // needed in case of multiple goal series for same dimension
+                                  generateLabels: (chart) => {
+                                    const firstLabeledDatasets =
+                                      chart.data.datasets.filter(
+                                        (dataset, i) => {
+                                          return (
+                                            chart.data.datasets.findIndex(
+                                              (d) => d.label === dataset.label
+                                            ) === i
+                                          )
+                                        }
                                       )
-                                    })
-                                  return firstLabeledDatasets.map((dataset) => {
-                                    return {
-                                      text: dataset.label,
-                                      strokeStyle: dataset.borderColor,
-                                      fillStyle: dataset.backgroundColor,
-                                      hidden: false,
-                                    } as LegendItem
-                                  })
+                                    return firstLabeledDatasets.map(
+                                      (dataset) => {
+                                        return {
+                                          text: dataset.label,
+                                          strokeStyle: dataset.borderColor,
+                                          fillStyle: dataset.backgroundColor,
+                                          hidden: false,
+                                        } as LegendItem
+                                      }
+                                    )
+                                  },
                                 },
-                              },
-                            }
-                          : { display: false },
-                    },
-                  }}
-                />
-              ) : null}
-            </div>
-          </>
-        )
+                              }
+                            : { display: false },
+                      },
+                    }}
+                  />
+                ) : null}
+              </div>
+            </>
+          )
+        } else {
+          return (
+            <Message
+              severity="error"
+              text="Query result should be of format date | dimension | value."
+              style={centerStyle}
+            />
+          )
+        }
       }
     case 'processing':
       return <LoadingWheelOverlay />
