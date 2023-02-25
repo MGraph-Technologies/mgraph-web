@@ -103,9 +103,9 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   }, [])
 
   const makeEnrichedChartJSDatasets: (
-    chartJSDatasets: ChartJSDataset[]
+    initialChartJSDatasets: ChartJSDataset[]
   ) => Promise<ChartJSDataset[] | null> = useCallback(
-    async (chartJSDatasets) => {
+    async (initialChartJSDatasets) => {
       const earlyReturn = () => {
         setChartJSDatasetsLoaded(true)
         return null
@@ -115,7 +115,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       const frequency = inputParameters.frequency?.userValue
       const dimensionName = inputParameters.group_by?.userValue
       // first date across all datasets
-      const firstPlottedDate = chartJSDatasets
+      const firstPlottedDate = initialChartJSDatasets
         .reduce((acc, dataset) => {
           // points come sorted from query results endpoint
           const _firstPlottedDate = dataset.data[0].x
@@ -123,7 +123,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         }, new Date(9999, 11, 31))
         .toISOString()
       // last date across all datasets
-      const lastPlottedDate = chartJSDatasets
+      const lastPlottedDate = initialChartJSDatasets
         .reduce((acc, dataset) => {
           // points come sorted from query results endpoint
           const _lastPlottedDate = dataset.data[dataset.data.length - 1].x
@@ -182,7 +182,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       const goalsDatasets = goals
         .map((goal) => {
           const goalDimensionValue = goal.dimension_value
-          const correspondingChartJSDataset = chartJSDatasets.find(
+          const correspondingChartJSDataset = initialChartJSDatasets.find(
             (dataset) => {
               return dataset.label === goalDimensionValue
             }
@@ -215,7 +215,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
 
       /* merge actual and goal datasets */
       // mark actual datasets with 'actual' label
-      const actualDatasets = chartJSDatasets.map((dataset) => {
+      const actualDatasets = initialChartJSDatasets.map((dataset) => {
         dataset.label = `${dataset.label} - actual`
         return dataset
       })
