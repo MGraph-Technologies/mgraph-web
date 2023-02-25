@@ -1,5 +1,4 @@
 import { Message } from 'primereact/message'
-import { ProgressSpinner } from 'primereact/progressspinner'
 import React, {
   FunctionComponent,
   useCallback,
@@ -8,7 +7,7 @@ import React, {
 } from 'react'
 import { Node } from 'reactflow'
 
-import { useAuth } from 'contexts/auth'
+import LoadingWheelOverlay from 'components/graph/LoadingWheelOverlay'
 import { useGraph } from 'contexts/graph'
 import { useQueries } from 'contexts/queries'
 import styles from 'styles/CustomNodeRenderer.module.css'
@@ -28,7 +27,6 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
   shouldRender = true,
   expandHeight = false,
 }) => {
-  const { userOnMobile } = useAuth()
   const { graph } = useGraph()
   const { globalSourceRefreshes, inputParameters } = useQueries()
 
@@ -159,18 +157,7 @@ const CustomNodeRenderer: FunctionComponent<CustomNodeRendererProps> = ({
     return (
       <>
         {/* overlay progress spinner til iframe done loading */}
-        {iframeLoading && (
-          <div className={styles.progress_spinner_overlay}>
-            {userOnMobile ? (
-              <>Loading...</>
-            ) : (
-              <ProgressSpinner
-                className={styles.progress_spinner}
-                strokeWidth="4"
-              />
-            )}
-          </div>
-        )}
+        {iframeLoading && <LoadingWheelOverlay backgroundOpacity={1} />}
         {rendererUrl ? (
           <iframe
             className={styles.renderer_container}
