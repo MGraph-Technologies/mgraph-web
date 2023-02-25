@@ -104,11 +104,11 @@ const LineChart: FunctionComponent<LineChartProps> = ({
 
   const makeEnrichedChartJSDatasets: (
     chartJSDatasets: ChartJSDataset[]
-  ) => Promise<ChartJSDataset[]> = useCallback(
+  ) => Promise<ChartJSDataset[] | null> = useCallback(
     async (chartJSDatasets) => {
       const earlyReturn = () => {
         setChartJSDatasetsLoaded(true)
-        return chartJSDatasets
+        return null
       }
 
       /* query for goals */
@@ -253,9 +253,10 @@ const LineChart: FunctionComponent<LineChartProps> = ({
               )
             : null
         setNumberToOverlay(_numberToOverlay)
-        setChartJSDatasets(
-          await makeEnrichedChartJSDatasets(initialChartJSDatasets)
+        const enrichedChartJSDatasets = await makeEnrichedChartJSDatasets(
+          initialChartJSDatasets
         )
+        setChartJSDatasets(enrichedChartJSDatasets || initialChartJSDatasets)
       } else {
         setChartJSDatasets([])
         setNumberToOverlay(null)
