@@ -11,7 +11,6 @@ import {
 } from 'chart.js'
 import 'chartjs-adapter-moment'
 import { Message } from 'primereact/message'
-import { ProgressSpinner } from 'primereact/progressspinner'
 import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 
@@ -20,6 +19,7 @@ import {
   GoalType,
   GoalValue,
 } from 'components/graph/node_detail/GoalsTable'
+import LoadingWheelOverlay from 'components/graph/LoadingWheelOverlay'
 import { QueryError, QueryResult } from 'components/graph/QueryRunner'
 import { useAuth } from 'contexts/auth'
 import { useGraph } from 'contexts/graph'
@@ -65,7 +65,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   queryResult,
   renderChart = true,
 }) => {
-  const { organizationId, userOnMobile } = useAuth()
+  const { organizationId } = useAuth()
   const { setGoalStatusMap } = useGraph()
   const { inputParameters } = useQueries()
   const [metricData, setMetricData] = useState<MetricData | null>(null)
@@ -525,15 +525,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         )
       }
     case 'processing':
-      return (
-        <div className={styles.progress_spinner_container}>
-          {userOnMobile ? (
-            <>Loading...</>
-          ) : (
-            <ProgressSpinner style={centerStyle} strokeWidth="4" />
-          )}
-        </div>
-      )
+      return <LoadingWheelOverlay />
     case 'parent_unsaved':
       return (
         <Message
