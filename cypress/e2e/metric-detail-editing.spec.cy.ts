@@ -79,7 +79,7 @@ describe('Metric detail editing', () => {
       .should('exist')
   })
 
-  it('Visits a metric detail page, enters a working SQL query, then sees results', () => {
+  it('Visits a metric detail page, enters a working SQL query, then sees results and tests chart settings', () => {
     cy.visit('/mgraph')
     cy.get('[class*=metric_node]').first().click()
     cy.wait(2000)
@@ -111,6 +111,21 @@ describe('Metric detail editing', () => {
       .contains(randomInt.toLocaleString())
       .should('exist')
     // TODO: test chartjs canvas (this is just the number overlay)
+
+    // test yMin and yMax
+    cy.get('[id=chart-yMin-field]').click().clear().type('0')
+    cy.get('[id=chart-yMax-field]').click().clear().type('2000000')
+    cy.get('[id=refresh-query-button]').first().click()
+    cy.get('[class*=LineChart_chart_container]').trigger('mouseout') // make number overlay appear
+    cy.get('[class*=LineChart_chart_container]')
+      .contains(randomInt.toLocaleString())
+      .should('exist')
+    // TODO: test chartjs canvas (this is just the number overlay)
+
+    // clear yMin and yMax
+    cy.get('[id=chart-yMin-field-clear-button]').click()
+    cy.get('[id=chart-yMax-field-clear-button]').click()
+    cy.wait(2000)
   })
 
   it('Visits a metric detail page, enters a working SQL query, saves it, then sees results', () => {

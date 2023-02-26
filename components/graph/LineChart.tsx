@@ -66,13 +66,27 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   renderChart = true,
 }) => {
   const { organizationId } = useAuth()
-  const { setGoalStatusMap } = useGraph()
+  const { graph, setGoalStatusMap } = useGraph()
   const { inputParameters } = useQueries()
   const [chartJSDatasets, setChartJSDatasets] = useState<ChartJSDataset[]>([])
   const [chartJSDatasetsLoaded, setChartJSDatasetsLoaded] = useState(false)
   const [displayNumberOverlay, setDisplayNumberOverlay] = useState(true)
   const [numberToOverlay, setNumberToOverlay] = useState<number | null>(null)
   const [queryResultVerified, setQueryResultVerified] = useState(false)
+  const [yMax, setYMax] = useState<number | undefined>(undefined)
+  const [yMin, setYMin] = useState<number | undefined>(undefined)
+
+  useEffect(() => {
+    const parentMetricNode = graph.nodes.find(
+      (node) => node.id === parentMetricNodeId
+    )
+    if (parentMetricNode) {
+      const yMin = parentMetricNode.data.chartSettings?.yMin
+      const yMax = parentMetricNode.data.chartSettings?.yMax
+      setYMin(yMin)
+      setYMax(yMax)
+    }
+  }, [graph.nodes, parentMetricNodeId])
 
   /***** Process Query Result for Plotting *****/
   const makeInitialChartJSDatasets = useCallback((metricData: MetricData) => {
@@ -494,6 +508,10 @@ const LineChart: FunctionComponent<LineChartProps> = ({
                       scales: {
                         x: {
                           type: 'time',
+                        },
+                        y: {
+                          min: yMin,
+                          max: yMax,
                         },
                       },
                       plugins: {

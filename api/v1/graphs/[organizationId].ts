@@ -9,7 +9,10 @@ import {
 } from '../../../components/graph/CustomNode'
 import { FunctionNodeProperties } from '../../../components/graph/FunctionNode'
 import { InputEdgeProperties } from '../../../components/graph/InputEdge'
-import { MetricNodeProperties } from '../../../components/graph/MetricNode'
+import {
+  MetricNodeProperties,
+  MetricNodeSource,
+} from '../../../components/graph/MetricNode'
 import { MonitoringRuleEvaluationStatus } from '../../../components/graph/node_detail/MonitoringRulesTable'
 import { Graph } from '../../../contexts/graph'
 import { SENTRY_CONFIG } from '../../../sentry.server.config.js'
@@ -125,7 +128,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                   dbtProjectGraphSyncId:
                     properties.source?.dbtProjectGraphSyncId,
                   dbtProjectMetricPath: properties.source?.dbtProjectMetricPath,
-                },
+                } as MetricNodeSource,
+                chartSettings: properties.chartSettings,
                 color: properties.color,
                 tablePosition: properties.tablePosition,
                 setNodeDataToChange: () => {

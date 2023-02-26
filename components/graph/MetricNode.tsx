@@ -28,6 +28,10 @@ export type MetricNodeSource = {
   dbtProjectGraphSyncId: string | null
   dbtProjectMetricPath: string | null
 }
+export type MetricNodeChartSettings = {
+  yMin: number | undefined
+  yMax: number | undefined
+}
 export type MetricNodeProperties = {
   id: string
   organizationId: string
@@ -36,6 +40,7 @@ export type MetricNodeProperties = {
   description: string
   owner: string
   source: MetricNodeSource
+  chartSettings: MetricNodeChartSettings | undefined
   color: string
   tablePosition: number | null
   // below set after load from pg

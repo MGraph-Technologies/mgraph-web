@@ -36,10 +36,16 @@
   margin: auto;
 }
 
-.node_detail .body .chart_container .refresh_chart_button_container {
-  position: absolute;
-  top: 0;
-  right: 0;
+.node_detail .body .chart_settings_container {
+  padding-top: 1em;
+  position: relative;
+  width: 80%;
+  margin: auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1em;
 }
 
 .node_detail .body .html_container {
