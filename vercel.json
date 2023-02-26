@@ -1,11 +1,11 @@
 {
   "crons": [
     {
-      "path": "api/v1/monitoring-rules/orchestrations?cronKey=monitoringRulesOrchestrationInitiator",
+      "path": "/api/v1/monitoring-rules/orchestrations?cronKey=monitoringRulesOrchestrationInitiator",
       "schedule": "* * * * *"
     },
     {
-      "path": "api/v1/refresh-jobs/orchestrations?cronKey=refreshJobsOrchestrationInitiator",
+      "path": "/api/v1/refresh-jobs/orchestrations?cronKey=refreshJobsOrchestrationInitiator",
       "schedule": "* * * * *"
     }
   ],
