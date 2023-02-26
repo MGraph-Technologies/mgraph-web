@@ -39,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const { data: nodesData, error: nodesError } = await supabase
         .from('nodes')
         .select(
-          'properties, react_flow_meta, monitoring_rules ( id, latest_monitoring_rule_evaluations ( status ) )'
+          'properties, react_flow_meta, created_at, monitoring_rules ( id, latest_monitoring_rule_evaluations ( status ) )'
         )
         .eq('organization_id', organizationId)
         .is('deleted_at', null)
@@ -48,6 +48,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           'monitoring_rules.latest_monitoring_rule_evaluations.deleted_at',
           null
         )
+        .order('created_at', { ascending: true })
 
       if (nodesError) {
         throw nodesError
@@ -55,9 +56,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       const { data: edgesData, error: edgesError } = await supabase
         .from('edges')
-        .select('properties, react_flow_meta')
+        .select('properties, react_flow_meta, created_at')
         .eq('organization_id', organizationId)
         .is('deleted_at', null)
+        .order('created_at', { ascending: true })
 
       if (edgesError) {
         throw edgesError
@@ -76,6 +78,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             | MetricNodeProperties
             | FunctionNodeProperties
           react_flow_meta: Node
+          created_at: string
           monitoring_rules: MR[]
         }[]
         const edges = edgesData as {

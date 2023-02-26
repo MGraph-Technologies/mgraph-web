@@ -960,17 +960,22 @@ export function GraphProvider({ children }: GraphProps) {
   >()
   useEffect(() => {
     if (nodeDataToChange) {
-      const nodeToChangeId = nodeDataToChange.id
-      const nodeToChange = graph.nodes.find((n) => n.id === nodeToChangeId)
-      const otherNodes = graph.nodes.filter((n) => n.id !== nodeToChangeId)
-      if (nodeToChange) {
-        const nodeToChangeClone = JSON.parse(JSON.stringify(nodeToChange)) // so updateGraph detects a change
-        nodeToChangeClone.data = nodeDataToChange
-        updateGraph(
-          { nodes: otherNodes.concat(nodeToChangeClone), edges: undefined },
-          true
-        )
-      }
+      updateGraph(
+        {
+          nodes: graph.nodes.map((n) => {
+            if (n.id === nodeDataToChange.id) {
+              return {
+                ...n,
+                data: nodeDataToChange,
+              }
+            } else {
+              return n
+            }
+          }),
+          edges: undefined,
+        },
+        true
+      )
       setNodeDataToChange(undefined) // avoid infinite loop
     }
   }, [nodeDataToChange, setNodeDataToChange, updateGraph, graph.nodes])
