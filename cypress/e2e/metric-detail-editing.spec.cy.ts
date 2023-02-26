@@ -94,6 +94,10 @@ describe('Metric detail editing', () => {
       .first()
       .click()
 
+    // ensure dbt sync is off
+    cy.get('[id=source-dbt-project-graph-sync-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('None').first().click()
+
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
     const newQuery = "SELECT CURRENT_DATE, 'all', " + randomInt
@@ -123,6 +127,10 @@ describe('Metric detail editing', () => {
       .contains('snowflake direct')
       .first()
       .click()
+
+    // ensure dbt sync is off
+    cy.get('[id=source-dbt-project-graph-sync-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('None').first().click()
 
     // edit query and save
     const randomInt = Math.floor(Math.random() * 1000000)
@@ -160,6 +168,10 @@ describe('Metric detail editing', () => {
       .first()
       .click()
 
+    // ensure dbt sync is off
+    cy.get('[id=source-dbt-project-graph-sync-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('None').first().click()
+
     // edit query
     const newQuery = 'SELECT x'
     cy.get('[id=source-query-field]').click()
@@ -186,6 +198,10 @@ describe('Metric detail editing', () => {
       .contains('snowflake dbt proxy')
       .first()
       .click()
+
+    // ensure dbt sync is off
+    cy.get('[id=source-dbt-project-graph-sync-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('None').first().click()
 
     // edit query
     const newQuery = "SELECT date FROM {{ ref('dim_dates') }} LIMIT 1"
@@ -233,6 +249,8 @@ describe('Metric detail editing', () => {
       .contains('snowflake direct')
       .first()
       .click()
+    cy.get('[id=source-dbt-project-graph-sync-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('None').first().click()
     const newQuery = `
       SELECT '2023-01-01'::date, NULL, 100
       UNION ALL
@@ -662,6 +680,10 @@ describe('Metric detail editing', () => {
     // select snowflake as source database connection
     cy.get('[id=source-database-connection-dropdown]').click()
     cy.get('[class*=p-dropdown-item]').contains('snowflake').first().click()
+
+    // ensure dbt sync is off
+    cy.get('[id=source-dbt-project-graph-sync-dropdown]').click()
+    cy.get('[class*=p-dropdown-item]').contains('None').first().click()
 
     // edit query
     const randomInt = Math.floor(Math.random() * 1000000)
