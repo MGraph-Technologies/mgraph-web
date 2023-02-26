@@ -10,15 +10,20 @@ import { getBaseUrl } from '../../../utils/appBaseUrl'
 
 Sentry.init(SENTRY_CONFIG)
 
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 // TODO: achieve DRY with api/v1/refresh-jobs/orchestrations
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('\n\nNew request to /api/v1/monitoring-rules/orchestrations...')
+  const { cronKey } = req.query
+  if (cronKey !== 'monitoringRulesOrchestrationInitiator') {
+    // vercel cron jobs don't yet support env vars, unfortunately
+    res.status(401).json({ error: 'Unauthorized' })
+    return
+  }
   const method = req.method
   if (method === 'POST') {
-    const supabaseServiceRoleKey =
-      (req.headers['supabase-service-role-key'] as string) || ''
     const supabase = createClient(
       supabaseUrl || '',
       supabaseServiceRoleKey || ''
@@ -61,7 +66,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
-                'supabase-service-role-key': supabaseServiceRoleKey,
+                'supabase-service-role-key': supabaseServiceRoleKey || '',
               },
             }
           )
@@ -139,7 +144,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
-                    'supabase-service-role-key': supabaseServiceRoleKey,
+                    'supabase-service-role-key': supabaseServiceRoleKey || '',
                   },
                 }
               )

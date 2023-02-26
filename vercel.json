@@ -1,4 +1,14 @@
 {
+  "crons": [
+    {
+      "path": "/api/v1/monitoring-rules/orchestrations?cronKey=monitoringRulesOrchestrationInitiator",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/v1/refresh-jobs/orchestrations?cronKey=refreshJobsOrchestrationInitiator",
+      "schedule": "* * * * *"
+    }
+  ],
   "functions": {
     "api/v1/database-queries/snowflake-jdbc-proxy/index.py": {
       "excludeFiles": "{.git,.github,.husky,.next,.vercel,components,contexts,cypress,node_modules,pages,public,styles,utils,venv}/**/*"
