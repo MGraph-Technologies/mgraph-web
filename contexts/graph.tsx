@@ -1103,6 +1103,7 @@ export function GraphProvider({ children }: GraphProps) {
         dbtProjectGraphSyncId: null,
         dbtProjectMetricPath: null,
       },
+      chartSettings: undefined,
       color: '#FFFFFF',
       tablePosition: null,
       setNodeDataToChange: setNodeDataToChange,

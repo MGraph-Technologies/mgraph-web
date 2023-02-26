@@ -299,32 +299,46 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
           </div>
         )}
         {nodeTypeTitleCase === 'Metric' && (
-          <div className={styles.chart_container}>
-            <>
-              <QueryRunner
-                parentMetricNodeData={node?.data}
-                refreshes={queryRunnerRefreshes}
-                queryResult={queryResult}
-                setQueryResult={setQueryResult}
-              />
-              <LineChart
-                parentMetricNodeId={nodeId}
-                queryResult={queryResult}
-              />
-              {editingEnabled && (
-                <div className={styles.refresh_chart_button_container}>
-                  <Button
-                    id="refresh-query-button"
-                    className="p-button-text"
-                    icon="pi pi-refresh"
-                    onClick={() => {
-                      setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
-                    }}
-                  />
-                </div>
-              )}
-            </>
-          </div>
+          <>
+            <div className={styles.chart_container}>
+              <>
+                <QueryRunner
+                  parentMetricNodeData={node?.data}
+                  refreshes={queryRunnerRefreshes}
+                  queryResult={queryResult}
+                  setQueryResult={setQueryResult}
+                />
+                <LineChart
+                  parentMetricNodeId={nodeId}
+                  queryResult={queryResult}
+                />
+              </>
+            </div>
+            {editingEnabled && (
+              <div className={styles.chart_settings_container}>
+                <ChartSettingField
+                  fieldName="yMin"
+                  fieldType="number"
+                  saveDetail={saveDetail}
+                  node={node}
+                />
+                <ChartSettingField
+                  fieldName="yMax"
+                  fieldType="number"
+                  saveDetail={saveDetail}
+                  node={node}
+                />
+                <Button
+                  id="refresh-query-button"
+                  className="p-button-text"
+                  icon="pi pi-refresh"
+                  onClick={() => {
+                    setQueryRunnerRefreshes(queryRunnerRefreshes + 1)
+                  }}
+                />
+              </div>
+            )}
+          </>
         )}
         <SectionHeader title="Owner" size="h2" />
         <MentionField
@@ -375,6 +389,73 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
         <div className={styles.editor_dock}>
           <Toolbar right={<UndoRedoAndDoneGraphEditingButtons />} />
         </div>
+      )}
+    </div>
+  )
+}
+
+type ChartSettingFieldProps = {
+  fieldName: string
+  fieldType: 'number' | 'string'
+  saveDetail: (
+    name: keyof CustomNodeProperties | keyof MetricNodeProperties,
+    value: string | CustomNodeSource | MetricNodeSource
+  ) => void
+  node: Node | undefined
+}
+const ChartSettingField: FunctionComponent<ChartSettingFieldProps> = ({
+  fieldName,
+  fieldType,
+  saveDetail,
+  node,
+}) => {
+  const [valueStr, setValueStr] = useState<string>(
+    node?.data.chartSettings?.[fieldName]?.toString() || ''
+  )
+  return (
+    <div id={`chart-${fieldName}-field-container`}>
+      <label htmlFor={`chart-${fieldName}-field`}>{fieldName}: </label>
+      <InputText
+        id={`chart-${fieldName}-field`}
+        value={valueStr}
+        style={{
+          width: '100px',
+        }}
+        onChange={(e) => {
+          if (fieldType === 'number' && isNaN(Number(e.target.value))) {
+            alert(`${fieldName} must be a number.`)
+            return
+          }
+          setValueStr(e.target.value)
+        }}
+        onBlur={() => {
+          const newVal =
+            valueStr === ''
+              ? undefined
+              : fieldType === 'number'
+              ? Number(valueStr)
+              : valueStr
+          const newChartSettings = {
+            ...node?.data.chartSettings,
+            [fieldName]: newVal,
+          }
+          saveDetail('chartSettings', newChartSettings)
+        }}
+      />
+      {valueStr !== '' && (
+        <Button
+          id={`chart-${fieldName}-field-clear-button`}
+          className="p-button-text"
+          icon="pi pi-times"
+          onClick={() => {
+            setValueStr('')
+            const newChartSettings = {
+              ...node?.data.chartSettings,
+              [fieldName]: undefined,
+            }
+            saveDetail('chartSettings', newChartSettings)
+          }}
+        />
       )}
     </div>
   )
