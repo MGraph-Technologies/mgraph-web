@@ -107,7 +107,6 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   ) => Promise<ChartJSDataset[] | null> = useCallback(
     async (initialChartJSDatasets) => {
       const earlyReturn = () => {
-        setChartJSDatasetsLoaded(true)
         return null
       }
 
@@ -239,6 +238,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   }, [queryResult])
   useEffect(() => {
     const loadData = async () => {
+      if (!(queryResult.status === 'success')) return
       const data = queryResult.data as MetricData | QueryData
       const _queryResultVerified = Boolean(data && data.metricDataVerified)
       setQueryResultVerified(_queryResultVerified)
