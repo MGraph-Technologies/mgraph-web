@@ -235,6 +235,9 @@ const LineChart: FunctionComponent<LineChartProps> = ({
   )
 
   useEffect(() => {
+    setChartJSDatasetsLoaded(false)
+  }, [queryResult])
+  useEffect(() => {
     const loadData = async () => {
       const data = queryResult.data as MetricData | QueryData
       const _queryResultVerified = Boolean(data && data.metricDataVerified)
@@ -272,9 +275,6 @@ const LineChart: FunctionComponent<LineChartProps> = ({
     makeEnrichedChartJSDatasets,
     chartJSDatasetsLoaded,
   ])
-  useEffect(() => {
-    setChartJSDatasetsLoaded(false)
-  }, [queryResult])
 
   /***** Evaluate Plotted Goals *****/
   const [goalStatusMapUpdated, setGoalStatusMapUpdated] = useState(false)
