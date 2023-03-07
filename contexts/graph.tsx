@@ -240,6 +240,7 @@ export function GraphProvider({ children }: GraphProps) {
   const nodeShouldRender = useCallback(
     (node: Node, xPos: number, yPos: number) => {
       if (!reactFlowViewport || !reactFlowRenderer || !node) return false
+      if (!userOnMobile) return true
       const scale = 1 / reactFlowViewport.zoom
       const clientWidth = reactFlowRenderer.clientWidth
       const clientHeight = reactFlowRenderer.clientHeight
@@ -255,9 +256,9 @@ export function GraphProvider({ children }: GraphProps) {
       const nodeYLower = yPos
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const nodeYUpper = yPos + node.height!
-      const xBuffer = userOnMobile ? 0 : clientWidth
-      const yBuffer = userOnMobile ? 0 : clientHeight
-      const minZoom = userOnMobile ? 0.2 : 0.1
+      const xBuffer = 0
+      const yBuffer = 0
+      const minZoom = 0.2
       return Boolean(
         nodeXLower < rendererXUpper + xBuffer &&
           nodeXUpper > rendererXLower - xBuffer &&
