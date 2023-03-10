@@ -56,8 +56,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       // form data model
       // (NB: this only works for snowflake; will need to update when we add other database types)
-      const dataModel: { [tableId: string]: { [columnName: string]: string } } =
-        {}
+      type DataModelTables = {
+        [tableId: string]: { [columnName: string]: string }
+      }
+      type DataModel = {
+        databaseConnectionId: string
+        tables: DataModelTables
+      }
+      const dataModels: DataModel[] = []
       for (const [databaseConnectionId, scopes] of Object.entries(mbotScopes)) {
         const executeQuery = async (statement: string) => {
           const queryResp = await fetch(
@@ -202,19 +208,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log('columnIds: ', columnIds)
 
         // add to data model
+        const dataModelTables: DataModelTables = {}
         Array.from(columnIds).forEach(({ columnId, dataType }) => {
           const [databaseName, schemaName, tableName, columnName] =
             columnId.split('.')
           const tableId = databaseName + '.' + schemaName + '.' + tableName
-          dataModel[tableId] = {
-            ...dataModel[tableId],
+          dataModelTables[tableId] = {
+            ...dataModelTables[tableId],
             [columnName]: dataType,
           }
         })
+        dataModels.push({
+          databaseConnectionId: databaseConnectionId,
+          tables: dataModelTables,
+        } as DataModel)
       }
 
-      console.log('dataModel: ', dataModel)
-      return res.status(200).json({ dataModel })
+      console.log('dataModels: ', dataModels)
+      return res.status(200).json({ dataModels })
     } catch (error: unknown) {
       console.error('\nError: ', error)
       return res.status(500).json({
