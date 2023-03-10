@@ -37,6 +37,7 @@ import { useBrowser } from 'contexts/browser'
 import { useEditability } from 'contexts/editability'
 import { useGraph } from 'contexts/graph'
 import styles from 'styles/NodeDetail.module.css'
+import { getConnectedObjects } from 'utils/getConnectedObjects'
 
 type NodeDetailProps = {
   nodeId: string
@@ -45,7 +46,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
   const { organizationName } = useAuth()
   const { push } = useBrowser()
   const { editingEnabled } = useEditability()
-  const { graph, getFunctionSymbol, getConnectedObjects } = useGraph()
+  const { graph, getFunctionSymbol } = useGraph()
 
   const [node, setNode] = useState<Node | undefined>(undefined)
   const [nodeTypeTitleCase, setNodeTypeTitleCase] = useState<
@@ -96,7 +97,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
     let newInputs = ''
     let newOutputs = ''
     if (node && getConnectedObjects) {
-      const nodeConnectedObjects = getConnectedObjects(node, 1)
+      const nodeConnectedObjects = getConnectedObjects(graph, node, 1)
       const nodeConnectedIdentities = nodeConnectedObjects.filter(
         (nodeConnectedObject) =>
           nodeConnectedObject.type === 'function' &&
@@ -106,7 +107,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
       )
       nodeConnectedIdentities.forEach((nodeConnectedIdentity) => {
         const formulaObjects = [nodeConnectedIdentity].concat(
-          getConnectedObjects(nodeConnectedIdentity, 1)
+          getConnectedObjects(graph, nodeConnectedIdentity, 1)
         )
         let formulaObjectsSorted: (Node | Edge)[] = []
         // add output
@@ -186,7 +187,7 @@ const NodeDetail: FunctionComponent<NodeDetailProps> = ({ nodeId }) => {
     }
     setInputs(newInputs)
     setOutputs(newOutputs)
-  }, [node, getConnectedObjects, graph.edges, nodeId])
+  }, [node, graph, nodeId])
   useEffect(() => {
     populateInputsAndOutputs()
   }, [populateInputsAndOutputs])
