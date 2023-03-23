@@ -4,7 +4,7 @@ This contains MGraph's web app, built in [Next.js](https://nextjs.org/) typescri
 
 ## Development
 
-First, configure your local environment from cloned dir (we install Vercel locally since we need to [override its use of an old typescript version](https://github.com/vercel/vercel/issues/8680)):
+First configure your local environment from cloned dir (we install Vercel locally since we need to [override its use of an old typescript version](https://github.com/vercel/vercel/issues/8680)):
 
 ```bash
 yarn --check-files
@@ -12,7 +12,7 @@ yarn vercel link
 yarn vercel env pull
 ```
 
-Then, run the development server (clear cache before each build so snowflake-jdbc-proxy runs correctly):
+Then run the development server (clear cache before each build so snowflake-jdbc-proxy runs correctly):
 
 ```bash
 rm -rf .vercel/cache/index && yarn vercel dev
