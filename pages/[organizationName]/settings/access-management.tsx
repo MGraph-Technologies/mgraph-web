@@ -124,7 +124,7 @@ const AccessManagement: FunctionComponent = () => {
         if (error) {
           throw error
         }
-        if (status !== 200) {
+        if (status !== 200 && status !== 204) {
           throw new Error('Update failed')
         }
       } catch (error: unknown) {
@@ -215,7 +215,7 @@ const AccessManagement: FunctionComponent = () => {
         if (error) {
           throw error
         }
-        if (status !== 200) {
+        if (status !== 200 && status !== 204) {
           throw new Error('Update failed')
         }
       } catch (error: unknown) {
