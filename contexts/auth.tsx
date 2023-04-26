@@ -18,6 +18,7 @@ type AuthContextType = {
   organizationEnabled: boolean
   organizationLogoStoragePath: string
   organizationName: string
+  organizationIsPersonal: boolean
   userAvatarUrl: string
   userEmail: string
   userName: string
@@ -35,6 +36,7 @@ const authContextTypeValues: AuthContextType = {
   organizationEnabled: false,
   organizationLogoStoragePath: '',
   organizationName: '',
+  organizationIsPersonal: false,
   userAvatarUrl: '',
   userEmail: '',
   userName: '',
@@ -74,6 +76,7 @@ export function AuthProvider({ children }: AuthProps) {
   const [organizationLogoStoragePath, setOrganizationLogoStoragePath] =
     useState('')
   const [organizationName, setOrganizationName] = useState('')
+  const [organizationIsPersonal, setOrganizationIsPersonal] = useState(false)
   const [userAvatarUrl, setUserAvatarUrl] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [userName, setUserName] = useState('')
@@ -114,12 +117,20 @@ export function AuthProvider({ children }: AuthProps) {
               name: string
             }
           }
-          setOrganizationId(organizationMembership.organizations.id)
+          const _organizationId = organizationMembership.organizations.id
+          setOrganizationId(_organizationId)
           setOrganizationEnabled(organizationMembership.organizations.enabled)
           setOrganizationLogoStoragePath(
             organizationMembership.organizations.logo_storage_path
           )
-          setOrganizationName(organizationMembership.organizations.name)
+          const _organizationName = organizationMembership.organizations.name
+          setOrganizationName(_organizationName)
+          // check if _organizationName is a UUID
+          const uuidRegex = new RegExp(
+            '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+          )
+          const _organizationIsPersonal = uuidRegex.test(_organizationName)
+          setOrganizationIsPersonal(_organizationIsPersonal)
           setUserAvatarUrl(organizationMembership.display_users.avatar_url)
           setUserEmail(session.user.email || '')
           setUserName(organizationMembership.display_users.name)
@@ -135,8 +146,9 @@ export function AuthProvider({ children }: AuthProps) {
 
           analytics.identify(session.user.id, {
             email: session.user.email,
-            organization_id: organizationMembership.organizations.id,
-            organization_name: organizationMembership.organizations.name,
+            organization_id: _organizationId,
+            organization_name: _organizationName,
+            organization_is_personal: _organizationIsPersonal,
             is_admin: _userIsAdmin,
             can_edit: _userCanEdit,
             can_view: _userCanView,
@@ -169,6 +181,7 @@ export function AuthProvider({ children }: AuthProps) {
     organizationEnabled,
     organizationLogoStoragePath,
     organizationName,
+    organizationIsPersonal,
     userAvatarUrl,
     userEmail,
     userName,

@@ -96,7 +96,10 @@ const RefreshJobs: FunctionComponent = () => {
         try {
           const { data, error } = await supabase
             .from('refresh_jobs')
-            .update({ deleted_at: new Date() })
+            .update({
+              updated_at: new Date(),
+              deleted_at: new Date(),
+            })
             .eq('id', rowData.id)
             .select('id')
             .single()

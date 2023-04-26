@@ -152,13 +152,6 @@ type GraphContextType = {
         displayTarget?: Node | undefined
       ) => Edge)
     | undefined
-  getConnectedObjects:
-    | ((
-        reference: Node | Edge,
-        maxSeparationDegrees?: number,
-        direction?: 'inputs' | 'outputs'
-      ) => (Node | Edge)[])
-    | undefined
 }
 
 const graphContextDefaultValues: GraphContextType = {
@@ -197,7 +190,6 @@ const graphContextDefaultValues: GraphContextType = {
   formFunctionNode: undefined,
   getFunctionSymbol: undefined,
   formInputEdge: undefined,
-  getConnectedObjects: undefined,
 }
 
 const GraphContext = createContext<GraphContextType>(graphContextDefaultValues)
@@ -1357,93 +1349,6 @@ export function GraphProvider({ children }: GraphProps) {
     [edgeTypeIds, organizationId]
   )
 
-  const getConnectedObjects = useCallback(
-    (
-      reference: Node | Edge,
-      maxSeparationDegrees?: number,
-      direction?: 'inputs' | 'outputs',
-      connectedObjects: (Node | Edge)[] = []
-    ) => {
-      if (direction === undefined) {
-        connectedObjects = connectedObjects.concat(
-          getConnectedObjects(
-            reference,
-            maxSeparationDegrees,
-            'inputs',
-            connectedObjects
-          )
-        )
-        connectedObjects = connectedObjects.concat(
-          getConnectedObjects(
-            reference,
-            maxSeparationDegrees,
-            'outputs',
-            connectedObjects
-          )
-        )
-      } else {
-        if (reference.data.sourceId && reference.data.targetId) {
-          // reference is edge
-          // select connected nodes
-          graph.nodes.forEach((node) => {
-            if (
-              ((node.id === reference.data.sourceId &&
-                direction === 'inputs') ||
-                (node.id === reference.data.targetId &&
-                  direction === 'outputs')) &&
-              !connectedObjects.includes(node)
-            ) {
-              connectedObjects.push(node)
-              if (
-                maxSeparationDegrees !== undefined &&
-                ['custom', 'metric'].includes(node.type || '')
-              ) {
-                maxSeparationDegrees -= 1
-              }
-              if (
-                maxSeparationDegrees === undefined ||
-                maxSeparationDegrees > 0
-              ) {
-                connectedObjects = getConnectedObjects(
-                  node,
-                  maxSeparationDegrees,
-                  direction,
-                  connectedObjects
-                )
-              }
-            }
-          })
-        } else {
-          // reference is node
-          // select connected edges
-          graph.edges.forEach((edge) => {
-            if (
-              ((edge.data.sourceId === reference.id &&
-                direction === 'outputs') ||
-                (edge.data.targetId === reference.id &&
-                  direction === 'inputs')) &&
-              !connectedObjects.includes(edge)
-            ) {
-              connectedObjects.push(edge)
-              connectedObjects = getConnectedObjects(
-                edge,
-                maxSeparationDegrees,
-                direction,
-                connectedObjects
-              )
-            }
-          })
-        }
-      }
-      // dedupe
-      connectedObjects = connectedObjects.filter(
-        (item, index) => connectedObjects.indexOf(item) === index
-      )
-      return connectedObjects
-    },
-    [graph]
-  )
-
   const value = {
     initialGraph: initialGraph,
     graph: graph,
@@ -1474,7 +1379,6 @@ export function GraphProvider({ children }: GraphProps) {
     formFunctionNode: formFunctionNode,
     getFunctionSymbol: getFunctionSymbol,
     formInputEdge: formInputEdge,
-    getConnectedObjects: getConnectedObjects,
   }
   return (
     <>

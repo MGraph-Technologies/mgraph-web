@@ -16,6 +16,7 @@ const AccountMenu: FunctionComponent = () => {
     session,
     organizationEnabled,
     organizationName,
+    organizationIsPersonal,
     organizationLogoStoragePath,
     userAvatarUrl,
     userEmail,
@@ -27,10 +28,14 @@ const AccountMenu: FunctionComponent = () => {
 
   const [userDisplayRole, setUserDisplayRole] = useState('')
   useEffect(() => {
-    setUserDisplayRole(
-      userRole.replaceAll('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
-    )
-  }, [userRole])
+    if (organizationIsPersonal) {
+      setUserDisplayRole('Personal Account')
+    } else {
+      setUserDisplayRole(
+        userRole.replaceAll('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+      )
+    }
+  }, [organizationIsPersonal, userRole])
 
   const router = useRouter()
   async function handleSignOut() {
@@ -73,6 +78,36 @@ const AccountMenu: FunctionComponent = () => {
     icon: 'pi pi-sign-out',
     command: () => handleSignOut(),
   })
+  const adminSettingsSubMenuItems = []
+  if (!organizationIsPersonal) {
+    adminSettingsSubMenuItems.push({
+      label: 'Access Management',
+      icon: 'pi pi-users',
+      command: () =>
+        push('/' + organizationName + '/settings/access-management'),
+    })
+  }
+  adminSettingsSubMenuItems.push({
+    label: 'Database Connections',
+    icon: 'pi pi-database',
+    command: () =>
+      push('/' + organizationName + '/settings/database-connections'),
+  })
+  adminSettingsSubMenuItems.push({
+    label: 'Graph Syncs',
+    icon: 'pi pi-sync',
+    command: () => push('/' + organizationName + '/settings/graph-syncs'),
+  })
+  adminSettingsSubMenuItems.push({
+    label: 'Input Parameters',
+    icon: 'pi pi-sliders-h',
+    command: () => push('/' + organizationName + '/settings/input-parameters'),
+  })
+  adminSettingsSubMenuItems.push({
+    label: 'Refresh Jobs',
+    icon: 'pi pi-clock',
+    command: () => push('/' + organizationName + '/settings/refresh-jobs'),
+  })
   const overlayMenuItems = []
   overlayMenuItems.push({
     label: userEmail,
@@ -81,37 +116,7 @@ const AccountMenu: FunctionComponent = () => {
   if (userIsAdmin && organizationEnabled) {
     overlayMenuItems.push({
       label: 'Admin Settings',
-      items: [
-        {
-          label: 'Access Management',
-          icon: 'pi pi-users',
-          command: () =>
-            push('/' + organizationName + '/settings/access-management'),
-        },
-        {
-          label: 'Database Connections',
-          icon: 'pi pi-database',
-          command: () =>
-            push('/' + organizationName + '/settings/database-connections'),
-        },
-        {
-          label: 'Graph Syncs',
-          icon: 'pi pi-sync',
-          command: () => push('/' + organizationName + '/settings/graph-syncs'),
-        },
-        {
-          label: 'Input Parameters',
-          icon: 'pi pi-sliders-h',
-          command: () =>
-            push('/' + organizationName + '/settings/input-parameters'),
-        },
-        {
-          label: 'Refresh Jobs',
-          icon: 'pi pi-clock',
-          command: () =>
-            push('/' + organizationName + '/settings/refresh-jobs'),
-        },
-      ],
+      items: adminSettingsSubMenuItems,
     })
   }
 

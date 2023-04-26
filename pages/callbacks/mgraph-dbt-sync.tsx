@@ -59,7 +59,7 @@ const MGraphDbtSync: FunctionComponent = () => {
           if (error) {
             throw error
           }
-          if (status !== 200) {
+          if (status !== 200 && status !== 204) {
             throw new Error('Update graph sync failed')
           }
           if (!data) {

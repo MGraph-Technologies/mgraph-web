@@ -97,7 +97,10 @@ const DatabaseConnections: FunctionComponent = () => {
         try {
           const { data, error } = await supabase
             .from('database_connections')
-            .update({ deleted_at: new Date() })
+            .update({
+              updated_at: new Date(),
+              deleted_at: new Date(),
+            })
             .eq('id', rowData.id)
             .select('id')
             .single()

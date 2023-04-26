@@ -29,6 +29,7 @@ import { useBrowser } from 'contexts/browser'
 import { useEditability } from 'contexts/editability'
 import { EDGE_TYPES, NODE_TYPES, useGraph } from 'contexts/graph'
 import styles from 'styles/GraphViewer.module.css'
+import { getConnectedObjects } from 'utils/getConnectedObjects'
 import { analytics } from 'utils/segmentClient'
 
 const GraphViewer: FunctionComponent = () => {
@@ -47,7 +48,6 @@ const GraphViewer: FunctionComponent = () => {
     redo,
     updateGraph,
     setEdgeBeingUpdated,
-    getConnectedObjects,
   } = useGraph()
   const {
     actionKeyPressed,
@@ -239,9 +239,11 @@ const GraphViewer: FunctionComponent = () => {
           _lastSelectedFunctionNodeOrInputEdgeId = nodeOrEdge.id
           _alsoSelectNonFunctionNodes = true
         }
-        const connectedObjects = getConnectedObjects(nodeOrEdge, 1).concat([
+        const connectedObjects = getConnectedObjects(
+          graph,
           nodeOrEdge,
-        ])
+          1
+        ).concat([nodeOrEdge])
         newGraph = {
           nodes: newGraph.nodes.map((node) => {
             if (
@@ -318,7 +320,6 @@ const GraphViewer: FunctionComponent = () => {
       reactFlowInstance,
       push,
       organizationName,
-      getConnectedObjects,
       lastSelectedFunctionNodeOrInputEdgeId,
       alsoSelectNonFunctionNodes,
       shiftKeyPressed,
@@ -355,7 +356,7 @@ const GraphViewer: FunctionComponent = () => {
       const toDelete: string[] = []
       nodes.forEach((node) => {
         toDelete.push(node.id)
-        const connectedObjects = getConnectedObjects(node, 1)
+        const connectedObjects = getConnectedObjects(graph, node, 1)
         connectedObjects.forEach((o) => {
           if (o.type === 'input' || o.type === 'function') {
             toDelete.push(o.id)
@@ -370,7 +371,7 @@ const GraphViewer: FunctionComponent = () => {
         true
       )
     },
-    [getConnectedObjects, updateGraph, graph.nodes, graph.edges]
+    [graph, updateGraph]
   )
 
   const onNodeDragStart = useCallback(

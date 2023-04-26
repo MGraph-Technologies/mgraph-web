@@ -207,7 +207,10 @@ const MonitoringRulesTable: FunctionComponent<MonitoringRulesTableProps> = ({
         try {
           const { data, error } = await supabase
             .from('monitoring_rules')
-            .update({ deleted_at: new Date() })
+            .update({
+              updated_at: new Date(),
+              deleted_at: new Date(),
+            })
             .eq('id', rowData.id)
             .select('id')
             .single()

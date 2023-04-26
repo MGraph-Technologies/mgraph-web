@@ -12,6 +12,7 @@ import NodePanel from 'components/graph/nodepanel/NodePanel'
 import QueryRunner, { QueryResult } from 'components/graph/QueryRunner'
 import { useGraph } from 'contexts/graph'
 import styles from 'styles/GraphTable.module.css'
+import { getConnectedObjects } from 'utils/getConnectedObjects'
 import { analytics } from 'utils/segmentClient'
 
 type GraphTableProps = {
@@ -22,7 +23,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
   metricNodes,
   expansionLevel = 0,
 }) => {
-  const { getConnectedObjects } = useGraph()
+  const { graph } = useGraph()
 
   const [metrics, setMetrics] = useState<Node[]>([])
   useEffect(() => {
@@ -33,6 +34,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
           ...node.data,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           numInputMetrics: getConnectedObjects!(
+            graph,
             node,
             undefined,
             'inputs'
@@ -41,7 +43,7 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
       }
     })
     setMetrics(_metrics)
-  }, [metricNodes, getConnectedObjects])
+  }, [metricNodes, graph])
 
   const [inputMetrics, setInputMetrics] = useState<{ [key: string]: Node[] }>(
     {}
@@ -50,12 +52,12 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
     const _inputMetrics: { [key: string]: Node[] } = {}
     metricNodes.forEach((node) => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      _inputMetrics[node.id] = getConnectedObjects!(node, 1, 'inputs')
+      _inputMetrics[node.id] = getConnectedObjects!(graph, node, 1, 'inputs')
         .filter((inputObject) => inputObject.type === 'metric')
         .map((inputNode) => inputNode as Node)
     })
     setInputMetrics(_inputMetrics)
-  }, [metricNodes, getConnectedObjects])
+  }, [metricNodes, graph])
 
   const rowExpansionTemplate = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -260,11 +262,11 @@ const GraphTable: FunctionComponent<GraphTableProps> = ({
 }
 
 const GraphTableViewer: FunctionComponent = () => {
-  const { graph, getConnectedObjects } = useGraph()
+  const { graph } = useGraph()
 
   const [topLevelMetricNodes, setTopLevelMetricNodes] = useState<Node[]>([])
   useEffect(() => {
-    if (graph && getConnectedObjects) {
+    if (graph) {
       let _topLevelMetricNodes: Node[] = []
       // attempt to sort by tablePosition
       _topLevelMetricNodes = graph.nodes.filter((node) => {
@@ -278,7 +280,7 @@ const GraphTableViewer: FunctionComponent = () => {
         _topLevelMetricNodes = graph.nodes.filter((node) => {
           return (
             node.type === 'metric' &&
-            getConnectedObjects(node, 1, 'outputs').filter(
+            getConnectedObjects(graph, node, 1, 'outputs').filter(
               (outputObject) => outputObject.type === 'metric'
             ).length === 0
           )
@@ -286,7 +288,7 @@ const GraphTableViewer: FunctionComponent = () => {
       }
       setTopLevelMetricNodes(_topLevelMetricNodes)
     }
-  }, [graph, getConnectedObjects])
+  }, [graph])
 
   return <GraphTable metricNodes={topLevelMetricNodes} expansionLevel={0} />
 }
