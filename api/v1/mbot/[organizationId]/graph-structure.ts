@@ -61,4 +61,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
-export default Sentry.withSentryAPI(handler, 'api/v1/graphs/[organizationId]')
+export default Sentry.withSentryAPI(
+  handler,
+  'api/v1/mbot/[organizationId]/graph-structure'
+)
