@@ -153,7 +153,10 @@ const GoalsTable: FunctionComponent<GoalsTableProps> = ({ parentNodeId }) => {
         try {
           const { data, error } = await supabase
             .from('goals')
-            .update({ deleted_at: new Date() })
+            .update({
+              updated_at: new Date(),
+              deleted_at: new Date(),
+            })
             .eq('id', rowData.id)
             .select('id')
             .single()
