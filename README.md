@@ -9,7 +9,8 @@ First, configure your local environment from cloned dir (we install Vercel local
 ```bash
 yarn --check-files
 yarn vercel link
-yarn vercel env pull
+yarn vercel env pull # use local vercel to override use of old typescript -- see https://github.com/vercel/vercel/issues/8680
+npx husky install # enable pre-commit hooks
 ```
 
 Then, run the development server (clear cache before each build so snowflake-jdbc-proxy runs correctly):
