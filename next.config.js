@@ -5,9 +5,7 @@ const { withSentryConfig } = require('@sentry/nextjs')
 const moduleExports = {
   images: {
     domains: [
-      'foijfafafqxtuwqjshcu.supabase.co', // dev
-      'yvyswaeeardmmcwqgybm.supabase.co', // staging
-      'qfajvvqhnbvjgvgesooj.supabase.co', // prod
+      process.env.NEXT_PUBLIC_SUPABASE_URL.replace(/https?:\/\//, ''),
       'lh3.googleusercontent.com', // google avatars
     ],
   },
