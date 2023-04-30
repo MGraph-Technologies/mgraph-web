@@ -163,6 +163,10 @@ MGraph relies on Supabase's SDK and row-level security as much as possible for d
 
 Please use Github issues for bugs and feature requests.
 
+## License
+
+This project is licensed under the terms of the MIT license. See [LICENSE](LICENSE).
+
 ## Acknowledgements
 
 MGraph was originally developed by [Rob Dearborn](https://robdearborn.com/) and [Emily Eckert](https://www.linkedin.com/in/embot/) in 2022.
