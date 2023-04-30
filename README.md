@@ -112,7 +112,7 @@ yarn vercel env pull
 npx husky install # enable pre-commit hooks
 ```
 
-Then, run the development server (clear cache before each build so snowflake-jdbc-proxy runs correctly):
+Then run the development server (clear cache before each build so snowflake-jdbc-proxy runs correctly):
 
 ```bash
 rm -rf .vercel/cache/index && yarn vercel dev
