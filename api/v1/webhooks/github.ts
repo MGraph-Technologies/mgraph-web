@@ -42,12 +42,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(400).json({ error: 'Unsupported event type' })
     }
 
-    // Verify the app slug (currently we have only one app: MGraph dbt Sync)
-    const appSlug = req.body.installation.app_slug
-    if (!appSlug.includes('mgraph-dbt-sync')) {
-      return res.status(400).json({ error: 'Unsupported app' })
-    }
-
     // Create graph_syncs supabase record
     try {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -56,6 +50,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         supabaseServiceRoleKey || ''
       )
 
+      const appSlug = req.body.installation.app_slug
       const installationId = req.body.installation.id
       let toUpsert = {
         id: getUuid(appSlug + installationId), // idempotent
