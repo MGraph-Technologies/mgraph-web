@@ -29,7 +29,8 @@ For each environment:
 
 1. Create a Supabase project
 2. Run `supabase_pg_init.sql` to initialize the project's postgres database (copy and paste it into Supabase's SQL editor)
-3. Configure [Login with Google](https://supabase.com/docs/guides/auth/social-login/auth-google)
+3. Set your project's Site URL in Authentication > URL Configuration
+4. Configure [Login with Google](https://supabase.com/docs/guides/auth/social-login/auth-google)
 
 ### Vercel
 
