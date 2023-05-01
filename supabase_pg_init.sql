@@ -3781,10 +3781,11 @@ INSERT INTO "public"."node_types" ("name") VALUES ('function');
 INSERT INTO "public"."node_types" ("name") VALUES ('mission');
 INSERT INTO "public"."node_types" ("name") VALUES ('custom');
 
-INSERT INTO "public"."roles" ("name", "level") VALUES ('awaiting_admin_approval', 0);
-INSERT INTO "public"."roles" ("name", "level") VALUES ('viewer', 1);
-INSERT INTO "public"."roles" ("name", "level") VALUES ('editor', 2);
-INSERT INTO "public"."roles" ("name", "level") VALUES ('admin', 3);
+-- include ids so above default_role_id default works
+INSERT INTO "public"."roles" ("id", "name", "level") VALUES ('df65c75a-1e94-43b2-ad37-e7ff5ccc1735', 'awaiting_admin_approval', 0);
+INSERT INTO "public"."roles" ("id", "name", "level") VALUES ('3e9fb851-ac1e-44bc-a6d9-f0ec2aa69a66', 'viewer', 1);
+INSERT INTO "public"."roles" ("id", "name", "level") VALUES ('26829f0c-ccc9-4964-879b-4e787db0fc3a', 'editor', 2);
+INSERT INTO "public"."roles" ("id", "name", "level") VALUES ('d41e6137-eff9-49fa-a7b7-a9fe51eb7852', 'admin', 3);
 
 /**********************************************************************
  * Postflight
