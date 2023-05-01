@@ -29,7 +29,7 @@ const sentryWebpackPluginOptions = {
   // recommended:
   //   release, url, org, project, authToken, configFile, stripPrefix,
   //   urlPrefix, include, ignore
-
+  dryRun: process.env.NEXT_PUBLIC_SENTRY_DSN === undefined, // disable if vercel integration not configured
   silent: true, // Suppresses all logs
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options.
