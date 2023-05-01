@@ -16,12 +16,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 // TODO: achieve DRY with api/v1/refresh-jobs/orchestrations
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('\n\nNew request to /api/v1/monitoring-rules/orchestrations...')
-  const { cronKey } = req.query
-  if (cronKey !== 'monitoringRulesOrchestrationInitiator') {
-    // vercel cron jobs don't yet support env vars, unfortunately
-    res.status(401).json({ error: 'Unauthorized' })
-    return
-  }
 
   // (vercel crons only GET)
 

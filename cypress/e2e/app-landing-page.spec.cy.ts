@@ -13,11 +13,10 @@ describe('App landing page, authenticated as member of enabled org', () => {
     )
   })
 
-  it('Visits the app landing page, is redirected to graphviewer, and sees full help menu', () => {
+  it('Visits the app landing page, is redirected to graphviewer, and sees help menu', () => {
     cy.visit('/')
     cy.url().should('include', '/mgraph')
     cy.get('[id="help-menu"]').click()
-    cy.get('[class=p-menuitem]').contains('Contact Us').should('be.visible')
     cy.get('[class=p-menuitem]').contains('Runbook').should('be.visible')
   })
 
@@ -61,12 +60,9 @@ describe('App landing page, authenticated as member of disabled org', () => {
     )
   })
 
-  it('Visits the app landing page, is redirected to coming_soon, and sees help menu without runbook', () => {
+  it('Visits the app landing page, is redirected to coming_soon', () => {
     cy.visit('/')
     cy.url().should('include', '/coming-soon')
-    cy.get('[id="help-menu"]').click()
-    cy.get('[class=p-menuitem]').contains('Contact Us').should('be.visible')
-    cy.get('[class=p-menuitem]').contains('Runbook').should('not.exist')
   })
 })
 

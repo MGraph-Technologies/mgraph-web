@@ -54,9 +54,7 @@ const DbtProjectGraphSyncForm: FunctionComponent<
   clearFields,
   onDialogCancel,
 }) => {
-  const appUrl = `https://github.com/apps/mgraph-dbt-sync${
-    process.env.NEXT_PUBLIC_ENV === 'production' ? '' : '-dev'
-  }`
+  const appUrl = process.env.NEXT_PUBLIC_MGRAPH_DBT_SYNC_GITHUB_APP_URL || ''
   const { organizationId } = useAuth()
   const { editingEnabled } = useEditability()
   const { graph, loadGraph } = useGraph()

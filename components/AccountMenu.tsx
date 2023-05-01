@@ -45,14 +45,7 @@ const AccountMenu: FunctionComponent = () => {
   }
 
   const helpMenu = useRef<Menu>(null)
-  let helpMenuItems = []
-  helpMenuItems = [
-    {
-      label: 'Contact Us',
-      icon: 'pi pi-envelope',
-      command: () => window.open('mailto:support@mgraph.us'),
-    },
-  ]
+  const helpMenuItems = []
   if (organizationEnabled) {
     helpMenuItems.push({
       label: 'Runbook',
@@ -136,13 +129,17 @@ const AccountMenu: FunctionComponent = () => {
           <div className={styles.vertical_line} />
         </>
       ) : null}
-      <Menu model={helpMenuItems} popup ref={helpMenu} />
-      <Button
-        id="help-menu"
-        className="p-button-rounded p-button-small p-button-text"
-        icon="pi pi-question-circle"
-        onClick={(event) => helpMenu.current?.toggle(event)}
-      />
+      {helpMenuItems.length > 0 && (
+        <>
+          <Menu model={helpMenuItems} popup ref={helpMenu} />
+          <Button
+            id="help-menu"
+            className="p-button-rounded p-button-small p-button-text"
+            icon="pi pi-question-circle"
+            onClick={(event) => helpMenu.current?.toggle(event)}
+          />
+        </>
+      )}
       <Menu model={overlayMenuItems} popup ref={overlayMenu} />
       <div id="account-menu">
         <UserAvatar

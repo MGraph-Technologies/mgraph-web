@@ -22,32 +22,3 @@
   max-width: 500px;
   gap: 2rem;
 }
-
-.main .sign_in_module .sign_in_legal_text {
-  font-size: 0.8rem;
-  text-align: center;
-  color: #949698;
-  /* trailing padding to balance the logo's leading padding */
-  padding: 0 0 25px 0;
-}
-
-.main .sign_in_module .sign_in_legal_text a {
-  color: #949698;
-  text-decoration: underline;
-}
-
-.footer {
-  display: flex;
-  flex: 1;
-  padding: 2rem 0;
-  border-top: 1px solid #eaeaea;
-  justify-content: center;
-  align-items: center;
-}
-
-.footer a {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-grow: 1;
-}

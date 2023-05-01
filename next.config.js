@@ -2,13 +2,13 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { withSentryConfig } = require('@sentry/nextjs')
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+
 const moduleExports = {
   images: {
     domains: [
-      'foijfafafqxtuwqjshcu.supabase.co', // dev
-      'yvyswaeeardmmcwqgybm.supabase.co', // staging
-      'qfajvvqhnbvjgvgesooj.supabase.co', // prod
       'lh3.googleusercontent.com', // google avatars
+      supabaseUrl.replace(/https?:\/\//, ''),
     ],
   },
   reactStrictMode: true,

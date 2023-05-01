@@ -9,9 +9,7 @@ const SENTRY_DSN = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN
 const SENTRY_ENV = process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV
 
 Sentry.init({
-  dsn:
-    SENTRY_DSN ||
-    'https://635f3ed164e24f9da5066ae809e440d9@o1418464.ingest.sentry.io/6761614',
+  dsn: SENTRY_DSN,
   environment: SENTRY_ENV,
   integrations: [
     new CaptureConsole({

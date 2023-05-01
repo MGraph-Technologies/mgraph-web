@@ -21,36 +21,11 @@ const Home: NextPage = () => {
         {!session ? (
           <div className={styles.sign_in_module}>
             <SignInButton />
-            <div className={styles.sign_in_legal_text}>
-              By clicking &quot;Continue with Google&quot; above, you
-              acknowledge that you have read and understood, and agree to
-              MGraph&apos;s{' '}
-              <a
-                href="http://www.mgraph.us/terms"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Terms of Service
-              </a>{' '}
-              and{' '}
-              <a
-                href="http://www.mgraph.us/privacy"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Privacy Policy
-              </a>
-              .
-            </div>
           </div>
         ) : (
           <AuthedUserRouter key={session.user?.id || ''} />
         )}
       </main>
-
-      <footer className={styles.footer}>
-        © 2023 MGraph Technologies, Inc.
-      </footer>
     </div>
   )
 }

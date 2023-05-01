@@ -192,10 +192,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             },
             body: JSON.stringify({
               from: {
-                email: 'hello@mgraph.us',
+                email: process.env.NEXT_PUBLIC_EMAIL_FROM_ADDRESS,
                 name: 'MGraph',
               },
-              template_id: 'd-6db6711d5a634a3db8bd43aa39e5ae96',
+              template_id: process.env.NEXT_PUBLIC_EMAIL_SENDGRID_TEMPLATE_ID,
               personalizations: recipientUsers.map((recipientUser) => {
                 const { email } = recipientUser
                 return {
