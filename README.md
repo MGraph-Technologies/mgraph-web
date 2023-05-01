@@ -45,9 +45,6 @@ To configure Vercel:
    4. `NEXT_PUBLIC_SUPABASE_ANON_KEY` - the [anon key](https://supabase.com/docs/guides/api/api-keys#the-anon-key) of the Supabase project corresponding to an environment
    5. `NEXT_PUBLIC_SUPABASE_URL` - the URL of the Supabase project corresponding to an environment (e.g., `https://xxxxxxxxxxxxxxxxxxxx.supabase.co`)
    6. `SUPABASE_SERVICE_ROLE_KEY` - the [service role key](https://supabase.com/docs/guides/api/api-keys#the-servicerole-key) of the Supabase project corresponding to an environment
-3. Add the following [cron jobs](https://vercel.com/docs/cron-jobs) to your Vercel project to power background monitoring and refresh jobs:
-   1. `/api/v1/monitoring-rules/orchestrations`: `* * * * *`
-   2. `/api/v1/refresh-jobs/orchestrations`: `* * * * *`
 
 ### GitHub (optional, but recommended)
 
