@@ -1780,6 +1780,12 @@ CREATE TRIGGER "maintain_edges_history_upon_insert_or_update" AFTER INSERT OR UP
 
 CREATE TRIGGER "maintain_nodes_history_upon_insert_or_update" AFTER INSERT OR UPDATE ON "public"."nodes" FOR EACH ROW EXECUTE FUNCTION "public"."maintain_nodes_history"();
 
+--
+-- Name: users sync_user_records_upon_signup_or_update; Type: TRIGGER; Schema: auth; Owner: postgres
+--
+
+CREATE TRIGGER "sync_user_records_upon_signup_or_update" AFTER INSERT OR UPDATE ON "auth"."users" FOR EACH ROW EXECUTE FUNCTION "public"."sync_user_records"();
+
 
 --
 -- Name: comments comments_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
