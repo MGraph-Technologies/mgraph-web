@@ -2,7 +2,7 @@
 
 ![MGraph Logo](https://qfajvvqhnbvjgvgesooj.supabase.co/storage/v1/object/public/public/brand/mgraph-logo-light.svg)
 
-MGraph is a single dashboard for your entire organization, encompassing metrics, goals, teams, and work. With it, you can:
+MGraph is a single dashboard for your entire organization, encompassing metrics, goals, and work. With it, you can:
 
 - Define and visualize metrics and the relationships between them
 - Establish and track metric goals
@@ -28,12 +28,12 @@ MGraph uses [Supabase](https://supabase.com/) for auth and data storage. At a mi
 For each environment:
 
 1. Create a Supabase project
-2. Run `supabase_pg_init.sql` to initialize the project's postgres database
-3. [Configure login with Google](https://supabase.com/docs/guides/auth/social-login/auth-google)
+2. Run `supabase_pg_init.sql` to initialize the project's postgres database (copy and paste it into Supabase's SQL editor)
+3. Configure [Login with Google](https://supabase.com/docs/guides/auth/social-login/auth-google)
 
 ### Vercel
 
-MGraph uses [Vercel](https://vercel.com/) for app and API hosting. Within a Vercel project, [code is deployed](https://vercel.com/docs/concepts/deployments/builds) across three environments as changes are made: development, preview, and production (each with its own URL and environment variables). At minimum, you'll use the production environment to host the instance of MGraph that your organization uses day-to-day. If you want to develop MGraph (see below), you'll additionally use the development and staging environments (if you don't, they'll still deploy but won't work but won't be used).
+MGraph uses [Vercel](https://vercel.com/) for app and API hosting. Within a Vercel project, [code is deployed across three environments](https://vercel.com/docs/concepts/deployments/builds) as changes are made: development, preview, and production (each with its own URL and environment variables). At minimum, you'll use the production environment to host the instance of MGraph that your organization uses day-to-day. If you want to develop MGraph (see below), you'll additionally use the development and staging environments (if you don't, they'll still deploy but won't work and won't be used).
 
 To configure Vercel:
 
@@ -48,7 +48,7 @@ To configure Vercel:
 
 ### GitHub (optional, but recommended)
 
-If configured, MGraph can sync metric definitions from a dbt project via a [GitHub app](https://docs.github.com/en/apps). For each environment where you want syncing:
+If configured, MGraph can sync [metric definitions from a dbt project](https://docs.getdbt.com/docs/build/metrics) via a [GitHub app](https://docs.github.com/en/apps). For each environment where you want syncing:
 
 1. [Create a new GitHub app](https://docs.github.com/en/apps/creating-github-apps/setting-up-a-github-app/creating-a-github-app) for your organization with the following permissions:
    1. `Contents` - `read`
@@ -66,11 +66,11 @@ If configured, MGraph can sync metric definitions from a dbt project via a [GitH
 
 ### Sendgrid (optional, but recommended)
 
-If configured, MGraph can send email notifications via [Sendgrid](https://sendgrid.com/). For each environment where you want notifications:
+If configured, MGraph can send email notifications (e.g., for comments) via [Sendgrid](https://sendgrid.com/). For each environment where you want notifications:
 
-1. Create an [API key](https://docs.sendgrid.com/ui/account-and-settings/api-keys) with `Mail Send` permissions
+1. Create a Segment [API key](https://docs.sendgrid.com/ui/account-and-settings/api-keys) with `Mail Send` permissions
    1. Note that you'll also need to have verified [your domain](https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication) and [a sender address](https://docs.sendgrid.com/ui/sending-email/sender-verification)
-2. Create a [dynamic template](https://docs.sendgrid.com/ui/sending-email/how-to-send-an-email-with-dynamic-templates#design-a-dynamic-template) for notification emails (recommendation: use `sendgrid_email_template.html`, at least as a starting point)
+2. Create a Segment [dynamic template](https://docs.sendgrid.com/ui/sending-email/how-to-send-an-email-with-dynamic-templates#design-a-dynamic-template) for notification emails (recommendation: use `sendgrid_email_template.html`, at least as a starting point)
 3. Add the following environment variables (all case sensitive) to your Vercel project:
    1. `NEXT_PUBLIC_EMAIL_FROM_ADDRESS` - the verified email address you want notifications to come from
    2. `NEXT_PUBLIC_EMAIL_SENDGRID_TEMPLATE_ID` - the ID of the dynamic template you created above
@@ -80,7 +80,7 @@ If configured, MGraph can send email notifications via [Sendgrid](https://sendgr
 
 If configured, MGraph can send analytics events to [Segment](https://segment.com/). For each environment where you want analytics:
 
-1. Create an [Analytics.js source](https://segment.com/docs/connections/sources/catalog/libraries/website/javascript/quickstart/#step-1-create-a-source)
+1. Create an [Analytics.js source](https://segment.com/docs/connections/sources/catalog/libraries/website/javascript/quickstart/#step-1-create-a-source) in Segment
 2. Add the following environment variables (all case sensitive) to your Vercel project:
    1. `NEXT_PUBLIC_SEGMENT_WRITE_KEY` - your Segment source's write key
 
@@ -89,7 +89,7 @@ If configured, MGraph can send analytics events to [Segment](https://segment.com
 If configured, MGraph can use [Sentry](https://sentry.io/) for observability. If you'd like to use Sentry:
 
 1. [Create a Sentry project](https://docs.sentry.io/product/sentry-basics/integrate-frontend/create-new-project/) for MGraph
-2. Link it to your Vercel project
+2. [Link it](https://vercel.com/integrations/sentry) to your Vercel project
 3. (Environment variables will automatically be established, and Sentry will automatically handle environment parsing)
 
 ## Usage
@@ -135,7 +135,7 @@ At a high level, MGraph's app architecture consists of:
    3. `pages/[organizationName]/nodes/[nodeId]` `NodeDetail` pages
    4. `pages/[organizationName]/...` settings pages
 
-At a high level, MGraph's data model consists of:
+MGraph's data model consists of:
 
 1. `organizations`, `users`, `organization_members`, and `roles`
 2. `nodes` and `edges` (the graph)
@@ -146,7 +146,7 @@ At a high level, MGraph's data model consists of:
 
 MGraph relies on Supabase's SDK and row-level security as much as possible for data access, and supplementally uses Next API routes for more complex operations.
 
-[Here's](https://www.figma.com/file/gSnbPoxnVDUi3hRcpwynx5/MGraph-Architecture?node-id=0-1&t=8qwyu3LdUzB5q2jW-11) a high-level diagram of a classical MGraph deployment.
+[Here's](https://www.figma.com/file/gSnbPoxnVDUi3hRcpwynx5/MGraph-Architecture?node-id=0-1&t=8qwyu3LdUzB5q2jW-11) a diagram of a classical MGraph deployment.
 
 ### Priority contribution areas
 
