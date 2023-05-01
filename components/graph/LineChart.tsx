@@ -125,8 +125,8 @@ const LineChart: FunctionComponent<LineChartProps> = ({
       }
 
       /* query for goals */
-      const frequency = inputParameters.frequency?.userValue
-      const dimensionName = inputParameters.group_by?.userValue
+      const frequency = inputParameters.frequency?.userValue as string | null
+      const dimensionName = inputParameters.group_by?.userValue as string | null
       // first date across all datasets
       const firstPlottedDate = initialChartJSDatasets
         .reduce((acc, dataset) => {
@@ -167,7 +167,7 @@ const LineChart: FunctionComponent<LineChartProps> = ({
         // match dimension name
         // the or filter is, as far as I know, the only way to pass a conditionally-written condition
         .or(
-          dimensionName.toLowerCase() === 'null' // input parameters aren't case-sensitive
+          dimensionName?.toLowerCase() === 'null' // input parameters aren't case-sensitive
             ? 'dimension_name.is.null'
             : `dimension_name.eq.${dimensionName}`
         )
