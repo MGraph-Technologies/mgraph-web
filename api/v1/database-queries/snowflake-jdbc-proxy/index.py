@@ -22,7 +22,7 @@ if not jpype.isJVMStarted():
     if not os.path.exists(jvm_path):
       print('Building macOS jvm')
       dev_zip = 'jre_macOS-AArch64.zip'
-      os.system(f'curl -O https://foijfafafqxtuwqjshcu.supabase.co/storage/v1/object/public/public/{dev_zip}')
+      os.system(f'curl -O https://qfajvvqhnbvjgvgesooj.supabase.co/storage/v1/object/public/public/{dev_zip}')
       with zipfile.ZipFile(dev_zip, 'r') as zip_ref:
         zip_ref.extractall(endpoint_path)
     else:
