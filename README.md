@@ -1,7 +1,5 @@
 # MGraph Web
 
-![MGraph Logo](https://qfajvvqhnbvjgvgesooj.supabase.co/storage/v1/object/public/public/brand/mgraph-logo-light.svg)
-
 MGraph is a single dashboard for your entire organization, encompassing metrics, goals, and work. With it, you can:
 
 - Define and visualize metrics and the relationships between them
