@@ -11,7 +11,7 @@ Metrics can be sourced directly from a data warehouse, from dbt metrics, or from
 
 Here's a lil' video runthrough:
 
-[![MGraph Demo Video](https://i.imgur.com/McUwPbg.png)](https://www.youtube.com/watch?v=kTi3DPXQVtw)
+[![MGraph Demo Video](https://i.imgur.com/McUwPbg.png)](https://www.loom.com/share/1a99b2a81d224dccac808be8db69aea4)
 
 MGraph currently supports Google auth and Snowflake data warehouses.
 
